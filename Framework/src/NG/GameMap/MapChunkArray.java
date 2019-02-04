@@ -2,6 +2,8 @@ package NG.GameMap;
 
 import NG.Rendering.MatrixStack.SGL;
 
+import java.util.Random;
+
 import static NG.Settings.Settings.TILE_SIZE;
 
 /**
@@ -10,19 +12,22 @@ import static NG.Settings.Settings.TILE_SIZE;
 public class MapChunkArray implements MapChunk {
     private final MapTileInstance[][] tiles;
     private final int size;
+    private final Random random;
 
-    public MapChunkArray(int size) {
+    public MapChunkArray(int size, int randomSeed) {
         this.size = size;
         this.tiles = new MapTileInstance[size][size];
+        random = new Random(randomSeed);
     }
 
-    public MapChunkArray(int size, int[][] heightmap, int fromX, int fromY) {
+    public MapChunkArray(int size, int[][] heightmap, int fromX, int fromY, int randomSeed) {
         this.size = size;
         this.tiles = new MapTileInstance[size][];
+        random = new Random(randomSeed);
 
         for (int cx = 0; cx < size; cx++) {
             int hx = fromX + cx;
-            if (hx == heightmap.length - 1) break;
+            if (hx >= heightmap.length - 1) break;
 
             int[] xHeight = heightmap[hx]; // can be optimized further
             int[] x2Height = heightmap[hx + 1];
@@ -30,9 +35,9 @@ public class MapChunkArray implements MapChunk {
 
             for (int cy = 0; cy < size; cy++) {
                 int hy = fromY + cy;
-                if (hy == xHeight.length - 1) break;
+                if (hy >= xHeight.length - 1) break;
 
-                strip[cy] = MapTile.getRandomOf(xHeight[hy], x2Height[hy], xHeight[hy + 1], x2Height[hy + 1]);
+                strip[cy] = MapTile.getRandomOf(random, x2Height[hy + 1], xHeight[hy + 1], xHeight[hy], x2Height[hy]);
             }
             tiles[cx] = strip;
         }

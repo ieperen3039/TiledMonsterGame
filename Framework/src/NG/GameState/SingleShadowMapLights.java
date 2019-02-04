@@ -86,20 +86,20 @@ public class SingleShadowMapLights implements GameLights {
             shadowMapIsDirty = true;
 
         } else if (Math.abs(viewDist - lightDist) > UPDATE_MARGIN) {
-            float lightCubeSize = 10 + 2 * viewDist + UPDATE_MARGIN;
+            float lightCubeSize = 10 + 3 * viewDist + UPDATE_MARGIN;
             sunLight.setLightSize(lightCubeSize);
 
             shadowMapIsDirty = true;
             lightDist = viewDist;
         }
 
-        if (sunLight.getDynamicShadowMap().getResolution() > 0) {
+        if (sunLight.doShadowMapping(false) || sunLight.doShadowMapping(true)) {
             // shadow render
             shadowShader.bind();
             {
                 shadowShader.initialize(game);
 
-                if (shadowMapIsDirty) {
+                if (sunLight.doShadowMapping(false) && shadowMapIsDirty) {
                     DepthShader.DepthGL gl = shadowShader.getGL(false);
                     shadowShader.setDirectionalLight(sunLight);
                     game.map().draw(gl);
@@ -107,13 +107,15 @@ public class SingleShadowMapLights implements GameLights {
                     gl.cleanup();
                 }
 
-                glCullFace(GL_FRONT);
-                DepthShader.DepthGL gl = shadowShader.getGL(true);
-                shadowShader.setDirectionalLight(sunLight);
-                game.state().drawEntities(gl);
-                glCullFace(GL_BACK);
+                if (sunLight.doShadowMapping(true)) {
+                    glCullFace(GL_FRONT);
+                    DepthShader.DepthGL gl = shadowShader.getGL(true);
+                    shadowShader.setDirectionalLight(sunLight);
+                    game.state().drawEntities(gl);
+                    glCullFace(GL_BACK);
 
-                gl.cleanup();
+                    gl.cleanup();
+                }
             }
             shadowShader.unbind();
 

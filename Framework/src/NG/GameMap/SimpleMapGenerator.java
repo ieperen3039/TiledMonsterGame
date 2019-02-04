@@ -1,8 +1,7 @@
-package NG.Mods;
+package NG.GameMap;
 
 import NG.Engine.Game;
 import NG.Engine.Version;
-import NG.GameMap.MapGeneratorMod;
 import NG.Tools.Toolbox;
 import org.joml.SimplexNoise;
 
@@ -11,6 +10,7 @@ import org.joml.SimplexNoise;
  */
 public class SimpleMapGenerator implements MapGeneratorMod {
     private static final float PRIMARY_DENSITY = 0.05f;
+    private static final float AMPLITUDE = 8f;
     private int progress = 0;
     private int seed;
     private int width;
@@ -26,7 +26,7 @@ public class SimpleMapGenerator implements MapGeneratorMod {
         int[][] map = new int[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                map[x][y] = (int) (5 * SimplexNoise.noise(PRIMARY_DENSITY * x, PRIMARY_DENSITY * y));
+                map[x][y] = (int) (AMPLITUDE * SimplexNoise.noise(PRIMARY_DENSITY * x, PRIMARY_DENSITY * y));
             }
         }
         progress = 1;

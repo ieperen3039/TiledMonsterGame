@@ -1,11 +1,9 @@
-package NG.Mods;
+package NG.ScreenOverlay;
 
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.Engine.Version;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
-import NG.ScreenOverlay.NGFonts;
-import NG.ScreenOverlay.ScreenOverlay;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;

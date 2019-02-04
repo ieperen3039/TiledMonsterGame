@@ -15,6 +15,8 @@ import org.joml.Vector3fc;
 import java.util.ArrayList;
 import java.util.List;
 
+import static NG.Settings.Settings.TILE_SIZE_Y;
+
 /**
  * @author Geert van Ieperen created on 3-2-2019.
  */
@@ -47,6 +49,7 @@ public class TileMap implements GameMap {
 
         // height map generation
         int[][] heightmap = mapGenerator.generateHeightMap();
+        int randomSeed = mapGenerator.getMapSeed();
 
         xSize = (heightmap.length / chunkSize) + 1;
         ySize = (heightmap[0].length / chunkSize) + 1;
@@ -58,7 +61,7 @@ public class TileMap implements GameMap {
             for (int my = 0; my < ySize; my++) {
                 int fromY = my * chunkSize;
                 int fromX = mx * chunkSize;
-                MapChunkArray chunk = new MapChunkArray(chunkSize, heightmap, fromX, fromY);
+                MapChunkArray chunk = new MapChunkArray(chunkSize, heightmap, fromX, fromY, randomSeed);
 
                 yStrip[my] = chunk;
             }
@@ -145,6 +148,6 @@ public class TileMap implements GameMap {
         float yFrac = y - iy;
         float x1Lerp = Toolbox.interpolate(getHeightAt(ix, iy), getHeightAt(ix + 1, iy), xFrac);
         float x2Lerp = Toolbox.interpolate(getHeightAt(ix, iy + 1), getHeightAt(ix + 1, iy + 1), xFrac);
-        return Toolbox.interpolate(x1Lerp, x2Lerp, yFrac);
+        return Toolbox.interpolate(x1Lerp, x2Lerp, yFrac) * TILE_SIZE_Y;
     }
 }

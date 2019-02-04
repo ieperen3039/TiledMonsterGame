@@ -85,7 +85,11 @@ public class GLFWWindow implements GameAspect {
         window = getWindow(settings.WINDOW_WIDTH, settings.WINDOW_HEIGHT);
         primaryMonitor = glfwGetPrimaryMonitor();
 
-        setWindowed();
+        if (settings.DEBUG) {
+            setWindowed();
+        } else {
+            setFullScreen();
+        }
 
         if (settings.V_SYNC) {
             // Turn on vSync

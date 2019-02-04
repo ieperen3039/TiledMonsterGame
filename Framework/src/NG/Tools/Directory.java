@@ -16,15 +16,13 @@ public enum Directory {
     meshes("res", "models"),
     fonts("res", "fonts"),
     mods("jar", "Mods"),
-    screenshots("img", "screenshots");
+    screenshots("img", "screenshots"),
+    mapTileModels("res", "mapTiles"),
+    ;
 
     private static final String TARGET_WORKING_DIRECTORY = "MonsterGame";
     private static Path WORKING_DIRECTORY = null;
     private final Path directory; // relative path
-
-    Directory() {
-        this.directory = workDirectory();
-    }
 
     Directory(Path directory) {
         this.directory = directory;

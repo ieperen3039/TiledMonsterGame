@@ -2,6 +2,7 @@ package NG.GameMap;
 
 import NG.Rendering.MatrixStack.SGL;
 
+import static NG.Settings.Settings.TILE_SIZE_Y;
 import static java.lang.Math.PI;
 
 /**
@@ -23,7 +24,7 @@ class MapTileInstance {
     public void draw(SGL gl) {
         gl.pushMatrix();
         {
-            gl.translate(0, 0, height);
+            gl.translate(0, 0, height * TILE_SIZE_Y);
             gl.rotate(rotation * QUARTER, 0, 0, 1);
             gl.render(type.mesh, null);
         }

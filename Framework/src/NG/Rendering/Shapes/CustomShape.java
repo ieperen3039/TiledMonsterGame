@@ -82,7 +82,7 @@ public class CustomShape {
     }
 
     /**
-     * defines a quad that is mirrored over the xz-plane
+     * defines a quad with two vectors that are mirrored over the xz-plane
      * @see CustomShape#addFinalQuad(Vector3fc, Vector3fc, Vector3fc, Vector3fc, Vector3fc)
      */
     public void addQuad(Vector3fc A, Vector3fc B) {

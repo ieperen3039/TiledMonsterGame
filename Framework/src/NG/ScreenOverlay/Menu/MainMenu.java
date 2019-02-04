@@ -7,7 +7,7 @@ import NG.Engine.ModLoader;
 import NG.Entities.Cube;
 import NG.Entities.Entity;
 import NG.GameMap.MapGeneratorMod;
-import NG.Mods.SimpleMapGenerator;
+import NG.GameMap.SimpleMapGenerator;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -59,12 +59,12 @@ public class MainMenu extends SFrame {
     }
 
     private void testWorld() {
-        int xSize = 50;
-        int ySize = 50;
+        int xSize = 16;
+        int ySize = 16;
 
         // random map
         MapGeneratorMod mapGenerator = new SimpleMapGenerator();
-        mapGenerator.setSize(xSize, ySize);
+        mapGenerator.setSize(xSize + 1, ySize + 1);
         game.map().generateNew(mapGenerator);
 
         modLoader.initMods(modLoader.allMods());

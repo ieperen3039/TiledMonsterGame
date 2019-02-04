@@ -3,7 +3,7 @@ package NG.ScreenOverlay.Frames;
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Engine.Version;
-import NG.Mods.BaseLF;
+import NG.ScreenOverlay.BaseLF;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.ScreenOverlay.Frames.Components.SFrame;
 import NG.ScreenOverlay.ScreenOverlay;

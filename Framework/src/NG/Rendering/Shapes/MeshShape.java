@@ -3,30 +3,21 @@ package NG.Rendering.Shapes;
 import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Plane;
-import NG.Tools.Directory;
 import org.joml.Vector3fc;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
 /**
- * A collection of generic shapes
+ * A mesh that is also a shape.
  * @author Geert van Ieperen. Created on 14-9-2018.
  */
-public enum FileShapes implements Mesh, Shape {
-    ARROW("general", "arrow.obj"),
-    ICOSAHEDRON("general", "icosahedron.obj"),
-    INV_CUBE("general", "inverseCube.obj"),
-    CUBE("general", "cube.obj"),
-    TEXTURED_QUAD("general", "quad.obj"),
-    ;
-
+public class MeshShape implements Mesh, Shape {
     private final Mesh mesh;
     private final Shape shape;
 
-    FileShapes(String... path) {
-        Path asPath = Directory.meshes.getPath(path);
-        ShapeParameters pars = new ShapeParameters(asPath, path[path.length - 1]);
+    public MeshShape(Path path) {
+        ShapeParameters pars = new ShapeParameters(path, path.getFileName().toString());
 
         shape = new BasicShape(pars);
 
