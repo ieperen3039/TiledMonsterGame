@@ -1,7 +1,7 @@
 package NG.Rendering.Shaders;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.DataStructures.Material;
+import NG.Rendering.Material;
 
 /**
  * @author Geert van Ieperen created on 1-2-2019.

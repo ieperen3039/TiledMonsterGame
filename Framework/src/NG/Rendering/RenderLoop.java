@@ -6,12 +6,12 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
-import NG.GameState.GameMap;
+import NG.GameMap.GameMap;
+import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
 import NG.Rendering.Shaders.AdvancedSceneShader;
-import NG.Rendering.Shaders.DepthShader;
 import NG.Rendering.Shaders.SceneShader;
 import NG.Rendering.Shaders.TextureShader;
 import NG.Rendering.Shapes.FileShapes;
@@ -36,12 +36,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private final ScreenOverlay overlay;
     private Game game;
     private SceneShader sceneShader;
-    private DepthShader shadowShader;
-    private boolean isFirstRender = true;
-    private GameMap world;
-    private boolean depthMap = true;
-
-    private float timeUntilStaticUpdate = 0;
 
     /**
      * creates a new, paused gameloop
@@ -55,16 +49,13 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     public void init(Game game) throws IOException {
         this.game = game;
         overlay.init(game);
-        game.map().addChangeListener(() -> isFirstRender = true);
 
-        shadowShader = new DepthShader();
         sceneShader = new AdvancedSceneShader();
     }
 
     @Override
     protected void update(float deltaTime) {
         Toolbox.checkGLError();
-        timeUntilStaticUpdate -= deltaTime;
 
         // current time
         game.timer().updateRenderTime();
@@ -74,47 +65,15 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
         GameMap world = game.map();
         GameState entities = game.state();
+        GameLights lights = game.lights();
+
         GLFWWindow window = game.window();
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
         Settings settings = game.settings();
         boolean doIsometric = settings.ISOMETRIC_VIEW;
-        boolean makeShadowShot = false;
 
-        if (settings.SHADOW_RESOLUTION > 0) {
-            // shadow render
-            shadowShader.bind();
-            {
-                shadowShader.initialize(game);
-
-                if (isFirstRender || timeUntilStaticUpdate < 0) {
-                    timeUntilStaticUpdate += 2f;
-
-                    DepthShader.DepthGL gl = shadowShader.getGL(false);
-                    entities.drawLights(gl);
-                    world.draw(gl);
-
-                    isFirstRender = false;
-                    makeShadowShot = true;
-                    gl.cleanup();
-                }
-
-                glCullFace(GL_FRONT);
-                DepthShader.DepthGL gl = shadowShader.getGL(true);
-                entities.drawLights(gl);
-                entities.drawEntities(gl);
-                glCullFace(GL_BACK);
-
-                gl.cleanup();
-            }
-            shadowShader.unbind();
-
-            Toolbox.checkGLError();
-        }
-
-        if (makeShadowShot) {
-            dumpTexture(entities.getStaticShadowMap(), "shadow");
-        }
+        lights.renderShadowMaps();
 
         // scene shader
         sceneShader.bind();
@@ -124,7 +83,8 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             // GL object
             SGL gl = new SceneShaderGL(sceneShader, windowWidth, windowHeight, game.camera(), doIsometric);
 
-            entities.drawLights(gl);
+            // order is important
+            lights.drawLights(gl);
             world.draw(gl);
             entities.drawEntities(gl);
         }

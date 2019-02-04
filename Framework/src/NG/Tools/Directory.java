@@ -18,6 +18,7 @@ public enum Directory {
     mods("jar", "Mods"),
     screenshots("img", "screenshots");
 
+    private static final String TARGET_WORKING_DIRECTORY = "MonsterGame";
     private static Path WORKING_DIRECTORY = null;
     private final Path directory; // relative path
 
@@ -59,13 +60,8 @@ public enum Directory {
     public static Path workDirectory() {
         if (WORKING_DIRECTORY == null) {
             WORKING_DIRECTORY = Paths.get("").toAbsolutePath();
-
-            if (!WORKING_DIRECTORY.endsWith("FreightGame")) {
-                WORKING_DIRECTORY = WORKING_DIRECTORY.getParent();
-            }
-
             // more checks
-            assert WORKING_DIRECTORY.endsWith("FreightGame");
+            assert WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY);
         }
         return WORKING_DIRECTORY;
     }

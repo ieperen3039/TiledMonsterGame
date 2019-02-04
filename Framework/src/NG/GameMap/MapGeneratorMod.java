@@ -1,4 +1,4 @@
-package NG.GameState;
+package NG.GameMap;
 
 import NG.Mods.Mod;
 
@@ -28,4 +28,11 @@ public interface MapGeneratorMod extends Mod {
     void setXSize(int xSize);
 
     void setYSize(int ySize);
+
+    default void setSize(int x, int y) {
+        setXSize(x);
+        setYSize(y);
+    }
+
+    ;
 }

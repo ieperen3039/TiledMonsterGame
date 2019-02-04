@@ -12,6 +12,8 @@ public class Settings {
 
     // game engine settings
     public int TARGET_TPS = 10;
+    public final int CHUNK_SIZE = 16; // number of tiles in a chunk
+    public static final float TILE_SIZE = 2f;
 
     // video settings
     public int TARGET_FPS = 60;
@@ -26,7 +28,8 @@ public class Settings {
     public float CAMERA_ZOOM_SPEED = 0.1f;
     public int MAX_CAMERA_DIST = 1000;
     public float MIN_CAMERA_DIST = 0.5f;
-    public int SHADOW_RESOLUTION = 1024;
+    public int STATIC_SHADOW_RESOLUTION = 2048;
+    public int DYNAMIC_SHADOW_RESOLUTION = 256;
 
     // UI settings
     public static int TOOL_BAR_HEIGHT = 80;

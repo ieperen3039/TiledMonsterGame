@@ -4,18 +4,19 @@ import NG.ActionHandling.KeyMouseCallbacks;
 import NG.ActionHandling.MouseToolCallbacks;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
+import NG.GameMap.GameMap;
+import NG.GameMap.TileMap;
+import NG.GameState.GameLights;
 import NG.GameState.GameLoop;
-import NG.GameState.GameMap;
 import NG.GameState.GameState;
+import NG.GameState.SingleShadowMapLights;
 import NG.Mods.InitialisationMod;
 import NG.Mods.Mod;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.Frames.SFrameManager;
-import NG.ScreenOverlay.Menu.FreightToolBar;
 import NG.ScreenOverlay.Menu.MainMenu;
-import NG.ScreenOverlay.ToolBar;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -45,6 +46,7 @@ public class MonsterGame implements Game, ModLoader {
     private final GLFWWindow window;
     private final MouseToolCallbacks inputHandler;
     private final GUIManager frameManager;
+    private final GameLights gameLights;
     private MainMenu mainMenu;
 
     private List<Mod> allMods;
@@ -71,9 +73,10 @@ public class MonsterGame implements Game, ModLoader {
         window = new GLFWWindow(Settings.GAME_NAME, true);
         renderer = new RenderLoop(settings.TARGET_FPS);
         gameState = new GameLoop(Settings.GAME_NAME, settings.TARGET_TPS);
-        gameMap = null;
+        gameMap = new TileMap(settings.CHUNK_SIZE);
         inputHandler = new MouseToolCallbacks();
         frameManager = new SFrameManager();
+        gameLights = new SingleShadowMapLights();
 
         // load mods
         allMods = JarModReader.loadMods(Directory.mods);
@@ -93,6 +96,7 @@ public class MonsterGame implements Game, ModLoader {
         inputHandler.init(this);
         frameManager.init(this);
         gameMap.init(this);
+        gameLights.init(this);
 
         permanentMods = JarModReader.filterInitialisationMods(allMods, this);
 
@@ -139,8 +143,7 @@ public class MonsterGame implements Game, ModLoader {
     @Override
     public void startGame() {
         mainMenu.setVisible(false);
-        ToolBar toolBar = new FreightToolBar(this, this::stopGame);
-        frameManager.setToolBar(toolBar);
+//        frameManager.setToolBar(toolBar);
         gameState.unPause();
     }
 
@@ -191,6 +194,11 @@ public class MonsterGame implements Game, ModLoader {
     @Override
     public Version getVersionNumber() {
         return GAME_VERSION;
+    }
+
+    @Override
+    public GameLights lights() {
+        return gameLights;
     }
 
     @Override

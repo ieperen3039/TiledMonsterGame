@@ -2,6 +2,8 @@ package NG.ScreenOverlay.Frames;
 
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
+import NG.Engine.Version;
+import NG.Mods.BaseLF;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.ScreenOverlay.Frames.Components.SFrame;
 import NG.ScreenOverlay.ScreenOverlay;
@@ -33,8 +35,10 @@ public class SFrameManager implements GUIManager {
     }
 
     @Override
-    public void init(Game game) {
+    public void init(Game game) throws Version.MisMatchException {
         this.game = game;
+        lookAndFeel = new BaseLF();
+        lookAndFeel.init(game);
     }
 
     @Override

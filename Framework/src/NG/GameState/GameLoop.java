@@ -2,19 +2,12 @@ package NG.GameState;
 
 import NG.ActionHandling.ClickShader;
 import NG.ActionHandling.MouseTools.MouseTool;
-import NG.DataStructures.Generic.Color4f;
 import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
 import NG.Entities.Entity;
-import NG.Rendering.DirectionalLight;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.PointLight;
-import NG.Rendering.Shaders.LightShader;
-import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.Primitives.Collision;
-import NG.Rendering.Textures.Texture;
 import NG.Tools.Toolbox;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.io.DataInput;
@@ -33,11 +26,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class GameLoop extends AbstractGameLoop implements GameState {
     private final List<Entity> entities;
-    private final List<PointLight> lights;
     private final Lock entityWriteLock;
     private final Lock entityReadLock;
 
-    private DirectionalLight sunLight;
     private Deque<Runnable> postUpdateActionQueue;
     private Game game;
 
@@ -45,18 +36,15 @@ public class GameLoop extends AbstractGameLoop implements GameState {
         super("Gameloop " + gameName, targetTps);
 
         this.entities = new ArrayList<>();
-        this.lights = new ArrayList<>();
         this.postUpdateActionQueue = new ConcurrentLinkedDeque<>();
         ReadWriteLock rwl = new ReentrantReadWriteLock(false);
         this.entityWriteLock = rwl.writeLock();
         this.entityReadLock = rwl.readLock();
-        sunLight = new DirectionalLight(Color4f.WHITE, new Vector3f(1, -1, 1), 0.5f);
     }
 
     @Override
     public void init(Game game) throws Exception {
         this.game = game;
-        sunLight.init(game);
     }
 
     /**
@@ -71,18 +59,6 @@ public class GameLoop extends AbstractGameLoop implements GameState {
             entityWriteLock.lock();
             try {
                 entities.add(entity);
-            } finally {
-                entityWriteLock.unlock();
-            }
-        });
-    }
-
-    @Override
-    public void addLight(PointLight light) {
-        defer(() -> {
-            entityWriteLock.lock();
-            try {
-                lights.add(light);
             } finally {
                 entityWriteLock.unlock();
             }
@@ -120,28 +96,6 @@ public class GameLoop extends AbstractGameLoop implements GameState {
         return null;
     }
 
-    @Override
-    public void setDirectionalLight(Vector3fc origin, Color4f color, float intensity) {
-        sunLight.setDirection(origin);
-        sunLight.setColor(color);
-        sunLight.setIntensity(intensity);
-    }
-
-    @Override
-    public void drawLights(SGL gl) {
-        ShaderProgram shader = gl.getShader();
-        if (shader instanceof LightShader) {
-            LightShader lightShader = (LightShader) shader;
-
-            for (PointLight light : lights) {
-                Vector3fc mPosition = gl.getPosition(light.position);
-                lightShader.setPointLight(mPosition, light.color, light.intensity);
-            }
-
-            lightShader.setDirectionalLight(sunLight);
-        }
-    }
-
     /** executes action after a gameloop completes */
     public void defer(Runnable action) {
         // TODO make a 'modifyingDefer'
@@ -175,15 +129,9 @@ public class GameLoop extends AbstractGameLoop implements GameState {
     }
 
     @Override
-    public Texture getStaticShadowMap() {
-        return sunLight.getStaticShadowMap();
-    }
-
-    @Override
     public void cleanup() {
         entityWriteLock.lock();
         entities.clear();
-        lights.clear();
         postUpdateActionQueue.clear();
         entityWriteLock.unlock();
     }

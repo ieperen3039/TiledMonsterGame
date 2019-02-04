@@ -2,7 +2,8 @@ package NG.Engine;
 
 import NG.ActionHandling.KeyMouseCallbacks;
 import NG.Camera.Camera;
-import NG.GameState.GameMap;
+import NG.GameMap.GameMap;
+import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.Rendering.GLFWWindow;
 import NG.ScreenOverlay.Frames.GUIManager;
@@ -31,4 +32,6 @@ public interface Game {
     GUIManager gui();
 
     Version getVersionNumber();
+
+    GameLights lights();
 }

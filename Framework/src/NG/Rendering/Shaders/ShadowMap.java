@@ -25,7 +25,7 @@ public class ShadowMap implements Texture {
         depthMap = glGenTextures();
     }
 
-    public void init() throws Exception {
+    public void init() throws ShaderException {
         // Create depth map texture
         glBindTexture(GL_TEXTURE_2D, depthMap);
         glTexImage2D(
@@ -47,7 +47,7 @@ public class ShadowMap implements Texture {
 
         // Error Check
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            throw new Exception("ShadowMap could not create FrameBuffer");
+            throw new ShaderException("ShadowMap could not create FrameBuffer");
         }
 
         // Unbind Depth Map and FBO

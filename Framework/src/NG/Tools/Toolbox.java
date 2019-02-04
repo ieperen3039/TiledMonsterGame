@@ -1,7 +1,7 @@
 package NG.Tools;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.DataStructures.Material;
+import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;

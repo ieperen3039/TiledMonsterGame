@@ -2,6 +2,7 @@ package NG.ScreenOverlay.Frames.Components;
 
 import NG.ScreenOverlay.Frames.LayoutManagers.GridLayoutManager;
 import NG.ScreenOverlay.Frames.LayoutManagers.SLayoutManager;
+import NG.ScreenOverlay.Frames.LayoutManagers.SingleElementLayout;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -53,7 +54,7 @@ public class SPanel extends SContainer {
     public SPanel(
             int minimumWidth, int minimumHeight, int cols, int rows, boolean growHorizontal, boolean growVertical
     ) {
-        this(minimumWidth, minimumHeight, new GridLayoutManager(cols, rows), growHorizontal, growVertical);
+        this(minimumWidth, minimumHeight, (cols * rows > 0 ? new GridLayoutManager(cols, rows) : new SingleElementLayout()), growHorizontal, growVertical);
     }
 
     /**
@@ -67,8 +68,16 @@ public class SPanel extends SContainer {
 
     /**
      * creates a panel that uses a default GridLayout of 3x3 and with minimum size of (0, 0) and a no-growth policy.
-     * Objects should be located using one of {@link #NORTH}, {@link #EAST}, {@link #SOUTH}, {@link #WEST}, {@link
-     * #NORTHEAST}, {@link #SOUTHEAST}, {@link #MORTHWEST}, {@link #SOUTHWEST}, {@link #MIDDLE}
+     * Objects should be located using one of
+     * {@link #NORTH},
+     * {@link #EAST},
+     * {@link #SOUTH},
+     * {@link #WEST},
+     * {@link #NORTHEAST},
+     * {@link #SOUTHEAST},
+     * {@link #MORTHWEST},
+     * {@link #SOUTHWEST},
+     * {@link #MIDDLE}
      */
     public SPanel() {
         super(new GridLayoutManager(3, 3), false, false);

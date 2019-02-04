@@ -6,7 +6,8 @@ import NG.Engine.Game;
 import NG.Engine.ModLoader;
 import NG.Entities.Cube;
 import NG.Entities.Entity;
-import NG.GameState.MapGeneratorMod;
+import NG.GameMap.MapGeneratorMod;
+import NG.Mods.SimpleMapGenerator;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -58,17 +59,12 @@ public class MainMenu extends SFrame {
     }
 
     private void testWorld() {
-        int xSize = 200;
-        int ySize = 200;
+        int xSize = 50;
+        int ySize = 50;
 
         // random map
-        MapGeneratorMod mapGenerator = modLoader.allMods().stream()
-                .filter(m -> m instanceof MapGeneratorMod)
-                .findAny() // any generator
-                .map(m -> (MapGeneratorMod) m)
-                .orElseThrow();
-        mapGenerator.setXSize(xSize);
-        mapGenerator.setYSize(ySize);
+        MapGeneratorMod mapGenerator = new SimpleMapGenerator();
+        mapGenerator.setSize(xSize, ySize);
         game.map().generateNew(mapGenerator);
 
         modLoader.initMods(modLoader.allMods());
@@ -83,7 +79,7 @@ public class MainMenu extends SFrame {
         Entity cube = new Cube(pos);
         game.state().addEntity(cube);
 
-        game.state().setDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
+        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         // start
         modLoader.startGame();
@@ -111,7 +107,7 @@ public class MainMenu extends SFrame {
         Vector3f cameraEye = new Vector3f(cbrtc, cbrtc, cbrtc).mul(spacing).add(10, 10, 10);
         cam.set(Vectors.zeroVector(), cameraEye);
 
-        game.state().setDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
+        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         modLoader.startGame();
         newGameFrame.setVisible(false);

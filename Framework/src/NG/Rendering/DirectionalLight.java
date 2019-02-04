@@ -6,10 +6,9 @@
 package NG.Rendering;
 
 
-import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
-import NG.Engine.GameAspect;
+import NG.Rendering.Shaders.ShaderException;
 import NG.Rendering.Shaders.ShadowMap;
 import NG.Tools.Vectors;
 import org.joml.Matrix4f;
@@ -21,8 +20,7 @@ import org.joml.Vector3fc;
  * @author Dungeons-and-Drawings group
  * @author Geert van Ieperen
  */
-public class DirectionalLight implements GameAspect {
-    private static final int UPDATE_MARGIN = 10;
+public class DirectionalLight {
     private static final float LIGHT_Z_NEAR = 0.5f;
     private Color4f color;
     private Vector3fc direction;
@@ -36,27 +34,22 @@ public class DirectionalLight implements GameAspect {
     private boolean doShadowMapping;
     private static final float LIGHT_SIZE = 100.0f;
     private float lightCubeSize;
-    private Game game;
     private Vector3fc lightFocus = new Vector3f();
-    private float lightDist = 1;
 
-    public DirectionalLight(
-            Color4f color, Vector3fc direction, float intensity
-    ) {
+    public DirectionalLight(Color4f color, Vector3fc direction, float intensity) {
         this.color = color;
         this.direction = new Vector3f(direction);
         this.intensity = intensity;
     }
 
-    @Override
-    public void init(Game game) throws Exception {
-        int resolution = game.settings().SHADOW_RESOLUTION;
-        doShadowMapping = resolution > 0;
-        this.game = game;
+    public void init(Game game) throws ShaderException {
+        int stRes = game.settings().STATIC_SHADOW_RESOLUTION;
+        int dyRes = game.settings().DYNAMIC_SHADOW_RESOLUTION;
+        doShadowMapping = stRes > 0 && dyRes > 0;
 
         if (doShadowMapping) {
-            staticShadowMap = new ShadowMap(resolution);
-            dynamicShadowMap = new ShadowMap(resolution);
+            staticShadowMap = new ShadowMap(stRes);
+            dynamicShadowMap = new ShadowMap(dyRes);
             staticShadowMap.init();
             dynamicShadowMap.init();
         }
@@ -64,13 +57,13 @@ public class DirectionalLight implements GameAspect {
         setLightSize(LIGHT_SIZE);
     }
 
-    private void setLightSize(float lightSize) {
+    public void setLightSize(float lightSize) {
         lightCubeSize = lightSize;
 
         float zFar = LIGHT_Z_NEAR + lightSize * 2;
         ortho.setOrtho(-lightSize, lightSize, -lightSize, lightSize, LIGHT_Z_NEAR, zFar);
 
-        lightSpaceMatrix = getLightSpace();
+        lightSpaceMatrix = recalculateLightSpace();
     }
 
     public Vector3fc getDirection() {
@@ -80,17 +73,18 @@ public class DirectionalLight implements GameAspect {
     public void setDirection(Vector3fc direction) {
         this.direction = direction;
 
-        lightSpaceMatrix = getLightSpace();
+        lightSpaceMatrix = recalculateLightSpace();
     }
 
-    private Matrix4f getLightSpace() {
+    private Matrix4f recalculateLightSpace() {
+        if (!doShadowMapping) return lightSpaceMatrix;
+
         Vector3f vecToLight = new Vector3f(direction);
         vecToLight.normalize(lightCubeSize + LIGHT_Z_NEAR);
 
-        Vector3fc playerFocus = game.camera().getFocus();
-        vecToLight.add(playerFocus);
+        vecToLight.add(lightFocus);
 
-        Matrix4f lightView = new Matrix4f().setLookAt(vecToLight, playerFocus, Vectors.zVector());
+        Matrix4f lightView = new Matrix4f().setLookAt(vecToLight, lightFocus, Vectors.zVector());
 
         return new Matrix4f(ortho).mul(lightView);
     }
@@ -104,23 +98,6 @@ public class DirectionalLight implements GameAspect {
     }
 
     public Matrix4f getLightSpaceMatrix() {
-        Camera camera = game.camera();
-        Vector3fc playerFocus = camera.getFocus();
-        float viewDist = camera.vectorToFocus().length();
-
-        if (playerFocus.distanceSquared(lightFocus) > UPDATE_MARGIN * UPDATE_MARGIN) {
-            lightFocus = new Vector3f(playerFocus);
-            lightDist = viewDist;
-            lightSpaceMatrix = getLightSpace();
-
-        } else if (Math.abs(viewDist - lightDist) > UPDATE_MARGIN) {
-            lightFocus = new Vector3f(playerFocus);
-            lightDist = viewDist;
-
-            float lightCubeSize = 10 + 2 * viewDist + UPDATE_MARGIN;
-            setLightSize(lightCubeSize);
-        }
-
         return lightSpaceMatrix;
     }
 
@@ -150,5 +127,14 @@ public class DirectionalLight implements GameAspect {
 
     public boolean doShadowMapping() {
         return doShadowMapping;
+    }
+
+    public Vector3fc getLightFocus() {
+        return lightFocus;
+    }
+
+    public void setLightFocus(Vector3fc lightFocus) {
+        this.lightFocus = lightFocus;
+        lightSpaceMatrix = recalculateLightSpace();
     }
 }

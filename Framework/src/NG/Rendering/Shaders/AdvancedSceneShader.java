@@ -66,7 +66,7 @@ public class AdvancedSceneShader extends SceneShader implements TextureShader {
         setUniform("ambientLight", game.settings().AMBIENT_LIGHT.toVector3f());
         setUniform("cameraPosition", eye);
         setUniform("specularPower", SPECULAR_POWER);
-        setUniform("directionalLight.shadowEnable", game.settings().SHADOW_RESOLUTION > 0);
+        setUniform("directionalLight.shadowEnable", game.settings().STATIC_SHADOW_RESOLUTION > 0);
 
         setUniform("hasTexture", false);
         setUniform("hasColor", false);

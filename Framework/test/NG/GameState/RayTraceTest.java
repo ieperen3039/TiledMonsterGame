@@ -4,6 +4,7 @@ import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Engine.MonsterGame;
 import NG.Entities.Entity;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Tools.Logger;
@@ -19,7 +20,7 @@ import static org.junit.Assert.assertTrue;
  * @author Geert van Ieperen. Created on 2-12-2018.
  */
 public class RayTraceTest {
-    private HeightMap instance;
+    private GameMap instance;
     private Game game;
 
     @Before
@@ -27,7 +28,7 @@ public class RayTraceTest {
         game = new MonsterGame();
         game.window().init(game);
         game.camera().init(game);
-        instance = (HeightMap) game.map();
+        instance = game.map();
         instance.init(game);
         game.camera().set(new Vector3f(0, 0, 0), new Vector3f(-10, -10, 10));
     }

@@ -1,14 +1,14 @@
-package NG.GameState;
+package NG.GameMap;
 
 import NG.ActionHandling.MouseTools.MouseToolListener;
 import NG.Engine.GameAspect;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Tools.Toolbox;
 import org.joml.*;
 
 /**
  * An object that represents the world where all other entities stand on. This includes both the graphical and the
- * physical representation.
+ * physical representation. The map considers a difference between coordinates and position, in that a coordinate may be
+ * of different magnitude than an equivalent position.
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
 public interface GameMap extends GameAspect, MouseToolListener {
@@ -27,20 +27,12 @@ public interface GameMap extends GameAspect, MouseToolListener {
     }
 
     /**
-     * @param x an exact x position on the map
-     * @param y an exact y position on the map
-     * @return the height at position (x, y) on the map
+     * calculates the height of a given real position
+     * @param x the x position
+     * @param y the y position
+     * @return the height at that position.
      */
-    default float getHeightAt(float x, float y) {
-        int ix = (int) x;
-        int iy = (int) y;
-
-        float xFrac = x - ix;
-        float yFrac = y - iy;
-        float x1Lerp = Toolbox.interpolate(getHeightAt(ix, iy), getHeightAt(ix + 1, iy), xFrac);
-        float x2Lerp = Toolbox.interpolate(getHeightAt(ix, iy + 1), getHeightAt(ix + 1, iy + 1), xFrac);
-        return Toolbox.interpolate(x1Lerp, x2Lerp, yFrac);
-    }
+    float getHeightAt(float x, float y);
 
     /**
      * <p>{@code \result.x == mapCoord.x && result.y == mapCoord.y && result.z = getHeightAt(mapCoord)}</p>
@@ -66,16 +58,14 @@ public interface GameMap extends GameAspect, MouseToolListener {
     /**
      * maps a 2D map coordinate to a 3D position. Returns a vector with z == 0 if no map is loaded.
      * <p>{@code \result.x == mapCoord.x && result.y == mapCoord.y}</p>
-     * @param mapCoord a 2D map coordinate
-     * @return the 2D coordinate mapped to the surface of the inital map.
+     * @param mapCoord a position on the map
+     * @return the 2D coordinate mapped to the surface of the game map.
      */
     default Vector3f getPosition(Vector2fc mapCoord) {
-        float yLerp = getHeightAt(mapCoord.x(), mapCoord.y());
-
         return new Vector3f(
                 mapCoord.x(),
                 mapCoord.y(),
-                yLerp
+                getHeightAt(mapCoord.x(), mapCoord.y())
         );
     }
 

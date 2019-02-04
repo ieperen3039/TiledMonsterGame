@@ -52,7 +52,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         this.current = initial;
         this.minHeight = minHeight;
         this.minWidth = minWidth;
-        this.optionPane = new DropDownOptions();
+        this.optionPane = new DropDownOptions(values);
     }
 
     /**
@@ -89,7 +89,6 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         this.game = game;
         this.minHeight = minHeight;
         this.minWidth = minWidth;
-        this.optionPane = new DropDownOptions();
         this.current = initial;
 
         String[] arr = new String[values.length];
@@ -98,6 +97,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         }
 
         this.values = arr;
+        this.optionPane = new DropDownOptions(arr);
     }
 
     /** @return the index of the currently selected item in the original array */
@@ -107,7 +107,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
     /** @return the currently selected item */
     public String getSelected() {
-        return values[current];
+        return values.length == 0 ? null : values[current];
     }
 
     /** hints the layout manager the minimum size of this component */
@@ -182,7 +182,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
     private class DropDownOptions extends SPanel implements MouseRelativeClickListener {
 
-        private DropDownOptions() {
+        private DropDownOptions(String[] values) {
             super(1, values.length);
             setVisible(false);
 
