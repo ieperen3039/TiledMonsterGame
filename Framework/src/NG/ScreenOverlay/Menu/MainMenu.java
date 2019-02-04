@@ -9,6 +9,7 @@ import NG.Entities.Entity;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.ScreenOverlay.Frames.Components.*;
+import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -59,11 +60,12 @@ public class MainMenu extends SFrame {
     }
 
     private void testWorld() {
-        int xSize = 16;
-        int ySize = 16;
+        int xSize = game.settings().CHUNK_SIZE;
+        int ySize = game.settings().CHUNK_SIZE;
 
         // random map
-        MapGeneratorMod mapGenerator = new SimpleMapGenerator();
+        int seed = Math.abs(Toolbox.random.nextInt());
+        MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
         mapGenerator.setSize(xSize + 1, ySize + 1);
         game.map().generateNew(mapGenerator);
 

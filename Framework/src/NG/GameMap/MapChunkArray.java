@@ -27,7 +27,6 @@ public class MapChunkArray implements MapChunk {
 
         for (int cx = 0; cx < size; cx++) {
             int hx = fromX + cx;
-            if (hx >= heightmap.length - 1) break;
 
             int[] xHeight = heightmap[hx]; // can be optimized further
             int[] x2Height = heightmap[hx + 1];
@@ -35,7 +34,6 @@ public class MapChunkArray implements MapChunk {
 
             for (int cy = 0; cy < size; cy++) {
                 int hy = fromY + cy;
-                if (hy >= xHeight.length - 1) break;
 
                 strip[cy] = MapTile.getRandomOf(random, x2Height[hy + 1], xHeight[hy + 1], xHeight[hy], x2Height[hy]);
             }
@@ -57,7 +55,9 @@ public class MapChunkArray implements MapChunk {
 
     @Override
     public int getHeightAt(int x, int y) {
-        return tiles[x][y].height;
+        if (x < 0 || y < 0 || x >= size || y >= size) return 0;
+        MapTileInstance tile = tiles[x][y];
+        return tile.height;
     }
 
     @Override
@@ -65,12 +65,12 @@ public class MapChunkArray implements MapChunk {
         int x = 0;
         while (x < size) {
             MapTileInstance[] strip = tiles[x];
-            if (strip == null) break;
+//            if (strip == null) break;
 
             int y = 0;
             while (y < size) {
                 MapTileInstance tile = strip[y];
-                if (tile == null) break;
+//                if (tile == null) break;
 
                 tile.draw(gl);
                 gl.translate(0, TILE_SIZE, 0);

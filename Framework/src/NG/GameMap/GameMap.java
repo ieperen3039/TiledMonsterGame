@@ -20,7 +20,8 @@ public interface GameMap extends GameAspect, MouseToolListener {
 
     /**
      * @param position a position in (x, y) coordinates
-     * @return the height of the ground above z=0 on that position, such that vector (x, y, z) lies on the map
+     * @return the height h of the ground above z=0 on that position, such that vector (x, y, h) lies on the surface of
+     * the map, or 0 when the coordinate is out of bounds
      */
     default int getHeightAt(Vector2ic position) {
         return getHeightAt(position.x(), position.y());
@@ -30,7 +31,7 @@ public interface GameMap extends GameAspect, MouseToolListener {
      * calculates the height of a given real position
      * @param x the x position
      * @param y the y position
-     * @return the height at that position.
+     * @return the height at the given position, or 0 when it is out of bounds.
      */
     float getHeightAt(float x, float y);
 

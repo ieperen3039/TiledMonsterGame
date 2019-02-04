@@ -3,6 +3,7 @@ package NG.Camera;
 import NG.ActionHandling.KeyPressListener;
 import NG.ActionHandling.KeyReleaseListener;
 import NG.ActionHandling.MousePositionListener;
+import NG.DataStructures.Tracked.ExponentialSmoothFloat;
 import NG.Engine.Game;
 import NG.Settings.KeyBinding;
 import NG.Settings.Settings;
@@ -21,8 +22,11 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     private static final float SCROLL_SPEED = 0.02f;
     private static final float SCROLL_SPEED_LIMIT = 0.05f;
     private static final float ROTATION_MODIFIER = 1f;
+    private static final float HEIGHT_GAIN = 0.95f;
     private final Vector3f focus = new Vector3f();
+    private final ExponentialSmoothFloat height = new ExponentialSmoothFloat(0f, 1 - HEIGHT_GAIN);
     private final Vector3f eyeOffset;
+
     private Game game;
     private int mouseXPos;
     private int mouseYPos;
@@ -80,6 +84,10 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
             }
         }
 
+        float tgtHeight = game.map().getHeightAt(focus.x, focus.y);
+        height.updateFluent(tgtHeight, deltaTime);
+        focus.z = height.current();
+
         if (cameraRotation != NOT) {
             float angle = deltaTime * ROTATION_MODIFIER;
             if (cameraRotation == RIGHT) angle = -angle;
@@ -105,6 +113,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     @Override
     public void set(Vector3fc focus, Vector3fc eye) {
         this.focus.set(focus);
+        this.height.update(focus.z());
         Vector3f offset = new Vector3f(eye).sub(focus);
         this.eyeOffset.set(offset);
     }

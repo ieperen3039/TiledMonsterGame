@@ -16,7 +16,7 @@ class MapTileInstance {
     public final MapTile type;
 
     MapTileInstance(int height, int rotation, MapTile type) {
-        this.height = (byte) height;
+        this.height = (byte) (height + type.baseHeight);
         this.rotation = (byte) rotation;
         this.type = type;
     }
@@ -24,7 +24,7 @@ class MapTileInstance {
     public void draw(SGL gl) {
         gl.pushMatrix();
         {
-            gl.translate(0, 0, height * TILE_SIZE_Y);
+            gl.translate(0, 0, (height - type.baseHeight) * TILE_SIZE_Y);
             gl.rotate(rotation * QUARTER, 0, 0, 1);
             gl.render(type.mesh, null);
         }

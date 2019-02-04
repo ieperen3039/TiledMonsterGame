@@ -51,8 +51,8 @@ public class TileMap implements GameMap {
         int[][] heightmap = mapGenerator.generateHeightMap();
         int randomSeed = mapGenerator.getMapSeed();
 
-        xSize = (heightmap.length / chunkSize) + 1;
-        ySize = (heightmap[0].length / chunkSize) + 1;
+        xSize = (heightmap.length - 1) / chunkSize;
+        ySize = (heightmap[0].length - 1) / chunkSize;
 
         map = new MapChunk[xSize][];
         for (int mx = 0; mx < xSize; mx++) {

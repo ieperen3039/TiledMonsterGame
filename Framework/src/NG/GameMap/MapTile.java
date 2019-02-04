@@ -13,46 +13,47 @@ import java.util.*;
  * @author Geert van Ieperen created on 3-2-2019.
  */
 public enum MapTile {
-    PLAIN00("plain0000.obj", 0, 0, 0, 0, Properties.NONE),
-    PLAIN01("plain0011.obj", 0, 0, 1, 1, Properties.NONE),
-    PLAIN02("plain0023.obj", 0, 0, 2, 3, Properties.NONE),
-    PLAIN03("plain0113.obj", 0, 1, 1, 3, Properties.NONE),
-    PLAIN04("plain0222.obj", 0, 2, 2, 2, Properties.NONE),
-    PLAIN05("plain0001.obj", 0, 0, 0, 1, Properties.NONE),
-    PLAIN06("plain0012.obj", 0, 0, 1, 2, Properties.NONE),
-    PLAIN07("plain0033.obj", 0, 0, 3, 3, Properties.NONE),
-    PLAIN08("plain0122.obj", 0, 1, 2, 2, Properties.NONE),
-    PLAIN09("plain0223.obj", 0, 2, 2, 3, Properties.NONE),
-    PLAIN10("plain0002.obj", 0, 0, 0, 2, Properties.NONE),
-    PLAIN11("plain0013.obj", 0, 0, 1, 3, Properties.NONE),
-    PLAIN12("plain0111.obj", 0, 1, 1, 1, Properties.NONE),
-    PLAIN13("plain0123.obj", 0, 1, 2, 3, Properties.NONE),
-    PLAIN14("plain0233.obj", 0, 2, 3, 3, Properties.NONE),
-    PLAIN15("plain0003.obj", 0, 0, 0, 3, Properties.NONE),
-    PLAIN16("plain0022.obj", 0, 0, 2, 2, Properties.NONE),
-    PLAIN17("plain0112.obj", 0, 1, 1, 2, Properties.NONE),
-    PLAIN18("plain0133.obj", 0, 1, 3, 3, Properties.NONE),
-    PLAIN19("plain0333.obj", 0, 3, 3, 3, Properties.NONE),
-    PLAIN20("plain0131.obj", 0, 1, 3, 1, Properties.NONE),
-    PLAIN21("plain0032.obj", 0, 0, 3, 2, Properties.NONE),
-    PLAIN22("plain0322.obj", 0, 3, 2, 2, Properties.NONE),
-    PLAIN23("plain0132.obj", 0, 1, 3, 2, Properties.NONE),
-    PLAIN24("plain0231.obj", 0, 2, 3, 1, Properties.NONE),
-    PLAIN25("plain0323.obj", 0, 3, 2, 3, Properties.NONE),
-    PLAIN26("plain0232.obj", 0, 2, 3, 2, Properties.NONE),
-    PLAIN27("plain0331.obj", 0, 3, 3, 1, Properties.NONE),
-    PLAIN28("plain0211.obj", 0, 2, 1, 1, Properties.NONE),
-    PLAIN29("plain0332.obj", 0, 3, 3, 2, Properties.NONE),
-    PLAIN30("plain0212.obj", 0, 2, 1, 2, Properties.NONE),
-    PLAIN31("plain0311.obj", 0, 3, 1, 1, Properties.NONE),
-    PLAIN32("plain0121.obj", 0, 1, 2, 1, Properties.NONE),
-    PLAIN33("plain0213.obj", 0, 2, 1, 3, Properties.NONE),
-    PLAIN34("plain0312.obj", 0, 3, 1, 2, Properties.NONE),
-    PLAIN35("plain0221.obj", 0, 2, 2, 1, Properties.NONE),
-    PLAIN36("plain0313.obj", 0, 3, 1, 3, Properties.NONE),
-    PLAIN37("plain0321.obj", 0, 3, 2, 1, Properties.NONE),
-    PLAIN38("plain0021.obj", 0, 0, 2, 1, Properties.NONE),
-    PLAIN39("plain0031.obj", 0, 0, 3, 1, Properties.NONE),
+    PLAIN00("plain0000.obj", 0, 0, 0, 0, Properties.NONE, 2),
+    PLAIN01("plain0011.obj", 0, 0, 1, 1, Properties.NONE, 2),
+    PLAIN02("plain0023.obj", 0, 0, 2, 3, Properties.NONE, 2),
+    PLAIN03("plain0113.obj", 0, 1, 1, 3, Properties.NONE, 2),
+    PLAIN04("plain0222.obj", 0, 2, 2, 2, Properties.NONE, 2),
+    PLAIN05("plain0001.obj", 0, 0, 0, 1, Properties.NONE, 2),
+    PLAIN06("plain0012.obj", 0, 0, 1, 2, Properties.NONE, 2),
+    PLAIN07("plain0033.obj", 0, 0, 3, 3, Properties.NONE, 2),
+    PLAIN08("plain0122.obj", 0, 1, 2, 2, Properties.NONE, 2),
+    PLAIN09("plain0223.obj", 0, 2, 2, 3, Properties.NONE, 2),
+    PLAIN10("plain0002.obj", 0, 0, 0, 2, Properties.NONE, 2),
+    PLAIN11("plain0013.obj", 0, 0, 1, 3, Properties.NONE, 2),
+    PLAIN12("plain0111.obj", 0, 1, 1, 1, Properties.NONE, 2),
+    PLAIN13("plain0123.obj", 0, 1, 2, 3, Properties.NONE, 2),
+    PLAIN14("plain0233.obj", 0, 2, 3, 3, Properties.NONE, 2),
+    PLAIN15("plain0003.obj", 0, 0, 0, 3, Properties.NONE, 2),
+    PLAIN16("plain0022.obj", 0, 0, 2, 2, Properties.NONE, 2),
+    PLAIN17("plain0112.obj", 0, 1, 1, 2, Properties.NONE, 2),
+    PLAIN18("plain0133.obj", 0, 1, 3, 3, Properties.NONE, 2),
+    PLAIN19("plain0333.obj", 0, 3, 3, 3, Properties.NONE, 2),
+    PLAIN20("plain0131.obj", 0, 1, 3, 1, Properties.NONE, 2),
+    PLAIN21("plain0032.obj", 0, 0, 3, 2, Properties.NONE, 2),
+    PLAIN22("plain0322.obj", 0, 3, 2, 2, Properties.NONE, 2),
+    PLAIN23("plain0132.obj", 0, 1, 3, 2, Properties.NONE, 2),
+    PLAIN24("plain0231.obj", 0, 2, 3, 1, Properties.NONE, 2),
+    PLAIN25("plain0323.obj", 0, 3, 2, 3, Properties.NONE, 2),
+    PLAIN26("plain0232.obj", 0, 2, 3, 2, Properties.NONE, 2),
+    PLAIN27("plain0331.obj", 0, 3, 3, 1, Properties.NONE, 2),
+    PLAIN28("plain0211.obj", 0, 2, 1, 1, Properties.NONE, 2),
+    PLAIN29("plain0332.obj", 0, 3, 3, 2, Properties.NONE, 2),
+    PLAIN30("plain0212.obj", 0, 2, 1, 2, Properties.NONE, 2),
+    PLAIN31("plain0311.obj", 0, 3, 1, 1, Properties.NONE, 2),
+    PLAIN32("plain0121.obj", 0, 1, 2, 1, Properties.NONE, 2),
+    PLAIN33("plain0213.obj", 0, 2, 1, 3, Properties.NONE, 2),
+    PLAIN34("plain0312.obj", 0, 3, 1, 2, Properties.NONE, 2),
+    PLAIN35("plain0221.obj", 0, 2, 2, 1, Properties.NONE, 2),
+    PLAIN36("plain0313.obj", 0, 3, 1, 3, Properties.NONE, 2),
+    PLAIN37("plain0321.obj", 0, 3, 2, 1, Properties.NONE, 2),
+    PLAIN38("plain0021.obj", 0, 0, 2, 1, Properties.NONE, 2),
+    PLAIN39("plain0031.obj", 0, 0, 3, 1, Properties.NONE, 2),
+    PLAIN40("plain0242.obj", 0, 2, 4, 2, Properties.NONE, 4),
     ;
 
     private static final HashMap<Integer, List<MapTile>> tileFinder = new HashMap<>();
@@ -60,6 +61,7 @@ public enum MapTile {
     public final RotationFreeFit fit;
     public final Mesh mesh;
     public final EnumSet<Properties> properties;
+    public final int baseHeight; // height of the middle part, the height the user stands on
 
     /**
      * register a new MapTile instance with relative heights as given
@@ -69,11 +71,14 @@ public enum MapTile {
      * @param neg_neg    the relative height of the mesh at (0, 0) [-3, 3]
      * @param neg_pos    the relative height of the mesh at (0, 1) [-3, 3]
      * @param properties the properties of this tile
+     * @param baseHeight the height of the middle of the tile
      */
     MapTile(// pp, pn, nn, np
             String meshPath, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
-            EnumSet<Properties> properties
+            EnumSet<Properties> properties,
+            int baseHeight
     ) {
+        this.baseHeight = baseHeight;
         Path path = Directory.mapTileModels.getPath(meshPath);
         // the order is important
         this.fit = new RotationFreeFit(pos_pos, pos_neg, neg_neg, neg_pos);
@@ -132,9 +137,6 @@ public enum MapTile {
                 }
             }
             id = max;
-
-            // compensate for base tile height
-//            offset += (int) ((a + b + c + d) * 0.25f);
         }
 
         private static void add(int a, int b, int c, int d, int[] candidates) {

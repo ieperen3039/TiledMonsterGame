@@ -27,6 +27,8 @@ public abstract class AbstractMesh implements Mesh {
     private int[] VBOIndices;
 
     public void render(SGL.Painter lock) {
+        if (VAO_ID == 0) return;
+
         glBindVertexArray(VAO_ID);
 
         // enable all non-null attributes
@@ -101,6 +103,8 @@ public abstract class AbstractMesh implements Mesh {
     }
 
     public void dispose() {
+        if (VAO_ID == 0) return;
+
         glDisableVertexAttribArray(0);
         // Delete the VBOs
         glBindBuffer(GL_ARRAY_BUFFER, 0);

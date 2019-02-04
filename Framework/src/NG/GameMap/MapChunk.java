@@ -30,7 +30,7 @@ public interface MapChunk {
      * return the height of the MapTile on the given position
      * @param x the x coordinate
      * @param y the y coordinate
-     * @return the base height / elevation of the tile on the given coordinate
+     * @return the base height / elevation of the tile on the given coordinate, or 0 when the coordinate is out of bounds.
      */
     int getHeightAt(int x, int y);
 

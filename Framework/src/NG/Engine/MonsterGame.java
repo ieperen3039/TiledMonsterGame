@@ -69,7 +69,7 @@ public class MonsterGame implements Game, ModLoader {
         settings = new Settings();
         time = new GameTimer();
 
-        camera = new TycoonFixedCamera(new Vector3f(), 100);
+        camera = new TycoonFixedCamera(new Vector3f(), 10);
         window = new GLFWWindow(Settings.GAME_NAME, true);
         renderer = new RenderLoop(settings.TARGET_FPS);
         gameState = new GameLoop(Settings.GAME_NAME, settings.TARGET_TPS);

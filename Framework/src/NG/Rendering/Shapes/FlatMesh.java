@@ -38,8 +38,9 @@ public class FlatMesh extends AbstractMesh {
             List<? extends Vector3fc> posList, List<? extends Vector3fc> normList, List<Color4f> colorList,
             List<Face> facesList
     ) {
-        int faceSize = facesList.isEmpty() ? 0 : facesList.get(0).size();
+        if (facesList.isEmpty()) return;
 
+        int faceSize = facesList.get(0).size();
         // Create position array in the order it has been declared. faces have (nOfEdges) vertices of 3 indices
         int nrOf3VecElements = facesList.size() * 3 * faceSize;
         setElementCount(nrOf3VecElements);

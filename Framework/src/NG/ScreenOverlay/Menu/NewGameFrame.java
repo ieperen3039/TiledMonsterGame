@@ -8,6 +8,8 @@ import NG.GameMap.SimpleMapGenerator;
 import NG.Mods.Mod;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.Tools.Logger;
+import NG.Tools.Toolbox;
+import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 
@@ -108,10 +110,12 @@ public class NewGameFrame extends SFrame implements Runnable {
         if (selected > 0) {
             generatorMod = generators.get(selected);
         } else {
-            generatorMod = new SimpleMapGenerator();
+            int seed = Math.abs(Toolbox.random.nextInt());
+            generatorMod = new SimpleMapGenerator(seed);
         }
 
         // initialize generator
+        generatorMod.init(game);
         int xSize = Integer.parseInt(xSizeSelector.getSelected());
         int ySize = Integer.parseInt(ySizeSelector.getSelected());
         generatorMod.setXSize(xSize);
@@ -136,7 +140,7 @@ public class NewGameFrame extends SFrame implements Runnable {
         game.map().generateNew(generatorMod);
 
         // set camera to middle of map
-        Vector3f cameraFocus = new Vector3f(xSize / 2f, ySize / 2f, 0);
+        Vector3f cameraFocus = game.map().getPosition(new Vector2f(xSize / 2f, ySize / 2f));
         Vector3f cameraEye = cameraFocus.add(10, 10, 10, new Vector3f());
         game.camera().set(cameraFocus, cameraEye);
 

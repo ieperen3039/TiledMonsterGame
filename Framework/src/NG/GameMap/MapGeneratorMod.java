@@ -1,11 +1,18 @@
 package NG.GameMap;
 
+import NG.Engine.Game;
 import NG.Mods.Mod;
 
 /**
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
 public interface MapGeneratorMod extends Mod {
+
+    @Override
+    default void init(Game game) {
+    }
+
+    ;
 
     /**
      * generate a heightmap which will be used to render the world.

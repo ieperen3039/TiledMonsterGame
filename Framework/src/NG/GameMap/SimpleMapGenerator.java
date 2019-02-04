@@ -1,24 +1,23 @@
 package NG.GameMap;
 
-import NG.Engine.Game;
 import NG.Engine.Version;
-import NG.Tools.Toolbox;
-import org.joml.SimplexNoise;
+import NG.Tools.OpenSimplexNoise;
 
 /**
  * @author Geert van Ieperen. Created on 27-9-2018.
  */
 public class SimpleMapGenerator implements MapGeneratorMod {
     private static final float PRIMARY_DENSITY = 0.05f;
-    private static final float AMPLITUDE = 8f;
+    private static final float AMPLITUDE = 12f;
     private int progress = 0;
     private int seed;
     private int width;
     private int height;
+    private OpenSimplexNoise noiseGenerator;
 
-    @Override
-    public void init(Game game) throws Version.MisMatchException {
-        seed = Math.abs(Toolbox.random.nextInt());
+    public SimpleMapGenerator(int seed) {
+        this.seed = seed;
+        noiseGenerator = new OpenSimplexNoise(seed);
     }
 
     @Override
@@ -26,7 +25,7 @@ public class SimpleMapGenerator implements MapGeneratorMod {
         int[][] map = new int[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                map[x][y] = (int) (AMPLITUDE * SimplexNoise.noise(PRIMARY_DENSITY * x, PRIMARY_DENSITY * y));
+                map[x][y] = (int) (AMPLITUDE * noiseGenerator.eval(PRIMARY_DENSITY * x, PRIMARY_DENSITY * y));
             }
         }
         progress = 1;
@@ -40,7 +39,6 @@ public class SimpleMapGenerator implements MapGeneratorMod {
 
     @Override
     public void cleanup() {
-
     }
 
     @Override

@@ -54,6 +54,7 @@ public interface SGL extends MatrixStack {
 
         if (isometric) {
             float visionSize = camera.vectorToFocus().length() - Settings.Z_NEAR;
+            visionSize /= 4;
             vpMatrix.orthoSymmetric(aspectRatio * visionSize, visionSize, Settings.Z_NEAR, Settings.Z_FAR);
         } else {
             vpMatrix.setPerspective(Settings.FOV, aspectRatio, Settings.Z_NEAR, Settings.Z_FAR);
