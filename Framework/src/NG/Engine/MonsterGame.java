@@ -67,7 +67,7 @@ public class MonsterGame implements Game, ModLoader {
 
         // these two are not GameAspects, and thus the init() rule does not apply.
         settings = new Settings();
-        time = new GameTimer();
+        time = new GameTimer(settings.RENDER_DELAY);
 
         camera = new TycoonFixedCamera(new Vector3f(), 10);
         window = new GLFWWindow(Settings.GAME_NAME, true);

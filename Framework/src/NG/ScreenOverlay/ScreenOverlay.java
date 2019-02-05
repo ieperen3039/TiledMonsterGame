@@ -127,7 +127,7 @@ public final class ScreenOverlay implements GameAspect {
      * @param rollSize     font size of ''
      */
     public void draw(int windowWidth, int windowHeight, int xRoll, int yRoll, int rollSize) {
-        Painter bobRoss = new Painter(windowWidth, windowHeight, (v) -> new Vector2f(), Vectors.zVector(), xRoll, yRoll, rollSize);
+        Painter bobRoss = new Painter(windowWidth, windowHeight, (v) -> new Vector2f(), Vectors.Z, xRoll, yRoll, rollSize);
         draw(windowWidth, windowHeight, bobRoss);
     }
 

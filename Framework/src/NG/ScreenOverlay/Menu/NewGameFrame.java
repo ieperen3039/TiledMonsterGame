@@ -141,7 +141,8 @@ public class NewGameFrame extends SFrame implements Runnable {
 
         // set camera to middle of map
         Vector3f cameraFocus = game.map().getPosition(new Vector2f(xSize / 2f, ySize / 2f));
-        Vector3f cameraEye = cameraFocus.add(10, 10, 10, new Vector3f());
+        float initialZoom = (xSize + ySize) * 0.1f;
+        Vector3f cameraEye = cameraFocus.add(initialZoom, initialZoom, initialZoom);
         game.camera().set(cameraFocus, cameraEye);
 
         // start

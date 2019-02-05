@@ -168,7 +168,7 @@ public abstract class Plane {
      */
     public Vector3fc getMiddle() {
         if (middle == null) {
-            middle = Vectors.zeroVector();
+            middle = Vectors.newZeroVector();
             int i = 0;
             while (i < boundary.length) {
                 middle.add(boundary[i]);

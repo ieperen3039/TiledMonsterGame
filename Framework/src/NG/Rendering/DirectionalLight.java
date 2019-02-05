@@ -86,7 +86,7 @@ public class DirectionalLight {
 
         vecToLight.add(lightFocus);
 
-        Matrix4f lightView = new Matrix4f().setLookAt(vecToLight, lightFocus, Vectors.zVector());
+        Matrix4f lightView = new Matrix4f().setLookAt(vecToLight, lightFocus, Vectors.Z);
 
         return new Matrix4f(ortho).mul(lightView);
     }

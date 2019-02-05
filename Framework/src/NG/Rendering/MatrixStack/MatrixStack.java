@@ -24,7 +24,7 @@ public interface MatrixStack {
         Vector3f sourceToTarget = new Vector3f();
         target.sub(source, sourceToTarget).normalize();
 
-        rotate(new Quaternionf().rotateTo(Vectors.zVector(), sourceToTarget));
+        rotate(new Quaternionf().rotateTo(Vectors.Z, sourceToTarget));
     }
 
     /**

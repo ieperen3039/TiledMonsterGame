@@ -18,16 +18,20 @@ import static java.lang.Float.isNaN;
  */
 public class Vectors {
     private static final float PI = (float) Math.PI;
+    public static final Vector3fc X = newXVector();
+    public static final Vector3fc Y = new Vector3f(0, 1, 0);
+    public static final Vector3fc Z = newZVector();
+    public static final Vector3fc O = newZeroVector();
 
-    public static Vector3f zeroVector() {
+    public static Vector3f newZeroVector() {
         return new Vector3f(0, 0, 0);
     }
 
-    public static Vector3f zVector() {
+    public static Vector3f newZVector() {
         return new Vector3f(0, 0, 1);
     }
 
-    public static Vector3f xVector() {
+    public static Vector3f newXVector() {
         return new Vector3f(1, 0, 0);
     }
 
@@ -284,5 +288,22 @@ public class Vectors {
         Camera camera = game.camera();
         Vector2f winCoords = new Vector2f(xSc, ySc);
         windowCoordToRay(camera, window.getWidth(), window.getHeight(), winCoords, origin, direction, game.settings().ISOMETRIC_VIEW);
+    }
+
+    /**
+     * compute a rotation that rotates positive x to the given direction.
+     * @param targetDirection the direction that the resulting rotation should map X to.
+     * @return a rotation on the z and y axis, such that the vector (1, 0, 0) will point to the {@code targetDirection}
+     */
+    public static Quaternionf getPitchYawRotation(Vector3fc targetDirection) {
+        Quaternionf rot = new Quaternionf();
+        float y = targetDirection.y();
+        float x = targetDirection.x();
+        float xAng = (float) Math.atan2(y, x);
+        rot.rotateZ(xAng);
+        float xComp = x * x + y * y;
+        float zAng = (float) Math.atan2(targetDirection.z(), xComp);
+        rot.rotateY(zAng);
+        return rot;
     }
 }

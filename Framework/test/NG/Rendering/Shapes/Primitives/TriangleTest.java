@@ -17,7 +17,7 @@ public class TriangleTest extends PlaneTest {
         Vector3f a = new Vector3f(-10, 10, 0);
         Vector3f b = new Vector3f(10, -10, 0);
         Vector3f c = new Vector3f(10, 10, 0);
-        instance = new Triangle(a, b, c, Vectors.zVector());
+        instance = new Triangle(a, b, c, Vectors.Z);
     }
 
     @Test

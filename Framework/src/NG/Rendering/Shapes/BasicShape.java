@@ -51,7 +51,7 @@ public class BasicShape implements Shape {
      * @return a list of shapes, each being roughly containersize in size
      */
     public static List<Shape> loadSplit(float containerSize, float scale, Path path, String debugName) {
-        ShapeParameters file = new ShapeParameters(Vectors.zeroVector(), scale, path, debugName);
+        ShapeParameters file = new ShapeParameters(Vectors.O, scale, path, debugName);
         HashMap<Vector3i, CustomShape> world = new HashMap<>();
 
         for (Mesh.Face f : file.faces) {

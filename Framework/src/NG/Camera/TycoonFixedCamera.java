@@ -18,13 +18,13 @@ import static NG.Camera.TycoonFixedCamera.MoveDirection.*;
  * @author Geert van Ieperen. Created on 18-11-2018.
  */
 public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPressListener, KeyReleaseListener {
-    private static final int SCREEN_MOVE_MINIMUM_PIXELS = 50;
-    private static final float SCROLL_SPEED = 0.02f;
-    private static final float SCROLL_SPEED_LIMIT = 0.05f;
+    private static final int SCREEN_MOVE_MINIMUM_PIXELS = 200;
+    private static final float ZOOM_SPEED_LIMIT = 0.03f;
     private static final float ROTATION_MODIFIER = 1f;
-    private static final float HEIGHT_GAIN = 0.95f;
+    private static final float HEIGHT_LEVEL_DELAY = 1e-2f;
+    private static final float MOVE_SPEED = 0.2f;
     private final Vector3f focus = new Vector3f();
-    private final ExponentialSmoothFloat height = new ExponentialSmoothFloat(0f, 1 - HEIGHT_GAIN);
+    private final ExponentialSmoothFloat height = new ExponentialSmoothFloat(0f, HEIGHT_LEVEL_DELAY);
     private final Vector3f eyeOffset;
 
     private Game game;
@@ -43,6 +43,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
         game.inputHandling().addMousePositionListener(this);
         game.inputHandling().addKeyPressListener(this);
         game.inputHandling().addKeyReleaseListener(this);
+//        game.state().addEntity(new Cursor(() -> new Vector3f(focus.x, focus.y, height.current())));
     }
 
     @Override
@@ -107,7 +108,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
 
     @Override
     public Vector3fc getUpVector() {
-        return Vectors.zVector();
+        return Vectors.Z;
     }
 
     @Override
@@ -124,7 +125,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
         float zoomSpeed = s.CAMERA_ZOOM_SPEED;
         int maxZoom = s.MAX_CAMERA_DIST;
 
-        float v = Math.max(Math.min(zoomSpeed * -value, SCROLL_SPEED_LIMIT), -SCROLL_SPEED_LIMIT);
+        float v = Math.max(Math.min(zoomSpeed * -value, ZOOM_SPEED_LIMIT), -ZOOM_SPEED_LIMIT);
         eyeOffset.mul(v + 1f);
         float minZoom = s.MIN_CAMERA_DIST;
 
@@ -153,7 +154,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
      */
     protected float positionToMovement(int pixels) {
         if (pixels >= SCREEN_MOVE_MINIMUM_PIXELS) return 0;
-        return (SCREEN_MOVE_MINIMUM_PIXELS - pixels) * eyeOffset.length() * SCROLL_SPEED;
+        return (SCREEN_MOVE_MINIMUM_PIXELS - pixels) * eyeOffset.length() * MOVE_SPEED * (1f / SCREEN_MOVE_MINIMUM_PIXELS);
     }
 
     @Override

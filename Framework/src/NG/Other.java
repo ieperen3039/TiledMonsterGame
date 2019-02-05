@@ -61,8 +61,8 @@ public class Other {
                     frame.addTriangle(pmt, mmt, mpt);
                     frame.addTriangle(mpt, mmt, nmt);
 
-                    write(frame, String.format("plain%d%d%d%d.obj", pp, pn, nn, np));
-
+//                    write(frame, String.format("plain%d%d%d%d.obj", pp, pn, nn, np));
+                    System.out.println(String.format("%d %d %d %d | %d", pp, pn, nn, np, mid + 2));
                 }
             }
         }

@@ -82,6 +82,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             // GL object
             SGL gl = new SceneShaderGL(sceneShader, windowWidth, windowHeight, game.camera(), doIsometric);
+            Toolbox.drawAxisFrame(gl);
 
             // order is important
             lights.drawLights(gl);
@@ -108,11 +109,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         sceneShader.bind();
         {
             sceneShader.initialize(game);
-            Camera viewpoint = new StaticCamera(new Vector3f(0, 0, 2), Vectors.zeroVector(), Vectors.xVector());
+            Camera viewpoint = new StaticCamera(new Vector3f(0, 0, 2), Vectors.newZeroVector(), Vectors.newXVector());
 
             SGL tgl = new SceneShaderGL(sceneShader, texture.getWidth(), texture.getHeight(), viewpoint, true);
 
-            sceneShader.setPointLight(Vectors.zVector(), Color4f.WHITE, 0.8f);
+            sceneShader.setPointLight(Vectors.Z, Color4f.WHITE, 0.8f);
             ((TextureShader) sceneShader).setTexture(texture);
             tgl.render(FileShapes.TEXTURED_QUAD, null);
             ((TextureShader) sceneShader).unsetTexture();

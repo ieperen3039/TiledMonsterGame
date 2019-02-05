@@ -20,17 +20,18 @@ public class GameTimer {
     protected final TrackedFloat gameTime;
     protected final TrackedFloat renderTime;
     protected boolean isPaused = false;
-    private final float RENDER_DELAY = 0f;
+    private final float renderDelay;
 
-    public GameTimer() {
-        this(0f);
+    public GameTimer(float renderDelay) {
+        this(0f, renderDelay);
     }
 
-    public GameTimer(float startTime) {
-        currentInGameTime = startTime;
-        gameTime = new TrackedFloat(startTime);
-        renderTime = new TrackedFloat(startTime - RENDER_DELAY);
-        lastMark = System.nanoTime();
+    public GameTimer(float startTime, float renderDelay) {
+        this.currentInGameTime = startTime;
+        this.gameTime = new TrackedFloat(startTime);
+        this.renderDelay = renderDelay;
+        this.renderTime = new TrackedFloat(startTime - renderDelay);
+        this.lastMark = System.nanoTime();
     }
 
     public void updateGameTime() {
@@ -40,7 +41,7 @@ public class GameTimer {
 
     public void updateRenderTime() {
         updateTimer();
-        renderTime.update(currentInGameTime - RENDER_DELAY);
+        renderTime.update(currentInGameTime - renderDelay);
     }
 
     public float getGametime() {

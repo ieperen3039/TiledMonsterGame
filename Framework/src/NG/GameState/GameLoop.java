@@ -67,10 +67,15 @@ public class GameLoop extends AbstractGameLoop implements GameState {
 
     /**
      * updates the server state of all objects
+     * @param deltaTime real time difference
      */
     public void update(float deltaTime) {
         runPostUpdateActions();
         runCleaning();
+
+        game.timer().updateGameTime();
+        float gameDT = game.timer().getGametimeDifference();
+        if (gameDT == 0) return;
 
         entities.forEach(Entity::update);
 

@@ -19,7 +19,7 @@ public class QuadTest extends PlaneTest {
         Vector3f b = new Vector3f(10, -10, 0);
         Vector3f c = new Vector3f(10, 10, 0);
         Vector3f d = new Vector3f(-10, 10, 0);
-        instance = new Quad(a, b, c, d, Vectors.zVector());
+        instance = new Quad(a, b, c, d, Vectors.Z);
     }
 
     @Test

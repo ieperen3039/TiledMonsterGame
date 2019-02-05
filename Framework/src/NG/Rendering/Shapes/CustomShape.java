@@ -29,7 +29,7 @@ public class CustomShape {
      * @see #CustomShape(Vector3fc, boolean)
      */
     public CustomShape() {
-        this(Vectors.zeroVector());
+        this(Vectors.O);
     }
 
     /**
@@ -159,7 +159,7 @@ public class CustomShape {
     }
 
     private int addNormal(Vector3fc normal) {
-        if ((normal == null) || normal.equals(Vectors.zeroVector())) {
+        if ((normal == null) || normal.equals(Vectors.O)) {
             throw new IllegalArgumentException("Customshape.addNormal(Vector3fc): invalid normal: " + normal);
         }
 

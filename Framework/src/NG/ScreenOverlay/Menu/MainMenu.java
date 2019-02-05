@@ -8,11 +8,13 @@ import NG.Entities.Cube;
 import NG.Entities.Entity;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
+import NG.MonsterSoul.MonsterSoul;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
 /**
  * @author Geert van Ieperen. Created on 28-9-2018.
@@ -72,16 +74,17 @@ public class MainMenu extends SFrame {
         modLoader.initMods(modLoader.allMods());
 
         // set camera to middle of map
-        Vector3f cameraFocus = new Vector3f(xSize / 2f, ySize / 2f, 0);
+        Vector3f cameraFocus = game.map().getPosition(new Vector2i(xSize / 2, ySize / 2));
         Camera cam = game.camera();
-        Vector3f cameraEye = new Vector3f(cameraFocus).add(-50, -50, 50);
+        int initialZoom = xSize + ySize;
+        Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
         cam.set(cameraFocus, cameraEye);
 
-        Vector3f pos = new Vector3f(cameraFocus).add(0, 0, 20);
-        Entity cube = new Cube(pos);
-        game.state().addEntity(cube);
+        Vector3i position = game.map().getCoordinate(cameraFocus);
+        Entity e = new MonsterSoul().getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
+        game.state().addEntity(e);
 
-        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
+        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);
 
         // start
         modLoader.startGame();
@@ -107,7 +110,7 @@ public class MainMenu extends SFrame {
 
         Camera cam = game.camera();
         Vector3f cameraEye = new Vector3f(cbrtc, cbrtc, cbrtc).mul(spacing).add(10, 10, 10);
-        cam.set(Vectors.zeroVector(), cameraEye);
+        cam.set(Vectors.O, cameraEye);
 
         game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 

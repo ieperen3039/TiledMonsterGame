@@ -57,7 +57,7 @@ public class MapChunkArray implements MapChunk {
     public int getHeightAt(int x, int y) {
         if (x < 0 || y < 0 || x >= size || y >= size) return 0;
         MapTileInstance tile = tiles[x][y];
-        return tile.height;
+        return tile.height + tile.type.baseHeight;
     }
 
     @Override

@@ -20,7 +20,7 @@ public class Collision implements Comparable<Collision> {
     }
 
     public Collision(Vector3fc hitPos) {
-        this(1, Vectors.zVector(), hitPos);
+        this(1, Vectors.Z, hitPos);
     }
 
     /**

@@ -3,19 +3,23 @@ package NG.GameMap;
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.Entities.Entity;
+import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.Shaders.MaterialShader;
+import NG.Rendering.Shaders.ShaderProgram;
 import NG.Settings.Settings;
-import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
-import org.joml.Intersectionf;
-import org.joml.Vector2f;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
+import org.joml.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-import static NG.Settings.Settings.TILE_SIZE_Y;
+import static NG.Settings.Settings.TILE_SIZE;
+import static NG.Settings.Settings.TILE_SIZE_Z;
 
 /**
  * @author Geert van Ieperen created on 3-2-2019.
@@ -29,12 +33,16 @@ public class TileMap implements GameMap {
     private MapChunk[][] map;
 
     private List<ChangeListener> changeListeners;
+    private HashMap<Vector2ic, Entity> claimRegistry;
+    private Lock claimLock;
     private Game game;
 
     public TileMap(int chunkSize) {
         this.chunkSize = chunkSize;
         this.realChunkSize = chunkSize * Settings.TILE_SIZE;
         this.changeListeners = new ArrayList<>();
+        this.claimRegistry = new HashMap<>();
+        this.claimLock = new ReentrantLock(false);
     }
 
     @Override
@@ -82,12 +90,45 @@ public class TileMap implements GameMap {
         MapChunk chunk = map[cx][cy];
 
         return chunk == null ? 0 : chunk.getHeightAt(x - cx, y - cy);
+    }
 
+    @Override
+    public Vector3i getCoordinate(Vector3fc position) {
+        return new Vector3i(
+                (int) (position.x() / TILE_SIZE),
+                (int) (position.y() / TILE_SIZE),
+                (int) (position.z() / TILE_SIZE_Z)
+        );
+    }
+
+    @Override
+    public Vector3f getPosition(int x, int y) {
+        return new Vector3f(
+                (x + 0.5f) * TILE_SIZE, // middle of the tile
+                (y + 0.5f) * TILE_SIZE,
+                getHeightAt(x, y) * TILE_SIZE_Z
+        );
+    }
+
+    @Override
+    public float getHeightAt(float x, float y) {
+        int ix = (int) (x / TILE_SIZE);
+        int iy = (int) (y / TILE_SIZE);
+
+        float avgHeights = getHeightAt(ix, iy);
+
+        return avgHeights * TILE_SIZE_Z;
     }
 
     @Override
     public void draw(SGL gl) {
         if (map == null) return;
+        assert gl.getPosition(new Vector3f()).equals(new Vector3f()) : "gl object not placed at origin";
+
+        ShaderProgram shader = gl.getShader();
+        if (shader instanceof MaterialShader) {
+            ((MaterialShader) shader).setMaterial(Material.ROUGH, new Color4f(85, 153, 0, 1));
+        }
 
         gl.pushMatrix();
         {
@@ -109,8 +150,56 @@ public class TileMap implements GameMap {
     @Override
     public Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction) {
         Vector3f temp = new Vector3f();
-        float t = Intersectionf.intersectRayPlane(origin, direction, Vectors.zeroVector(), Vectors.zVector(), 1E-6f);
+        float t = Intersectionf.intersectRayPlane(origin, direction, Vectors.O, Vectors.Z, 1E-6f);
         return origin.add(direction.mul(t, temp), temp);
+    }
+
+    @Override
+    public boolean createClaim(Vector2ic coordinate, Entity entity) {
+        // check bounds
+        int cx = coordinate.x() / chunkSize;
+        int cy = coordinate.y() / chunkSize;
+        if (cx >= xSize || cx < 0 || cy >= ySize || cy < 0) {
+            return false;
+        }
+
+        // perform claim
+        claimLock.lock();
+        try {
+            boolean isClaimed = claimRegistry.containsKey(coordinate);
+
+            if (!isClaimed) {
+                Vector2i copy = new Vector2i(coordinate);
+                claimRegistry.put(copy, entity);
+                return true;
+            }
+            return false;
+
+        } finally {
+            claimLock.unlock();
+        }
+    }
+
+    @Override
+    public Entity getClaim(Vector2ic coordinate) {
+        return claimRegistry.get(coordinate); // no lock needed
+    }
+
+    @Override
+    public boolean dropClaim(Vector2ic coordinate, Entity entity) {
+        claimLock.lock();
+        try {
+            Entity claimant = claimRegistry.get(coordinate);
+
+            if (entity == null || entity == claimant) {
+                claimRegistry.remove(coordinate);
+                return true;
+            }
+            return false;
+
+        } finally {
+            claimLock.unlock();
+        }
     }
 
     @Override
@@ -132,22 +221,5 @@ public class TileMap implements GameMap {
     @Override
     public void cleanup() {
         changeListeners.clear();
-    }
-
-    /**
-     * @param x an exact x position on the map
-     * @param y an exact y position on the map
-     * @return the height at position (x, y) on the map
-     */
-    @Override
-    public float getHeightAt(float x, float y) {
-        int ix = (int) x;
-        int iy = (int) y;
-
-        float xFrac = x - ix;
-        float yFrac = y - iy;
-        float x1Lerp = Toolbox.interpolate(getHeightAt(ix, iy), getHeightAt(ix + 1, iy), xFrac);
-        float x2Lerp = Toolbox.interpolate(getHeightAt(ix, iy + 1), getHeightAt(ix + 1, iy + 1), xFrac);
-        return Toolbox.interpolate(x1Lerp, x2Lerp, yFrac) * TILE_SIZE_Y;
     }
 }

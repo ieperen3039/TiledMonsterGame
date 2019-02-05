@@ -2,14 +2,14 @@ package NG.Entities;
 
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.FileShapes;
-import NG.Rendering.Shapes.Primitives.Collision;
+import org.joml.AABBf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**
  * @author Geert van Ieperen created on 9-1-2019.
  */
-public class Cube implements MovingEntity {
+public class Cube implements Entity {
     private static int nr = 0;
     private final int id;
 
@@ -52,13 +52,13 @@ public class Cube implements MovingEntity {
     }
 
     @Override
-    public Collision getRayCollision(Vector3f origin, Vector3f direction) {
-        return null;
+    public boolean isDisposed() {
+        return isDisposed;
     }
 
     @Override
-    public boolean isDisposed() {
-        return isDisposed;
+    public AABBf hitbox() {
+        return new AABBf(-1, -1, -1, 1, 1, 1);
     }
 
     @Override

@@ -8,6 +8,7 @@ import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.FileShapes;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.lwjgl.BufferUtils;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ public final class Toolbox {
     public static void drawAxisFrame(SGL gl) {
         String source = Logger.getCallingMethod(1);
         if (!Logger.callerBlacklist.contains(source)) {
-            Vector3f position = gl.getPosition(Vectors.zeroVector());
+            Vector3f position = gl.getPosition(Vectors.O);
             Logger.DEBUG.printFrom(2, " - draws axis frame on " + Vectors.toString(position));
             Logger.callerBlacklist.add(source);
         }
@@ -201,8 +202,11 @@ public final class Toolbox {
     }
 
     /** @return a rotation that maps the x-vector to the given direction, with up in direction of z */
-    public static Quaternionf xTo(Vector3f direction) {
-        return new Quaternionf().rotateTo(Vectors.xVector(), direction);
+    public static Quaternionf xTo(Vector3fc direction) {
+        if (direction.y() == 0 && direction.z() == 0 && direction.x() < 0) {
+            return new Quaternionf().rotateZ((float) Math.PI);
+        }
+        return new Quaternionf().rotateTo(Vectors.X, direction);
     }
 
     /** returns a uniformly distributed random value between val1 and val2 */
@@ -388,6 +392,6 @@ public final class Toolbox {
     }
 
     public static float interpolate(float a, float b, float fraction) {
-        return ((b - a) * fraction) + a;
+        return (Math.abs(b - a) * fraction) + a;
     }
 }

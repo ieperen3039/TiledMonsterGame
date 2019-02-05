@@ -1,24 +1,20 @@
 package NG.Entities;
 
-import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.Shapes.Primitives.Collision;
-import NG.Rendering.Shapes.Shape;
-import NG.Tools.Vectors;
-import org.joml.Vector3f;
+import org.joml.AABBf;
 import org.joml.Vector3fc;
 
 /**
- * An entity is anything that is both visible in the world, and allows interaction with other entities (including the
- * map). Particles and other visual things are not entities.
+ * An entity is anything that is in the world, excluding the ground itself.
+ * Particles and other visual elements are not entities.
  * @author Geert van Ieperen. Created on 14-9-2018.
  */
 public interface Entity {
 
     /**
      * Updates the state of the entity. Use {@link GameTimer#getGametimeDifference()} for speed calculations and {@link
-     * GameTimer#getGametime()} for position calculations
+     * GameTimer#getGametime()} for position calculations.
      */
     void update();
 
@@ -30,6 +26,11 @@ public interface Entity {
      *           scaling has been applied)
      */
     void draw(SGL gl);
+
+    /**
+     * @return the current real position of this entity
+     */
+    Vector3fc getPosition();
 
     /**
      * Executes when the user clicks on this entity. When {@code button == GLFW_LEFT_MOUSE_BUTTON} is clicked, an {@link
@@ -50,29 +51,7 @@ public interface Entity {
     boolean isDisposed();
 
     /**
-     * determines the collision of a ray with this entity.
-     * @param origin    the origin of the ray
-     * @param direction the direction of the ray
-     * @return a Collision object resutling from the ray, or null if the ray did not hit
-     * @see Shape#getCollision(Vector3fc, Vector3fc, Vector3fc)
+     * @return the hitbox that encircles this entity
      */
-    Collision getRayCollision(Vector3f origin, Vector3f direction);
-
-    /**
-     * calculates the collision of an entity and a screen pixel
-     * @param game the game instance
-     * @param xSc  x pixel coordinate
-     * @param ySc  y pixel coordinate
-     * @return the collision between the ray cast by the given coordinates and the given entity
-     * @see Vectors#windowCoordToRay(Game, int, int, Vector3f, Vector3f)
-     * @see Entity#getRayCollision(Vector3f, Vector3f)
-     */
-    default Collision getClickOnEntity(Game game, int xSc, int ySc) {
-        Vector3f origin = new Vector3f();
-        Vector3f direction = new Vector3f();
-
-        Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
-
-        return getRayCollision(origin, direction);
-    }
+    AABBf hitbox();
 }

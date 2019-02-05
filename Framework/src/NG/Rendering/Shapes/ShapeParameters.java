@@ -25,13 +25,13 @@ public class ShapeParameters {
     public final String name;
 
     /**
-     * calls {@link #ShapeParameters(Vector3f, float, Path, String)} on the file of the given path without offset and
+     * calls {@link #ShapeParameters(Vector3fc, float, Path, String)} on the file of the given path without offset and
      * scale of 1
      * @param path the path to the file to read
      * @param name the generic name of this shape
      */
     public ShapeParameters(Path path, String name) {
-        this(Vectors.zeroVector(), 1f, path, name);
+        this(Vectors.O, 1f, path, name);
     }
 
     /**
@@ -40,7 +40,7 @@ public class ShapeParameters {
      * @param path   the path to the object
      * @param name   debug name of the shape
      */
-    public ShapeParameters(Vector3f offSet, float scale, Path path, String name) {
+    public ShapeParameters(Vector3fc offSet, float scale, Path path, String name) {
         this.name = name;
         vertices = new ArrayList<>();
         normals = new ArrayList<>();

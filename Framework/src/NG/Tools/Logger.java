@@ -129,7 +129,7 @@ public enum Logger {
             caller = stackTrace[level++]; // level + 1
         } while (caller.isNativeMethod() && level < stackTrace.length);
 
-        return String.format("%-100s ", caller);
+        return String.format("%-80s ", caller);
     }
 
     /**
