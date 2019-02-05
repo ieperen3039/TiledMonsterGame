@@ -1,23 +1,33 @@
 package NG.MonsterSoul;
 
 import NG.DataStructures.Direction;
+import NG.DataStructures.Storable;
 import NG.Engine.Game;
 import NG.Entities.CubeMonster;
 import NG.Entities.MonsterEntity;
-import NG.Tools.Toolbox;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public class MonsterSoul implements Living {
+public class MonsterSoul implements Living, Storable {
     private MonsterEntity currentEntity;
-    private List<Direction> plannedMovement = new ArrayList<>();
+    private Queue<Direction> plannedMovement = new ArrayDeque<>();
+
+    public MonsterSoul(Path emotions) {
+        this.emotions = new Emotion.Collection(emotions);
+    }
+
+    private Emotion.Collection emotions; // TODO initialize
 
     public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
         if (currentEntity != null) {
@@ -36,6 +46,7 @@ public class MonsterSoul implements Living {
     @Override
     public void command(Command command) {
         // consider to reject
+        if (emotions.get(Emotion.RESPECT) > 100) ; // todo ideas for making this work
 
         // if command is accepted
         if (command instanceof MoveCommand) {
@@ -51,12 +62,20 @@ public class MonsterSoul implements Living {
     }
 
     public Direction targetDirection() {
-        int r = Toolbox.random.nextInt(50);
-        if (r < 5) return Direction.values()[r];
-        return Direction.NONE;
+        if (plannedMovement.isEmpty()) {
+            return Direction.NONE;
+        } else {
+            return plannedMovement.remove();
+        }
     }
 
-//    private enum Emotions {
-//        CURIOUSNESS, FRIGHT, RESPECT, CONFIDENCE
-//    }
+    @Override
+    public void writeToFile(DataOutput out) throws IOException {
+        emotions.writeToFile(out);
+    }
+
+    @Override
+    public void readFromFile(DataInput in) throws IOException {
+        emotions.readFromFile(in);
+    }
 }
