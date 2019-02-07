@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -47,18 +49,15 @@ public class GLFWWindow implements GameAspect {
     private boolean fullScreen = false;
     private boolean mouseIsCaptured;
     private Game game;
+    private List<Runnable> sizeChangeListeners = new ArrayList<>();
 
-    public GLFWWindow(String title, boolean resizable) {
+    public GLFWWindow(String title, Settings settings, boolean resizable) {
         this.title = title;
         this.resizable = resizable;
 
         this.mousePosX = BufferUtils.createDoubleBuffer(1);
         this.mousePosY = BufferUtils.createDoubleBuffer(1);
-    }
 
-    public void init(Game game) {
-        this.game = game;
-        Settings settings = game.settings();
         // Setup error callback, print to System.err
         GLFWErrorCallback.createPrint(Logger.ERROR.getPrintStream()).set();
 
@@ -86,9 +85,9 @@ public class GLFWWindow implements GameAspect {
         primaryMonitor = glfwGetPrimaryMonitor();
 
         if (settings.DEBUG) {
-            setWindowed();
+            setWindowed(settings);
         } else {
-            setFullScreen();
+            setFullScreen(settings);
         }
 
         if (settings.V_SYNC) {
@@ -119,6 +118,10 @@ public class GLFWWindow implements GameAspect {
         Toolbox.checkGLError();
     }
 
+    public void init(Game game) {
+        this.game = game;
+    }
+
     /**
      * creates a window of the given width and height
      * @param width  in pixels
@@ -140,6 +143,7 @@ public class GLFWWindow implements GameAspect {
             glfwSetFramebufferSizeCallback(newWindow, (window, newWidth, newHeight) -> {
                 this.width = newWidth;
                 this.height = newHeight;
+                sizeChangeListeners.forEach(Runnable::run);
             });
         }
 
@@ -230,6 +234,7 @@ public class GLFWWindow implements GameAspect {
      * Terminate GLFW and release GLFW error callback
      */
     public void cleanup() {
+        sizeChangeListeners.clear();
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -324,11 +329,11 @@ public class GLFWWindow implements GameAspect {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
-    public void setFullScreen() {
+    public void setFullScreen(Settings settings) {
         GLFWVidMode vidmode = glfwGetVideoMode(primaryMonitor);
-        glfwSetWindowMonitor(window, primaryMonitor, 0, 0, vidmode.width(), vidmode.height(), game.settings().TARGET_FPS);
+        glfwSetWindowMonitor(window, primaryMonitor, 0, 0, vidmode.width(), vidmode.height(), settings.TARGET_FPS);
 
-        if (game.settings().V_SYNC) {
+        if (settings.V_SYNC) {
             // Turn on vSync
             glfwSwapInterval(1);
         }
@@ -336,23 +341,23 @@ public class GLFWWindow implements GameAspect {
         fullScreen = true;
     }
 
-    public void setWindowed() {
+    public void setWindowed(Settings settings) {
         // Get primary display resolution
         GLFWVidMode vidmode = glfwGetVideoMode(primaryMonitor);
         // Center window on display
         glfwSetWindowPos(
                 window,
-                (vidmode.width() - game.settings().WINDOW_WIDTH) / 2,
-                (vidmode.height() - game.settings().WINDOW_HEIGHT) / 2
+                (vidmode.width() - settings.WINDOW_WIDTH) / 2,
+                (vidmode.height() - settings.WINDOW_HEIGHT) / 2
         );
         fullScreen = false;
     }
 
     public void toggleFullScreen() {
         if (fullScreen) {
-            setWindowed();
+            setWindowed(game.settings());
         } else {
-            setFullScreen();
+            setFullScreen(game.settings());
         }
     }
 
@@ -395,6 +400,10 @@ public class GLFWWindow implements GameAspect {
 
     public void setTextCallback(GLFWCharCallbackI input) {
         glfwSetCharCallback(window, input);
+    }
+
+    public void addSizeChangeListener(Runnable listener) {
+        sizeChangeListeners.add(listener);
     }
 }
 

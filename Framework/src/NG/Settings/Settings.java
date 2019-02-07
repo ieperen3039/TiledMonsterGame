@@ -15,6 +15,7 @@ public class Settings {
     public final int CHUNK_SIZE = 16; // number of tiles in a chunk
     public static final float TILE_SIZE = 2f;
     public static final float TILE_SIZE_Z = 0.5f;
+    public boolean SAVE_WITH_SECURITY_BITS = true;
 
     // video settings
     public int TARGET_FPS = 60;
@@ -34,7 +35,7 @@ public class Settings {
     public int DYNAMIC_SHADOW_RESOLUTION = 0; //256;
 
     // UI settings
-    public static int TOOL_BAR_HEIGHT = 80;
+    public static int TOOL_BAR_HEIGHT = 70;
 
     public Color4f AMBIENT_LIGHT = new Color4f(1, 1, 1, 0.2f);
 }

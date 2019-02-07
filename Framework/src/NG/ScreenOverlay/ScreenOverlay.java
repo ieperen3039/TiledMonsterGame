@@ -1,8 +1,6 @@
 package NG.ScreenOverlay;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
-import NG.Engine.GameAspect;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -30,7 +28,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 /**
  * @author Jorren & Geert
  */
-public final class ScreenOverlay implements GameAspect {
+public final class ScreenOverlay {
     private long vg;
     private NVGColor nvgColorBuffer;
     private NVGPaint paint;
@@ -44,11 +42,11 @@ public final class ScreenOverlay implements GameAspect {
     private final Lock drawBufferLock = new ReentrantLock();
 
     /**
-     * @param game the game this plays in
      * @throws IOException If an error occurs during the setup of the Hud.
+     * @param antialiasLevel
      */
-    public void init(Game game) throws IOException {
-        if (game.settings().ANTIALIAS_LEVEL > 0) {
+    public void init(int antialiasLevel) throws IOException {
+        if (antialiasLevel > 0) {
             vg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
         } else {
             vg = nvgCreate(NVG_STENCIL_STROKES);
@@ -70,9 +68,13 @@ public final class ScreenOverlay implements GameAspect {
         paint = NVGPaint.create();
     }
 
-    @Override
     public void cleanup() {
-        removeHudItem();
+        drawBufferLock.lock();
+        try {
+            drawBuffer.clear();
+        } finally {
+            drawBufferLock.unlock();
+        }
     }
 
     public void addHudItem(Consumer<Painter> render) {
@@ -92,16 +94,6 @@ public final class ScreenOverlay implements GameAspect {
         drawBufferLock.lock();
         try {
             drawBuffer.remove(render);
-        } finally {
-            drawBufferLock.unlock();
-        }
-    }
-
-    /** clear the hud drawBuffer */
-    public void removeHudItem() {
-        drawBufferLock.lock();
-        try {
-            drawBuffer.clear();
         } finally {
             drawBufferLock.unlock();
         }

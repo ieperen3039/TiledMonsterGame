@@ -308,26 +308,7 @@ public final class Toolbox {
         return result;
     }
 
-    public static String findClosest(String target, String[] options) {
-        int max = 0;
-        int lengthOfMax = Integer.MAX_VALUE;
-        String best = "";
-
-        for (String candidate : options) {
-            int wordLength = Math.abs(candidate.length() - target.length());
-            int dist = hammingDistance(target, candidate);
-
-            if (dist > max || (dist == max && wordLength < lengthOfMax)) {
-                max = dist;
-                lengthOfMax = wordLength;
-                best = candidate;
-            }
-        }
-
-        return best;
-    }
-
-    public static <T extends Enum> T findClosest(String target, T[] options) {
+    public static <T> T findClosest(String target, T[] options) {
         int max = 0;
         int lengthOfMax = Integer.MAX_VALUE;
         T best = null;

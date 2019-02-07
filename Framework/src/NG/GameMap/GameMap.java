@@ -1,6 +1,7 @@
 package NG.GameMap;
 
 import NG.ActionHandling.MouseTools.MouseToolListener;
+import NG.DataStructures.Storable;
 import NG.Engine.GameAspect;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
@@ -12,7 +13,7 @@ import org.joml.*;
  * of different magnitude than an equivalent position.
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
-public interface GameMap extends GameAspect, MouseToolListener {
+public interface GameMap extends GameAspect, MouseToolListener, Storable {
     /**
      * generate a map using the provided generator. This method should be run in a separate thread
      * @param mapGenerator the generator to use for this map.

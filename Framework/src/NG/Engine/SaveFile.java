@@ -18,7 +18,7 @@ public class SaveFile {
         DataOutputStream out = new DataOutputStream(fileOut);
 
         out.writeUTF(INITIAL_DATA);
-        game.getVersionNumber().writeToFile(out);
+        game.getVersion().writeToFile(out);
 
         Collection<Mod> listOfMods = modLoader.allMods();
         out.writeInt(listOfMods.size());

@@ -248,10 +248,13 @@ public class ClickShader implements ShaderProgram {
             SGL flatColorRender =
                     new ClickShaderGL(shader, window.getWidth(), window.getHeight(), game.camera(), doIsometric);
 
-            game.state().drawEntities(flatColorRender);
+            game.state().draw(flatColorRender);
             shader.unbind();
 
-            window.printScreen(Directory.screenshots, "click", GL11.GL_BACK);
+            if (game.settings().DEBUG) {
+                window.printScreen(Directory.screenshots, "click", GL11.GL_BACK);
+            }
+
             Vector3i value = ClickShader.getPixelValue(xPos, yPos);
             glClear(GL_COLOR_BUFFER_BIT);
 

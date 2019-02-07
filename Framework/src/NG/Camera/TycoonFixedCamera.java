@@ -32,8 +32,16 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     private int mouseYPos;
     private MoveDirection cameraRotation = NOT;
 
-    public TycoonFixedCamera(Vector3fc initialFocus, int eyeDistance) {
-        eyeOffset = new Vector3f(-eyeDistance, -eyeDistance, eyeDistance);
+    /**
+     * a camera that always has the same angle to the ground. The angle can be set by the ratio between eyeOffset and
+     * eyeHeight. The camera will start rotated on 45 degrees around the z-axis
+     * @param initialFocus the position of the camera focus
+     * @param eyeOffset    the x-offset of the camera
+     * @param eyeHeight    the z-offset of the camera
+     */
+    public TycoonFixedCamera(Vector3fc initialFocus, float eyeOffset, float eyeHeight) {
+        this.eyeOffset = new Vector3f(-eyeOffset, 0, eyeHeight);
+        this.eyeOffset.rotateZ((float) (Math.PI / 4));
         focus.set(initialFocus);
     }
 

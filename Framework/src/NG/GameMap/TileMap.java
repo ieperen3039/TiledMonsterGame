@@ -9,9 +9,13 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Settings.Settings;
+import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,10 +57,11 @@ public class TileMap implements GameMap {
 
     @Override
     public void generateNew(MapGeneratorMod mapGenerator) {
+        PlainTiles.registerAll(); // initialize PlainTiles // TODO allow assigning sets of tiles to choose
         changeListeners.forEach(ChangeListener::onMapChange);
 
         // height map generation
-        int[][] heightmap = mapGenerator.generateHeightMap();
+        float[][] heightmap = mapGenerator.generateHeightMap();
         int randomSeed = mapGenerator.getMapSeed();
 
         xSize = (heightmap.length - 1) / chunkSize;
@@ -221,5 +226,88 @@ public class TileMap implements GameMap {
     @Override
     public void cleanup() {
         changeListeners.clear();
+    }
+
+    @Override
+    public void writeToFile(DataOutput out) throws IOException {
+        // file integrity
+        out.writeUTF(this.getClass().getName());
+        out.writeInt(chunkSize);
+
+        List<MapTile> tileTypes = MapTile.values();
+
+        // number of tile types
+        int nrOfTileTypes = tileTypes.size();
+        out.writeInt(nrOfTileTypes);
+
+        // write all tiles in order
+        for (MapTile tileType : tileTypes) {
+            out.writeUTF(tileType.toString());
+            out.writeInt(tileType.orientationBytes());
+        }
+
+        out.writeInt(xSize);
+        out.writeInt(ySize);
+
+        // now write the chunks themselves
+        for (MapChunk[] mapChunks : map) {
+            for (MapChunk chunk : mapChunks) {
+                chunk.writeToFile(out);
+            }
+        }
+    }
+
+    @Override
+    public void readFromFile(DataInput in) throws IOException {
+        // check for file integrity
+        String className = in.readUTF();
+        if (!className.equals(this.getClass().getName())) {
+            throw new IOException("Read map was not of type TileMap");
+        }
+
+        int chunkSize = in.readInt();
+        if (chunkSize != this.chunkSize) {
+            throw new IOException(
+                    "Read TileMap has different chunk size than initialized " +
+                            "(" + chunkSize + " instead of " + this.chunkSize + ")"
+            );
+        }
+
+        // get number of tile types
+        int nrOfTileTypes = in.readInt();
+        MapTile[] types = new MapTile[nrOfTileTypes];
+
+        // read tiles in order
+        for (int i = 0; i < nrOfTileTypes; i++) {
+            String name = in.readUTF();
+            MapTile presumedTile = MapTile.getByName(name);
+            int orientation = in.readInt();
+
+            if (presumedTile.orientationBytes() != orientation) {
+                Logger.ASSERT.printf("Closest match for %s (%s) did not have correct rotation. Defaulting to a plain tile",
+                        name, presumedTile
+                );
+                types[i] = MapTile.getByOrientationBit(orientation);
+            } else {
+                types[i] = presumedTile;
+            }
+        }
+
+        this.xSize = in.readInt();
+        this.ySize = in.readInt();
+
+        // now read chunks themselves
+        map = new MapChunk[xSize][];
+        for (int mx = 0; mx < xSize; mx++) {
+            MapChunk[] yStrip = new MapChunk[ySize];
+
+            for (int my = 0; my < ySize; my++) {
+                MapChunkArray chunk = new MapChunkArray(this.chunkSize, 0);
+                yStrip[my] = chunk;
+                chunk.readFromFile(in, types);
+            }
+            map[mx] = yStrip;
+        }
+
     }
 }

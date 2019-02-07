@@ -21,7 +21,6 @@ import java.util.List;
  */
 public class NewGameFrame extends SFrame implements Runnable {
     private final SDropDown generatorSelector;
-    private final List<Mod> modList;
     private final List<MapGeneratorMod> generators;
     private final SDropDown xSizeSelector;
     private final SDropDown ySizeSelector;
@@ -33,7 +32,7 @@ public class NewGameFrame extends SFrame implements Runnable {
     public NewGameFrame(final Game game, final ModLoader loader) {
         super("New Game Frame");
         modLoader = loader;
-        modList = modLoader.allMods();
+        List<Mod> modList = modLoader.allMods();
         int nOfMods = modList.size();
         toggleList = new PairList<>(nOfMods);
 
@@ -88,8 +87,12 @@ public class NewGameFrame extends SFrame implements Runnable {
             }
         }
 
-        generatorSelector = new SDropDown(this.game, generatorNames);
-        mainPanel.add(generatorSelector, mpos.add(0, 1));
+        if (!generatorNames.isEmpty()) {
+            generatorSelector = new SDropDown(this.game, generatorNames);
+            mainPanel.add(generatorSelector, mpos.add(0, 1));
+        } else {
+            generatorSelector = new SDropDown(game, 0, "Default Implementation");
+        }
 
         // generate button
         mainPanel.add(new SFiller(0, 50), mpos.add(0, 1));
@@ -107,11 +110,11 @@ public class NewGameFrame extends SFrame implements Runnable {
         // get and install map generator
         MapGeneratorMod generatorMod;
         int selected = generatorSelector.getSelectedIndex();
-        if (selected > 0) {
-            generatorMod = generators.get(selected);
-        } else {
+        if (generators.isEmpty()) {
             int seed = Math.abs(Toolbox.random.nextInt());
             generatorMod = new SimpleMapGenerator(seed);
+        } else {
+            generatorMod = generators.get(selected);
         }
 
         // initialize generator
@@ -142,12 +145,11 @@ public class NewGameFrame extends SFrame implements Runnable {
         // set camera to middle of map
         Vector3f cameraFocus = game.map().getPosition(new Vector2f(xSize / 2f, ySize / 2f));
         float initialZoom = (xSize + ySize) * 0.1f;
-        Vector3f cameraEye = cameraFocus.add(initialZoom, initialZoom, initialZoom);
+        Vector3f cameraEye = new Vector3f(cameraFocus).add(initialZoom, initialZoom, initialZoom);
         game.camera().set(cameraFocus, cameraEye);
 
         // start
         modLoader.startGame();
         this.setVisible(false);
-
     }
 }

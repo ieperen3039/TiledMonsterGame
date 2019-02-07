@@ -7,57 +7,26 @@ import NG.Tools.Logger;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * the immutable type of tile that can be used for any tile
+ * a MapTile represents the mesh with its properties, and is fully immutable. Tiles can be queried with methods like
+ * {@link #getRandomOf(Random, int, int, int, int)} and {@link #getByName(String)}.
  * @author Geert van Ieperen created on 3-2-2019.
+ * @see MapTileInstance
  */
-public enum MapTile {
-    PLAIN00("plain0000.obj", 0, 0, 0, 0, Properties.NONE, 2),
-    PLAIN01("plain0011.obj", 0, 0, 1, 1, Properties.NONE, 2),
-    PLAIN02("plain0023.obj", 0, 0, 2, 3, Properties.NONE, 3),
-    PLAIN03("plain0113.obj", 0, 1, 1, 3, Properties.NONE, 3),
-    PLAIN04("plain0222.obj", 0, 2, 2, 2, Properties.NONE, 3),
-    PLAIN05("plain0001.obj", 0, 0, 0, 1, Properties.NONE, 2),
-    PLAIN06("plain0012.obj", 0, 0, 1, 2, Properties.NONE, 2),
-    PLAIN07("plain0033.obj", 0, 0, 3, 3, Properties.NONE, 3),
-    PLAIN08("plain0122.obj", 0, 1, 2, 2, Properties.NONE, 3),
-    PLAIN09("plain0223.obj", 0, 2, 2, 3, Properties.NONE, 3),
-    PLAIN10("plain0002.obj", 0, 0, 0, 2, Properties.NONE, 2),
-    PLAIN11("plain0013.obj", 0, 0, 1, 3, Properties.NONE, 2),
-    PLAIN12("plain0111.obj", 0, 1, 1, 1, Properties.NONE, 2),
-    PLAIN13("plain0123.obj", 0, 1, 2, 3, Properties.NONE, 3),
-    PLAIN14("plain0233.obj", 0, 2, 3, 3, Properties.NONE, 3),
-    PLAIN15("plain0003.obj", 0, 0, 0, 3, Properties.NONE, 2),
-    PLAIN16("plain0022.obj", 0, 0, 2, 2, Properties.NONE, 3),
-    PLAIN17("plain0112.obj", 0, 1, 1, 2, Properties.NONE, 2),
-    PLAIN18("plain0133.obj", 0, 1, 3, 3, Properties.NONE, 3),
-    PLAIN19("plain0333.obj", 0, 3, 3, 3, Properties.NONE, 4),
-    PLAIN20("plain0131.obj", 0, 1, 3, 1, Properties.NONE, 3),
-    PLAIN21("plain0032.obj", 0, 0, 3, 2, Properties.NONE, 3),
-    PLAIN22("plain0322.obj", 0, 3, 2, 2, Properties.NONE, 3),
-    PLAIN23("plain0132.obj", 0, 1, 3, 2, Properties.NONE, 3),
-    PLAIN24("plain0231.obj", 0, 2, 3, 1, Properties.NONE, 3),
-    PLAIN25("plain0323.obj", 0, 3, 2, 3, Properties.NONE, 3),
-    PLAIN26("plain0232.obj", 0, 2, 3, 2, Properties.NONE, 3),
-    PLAIN27("plain0331.obj", 0, 3, 3, 1, Properties.NONE, 3),
-    PLAIN28("plain0211.obj", 0, 2, 1, 1, Properties.NONE, 2),
-    PLAIN29("plain0332.obj", 0, 3, 3, 2, Properties.NONE, 3),
-    PLAIN30("plain0212.obj", 0, 2, 1, 2, Properties.NONE, 3),
-    PLAIN31("plain0311.obj", 0, 3, 1, 1, Properties.NONE, 3),
-    PLAIN32("plain0121.obj", 0, 1, 2, 1, Properties.NONE, 2),
-    PLAIN33("plain0213.obj", 0, 2, 1, 3, Properties.NONE, 3),
-    PLAIN34("plain0312.obj", 0, 3, 1, 2, Properties.NONE, 3),
-    PLAIN35("plain0221.obj", 0, 2, 2, 1, Properties.NONE, 3),
-    PLAIN36("plain0313.obj", 0, 3, 1, 3, Properties.NONE, 3),
-    PLAIN37("plain0321.obj", 0, 3, 2, 1, Properties.NONE, 3),
-    PLAIN38("plain0021.obj", 0, 0, 2, 1, Properties.NONE, 2),
-    PLAIN39("plain0031.obj", 0, 0, 3, 1, Properties.NONE, 2),
-    PLAIN40("plain0242.obj", 0, 2, 4, 2, Properties.NONE, 4),
-    ;
+public class MapTile {
+    private static final MapTile DEFAULT_TILE = // circumvent registration due to initialisation of static fields
+            new MapTile("default", Directory.mapTileModels.getPath("plain0000.obj"), 0, 0, 0, 0, Properties.NONE, 2);
+
+    private static final Set<String> NAMES = new HashSet<>();
+    private static final Set<Path> PATHS = new HashSet<>();
+    private static int nextIdentity = 0;
 
     private static final HashMap<Integer, List<MapTile>> tileFinder = new HashMap<>();
 
+    public final String name;
+    public final int tileID;
     public final RotationFreeFit fit;
     public final Mesh mesh;
     public final EnumSet<Properties> properties;
@@ -65,7 +34,8 @@ public enum MapTile {
 
     /**
      * register a new MapTile instance with relative heights as given
-     * @param meshPath       the visual element of this tile
+     * @param name       a unique name for this tile
+     * @param meshPath   the path to the visual element of this tile
      * @param pos_pos    the relative height of the mesh at (1, 1) [-3, 3]
      * @param pos_neg    the relative height of the mesh at (1, 0) [-3, 3]
      * @param neg_neg    the relative height of the mesh at (0, 0) [-3, 3]
@@ -73,17 +43,81 @@ public enum MapTile {
      * @param properties the properties of this tile
      * @param baseHeight the height of the middle of the tile
      */
-    MapTile(// pp, pn, nn, np
-            String meshPath, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
-            EnumSet<Properties> properties,
-            int baseHeight
+    private MapTile(// pp, pn, nn, np
+                    String name, Path meshPath, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
+                    EnumSet<Properties> properties, int baseHeight
     ) {
-        Path path = Directory.mapTileModels.getPath(meshPath);
+        this.name = name;
+        this.tileID = nextIdentity++;
         // the order is important
         this.fit = new RotationFreeFit(pos_pos, pos_neg, neg_neg, neg_pos);
-        this.mesh = new MeshShape(path);
+        this.mesh = new MeshShape(meshPath);
         this.properties = properties;
         this.baseHeight = baseHeight;
+    }
+
+    public int orientationBytes() {
+        return fit.id;
+    }
+
+    public static MapTile getByOrientationBit(int orientationBit) {
+        List<MapTile> list = tileFinder.get(orientationBit);
+        return list == null ? DEFAULT_TILE : list.get(0);
+    }
+
+    public static List<MapTile> values() {
+        return tileFinder.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
+    public static MapTile getByName(String name) {
+        return tileFinder.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(tile -> tile.toString().equals(name))
+                .findAny()
+                .orElse(DEFAULT_TILE);
+    }
+
+    public static MapTile registerTile(
+            String name, String fileName, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
+            EnumSet<Properties> properties, int baseHeight
+    ) {
+        Path path = Directory.mapTileModels.getPath(fileName);
+        return registerTile(name, path, pos_pos, pos_neg, neg_neg, neg_pos, properties, baseHeight);
+    }
+
+    public static MapTile registerTile(
+            String name, Path meshPath, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
+            EnumSet<Properties> properties, int baseHeight
+    ) {
+        // ensure uniqueness in mesh
+        if (PATHS.contains(meshPath)) {
+            Logger.WARN.print("Tile " + meshPath + " was already loaded");
+            return null;
+        }
+
+        // ensure uniqueness in name
+        if (NAMES.contains(name)) {
+            Logger.WARN.print("A tile with name " + name + " already exists. This will cause problems when saving / loading files");
+            int i = 2;
+            do {
+                name += i++;
+            } while (NAMES.contains(name));
+            Logger.INFO.print("Renamed tile to " + name);
+        }
+
+        NAMES.add(name);
+        PATHS.add(meshPath);
+
+        MapTile tile = new MapTile(name, meshPath, pos_pos, pos_neg, neg_neg, neg_pos, properties, baseHeight);
+
+        List<MapTile> tiles = tileFinder.computeIfAbsent(tile.fit.id, (k) -> new ArrayList<>());
+        tiles.add(tile);
+
+        return tile;
     }
 
     /**
@@ -158,7 +192,7 @@ public enum MapTile {
 
         ;
         /** the empty set of properties */
-        private static final EnumSet<Properties> NONE = EnumSet.noneOf(Properties.class);
+        public static final EnumSet<Properties> NONE = EnumSet.noneOf(Properties.class);
     }
 
     /**
@@ -173,20 +207,12 @@ public enum MapTile {
     public static MapTileInstance getRandomOf(
             Random random, int pos_pos, int pos_neg, int neg_neg, int neg_pos
     ) {
-        if (tileFinder.isEmpty()) {
-            for (MapTile value : MapTile.values()) {
-                int id = value.fit.id;
-                List<MapTile> tiles = tileFinder.computeIfAbsent(id, (k) -> new ArrayList<>());
-                tiles.add(value);
-            }
-        }
-
         RotationFreeFit tgtFit = new RotationFreeFit(pos_pos, pos_neg, neg_neg, neg_pos);
         List<MapTile> list = MapTile.tileFinder.get(tgtFit.id);
 
         if (list == null) {
-            Logger.ASSERT.printf("No tile found for configuration (%d, %d, %d, %d) (%d)", pos_pos, pos_neg, neg_neg, neg_pos, tgtFit.id);
-            return new MapTileInstance(neg_neg, tgtFit.offset, PLAIN00);
+            Logger.ASSERT.printf("No tile found for configuration (%d, %d, %d, %d)", pos_pos, pos_neg, neg_neg, neg_pos);
+            return new MapTileInstance(neg_neg, tgtFit.offset, DEFAULT_TILE);
 
         } else {
             int index = random.nextInt(list.size());

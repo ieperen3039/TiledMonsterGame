@@ -111,7 +111,7 @@ public class SingleShadowMapLights implements GameLights {
                     glCullFace(GL_FRONT);
                     DepthShader.DepthGL gl = shadowShader.getGL(true);
                     shadowShader.setDirectionalLight(sunLight);
-                    game.state().drawEntities(gl);
+                    game.state().draw(gl);
                     glCullFace(GL_BACK);
 
                     gl.cleanup();
@@ -124,7 +124,7 @@ public class SingleShadowMapLights implements GameLights {
     }
 
     @Override
-    public void drawLights(SGL gl) {
+    public void draw(SGL gl) {
         ShaderProgram shader = gl.getShader();
         if (shader instanceof LightShader) {
             LightShader lightShader = (LightShader) shader;

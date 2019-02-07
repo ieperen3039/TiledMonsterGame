@@ -39,6 +39,12 @@ public class PairList<L, R> extends AbstractList<Pair<L, R>> {
     }
 
     public void add(int index, L left, R right) {
+        // ensure index >= size()
+        for (int i = size(); i <= index; i++) {
+            leftList.add(null);
+            rightList.add(null);
+        }
+
         leftList.add(index, left);
         rightList.add(index, right);
     }

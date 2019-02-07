@@ -73,12 +73,12 @@ public abstract class SComponent {
      */
     public boolean contains(int x, int y) {
         int xr = x - getX();
-        if (xr < 0 || xr > getWidth()) {
+        if (xr <= 0 || xr >= getWidth()) {
             return false;
         }
 
         int yr = y - getY();
-        return !(yr < 0 || yr > getHeight());
+        return !(yr <= 0 || yr >= getHeight());
     }
 
     /**

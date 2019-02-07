@@ -34,7 +34,7 @@ public class BaseLF implements SFrameLookAndFeel {
 
     @Override
     public void init(Game game) {
-        if (!game.getVersionNumber().isLessThan(2, 0)) {
+        if (!game.getVersion().isLessThan(2, 0)) {
             Logger.ASSERT.print(this + " is ugly. Please install something better");
         }
     }

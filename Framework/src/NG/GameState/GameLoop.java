@@ -83,7 +83,7 @@ public class GameLoop extends AbstractGameLoop implements GameState {
     }
 
     @Override
-    public void drawEntities(SGL gl) {
+    public void draw(SGL gl) {
         entityReadLock.lock();
         try {
             Toolbox.drawAxisFrame(gl);

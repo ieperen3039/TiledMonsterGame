@@ -25,7 +25,7 @@ public interface GameState extends GameAspect, Storable, MouseToolListener {
      * draws the objects on the screen, according to the state of the {@link MonsterGame#timer()} object.
      * @param gl the gl object to draw with
      */
-    void drawEntities(SGL gl);
+    void draw(SGL gl);
 
     /**
      * cast a ray into the world, and returns the first entity hit by this ray

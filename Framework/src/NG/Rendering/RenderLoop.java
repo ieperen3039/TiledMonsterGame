@@ -48,7 +48,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     public void init(Game game) throws IOException {
         this.game = game;
-        overlay.init(game);
+        overlay.init(game.settings().ANTIALIAS_LEVEL);
 
         sceneShader = new AdvancedSceneShader();
     }
@@ -85,9 +85,9 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             Toolbox.drawAxisFrame(gl);
 
             // order is important
-            lights.drawLights(gl);
+            lights.draw(gl);
             world.draw(gl);
-            entities.drawEntities(gl);
+            entities.draw(gl);
         }
         sceneShader.unbind();
         Toolbox.checkGLError();

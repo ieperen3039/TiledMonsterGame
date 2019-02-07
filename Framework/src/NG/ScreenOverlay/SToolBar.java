@@ -17,7 +17,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 /**
  * @author Geert van Ieperen. Created on 1-11-2018.
  */
-public class ToolBar extends SContainer implements MouseReleaseListener, MouseRelativeClickListener {
+public class SToolBar extends SContainer implements MouseReleaseListener, MouseRelativeClickListener {
     public static final int MAX_BAR_ICONS = 30; // TODO look for opportunity of calculating this
     private static int BUTTON_SIZE = TOOL_BAR_HEIGHT - (SContainer.INNER_BORDER + SContainer.OUTER_BORDER);
 
@@ -30,11 +30,17 @@ public class ToolBar extends SContainer implements MouseReleaseListener, MouseRe
      * NG.ScreenOverlay.Frames.GUIManager}.
      * @param game a reference to the game itself.
      */
-    public ToolBar(Game game) {
+    public SToolBar(Game game) {
         super(MAX_BAR_ICONS, 1, true);
         this.game = game;
-        add(new SFiller(), nextPosition());
-        add(new SFiller(), new Vector2i(MAX_BAR_ICONS - 1, 0));
+        add(new SFiller(), null);
+        super.add(new SFiller(), new Vector2i(MAX_BAR_ICONS - 1, 0));
+    }
+
+    @Override
+    public void add(SComponent comp, Object prop) {
+        assert prop == null;
+        super.add(comp, new Vector2i(i++, 0));
     }
 
     /**
@@ -44,9 +50,20 @@ public class ToolBar extends SContainer implements MouseReleaseListener, MouseRe
      * @param action the action to occur when this button is pressed.
      */
     public void addButton(String text, Runnable action) {
-        SButton newButton = new SButton(text, action, BUTTON_SIZE, BUTTON_SIZE);
-        newButton.setSize(BUTTON_SIZE, BUTTON_SIZE);
-        add(newButton, nextPosition());
+        addButton(text, action, BUTTON_SIZE);
+    }
+
+    /**
+     * adds a button to the end of the toolbar. The button is square and should display only a few characters TODO:
+     * create an icon button constructor
+     * @param text   characters displayed on the button.
+     * @param action the action to occur when this button is pressed.
+     * @param width  the width of the button
+     */
+    public void addButton(String text, Runnable action, int width) {
+        SButton newButton = new SButton(text, action, width, BUTTON_SIZE);
+        newButton.setSize(0, 0);
+        add(newButton, null);
     }
 
     /**
@@ -54,11 +71,7 @@ public class ToolBar extends SContainer implements MouseReleaseListener, MouseRe
      * separators are all equal.
      */
     public void addSeparator() {
-        add(new SFiller(), nextPosition());
-    }
-
-    private Vector2i nextPosition() {
-        return new Vector2i(i++, 0);
+        add(new SFiller(), null);
     }
 
     @Override

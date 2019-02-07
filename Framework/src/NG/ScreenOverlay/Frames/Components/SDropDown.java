@@ -3,8 +3,6 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.Engine.Game;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
-import NG.Tools.Logger;
-import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -200,9 +198,6 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
         @Override
         public void onClick(int button, int xRel, int yRel) {
-            Logger.DEBUG.printf("Received click on selection, at (%d, %d)", xRel, yRel);
-            Logger.DEBUG.printf("pos = %s, scPos = %s", Vectors.toString(position), Vectors.toString(getScreenPosition()));
-
             if (xRel < 0 || yRel < 0 || xRel > getWidth() || yRel > getHeight()) {
                 close();
                 return;

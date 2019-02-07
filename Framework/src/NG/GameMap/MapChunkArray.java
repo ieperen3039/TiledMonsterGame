@@ -2,6 +2,9 @@ package NG.GameMap;
 
 import NG.Rendering.MatrixStack.SGL;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Random;
 
 import static NG.Settings.Settings.TILE_SIZE;
@@ -20,7 +23,7 @@ public class MapChunkArray implements MapChunk {
         random = new Random(randomSeed);
     }
 
-    public MapChunkArray(int size, int[][] heightmap, int fromX, int fromY, int randomSeed) {
+    public MapChunkArray(int size, float[][] heightmap, int fromX, int fromY, int randomSeed) {
         this.size = size;
         this.tiles = new MapTileInstance[size][];
         random = new Random(randomSeed);
@@ -28,14 +31,19 @@ public class MapChunkArray implements MapChunk {
         for (int cx = 0; cx < size; cx++) {
             int hx = fromX + cx;
 
-            int[] xHeight = heightmap[hx]; // can be optimized further
-            int[] x2Height = heightmap[hx + 1];
+            float[] xHeight = heightmap[hx]; // can be optimized further
+            float[] x2Height = heightmap[hx + 1];
             MapTileInstance[] strip = new MapTileInstance[size];
 
             for (int cy = 0; cy < size; cy++) {
                 int hy = fromY + cy;
 
-                strip[cy] = MapTile.getRandomOf(random, x2Height[hy + 1], xHeight[hy + 1], xHeight[hy], x2Height[hy]);
+                int pos_pos = (int) x2Height[hy + 1];
+                int pos_neg = (int) xHeight[hy + 1];
+                int neg_neg = (int) xHeight[hy];
+                int neg_pos = (int) x2Height[hy];
+
+                strip[cy] = MapTile.getRandomOf(random, pos_pos, pos_neg, neg_neg, neg_pos);
             }
             tiles[cx] = strip;
         }
@@ -84,4 +92,32 @@ public class MapChunkArray implements MapChunk {
         gl.translate(-TILE_SIZE * x, 0, 0);
     }
 
+    @Override
+    public void writeToFile(DataOutput out) throws IOException {
+        for (MapTileInstance[] tileStrip : tiles) {
+            for (MapTileInstance tile : tileStrip) {
+                out.writeInt(tile.type.tileID);
+                out.writeByte(tile.rotation);
+                out.writeByte(tile.height);
+            }
+        }
+    }
+
+    @Override
+    public void readFromFile(DataInput in, MapTile[] mapping) throws IOException {
+        for (MapTileInstance[] tileStrip : tiles) {
+            for (int i = 0; i < tileStrip.length; i++) {
+
+                int typeID = in.readInt();
+                byte rotation = in.readByte();
+                byte height = in.readByte();
+
+                tileStrip[i] = new MapTileInstance(
+                        height,
+                        rotation,
+                        mapping[typeID]
+                );
+            }
+        }
+    }
 }

@@ -31,7 +31,7 @@ public interface Game {
 
     GUIManager gui();
 
-    Version getVersionNumber();
+    Version getVersion();
 
     GameLights lights();
 }

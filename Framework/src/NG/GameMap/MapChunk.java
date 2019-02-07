@@ -3,6 +3,10 @@ package NG.GameMap;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
 /**
  * @author Geert van Ieperen created on 3-2-2019.
  */
@@ -42,4 +46,8 @@ public interface MapChunk {
      *           scaling has been applied)
      */
     void draw(SGL gl);
+
+    void writeToFile(DataOutput out) throws IOException;
+
+    void readFromFile(DataInput in, MapTile[] mapping) throws IOException;
 }

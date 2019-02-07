@@ -13,9 +13,10 @@ import java.io.IOException;
 public class Other {
     public static void main(String[] args) throws IOException {
         int pp = 0;
-        for (int pn = 0; pn <= 3; pn++) {
-            for (int nn = pn == 0 ? 0 : 1; nn <= 3; nn++) {
-                for (int np = 1; np <= 3; np++) {
+//        for (int pn = 0; pn <= 3; pn++) {
+//            for (int nn = pn == 0 ? 0 : 1; nn <= 3; nn++) {
+//                for (int np = 1; np <= 3; np++) {
+        int pn = 2, nn = 0, np = 2;
                     CustomShape frame = new CustomShape(new Vector3f(0, 0, 1));
 
                     Vector3f ppb = new Vector3f(1, 1, 0);
@@ -61,11 +62,11 @@ public class Other {
                     frame.addTriangle(pmt, mmt, mpt);
                     frame.addTriangle(mpt, mmt, nmt);
 
-//                    write(frame, String.format("plain%d%d%d%d.obj", pp, pn, nn, np));
+        write(frame, String.format("plain%d%d%d%d.obj", pp, pn, nn, np));
                     System.out.println(String.format("%d %d %d %d | %d", pp, pn, nn, np, mid + 2));
-                }
-            }
-        }
+//                }
+//            }
+//        }
     }
 
     private static int getMid(int a, int b) {

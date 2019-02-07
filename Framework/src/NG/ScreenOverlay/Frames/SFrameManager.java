@@ -6,8 +6,8 @@ import NG.Engine.Version;
 import NG.ScreenOverlay.BaseLF;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.ScreenOverlay.Frames.Components.SFrame;
+import NG.ScreenOverlay.SToolBar;
 import NG.ScreenOverlay.ScreenOverlay;
-import NG.ScreenOverlay.ToolBar;
 import NG.Tools.Logger;
 import org.joml.Vector2ic;
 
@@ -28,7 +28,7 @@ public class SFrameManager implements GUIManager {
     private SComponent modalSection;
 
     private SFrameLookAndFeel lookAndFeel;
-    private ToolBar toolBar = null;
+    private SToolBar toolBar = null;
 
     public SFrameManager() {
         this.frames = new ArrayDeque<>();
@@ -137,7 +137,7 @@ public class SFrameManager implements GUIManager {
     }
 
     @Override
-    public void setToolBar(ToolBar toolBar) {
+    public void setToolBar(SToolBar toolBar) {
         this.toolBar = toolBar;
     }
 
@@ -149,12 +149,19 @@ public class SFrameManager implements GUIManager {
     }
 
     @Override
-    public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
+    public boolean checkMouseClick(MouseTool tool, final int xSc, final int ySc) {
         // check modal dialogues
         if (modalSection != null) {
-            if (modalSection.contains(xSc, ySc)) {
-                tool.apply(modalSection, xSc, ySc);
+            Vector2ic mPos = modalSection.getScreenPosition();
+
+            if (xSc >= mPos.x() && ySc >= mPos.y()) {
+                if (xSc <= mPos.x() + modalSection.getWidth()) {
+                    if (ySc <= mPos.y() + modalSection.getHeight()) {
+                        tool.apply(modalSection, xSc, ySc);
+                    }
+                }
             }
+
             modalSection = null;
             return true;
         }

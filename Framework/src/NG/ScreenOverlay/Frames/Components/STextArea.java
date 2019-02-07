@@ -8,23 +8,29 @@ import org.joml.Vector2ic;
  * @author Geert van Ieperen. Created on 22-9-2018.
  */
 public class STextArea extends SComponent {
-    public static final int LETTER_WIDTH = 15;
+    public static final int LETTER_WIDTH = 18;
     protected final NGFonts.TextType textType;
     protected String text;
 
     private final boolean doGrowInWidth;
     private int height;
+    private int specMinWidth;
 
-    public STextArea(String text, int minHeight, boolean doGrowInWidth) {
+    public STextArea(String text, int minHeight, int minWidth, boolean doGrowInWidth) {
         this.text = text;
         this.height = minHeight;
+        this.specMinWidth = minWidth;
         this.doGrowInWidth = doGrowInWidth;
         textType = NGFonts.TextType.REGULAR;
     }
 
+    public STextArea(String text, int minHeight, boolean doGrowInWidth) {
+        this(text, minHeight, 0, doGrowInWidth);
+    }
+
     @Override
     public int minWidth() {
-        return text.length() * LETTER_WIDTH;
+        return Math.max(text.length() * LETTER_WIDTH, specMinWidth);
     }
 
     @Override

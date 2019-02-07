@@ -4,8 +4,8 @@ import NG.ActionHandling.MouseTools.MouseToolListener;
 import NG.Engine.GameAspect;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.ScreenOverlay.Frames.Components.SFrame;
+import NG.ScreenOverlay.SToolBar;
 import NG.ScreenOverlay.ScreenOverlay;
-import NG.ScreenOverlay.ToolBar;
 
 /**
  * A class that manages frames of a game. New {@link SFrame} objects can be added using {@link #addFrame(SFrame)}
@@ -60,5 +60,5 @@ public interface GUIManager extends GameAspect, MouseToolListener {
      * sets the toolbar of the screen to the given object. Overwrites the current setting.
      * @param toolBar any toolbar, or null to remove the toolbar
      */
-    void setToolBar(ToolBar toolBar);
+    void setToolBar(SToolBar toolBar);
 }

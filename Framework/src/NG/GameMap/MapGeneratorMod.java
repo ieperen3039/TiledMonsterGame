@@ -3,6 +3,8 @@ package NG.GameMap;
 import NG.Engine.Game;
 import NG.Mods.Mod;
 
+import java.util.Map;
+
 /**
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
@@ -12,13 +14,19 @@ public interface MapGeneratorMod extends Mod {
     default void init(Game game) {
     }
 
-    ;
+    /**
+     * get a list of properties of this generator which can be changed. Units and range should be given in the name. The
+     * properties do NOT include the seed of the generator.
+     * @return a list of properties and their current value. Changes in this list are reflected to the generator.
+     * @see #getMapSeed()
+     */
+    Map<String, Integer> getProperties();
 
     /**
      * generate a heightmap which will be used to render the world.
      * @return the new heightmap, of size (xSize x ySize)
      */
-    int[][] generateHeightMap();
+    float[][] generateHeightMap();
 
     /**
      * @return the seed used to create the map

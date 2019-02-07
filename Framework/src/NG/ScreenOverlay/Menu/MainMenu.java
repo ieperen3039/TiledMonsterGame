@@ -81,7 +81,7 @@ public class MainMenu extends SFrame {
         cam.set(cameraFocus, cameraEye);
 
         Vector3i position = game.map().getCoordinate(cameraFocus);
-        Entity e = new MonsterSoul().getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
+        Entity e = new MonsterSoul(null).getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
         game.state().addEntity(e);
 
         game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);

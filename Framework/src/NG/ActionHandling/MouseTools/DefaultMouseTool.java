@@ -3,7 +3,6 @@ package NG.ActionHandling.MouseTools;
 import NG.ActionHandling.MouseMoveListener;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ActionHandling.MouseReleaseListener;
-import NG.DataStructures.Tracked.TrackedInteger;
 import NG.Entities.Entity;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Tools.Logger;
@@ -19,8 +18,6 @@ public class DefaultMouseTool implements MouseTool {
     private int dragButton = 0;
     private MouseMoveListener dragListener = null;
     private MouseReleaseListener releaseListener = null;
-    private TrackedInteger cameraXPos = new TrackedInteger(0);
-    private TrackedInteger cameraYPos = new TrackedInteger(0);
     private int button;
 
     @Override
@@ -37,8 +34,6 @@ public class DefaultMouseTool implements MouseTool {
         if (component instanceof MouseMoveListener) {
             dragListener = (MouseMoveListener) component;
             dragButton = button;
-            cameraXPos.update(xSc);
-            cameraYPos.update(ySc);
 
         } else {
             dragListener = null;
@@ -75,13 +70,8 @@ public class DefaultMouseTool implements MouseTool {
     }
 
     @Override
-    public void mouseMoved(int xPos, int yPos) {
+    public void mouseMoved(int xDelta, int yDelta) {
         if (dragListener == null) return;
-
-        cameraXPos.update(xPos);
-        cameraYPos.update(yPos);
-        int xDelta = cameraXPos.difference();
-        int yDelta = cameraYPos.difference();
         dragListener.mouseMoved(xDelta, yDelta);
     }
 

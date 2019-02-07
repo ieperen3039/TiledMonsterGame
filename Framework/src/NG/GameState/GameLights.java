@@ -20,7 +20,7 @@ public interface GameLights extends GameAspect {
      * initializes the lights on the scene.
      * @param gl the current gl object
      */
-    void drawLights(SGL gl);
+    void draw(SGL gl);
 
     /**
      * set the parameters of the one infinitely-far light source of the scene.

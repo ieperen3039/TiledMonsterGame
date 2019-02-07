@@ -1,6 +1,5 @@
 package NG.Engine;
 
-import NG.ActionHandling.KeyMouseCallbacks;
 import NG.ActionHandling.MouseToolCallbacks;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
@@ -60,7 +59,7 @@ public class MonsterGame implements Game, ModLoader {
                 // manual aligning will do the trick
                 "\n\tSystem OS:          " + System.getProperty("os.name") +
                 "\n\tJava VM:            " + System.getProperty("java.runtime.version") +
-                "\n\tFrame version:      " + getVersionNumber() +
+                "\n\tFrame version:      " + getVersion() +
                 "\n\tWorking directory:  " + Directory.workDirectory() +
                 "\n\tMods directory:     " + Directory.mods.getPath()
         );
@@ -69,8 +68,8 @@ public class MonsterGame implements Game, ModLoader {
         settings = new Settings();
         time = new GameTimer(settings.RENDER_DELAY);
 
-        camera = new TycoonFixedCamera(new Vector3f(), 10);
-        window = new GLFWWindow(Settings.GAME_NAME, true);
+        camera = new TycoonFixedCamera(new Vector3f(), 10, 10);
+        window = new GLFWWindow(Settings.GAME_NAME, settings, true);
         renderer = new RenderLoop(settings.TARGET_FPS);
         gameState = new GameLoop(Settings.GAME_NAME, settings.TARGET_TPS);
         gameMap = new TileMap(settings.CHUNK_SIZE);
@@ -187,12 +186,12 @@ public class MonsterGame implements Game, ModLoader {
     }
 
     @Override
-    public KeyMouseCallbacks inputHandling() {
+    public MouseToolCallbacks inputHandling() {
         return inputHandler;
     }
 
     @Override
-    public Version getVersionNumber() {
+    public Version getVersion() {
         return GAME_VERSION;
     }
 

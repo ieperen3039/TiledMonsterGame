@@ -39,6 +39,14 @@ public class Version implements Comparable<Version>, Storable {
         return this.major == major ? this.minor < minor : this.major < major;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Version)) return false;
+        Version other = (Version) obj;
+
+        return major == other.major && minor == other.minor;
+    }
+
     /**
      * checks whether this version is less than the given major and minor version, throwing an VersionMisMatch exception
      * if this is the case
