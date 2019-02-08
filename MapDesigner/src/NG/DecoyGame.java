@@ -16,6 +16,7 @@ import NG.GameState.GameState;
 import NG.GameState.SingleShadowMapLights;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.RenderLoop;
 import NG.Rendering.Shapes.Primitives.Collision;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.Frames.SFrameManager;
@@ -30,6 +31,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author Geert van Ieperen created on 6-2-2019.
@@ -45,9 +48,11 @@ class DecoyGame implements Game {
     private Camera camera;
     private GameMap theMap;
     private GameState gameState;
+    private RenderLoop renderloop;
 
-    public DecoyGame(String title, Settings settings) {
-        Logger.INFO.print("Starting up a decoy of the game engine...");
+    public DecoyGame(String title, RenderLoop renderloop, Settings settings) {
+        this.renderloop = renderloop;
+        Logger.INFO.print("Starting up a partial game engine...");
         this.settings = settings;
         this.timer = new GameTimer(settings.RENDER_DELAY);
 
@@ -120,6 +125,11 @@ class DecoyGame implements Game {
         return gameLights;
     }
 
+    @Override
+    public void executeOnRenderThread(Runnable action) {
+        renderloop.defer(action);
+    }
+
     private class StaticState implements GameState {
         private final List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
 
@@ -140,11 +150,20 @@ class DecoyGame implements Game {
 
         @Override
         public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
-            Entity entity = ClickShader.getEntity(DecoyGame.this, xSc, ySc);
-            if (entity == null) return false;
+            FutureTask<Entity> identifier = new FutureTask<>(() -> ClickShader.getEntity(DecoyGame.this, xSc, ySc));
+            executeOnRenderThread(identifier);
 
-            tool.apply(entity, xSc, ySc);
-            return true;
+            try {
+                Entity entity = identifier.get();
+                if (entity == null) return false;
+
+                tool.apply(entity, xSc, ySc);
+                return true;
+
+            } catch (InterruptedException | ExecutionException ex) {
+                Logger.ERROR.print(ex);
+                return false;
+            }
         }
 
         @Override

@@ -1,13 +1,16 @@
 package NG;
 
+import NG.ActionHandling.MouseTools.DefaultMouseTool;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Version;
-import NG.GameMap.GameMap;
-import NG.GameMap.MapGeneratorMod;
-import NG.GameMap.SimpleMapGenerator;
-import NG.GameMap.TileDirectoryReader;
+import NG.Entities.Cube;
+import NG.GameMap.*;
 import NG.Rendering.GLFWWindow;
+import NG.Rendering.Material;
+import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.RenderLoop;
+import NG.Rendering.Shaders.MaterialShader;
+import NG.Rendering.Shapes.FileShapes;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.SToolBar;
@@ -15,26 +18,31 @@ import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
-import org.joml.Vector2f;
-import org.joml.Vector2i;
-import org.joml.Vector3f;
+import NG.Tools.Vectors;
+import org.joml.*;
 
-import java.awt.*;
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import static NG.Tools.Vectors.toVector2i;
 
 /**
  * @author Geert van Ieperen created on 6-2-2019.
  */
 public class MapEditor {
-    private static final String MAP_FILE_EXTENSION = ".mgm";
-    private static final int BUTTON_MIN_WIDTH = 300;
-    private static final int BUTTON_MIN_HEIGHT = 50;
+    private static final String MAP_FILE_EXTENSION = "mgm";
+    private static final int BUTTON_MIN_WIDTH = 200;
+    private static final int BUTTON_MIN_HEIGHT = 80;
 
     private final RenderLoop renderloop;
     private final DecoyGame game;
+    private final JFileChooser saveMapDialog;
+    private final JFileChooser loadTileDialog;
+    private final JFileChooser loadMapDialog;
 
     public MapEditor() {
         Settings settings = new Settings();
@@ -42,8 +50,31 @@ public class MapEditor {
         settings.DYNAMIC_SHADOW_RESOLUTION = 0;
         settings.STATIC_SHADOW_RESOLUTION = 0;
 
-        game = new DecoyGame("MonsterGame Map designer", settings);
-        renderloop = new RenderLoop(settings.TARGET_FPS);
+        renderloop = new RenderLoop(settings.TARGET_FPS) {
+            @Override // override exception handler
+            protected void exceptionHandler(Exception ex) {
+                super.exceptionHandler(ex);
+                display(ex);
+            }
+        };
+
+        game = new DecoyGame("MonsterGame Map designer", renderloop, settings);
+
+        loadMapDialog = new JFileChooser(Directory.savedMaps.getDirectory());
+        loadMapDialog.setDialogTitle("Load map");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Map files", MAP_FILE_EXTENSION);
+        loadMapDialog.setApproveButtonText("Load");
+        loadMapDialog.setFileFilter(filter);
+
+        saveMapDialog = new JFileChooser(Directory.savedMaps.getDirectory());
+        saveMapDialog.setDialogTitle("Save map");
+        saveMapDialog.setApproveButtonText("Save");
+
+        loadTileDialog = new JFileChooser(Directory.mapTileModels.getDirectory());
+        loadTileDialog.setDialogTitle("Load Tiles");
+        FileNameExtensionFilter filter2 = new FileNameExtensionFilter("Tile files", "obj");
+        loadTileDialog.setApproveButtonText("Load");
+        loadTileDialog.setFileFilter(filter2);
     }
 
     public void init() throws Exception {
@@ -58,22 +89,44 @@ public class MapEditor {
 
         searchTiles(Directory.mapTileModels.getPath());
 
+        BigArrow bigArrow = new BigArrow(new Vector3f());
+        game.state().addEntity(bigArrow);
+
+        game.inputHandling().addMousePositionListener((xPos, yPos) -> {
+            Vector3f origin = new Vector3f();
+            Vector3f direction = new Vector3f();
+
+            Vectors.windowCoordToRay(game, xPos, window.getHeight() - yPos, origin, direction);
+            GameMap map = game.map();
+            Vector3f position = map.intersectWithRay(origin, direction);
+
+            Vector3i coordinate = map.getCoordinate(position);
+            position.set(map.getPosition(coordinate.x, coordinate.y));
+            position.z = coordinate.z + 3;
+
+            map.setHighlights(toVector2i(coordinate));
+            bigArrow.setPosition(position);
+        });
+
+        game.inputHandling().setMouseTool(new CoordinatePopupTool());
+
         game.lights().addDirectionalLight(new Vector3f(1, 1, 1), Color4f.WHITE, 0.5f);
     }
 
     private static void searchTiles(Path path) {
         File file = path.toFile();
         Logger.INFO.print("Searching in " + file + " for map tiles");
-        TileDirectoryReader.readDirectory(file);
+        FileMapTileReader.readDirectory(file);
     }
 
     private SToolBar getFileToolbar(GLFWWindow window) {
-        SToolBar mainMenu = new SToolBar(game);
+        SToolBar mainMenu = new SToolBar(game, false);
         window.addSizeChangeListener(() -> mainMenu.setSize(window.getWidth(), 0));
 
-        mainMenu.addButton("Create new Map", this::createNew, BUTTON_MIN_WIDTH);
+        mainMenu.addButton("Create new Map", this::createNew, 250);
         mainMenu.addButton("Load Map", this::loadMap, BUTTON_MIN_WIDTH);
         mainMenu.addButton("Save Map", this::saveMap, BUTTON_MIN_WIDTH);
+        mainMenu.addButton("Load Tiles", this::loadTiles, BUTTON_MIN_WIDTH);
 
         mainMenu.addSeparator();
         mainMenu.addButton("Exit editor", renderloop::stopLoop, BUTTON_MIN_WIDTH);
@@ -81,62 +134,116 @@ public class MapEditor {
         return mainMenu;
     }
 
-    private void saveMap() {
-        Frame saveFrame = new Frame();
-        FileDialog fileDialog = new FileDialog(saveFrame, "Save Map", FileDialog.SAVE);
-        fileDialog.setFilenameFilter((dir, name) -> name.endsWith(MAP_FILE_EXTENSION));
-        fileDialog.setDirectory(Directory.workDirectory().toString());
-        fileDialog.setVisible(true);
-        String selectedFile = fileDialog.getFile();
+    private void loadTiles() {
+        int result = showDialog(loadTileDialog);
+        if (result != JFileChooser.APPROVE_OPTION) return;
+        File[] selectedFiles = loadTileDialog.getSelectedFiles();
 
-        if (selectedFile != null) {
-            try {
-                GameMap map = game.map();
-
-                FileOutputStream out = new FileOutputStream(selectedFile);
-                DataOutput output = new DataOutputStream(out);
-
-                game.getVersion().writeToFile(output);
-                map.writeToFile(output);
-
-            } catch (IOException e) {
-                Logger.ERROR.print(e);
+        if (selectedFiles.length > 0) {
+            for (File file : selectedFiles) {
+                FileMapTileReader.readDirectory(file);
             }
         }
     }
 
-    private void loadMap() {
-        Frame loadFrame = new Frame();
-        FileDialog fileDialog = new FileDialog(loadFrame, "Load Map", FileDialog.LOAD);
-        fileDialog.setFilenameFilter((dir, name) -> name.endsWith(MAP_FILE_EXTENSION));
-        fileDialog.setDirectory(Directory.workDirectory().toString());
-        fileDialog.setVisible(true);
-        String selectedFile = fileDialog.getFile();
+    private void saveMap() {
+        int result = showDialog(saveMapDialog);
+        if (result != JFileChooser.APPROVE_OPTION) return;
+        File selectedFile = saveMapDialog.getSelectedFile();
 
         if (selectedFile != null) {
-            try {
-                loadFrame.dispose();
+            String name = selectedFile.getAbsolutePath();
+            boolean hasExtension = name.endsWith(MAP_FILE_EXTENSION);
+            String nameWithExtension = name + "." + MAP_FILE_EXTENSION;
+
+            Supplier<String> saveNotify = () -> "Saving file " + name + "...";
+            Logger.printOnline(saveNotify);
+
+            new Thread(() -> {
+                try {
+                    GameMap map = game.map();
+
+                    DataOutput output = new DataOutputStream(hasExtension ?
+                            new FileOutputStream(selectedFile) :
+                            new FileOutputStream(nameWithExtension)
+                    );
+
+                    game.getVersion().writeToFile(output);
+                    map.writeToFile(output);
+
+                    Logger.removeOnlinePrint(saveNotify);
+                    Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
+
+                } catch (IOException e) {
+                    display(e);
+                }
+            }, "Save map thread").start();
+        }
+    }
+
+    private static void display(Exception e) {
+        String[] title = {
+                "An Error Occurred", "I Blame Menno", "You're holding it wrong", "This title is at random",
+                "You can blame me for this", "Something Happened", "Oops!", "stuff's broke lol"
+        };
+        int rng = Toolbox.random.nextInt(title.length);
+
+        JOptionPane.showMessageDialog(null, e, title[rng], JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void loadMap() {
+        SwingUtilities.invokeLater(() -> {
+            int result = showDialog(loadMapDialog);
+
+            if (result != JFileChooser.APPROVE_OPTION) return;
+            File selectedFile = loadMapDialog.getSelectedFile();
+
+            if (selectedFile != null) {
+                Supplier<String> loadNotify = () -> "Loading file " + selectedFile + "...";
+                Logger.printOnline(loadNotify);
+
                 GameMap map = game.map();
 
-                FileInputStream in = new FileInputStream(selectedFile);
-                DataInput input = new DataInputStream(in);
+                renderloop.defer(() -> {
+                    try {
+                        FileInputStream in = new FileInputStream(selectedFile);
+                        DataInput input = new DataInputStream(in);
 
-                Version fileVersion = Version.getFromInputStream(input);
-                if (!fileVersion.equals(game.getVersion())) {
-                    Logger.INFO.print("Reading file with version " + fileVersion);
-                }
+                        Version fileVersion = Version.getFromInputStream(input);
+                        if (!fileVersion.equals(game.getVersion())) {
+                            Logger.INFO.print("Reading file with version " + fileVersion);
+                        }
 
-                map.readFromFile(input);
+                        map.readFromFile(input);
+                        Vector2ic size = map.getSize();
+                        setCameraToMiddle(size.x(), size.y());
 
-            } catch (IOException e) {
-                Logger.ERROR.print(e);
+                    } catch (IOException e) {
+                        display(e);
+                    }
+                    Logger.removeOnlinePrint(loadNotify);
+                });
+
             }
-        }
+        });
+    }
+
+    private int showDialog(JFileChooser dialog) {
+        game.window().setMinimized(true);
+        renderloop.pause();
+
+        int result = dialog.showSaveDialog(null);
+
+        renderloop.unPause();
+        game.window().setMinimized(false);
+        return result;
     }
 
     private void createNew() {
         SFrame newMapFrame = new SFrame("New Map Settings", 200, 200, true);
         MapGeneratorMod generator = new SimpleMapGenerator(Toolbox.random.nextInt());
+        Supplier<String> processDisplay = () -> "Generating heightmap : " + generator.heightmapProgress() * 100 + "%";
+        Logger.printOnline(processDisplay);
 
         final int ROWS = 10;
         final int COLS = 3;
@@ -161,7 +268,7 @@ public class MapEditor {
         for (String prop : properties.keySet()) {
             int initialValue = properties.get(prop);
             mainPanel.add(
-                    new ModifiableIntegerPanel(i -> properties.put(prop, i), prop, initialValue),
+                    new SModifiableIntegerPanel(i -> properties.put(prop, i), prop, initialValue),
                     mpos.add(0, 1)
             );
         }
@@ -180,12 +287,11 @@ public class MapEditor {
             generator.setXSize(xSize + 1); // heightmap is 1 larger
             generator.setYSize(ySize + 1);
 
-            game.map().generateNew(generator);
-            // set camera to middle of map
-            Vector3f cameraFocus = game.map().getPosition(new Vector2f(xSize / 2f, ySize / 2f));
-            float initialZoom = (xSize + ySize);
-            Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom * 0.8f, initialZoom);
-            game.camera().set(cameraFocus, cameraEye);
+            renderloop.defer(() -> {
+                game.map().generateNew(generator);
+                setCameraToMiddle(xSize, ySize);
+                Logger.removeOnlinePrint(processDisplay);
+            });
 
             newMapFrame.dispose();
         });
@@ -194,46 +300,99 @@ public class MapEditor {
         game.gui().addFrame(newMapFrame);
     }
 
-    private void start() {
+    private void setCameraToMiddle(int xSize, int ySize) {
+        Vector3f cameraFocus = game.map().getPosition(new Vector2f(xSize / 2f, ySize / 2f));
+        // set camera to middle of map
+        float initialZoom = (xSize + ySize);
+        Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom * 0.8f, initialZoom);
+        game.camera().set(cameraFocus, cameraEye);
+    }
+
+    public void start() {
         game.window().open();
         renderloop.run();
+        game.inputHandling().cleanup();
+        game.window().close();
     }
 
-    public static void main(String[] args) throws Exception {
-        MapEditor mapEditor = new MapEditor();
-        mapEditor.init();
-        mapEditor.start();
+    public static void main(String[] args) {
+        try {
+            MapEditor mapEditor = new MapEditor();
+            mapEditor.init();
+            mapEditor.start();
+            Logger.INFO.print("Editor has stopped.");
+
+        } catch (Exception ex) {
+            display(ex);
+        }
     }
 
-    private static class ModifiableIntegerPanel extends SPanel {
-        private static final int ADD_BUTTON_HEIGHT = 50;
-        private static final int ADD_BUTTON_WIDTH = 80;
-        private static final int VALUE_SIZE = 150;
-        private final Consumer<Integer> onUpdate;
-        private final STextArea valueDisplay;
+    private class BigArrow extends Cube {
 
-        private int value;
+        private static final float SIZE = 2;
 
-        public ModifiableIntegerPanel(Consumer<Integer> onUpdate, String name, int initialValue) {
-            super(8, 1);
-            this.onUpdate = onUpdate;
-            this.valueDisplay = new STextArea(String.valueOf(initialValue), ADD_BUTTON_HEIGHT, VALUE_SIZE, false);
-            this.value = initialValue;
-
-            add(new STextArea(name, 0, true), new Vector2i(0, 0));
-            add(new SButton("-100", () -> addToValue(-100), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(1, 0));
-            add(new SButton("-10", () -> addToValue(-10), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(2, 0));
-            add(new SButton("-1", () -> addToValue(-1), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(3, 0));
-            add(valueDisplay, new Vector2i(4, 0));
-            add(new SButton("+1", () -> addToValue(1), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(5, 0));
-            add(new SButton("+10", () -> addToValue(10), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(6, 0));
-            add(new SButton("+100", () -> addToValue(100), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(7, 0));
+        public BigArrow(Vector3f position) {
+            super(position);
         }
 
-        private void addToValue(Integer i) {
-            value += i;
-            onUpdate.accept(value);
-            valueDisplay.setText(String.valueOf(value));
+        @Override
+        public void draw(SGL gl) {
+            gl.pushMatrix();
+            {
+                gl.translate(position);
+                gl.scale(SIZE, SIZE, -SIZE);
+
+                if (gl.getShader() instanceof MaterialShader) {
+                    ((MaterialShader) gl.getShader()).setMaterial(Material.ROUGH, Color4f.RED);
+                }
+
+                gl.render(FileShapes.ARROW, this);
+            }
+            gl.popMatrix();
+        }
+
+        public void setPosition(Vector3fc targetPosition) {
+            position.set(targetPosition);
+        }
+    }
+
+    private class CoordinatePopupTool extends DefaultMouseTool {
+        @Override
+        public void apply(Vector2fc position) {
+            GameMap map = game.map();
+            Vector3i coordinate = map.getCoordinate(new Vector3f(position, 0));
+            int x = coordinate.x;
+            int y = coordinate.y;
+
+            SFrame window = new SFrame("Tile at (" + x + ", " + y + ")");
+
+            if (map instanceof TileMap) {
+                TileMap tileMap = (TileMap) map;
+
+                MapTile.Instance tileData = tileMap.getTileData(x, y);
+                SPanel elements = new SPanel(1, 5);
+
+                STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT, BUTTON_MIN_WIDTH, true);
+                elements.add(typeDist, new Vector2i(0, 0));
+
+                // TODO make this live
+                STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT, BUTTON_MIN_WIDTH, true);
+                elements.add(heightDisp, new Vector2i(0, 1));
+
+
+                Runnable switchAction = () -> {
+                    MapTile.Instance instance = tileData.cycle(1);
+                    tileMap.setTile(x, y, instance);
+                    typeDist.setText("Type: " + tileData.type.name);
+                    heightDisp.setText("Height: " + map.getHeightAt(x, y));
+                };
+                elements.add(new SButton("Cycle tile type", switchAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT), new Vector2i(0, 3));
+
+                window.setMainPanel(elements);
+            }
+
+            window.pack();
+            game.gui().addFrame(window);
         }
     }
 }
