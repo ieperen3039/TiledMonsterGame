@@ -280,6 +280,7 @@ public class MapEditor {
 
 
         generate.addLeftClickListener(() -> {
+            Logger.printOnline(processDisplay);
             // initialize generator
             generator.init(game);
             int xSize = Integer.parseInt(xSizeSelector.getSelected());
