@@ -69,10 +69,14 @@ public enum Emotion {
             }
         }
 
-        @Override
-        public void readFromFile(DataInput in) throws IOException {
+        public Collection(DataInput in) throws IOException {
             int nrOfEmotions = in.readInt();
-            assert nrOfEmotions == Emotion.count; // sanity check
+            if (nrOfEmotions != Emotion.count) {
+                throw new IOException("Source emotion set is of different size as current");
+            }
+
+            transformationMatrix = new float[Emotion.count][Emotion.count];
+            values = new short[Emotion.count];
 
             for (int i = 0; i < nrOfEmotions; i++) {
                 values[i] = in.readShort();

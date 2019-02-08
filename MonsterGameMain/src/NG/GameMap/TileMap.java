@@ -265,8 +265,6 @@ public class TileMap implements GameMap {
 
     @Override
     public void writeToFile(DataOutput out) throws IOException {
-        // file integrity
-        out.writeUTF(this.getClass().getName());
         out.writeInt(chunkSize);
 
         List<MapTile> tileTypes = MapTile.values();
@@ -294,21 +292,14 @@ public class TileMap implements GameMap {
         }
     }
 
-    @Override
-    public void readFromFile(DataInput in) throws IOException {
-        // check for file integrity
-        String className = in.readUTF();
-        if (!className.equals(this.getClass().getName())) {
-            throw new IOException("Read map was not of type TileMap");
-        }
-
-        int chunkSize = in.readInt();
-        if (chunkSize != this.chunkSize) {
-            throw new IOException(
-                    "Read TileMap has different chunk size than initialized " +
-                            "(" + chunkSize + " instead of " + this.chunkSize + ")"
-            );
-        }
+    /**
+     * Constructs an instance from a data stream
+     * @param in the data stream synchonized to the call to {@link #writeToFile(DataOutput)}
+     * @throws IOException if the data produces unexpected values
+     */
+    public TileMap(DataInput in) throws IOException {
+        chunkSize = in.readInt();
+        this.realChunkSize = chunkSize * Settings.TILE_SIZE;
 
         // get number of tile types
         int nrOfTileTypes = in.readInt();
@@ -355,7 +346,6 @@ public class TileMap implements GameMap {
             }
             map[mx] = yStrip;
         }
-
     }
 
     public MapTile.Instance getTileData(int x, int y) {

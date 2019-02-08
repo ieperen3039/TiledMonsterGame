@@ -5,6 +5,7 @@ import NG.ActionHandling.MouseToolCallbacks;
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
+import NG.DataStructures.Storable;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Engine.Version;
@@ -131,7 +132,23 @@ class DecoyGame implements Game {
     }
 
     private class StaticState implements GameState {
-        private final List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
+        private final List<Entity> entities;
+
+        public StaticState() {
+            entities = Collections.synchronizedList(new ArrayList<>());
+        }
+
+        public StaticState(DataInput in) throws IOException, ClassNotFoundException {
+            int size = in.readInt();
+            ArrayList<Entity> list = new ArrayList<>(size);
+
+            for (int i = 0; i < size; i++) {
+                Entity entity = Storable.readFromFile(in, Entity.class);
+                list.add(entity);
+            }
+
+            entities = Collections.synchronizedList(list);
+        }
 
         @Override
         public void addEntity(Entity entity) {
@@ -168,12 +185,13 @@ class DecoyGame implements Game {
 
         @Override
         public void writeToFile(DataOutput out) throws IOException {
-
-        }
-
-        @Override
-        public void readFromFile(DataInput in) throws IOException {
-
+            // properties of the list
+            out.writeInt(entities.size());
+            for (Entity e : entities) {
+                if (e instanceof Storable) {
+                    Storable.writeToFile((Storable) e, out);
+                }
+            }
         }
 
         @Override

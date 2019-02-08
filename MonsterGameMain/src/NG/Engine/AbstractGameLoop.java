@@ -176,4 +176,8 @@ public abstract class AbstractGameLoop extends Thread {
     public void setTPS(int TPS) {
         this.targetDeltaMillis = 1000f / TPS;
     }
+
+    public int getTPS() {
+        return (int) (1000f / targetDeltaMillis);
+    }
 }

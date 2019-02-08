@@ -72,13 +72,14 @@ public class Version implements Comparable<Version>, Storable {
         out.writeInt(minor);
     }
 
-    @Override
-    public void readFromFile(DataInput in) throws IOException {
-        if (in.readChar() != 'v') {
-            throw new IOException("Wrong data, expected a version number");
+    public Version(DataInput in) throws IOException {
+        char c = in.readChar();
+        if (c != 'v') {
+            throw new IOException("Expected a 'v', but found a " + c);
         }
 
-        in.skipBytes(2 * Integer.BYTES);
+        major = in.readInt();
+        minor = in.readInt();
     }
 
     public static class MisMatchException extends Exception {

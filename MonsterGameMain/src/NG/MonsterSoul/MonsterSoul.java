@@ -74,8 +74,7 @@ public class MonsterSoul implements Living, Storable {
         emotions.writeToFile(out);
     }
 
-    @Override
-    public void readFromFile(DataInput in) throws IOException {
-        emotions.readFromFile(in);
+    public MonsterSoul(DataInput in) throws IOException {
+        emotions = new Emotion.Collection(in);
     }
 }

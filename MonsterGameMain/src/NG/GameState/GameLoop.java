@@ -15,8 +15,6 @@ import org.joml.Vector3fc;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -137,17 +135,17 @@ public class GameLoop extends AbstractGameLoop implements GameState {
 
     @Override
     public void writeToFile(DataOutput out) throws IOException {
+        out.writeChars(getName());
+        out.writeChar('\n');
+        out.writeInt(getTPS());
+
         entityReadLock.lock();
         try {
             // properties of the list
             out.writeInt(entities.size());
             for (Entity e : entities) {
                 if (e instanceof Storable) {
-                    // class
-                    Storable item = (Storable) e;
-                    out.writeUTF(item.getClass().getCanonicalName());
-                    // entity
-                    item.writeToFile(out);
+                    Storable.writeToFile((Storable) e, out);
                 }
             }
 
@@ -156,42 +154,25 @@ public class GameLoop extends AbstractGameLoop implements GameState {
         }
     }
 
-    @Override
-    public void readFromFile(DataInput in) throws IOException {
-        entityWriteLock.lock();
-        try {
-            int size = in.readInt();
-            entities.clear();
-            for (int i = 0; i < size; i++) {
-                String className = in.readUTF();
-                Entity entity = getEntityInstance(className, game);
-                ((Storable) entity).readFromFile(in);
-            }
-        } finally {
-            entityWriteLock.unlock();
+    /**
+     * Constructs an instance from a data stream
+     * @param in the data stream synchonized to the call to {@link #writeToFile(DataOutput)}
+     * @throws IOException if the data produces unexpected values
+     */
+    public GameLoop(DataInput in) throws IOException, ClassNotFoundException {
+        super(in.readLine(), in.readInt());
+
+        this.entities = new ArrayList<>();
+        ReadWriteLock rwl = new ReentrantReadWriteLock(false);
+        this.entityWriteLock = rwl.writeLock();
+        this.entityReadLock = rwl.readLock();
+
+        int size = in.readInt();
+        // synchronisation not needed in constructor
+        for (int i = 0; i < size; i++) {
+            Entity entity = Storable.readFromFile(in, Entity.class);
+            entities.add(entity);
         }
     }
 
-    private static Entity getEntityInstance(String className, Game game) throws IOException {
-        try {
-            Class<?> entityClass = Class.forName(className);
-
-            if (!entityClass.isAssignableFrom(Entity.class)) {
-                throw new IOException("Class " + className + " is not of type Entity");
-
-            } else if (!entityClass.isAssignableFrom(Storable.class)) {
-                throw new IOException("Class " + className + " is not of type Storable");
-            }
-
-            Constructor<?> constructor = entityClass.getConstructor(Game.class);
-            return (Entity) constructor.newInstance(game);
-
-        } catch (ClassNotFoundException | NoSuchMethodException ex) {
-            throw new IOException("Could not find class " + className, ex);
-
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
-            throw new IOException("Could not initialize instance of type " + className, ex);
-
-        }
-    }
 }
