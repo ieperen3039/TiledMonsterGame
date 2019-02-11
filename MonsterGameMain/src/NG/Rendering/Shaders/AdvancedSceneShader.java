@@ -103,12 +103,12 @@ public class AdvancedSceneShader extends SceneShader implements TextureShader {
         setUniform("directionalLight.lightSpaceMatrix", light.getLightSpaceMatrix());
 
         // Static Shadows
-        if (!light.doShadowMapping(false)) return;
+        if (!(false ? light.doDynamicShadows() : light.doStaticShadows())) return;
         ShadowMap staticShadowMap = light.getStaticShadowMap();
         staticShadowMap.bind(GL_TEXTURE1);
 
         // Dynamic Shadows
-        if (!light.doShadowMapping(true)) return;
+        if (!(true ? light.doDynamicShadows() : light.doStaticShadows())) return;
         ShadowMap dynamicShadowMap = light.getDynamicShadowMap();
         dynamicShadowMap.bind(GL_TEXTURE2);
     }

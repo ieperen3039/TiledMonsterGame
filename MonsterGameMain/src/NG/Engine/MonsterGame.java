@@ -3,6 +3,7 @@ package NG.Engine;
 import NG.ActionHandling.MouseToolCallbacks;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
+import NG.DataStructures.Generic.Color4f;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.GameState.GameLights;
@@ -17,12 +18,16 @@ import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.Frames.SFrameManager;
 import NG.ScreenOverlay.Menu.MainMenu;
 import NG.Settings.Settings;
+import NG.Storable;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import org.joml.Vector3f;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,18 +40,20 @@ import java.util.List;
  */
 public class MonsterGame implements Game, ModLoader {
     private static final Version GAME_VERSION = new Version(0, 0);
+    private final String MAIN_THREAD;
 
     private final GameTimer time;
-    private final Camera camera;
-    private final GameLoop gameState;
-    private final GameMap gameMap;
     private final RenderLoop renderer;
     private final Settings settings;
     private final GLFWWindow window;
     private final MouseToolCallbacks inputHandler;
     private final GUIManager frameManager;
-    private final GameLights gameLights;
+
+    private GameLoop gameState;
+    private GameMap gameMap;
+    private GameLights gameLights;
     private MainMenu mainMenu;
+    private Camera camera;
 
     private List<Mod> allMods;
     private List<Mod> activeMods = Collections.emptyList();
@@ -54,6 +61,7 @@ public class MonsterGame implements Game, ModLoader {
 
     public MonsterGame() throws IOException {
         Logger.INFO.print("Starting up the game engine...");
+        MAIN_THREAD = Thread.currentThread().getName();
 
         Logger.DEBUG.print("General debug information: " +
                 // manual aligning will do the trick
@@ -99,6 +107,7 @@ public class MonsterGame implements Game, ModLoader {
 
         permanentMods = JarModReader.filterInitialisationMods(allMods, this);
 
+        gameLights.addDirectionalLight(new Vector3f(1, -1.5f, 2), Color4f.WHITE, 0.5f);
         renderer.addHudItem(frameManager::draw);
         mainMenu = new MainMenu(this, this, renderer::stopLoop);
         frameManager.addFrame(mainMenu);
@@ -202,7 +211,77 @@ public class MonsterGame implements Game, ModLoader {
 
     @Override
     public void executeOnRenderThread(Runnable action) {
-        renderer.defer(action);
+        if (Thread.currentThread().getName().equals(MAIN_THREAD)) {
+            action.run();
+
+        } else {
+            renderer.defer(action);
+        }
+    }
+
+    @Override
+    public void writeStateToFile(DataOutput out) throws IOException {
+        GAME_VERSION.writeToFile(out);
+
+        Collection<Mod> listOfMods = allMods();
+        out.writeInt(listOfMods.size());
+
+        for (Mod mod : listOfMods) {
+            out.writeUTF(mod.getModName());
+            mod.getVersionNumber().writeToFile(out);
+        }
+
+        Storable.writeToFile(out, gameState);
+        Storable.writeToFile(out, gameMap);
+        Storable.writeToFile(out, gameLights);
+    }
+
+    @Override
+    public void readStateFromFile(DataInput in) throws IOException {
+        Version fileVersion = new Version(in);
+        Logger.INFO.print("Reading state of version " + fileVersion);
+
+        GameLoop newState;
+        GameMap newMap;
+        GameLights newLights;
+
+        try {
+            int nOfMods = in.readInt();
+            if (nOfMods > 0) Logger.INFO.print("Required mods:");
+
+            for (int i = 0; i < nOfMods; i++) {
+                String modName = in.readUTF();
+                Mod targetMod = getModByName(modName);
+                Version version = new Version(in);
+
+                boolean hasMod = targetMod != null;
+                Logger logger = hasMod ? Logger.INFO : Logger.WARN;
+                logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
+            }
+
+            newState = Storable.readFromFile(in, GameLoop.class);
+            newMap = Storable.readFromFile(in, GameMap.class);
+            newLights = Storable.readFromFile(in, GameLights.class);
+
+            newState.init(this);
+            newMap.init(this);
+            newLights.init(this);
+
+            gameState.defer(() -> {
+                // clean up all the replaced stuff
+                this.gameState.stopLoop();
+                this.gameMap.cleanup();
+                this.gameLights.cleanup();
+
+                // set new state
+                this.gameState = newState;
+                this.gameMap = newMap;
+                this.gameLights = newLights;
+            });
+
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
@@ -213,10 +292,6 @@ public class MonsterGame implements Game, ModLoader {
     @Override
     public List<Mod> allMods() {
         return Collections.unmodifiableList(allMods);
-    }
-
-    public void doAfterGameTick(Runnable action) {
-        gameState.defer(action);
     }
 
     @Override
@@ -236,7 +311,6 @@ public class MonsterGame implements Game, ModLoader {
         window.cleanup();
         renderer.cleanup();
         camera.cleanup();
-        gameState.cleanup();
         inputHandler.cleanup();
     }
 

@@ -50,6 +50,7 @@ public class GLFWWindow implements GameAspect {
     private boolean mouseIsCaptured;
     private Game game;
     private List<Runnable> sizeChangeListeners = new ArrayList<>();
+    private Thread glContext;
 
     public GLFWWindow(String title, Settings settings, boolean resizable) {
         this.title = title;
@@ -96,6 +97,7 @@ public class GLFWWindow implements GameAspect {
         }
 
         GL.createCapabilities();
+        glContext = Thread.currentThread();
 
         // debug message callbacks
         if (settings.DEBUG && GL_DEBUG_MESSAGES) {
@@ -412,6 +414,10 @@ public class GLFWWindow implements GameAspect {
         } else {
             glfwShowWindow(window);
         }
+    }
+
+    public Thread getOpenGLThread() {
+        return glContext;
     }
 }
 

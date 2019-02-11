@@ -9,12 +9,18 @@ import NG.Rendering.PointLight;
 import NG.Rendering.Shaders.DepthShader;
 import NG.Rendering.Shaders.LightShader;
 import NG.Rendering.Shaders.ShaderProgram;
+import NG.Storable;
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.joml.Vector4f;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -37,7 +43,7 @@ public class SingleShadowMapLights implements GameLights {
     private DepthShader shadowShader;
 
     private float lightDist = 1;
-    private boolean shadowMapIsDirty = false;
+    private boolean staticMapIsDirty = false;
 
     public SingleShadowMapLights() {
         ReadWriteLock rwl = new ReentrantReadWriteLock(false);
@@ -51,9 +57,12 @@ public class SingleShadowMapLights implements GameLights {
     @Override
     public void init(Game game) throws Exception {
         this.game = game;
+        Future<DepthShader> shader = game.computeOnRenderThread(DepthShader::new);
+
         this.sunLight.init(game);
-        this.shadowShader = new DepthShader();
-        game.map().addChangeListener(() -> shadowMapIsDirty = true);
+        game.map().addChangeListener(() -> staticMapIsDirty = true);
+
+        this.shadowShader = shader.get();
     }
 
     @Override
@@ -83,23 +92,23 @@ public class SingleShadowMapLights implements GameLights {
         if (playerFocus.distanceSquared(lightFocus) > UPDATE_MARGIN * UPDATE_MARGIN) {
             sunLight.setLightFocus(playerFocus);
 
-            shadowMapIsDirty = true;
+            staticMapIsDirty = true;
 
         } else if (Math.abs(viewDist - lightDist) > UPDATE_MARGIN) {
             float lightCubeSize = 10 + 3 * viewDist + UPDATE_MARGIN;
             sunLight.setLightSize(lightCubeSize);
 
-            shadowMapIsDirty = true;
+            staticMapIsDirty = true;
             lightDist = viewDist;
         }
 
-        if (sunLight.doShadowMapping(false) || sunLight.doShadowMapping(true)) {
+        if (sunLight.doStaticShadows() || sunLight.doDynamicShadows()) {
             // shadow render
             shadowShader.bind();
             {
                 shadowShader.initialize(game);
 
-                if (sunLight.doShadowMapping(false) && shadowMapIsDirty) {
+                if (sunLight.doStaticShadows() && staticMapIsDirty) {
                     DepthShader.DepthGL gl = shadowShader.getGL(false);
                     shadowShader.setDirectionalLight(sunLight);
                     game.map().draw(gl);
@@ -107,7 +116,7 @@ public class SingleShadowMapLights implements GameLights {
                     gl.cleanup();
                 }
 
-                if (sunLight.doShadowMapping(true)) {
+                if (sunLight.doDynamicShadows()) {
                     glCullFace(GL_FRONT);
                     DepthShader.DepthGL gl = shadowShader.getGL(true);
                     shadowShader.setDirectionalLight(sunLight);
@@ -146,5 +155,41 @@ public class SingleShadowMapLights implements GameLights {
     @Override
     public void cleanup() {
 
+    }
+
+    @Override
+    public void writeToFile(DataOutput out) throws IOException {
+        pointLightReadLock.lock();
+        try {
+            out.writeInt(lights.size());
+            for (PointLight light : lights) {
+                Storable.writeVector3f(out, light.position);
+                Storable.writeVector4f(out, light.color.toVector4f());
+                out.writeFloat(light.intensity);
+            }
+
+        } finally {
+            pointLightReadLock.unlock();
+        }
+    }
+
+    public SingleShadowMapLights(DataInput in) throws IOException {
+        this();
+
+        try {
+            int lightsSize = in.readInt();
+            for (int i = 0; i < lightsSize; i++) {
+                Vector3f pos = Storable.readVector3f(in);
+                Vector4f col = Storable.readVector4f(in);
+                float intensity = in.readFloat();
+
+                PointLight light = new PointLight(pos, new Color4f(col), intensity);
+                lights.add(light);
+            }
+
+        } catch (Exception e) {
+            lights.clear();
+            throw e;
+        }
     }
 }

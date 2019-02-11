@@ -1,6 +1,6 @@
 package NG.Engine;
 
-import NG.DataStructures.Storable;
+import NG.Storable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -16,14 +16,6 @@ public class Version implements Comparable<Version>, Storable {
     public Version(int major, int minor) {
         this.major = major;
         this.minor = minor;
-    }
-
-    public static Version getFromInputStream(DataInput in) throws IOException {
-        if (in.readChar() != 'v') {
-            throw new IOException("Wrong data, expected a version number");
-        }
-
-        return new Version(in.readInt(), in.readInt());
     }
 
     public int major() {

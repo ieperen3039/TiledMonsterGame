@@ -1,6 +1,6 @@
 package NG.MonsterSoul;
 
-import NG.DataStructures.Storable;
+import NG.Storable;
 
 import java.io.DataInput;
 import java.io.DataOutput;

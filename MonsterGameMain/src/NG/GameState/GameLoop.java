@@ -2,12 +2,12 @@ package NG.GameState;
 
 import NG.ActionHandling.ClickShader;
 import NG.ActionHandling.MouseTools.MouseTool;
-import NG.DataStructures.Storable;
 import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Collision;
+import NG.Storable;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector3fc;
@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -110,11 +109,8 @@ public class GameLoop extends AbstractGameLoop implements GameState {
 
     @Override
     public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
-        FutureTask<Entity> identifier = new FutureTask<>(() -> ClickShader.getEntity(game, xSc, ySc));
-        game.executeOnRenderThread(identifier);
-
         try {
-            Entity entity = identifier.get();
+            Entity entity = game.computeOnRenderThread(() -> ClickShader.getEntity(game, xSc, ySc)).get();
             if (entity == null) return false;
 
             tool.apply(entity, xSc, ySc);
@@ -135,8 +131,7 @@ public class GameLoop extends AbstractGameLoop implements GameState {
 
     @Override
     public void writeToFile(DataOutput out) throws IOException {
-        out.writeChars(getName());
-        out.writeChar('\n');
+        out.writeUTF(getName());
         out.writeInt(getTPS());
 
         entityReadLock.lock();
@@ -145,7 +140,7 @@ public class GameLoop extends AbstractGameLoop implements GameState {
             out.writeInt(entities.size());
             for (Entity e : entities) {
                 if (e instanceof Storable) {
-                    Storable.writeToFile((Storable) e, out);
+                    Storable.writeToFile(out, (Storable) e);
                 }
             }
 
@@ -160,7 +155,7 @@ public class GameLoop extends AbstractGameLoop implements GameState {
      * @throws IOException if the data produces unexpected values
      */
     public GameLoop(DataInput in) throws IOException, ClassNotFoundException {
-        super(in.readLine(), in.readInt());
+        super(in.readUTF(), in.readInt());
 
         this.entities = new ArrayList<>();
         ReadWriteLock rwl = new ReentrantReadWriteLock(false);

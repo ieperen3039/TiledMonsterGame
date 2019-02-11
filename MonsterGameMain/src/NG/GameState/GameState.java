@@ -1,12 +1,12 @@
 package NG.GameState;
 
 import NG.ActionHandling.MouseTools.MouseToolListener;
-import NG.DataStructures.Storable;
 import NG.Engine.GameAspect;
 import NG.Engine.MonsterGame;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Collision;
+import NG.Storable;
 import org.joml.Vector3fc;
 
 /**

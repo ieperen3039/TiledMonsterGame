@@ -34,6 +34,7 @@ import static NG.Tools.Vectors.toVector2i;
  * @author Geert van Ieperen created on 6-2-2019.
  */
 public class MapEditor {
+    private static final Version EDITOR_VERSION = new Version(0, 2);
     private static final String MAP_FILE_EXTENSION = "mgm";
     private static final int BUTTON_MIN_WIDTH = 200;
     private static final int BUTTON_MIN_HEIGHT = 80;
@@ -53,7 +54,6 @@ public class MapEditor {
         renderloop = new RenderLoop(settings.TARGET_FPS) {
             @Override // override exception handler
             protected void exceptionHandler(Exception ex) {
-                super.exceptionHandler(ex);
                 display(ex);
             }
         };
@@ -138,11 +138,19 @@ public class MapEditor {
         int result = showDialog(loadTileDialog);
         if (result != JFileChooser.APPROVE_OPTION) return;
         File[] selectedFiles = loadTileDialog.getSelectedFiles();
+        int[] inc = new int[]{0};
 
-        if (selectedFiles.length > 0) {
+        int nrOfFiles = selectedFiles.length;
+        if (nrOfFiles > 0) {
+            Supplier<String> progressBar = () -> "Loading tile " + inc[0] + "/" + nrOfFiles;
+            Logger.printOnline(progressBar);
+
             for (File file : selectedFiles) {
                 FileMapTileReader.readDirectory(file);
+                inc[0]++;
             }
+
+            Logger.removeOnlinePrint(progressBar);
         }
     }
 
@@ -157,38 +165,40 @@ public class MapEditor {
             String nameWithExtension = name + "." + MAP_FILE_EXTENSION;
 
             Supplier<String> saveNotify = () -> "Saving file " + name + "...";
-            Logger.printOnline(saveNotify);
 
             new Thread(() -> {
-                try {
-                    GameMap map = game.map();
+                Logger.printOnline(saveNotify);
 
-                    DataOutput output = new DataOutputStream(hasExtension ?
-                            new FileOutputStream(selectedFile) :
-                            new FileOutputStream(nameWithExtension)
-                    );
+                try (FileOutputStream fileOut = hasExtension ?
+                        new FileOutputStream(selectedFile) :
+                        new FileOutputStream(nameWithExtension)
+                ) {
+                    DataOutput output = new DataOutputStream(fileOut);
 
-                    game.getVersion().writeToFile(output);
-                    map.writeToFile(output);
+                    EDITOR_VERSION.writeToFile(output);
+                    game.writeStateToFile(output);
 
-                    Logger.removeOnlinePrint(saveNotify);
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
                 } catch (IOException e) {
                     display(e);
                 }
+
+                Logger.removeOnlinePrint(saveNotify);
             }, "Save map thread").start();
         }
     }
 
     private static void display(Exception e) {
+        Logger.ERROR.print(e);
         String[] title = {
-                "An Error Occurred", "I Blame Menno", "You're holding it wrong", "This title is at random",
-                "You can blame me for this", "Something Happened", "Oops!", "stuff's broke lol"
+                "I Blame Menno", "You're holding it wrong", "This title is at random",
+                "You can't blame me for this", "Something Happened", "Oops!", "stuff's broke lol",
+                "Look at what you have done", "Please ignore the following message", "Congratulations!"
         };
         int rng = Toolbox.random.nextInt(title.length);
 
-        JOptionPane.showMessageDialog(null, e, title[rng], JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, e.getClass() + ":\n" + e.getMessage(), title[rng], JOptionPane.ERROR_MESSAGE);
     }
 
     private void loadMap() {
@@ -202,28 +212,24 @@ public class MapEditor {
                 Supplier<String> loadNotify = () -> "Loading file " + selectedFile + "...";
                 Logger.printOnline(loadNotify);
 
-                GameMap map = game.map();
+                try {
+                    FileInputStream fs = new FileInputStream(selectedFile);
+                    DataInput input = new DataInputStream(fs);
 
-                renderloop.defer(() -> {
-                    try {
-                        FileInputStream in = new FileInputStream(selectedFile);
-                        DataInput input = new DataInputStream(in);
+                    Version fileVersion = new Version(input);
+                    Logger.INFO.print("Reading file " + selectedFile + " with version " + fileVersion);
 
-                        Version fileVersion = Version.getFromInputStream(input);
-                        if (!fileVersion.equals(game.getVersion())) {
-                            Logger.INFO.print("Reading file with version " + fileVersion);
-                        }
+                    game.readStateFromFile(input);
 
-                        map.readFromFile(input);
-                        Vector2ic size = map.getSize();
-                        setCameraToMiddle(size.x(), size.y());
+                    Vector2ic size = game.map().getSize();
+                    setCameraToMiddle(size.x(), size.y());
+                    Logger.INFO.print("Loaded map of size " + Vectors.toString(size));
 
-                    } catch (IOException e) {
-                        display(e);
-                    }
-                    Logger.removeOnlinePrint(loadNotify);
-                });
+                } catch (IOException e) {
+                    display(e);
+                }
 
+                Logger.removeOnlinePrint(loadNotify);
             }
         });
     }
@@ -288,11 +294,13 @@ public class MapEditor {
             generator.setXSize(xSize + 1); // heightmap is 1 larger
             generator.setYSize(ySize + 1);
 
-            renderloop.defer(() -> {
-                game.map().generateNew(generator);
-                setCameraToMiddle(xSize, ySize);
-                Logger.removeOnlinePrint(processDisplay);
-            });
+            boolean success = TileThemeSet.PLAIN.loadAndWait(game);
+            assert success;
+
+            game.map().generateNew(generator); // hangs
+
+            setCameraToMiddle(xSize, ySize);
+            Logger.removeOnlinePrint(processDisplay);
 
             newMapFrame.dispose();
         });

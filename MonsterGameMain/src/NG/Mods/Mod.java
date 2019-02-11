@@ -14,6 +14,7 @@ public interface Mod extends GameAspect {
      * This method is called when the user creates a game with this mod installed. Any big initialisation should be
      * handled here. The overriding class should always have a default constructor, which is called regardless of
      * whether this mod is used.
+     * No guarantees are made on whether the OpenGL context is current for the thread.
      * @param game the game in which the mod is used
      * @throws Version.MisMatchException if the version of the game is incompatible with the mod
      */

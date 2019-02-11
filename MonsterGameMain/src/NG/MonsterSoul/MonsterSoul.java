@@ -1,10 +1,10 @@
 package NG.MonsterSoul;
 
 import NG.DataStructures.Direction;
-import NG.DataStructures.Storable;
 import NG.Engine.Game;
 import NG.Entities.CubeMonster;
 import NG.Entities.MonsterEntity;
+import NG.Storable;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;

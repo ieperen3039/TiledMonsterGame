@@ -21,14 +21,12 @@ import static NG.Settings.Settings.TILE_SIZE;
 public class MapChunkArray implements MapChunk {
     private final MapTile.Instance[][] tiles;
     private final int size;
-    private final Random random;
     private final Set<MapTile.Instance> highlights;
     private boolean doHighlight;
 
-    public MapChunkArray(int size, int randomSeed) {
+    public MapChunkArray(int size) {
         this.size = size;
         this.tiles = new MapTile.Instance[size][size];
-        this.random = new Random(randomSeed);
         this.highlights = new HashSet<>();
     }
 
@@ -36,7 +34,7 @@ public class MapChunkArray implements MapChunk {
         this.size = size;
         this.tiles = new MapTile.Instance[size][];
         this.highlights = new HashSet<>();
-        this.random = new Random(randomSeed);
+        Random random = new Random(randomSeed);
 
         for (int cx = 0; cx < size; cx++) {
             int hx = fromX + cx;
@@ -135,7 +133,7 @@ public class MapChunkArray implements MapChunk {
                 MapTile type = tile.type; // implementation dependent
                 out.writeInt(type.tileID);
                 out.writeByte(tile.rotation);
-                out.writeByte(tile.height - type.baseHeight);
+                out.writeByte(tile.height);
             }
         }
     }

@@ -2,6 +2,7 @@ package NG.Entities;
 
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Storable;
 import org.joml.AABBf;
 import org.joml.Vector3fc;
 
@@ -16,7 +17,7 @@ public interface Entity {
      * Updates the state of the entity. Use {@link GameTimer#getGametimeDifference()} for speed calculations and {@link
      * GameTimer#getGametime()} for position calculations.
      * <p>
-     * If the entity is {@link NG.DataStructures.Storable}, it must provide a constructor that accepts only a {@link
+     * If the entity is {@link Storable}, it must provide a constructor that accepts only a {@link
      * NG.Engine.Game} object.
      */
     void update();

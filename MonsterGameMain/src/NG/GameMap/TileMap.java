@@ -29,15 +29,15 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
 public class TileMap implements GameMap {
     private final int chunkSize;
     private final float realChunkSize;
+    private final List<ChangeListener> changeListeners;
 
-    private int xSize;
-    private int ySize;
+    private int xSize = 0;
+    private int ySize = 0;
     private MapChunk[][] map;
+    private Game game;
 
-    private List<ChangeListener> changeListeners;
     private HashMap<Vector2ic, Entity> claimRegistry;
     private Lock claimLock;
-    private Game game;
     private Collection<MapChunk> highlightedChunks;
 
     public TileMap(int chunkSize) {
@@ -54,12 +54,10 @@ public class TileMap implements GameMap {
     @Override
     public void init(Game game) {
         this.game = game;
-        game.lights().addDirectionalLight(new Vector3f(1, -1.5f, 2), Color4f.WHITE, 0.5f);
     }
 
     @Override
     public void generateNew(MapGeneratorMod mapGenerator) {
-        TileThemeSet.PLAIN.load();
         changeListeners.forEach(ChangeListener::onMapChange);
 
         // height map generation
@@ -82,7 +80,6 @@ public class TileMap implements GameMap {
             }
             map[mx] = yStrip;
         }
-
     }
 
     @Override
@@ -142,9 +139,13 @@ public class TileMap implements GameMap {
         gl.pushMatrix();
         {
             for (MapChunk[] chunks : map) {
+                if (chunks == null) continue; // happens when generating a new map
+
                 gl.pushMatrix();
                 {
                     for (MapChunk chunk : chunks) {
+                        if (chunk == null) continue; // happens when generating a new map
+
                         chunk.setHighlight(doHighlight);
                         chunk.draw(gl);
                         gl.translate(0, realChunkSize, 0);
@@ -265,8 +266,6 @@ public class TileMap implements GameMap {
 
     @Override
     public void writeToFile(DataOutput out) throws IOException {
-        out.writeInt(chunkSize);
-
         List<MapTile> tileTypes = MapTile.values();
 
         // number of tile types
@@ -281,6 +280,7 @@ public class TileMap implements GameMap {
             out.writeInt(tileType.orientationBytes());
         }
 
+        out.writeInt(chunkSize);
         out.writeInt(xSize);
         out.writeInt(ySize);
 
@@ -293,13 +293,12 @@ public class TileMap implements GameMap {
     }
 
     /**
-     * Constructs an instance from a data stream
+     * Constructs an instance from a data stream. Must be executed on the render thread for loading tile models.
      * @param in the data stream synchonized to the call to {@link #writeToFile(DataOutput)}
      * @throws IOException if the data produces unexpected values
      */
     public TileMap(DataInput in) throws IOException {
-        chunkSize = in.readInt();
-        this.realChunkSize = chunkSize * Settings.TILE_SIZE;
+        changeListeners = new ArrayList<>();
 
         // get number of tile types
         int nrOfTileTypes = in.readInt();
@@ -331,6 +330,8 @@ public class TileMap implements GameMap {
             }
         }
 
+        chunkSize = in.readInt();
+        this.realChunkSize = chunkSize * Settings.TILE_SIZE;
         this.xSize = in.readInt();
         this.ySize = in.readInt();
 
@@ -340,9 +341,9 @@ public class TileMap implements GameMap {
             MapChunk[] yStrip = new MapChunk[ySize];
 
             for (int my = 0; my < ySize; my++) {
-                MapChunkArray chunk = new MapChunkArray(this.chunkSize, 0);
-                yStrip[my] = chunk;
+                MapChunkArray chunk = new MapChunkArray(chunkSize);
                 chunk.readFromFile(in, types);
+                yStrip[my] = chunk;
             }
             map[mx] = yStrip;
         }

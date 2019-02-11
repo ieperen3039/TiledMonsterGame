@@ -3,7 +3,10 @@ package NG.Tools;
 import org.joml.*;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -121,15 +124,14 @@ public enum Logger {
      * If DEBUG == false, return an empty string
      */
     public static String getCallingMethod(int level) {
-        StackTraceElement caller;
-        Exception exception = new Exception();
-        StackTraceElement[] stackTrace = exception.getStackTrace();
-        level++;
-        do {
-            caller = stackTrace[level++]; // level + 1
-        } while (caller.isNativeMethod() && level < stackTrace.length);
+        // the better way of getting the top of the stack
+        StackWalker.StackFrame frame = StackWalker.getInstance()
+                .walk(s -> s.skip(level + 1)
+                        .findFirst()
+                        .orElseThrow()
+                );
 
-        return String.format("%-80s ", caller);
+        return String.format("%-80s ", frame);
     }
 
     /**
@@ -195,16 +197,29 @@ public enum Logger {
             case ERROR:
                 err.accept(prefix + ": " + concatenate(s));
 
-                // let's do a fancy stream
                 if (this == ERROR) {
-                    Arrays.stream(s)
-                            .filter(e -> e instanceof Exception)
-                            .map(e -> (Exception) e)
-                            .flatMap(e -> Arrays.stream(e.getStackTrace()))
-                            .map(StackTraceElement::toString)
-                            .forEach(err);
+                    for (Object elt : s) {
+                        if (elt instanceof Throwable) {
+                            dumpException((Throwable) elt, err);
+                        }
+                    }
                 }
+
                 break;
+        }
+    }
+
+    public void dumpException(Throwable e, Consumer<String> action) {
+        for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+            String s1 = "\t" + stackTraceElement;
+            action.accept(s1);
+        }
+
+        Throwable cause = e.getCause();
+        if (cause != null) {
+            err.accept("Caused by:");
+            err.accept(cause.toString());
+            dumpException(cause, action);
         }
     }
 

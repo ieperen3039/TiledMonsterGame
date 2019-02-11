@@ -4,12 +4,13 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Engine.GameAspect;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.PointLight;
+import NG.Storable;
 import org.joml.Vector3fc;
 
 /**
  * @author Geert van Ieperen created on 3-2-2019.
  */
-public interface GameLights extends GameAspect {
+public interface GameLights extends GameAspect, Storable {
     /**
      * adds a point-light to the game.
      * @param light the new light

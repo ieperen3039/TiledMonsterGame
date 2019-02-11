@@ -31,7 +31,6 @@ public class DirectionalLight {
     private Matrix4f ortho = new Matrix4f();
     private Matrix4f lightSpaceMatrix = new Matrix4f();
 
-    private static final float LIGHT_SIZE = 100.0f;
     private float lightCubeSize;
     private Vector3fc lightFocus = new Vector3f();
 
@@ -41,20 +40,25 @@ public class DirectionalLight {
         this.intensity = intensity;
     }
 
+    /**
+     * Performing this on the OpenGL context is faster.
+     * @param game a reference to the game
+     * @throws ShaderException when the shader can't be initialized correctly
+     */
     public void init(Game game) throws ShaderException {
         int stRes = game.settings().STATIC_SHADOW_RESOLUTION;
         int dyRes = game.settings().DYNAMIC_SHADOW_RESOLUTION;
 
-        if (stRes > 0) {
-            staticShadowMap = new ShadowMap(stRes);
-            staticShadowMap.init();
-        }
-        if (dyRes > 0) {
-            dynamicShadowMap = new ShadowMap(dyRes);
-            dynamicShadowMap.init();
-        }
-
-        setLightSize(LIGHT_SIZE);
+        game.executeOnRenderThread(() -> {
+            if (stRes > 0) {
+                staticShadowMap = new ShadowMap(stRes);
+                staticShadowMap.init();
+            }
+            if (dyRes > 0) {
+                dynamicShadowMap = new ShadowMap(dyRes);
+                dynamicShadowMap.init();
+            }
+        });
     }
 
     public void setLightSize(float lightSize) {
@@ -127,8 +131,12 @@ public class DirectionalLight {
         dynamicShadowMap.cleanup();
     }
 
-    public boolean doShadowMapping(boolean dynamic) {
-        return dynamic ? dynamicShadowMap != null : staticShadowMap != null;
+    public boolean doStaticShadows() {
+        return staticShadowMap != null;
+    }
+
+    public boolean doDynamicShadows() {
+        return dynamicShadowMap != null;
     }
 
     public Vector3fc getLightFocus() {

@@ -8,6 +8,7 @@ import NG.Entities.Cube;
 import NG.Entities.Entity;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
+import NG.GameMap.TileThemeSet;
 import NG.MonsterSoul.MonsterSoul;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.Tools.Toolbox;
@@ -15,6 +16,8 @@ import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+
+import java.nio.file.Path;
 
 /**
  * @author Geert van Ieperen. Created on 28-9-2018.
@@ -65,6 +68,8 @@ public class MainMenu extends SFrame {
         int xSize = game.settings().CHUNK_SIZE;
         int ySize = game.settings().CHUNK_SIZE;
 
+        TileThemeSet.PLAIN.load();
+
         // random map
         int seed = Math.abs(Toolbox.random.nextInt());
         MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
@@ -81,7 +86,7 @@ public class MainMenu extends SFrame {
         cam.set(cameraFocus, cameraEye);
 
         Vector3i position = game.map().getCoordinate(cameraFocus);
-        Entity e = new MonsterSoul(null).getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
+        Entity e = new MonsterSoul((Path) null).getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
         game.state().addEntity(e);
 
         game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);

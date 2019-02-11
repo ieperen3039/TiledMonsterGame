@@ -31,10 +31,12 @@ public class MapTile {
     public final String name;
     public final int tileID;
     public final RotationFreeFit fit;
-    public final Mesh mesh;
     public final EnumSet<Properties> properties;
     public final int baseHeight; // height of the middle part, the height the user stands on
     public final TileThemeSet sourceSet;
+    private final Path meshPath;
+
+    private Mesh mesh; // lazy initialized
 
     public enum Properties {
         /** this object allows light through */
@@ -59,7 +61,7 @@ public class MapTile {
      * @param neg_pos    the relative height of the mesh at (0, 1) [-3, 3]
      * @param properties the properties of this tile
      * @param baseHeight the height of the middle of the tile
-     * @param sourceSet
+     * @param sourceSet the tileset where this tile is part of, or null if this is a custom tile.
      */
     private MapTile(// pp, pn, nn, np
                     String name, Path meshPath, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
@@ -70,7 +72,7 @@ public class MapTile {
         this.tileID = nextIdentity++;
         // the order is important
         this.fit = new RotationFreeFit(pos_pos, pos_neg, neg_neg, neg_pos);
-        this.mesh = new MeshShape(meshPath);
+        this.meshPath = meshPath;
         this.properties = properties;
         this.baseHeight = baseHeight;
     }
@@ -140,9 +142,11 @@ public class MapTile {
         if (NAMES.contains(name)) {
             Logger.WARN.print("A tile with name " + name + " already exists. This will cause problems when saving / loading files");
             int i = 2;
+            String newName;
             do {
-                name += i++;
-            } while (NAMES.contains(name));
+                newName = name + i++;
+            } while (NAMES.contains(newName));
+            name = newName;
             Logger.INFO.print("Renamed tile to " + name);
         }
 
@@ -259,7 +263,7 @@ public class MapTile {
 
         Instance(int height, int rotation, MapTile type) {
             assert type != null;
-            this.height = (byte) (height + type.baseHeight);
+            this.height = (byte) (height);
             this.rotation = (byte) rotation;
             this.type = type;
         }
@@ -267,8 +271,12 @@ public class MapTile {
         public void draw(SGL gl) {
             gl.pushMatrix();
             {
-                gl.translate(0, 0, (height - type.baseHeight) * TILE_SIZE_Z);
+                gl.translate(0, 0, (height) * TILE_SIZE_Z);
                 gl.rotate(rotation * QUARTER, 0, 0, 1);
+
+                if (type.mesh == null) {
+                    type.mesh = new MeshShape(type.meshPath);
+                }
                 gl.render(type.mesh, null);
             }
             gl.popMatrix();
@@ -279,7 +287,7 @@ public class MapTile {
             int index = (list.indexOf(type) + offset) % list.size();
             MapTile newType = list.get(index);
             int newRotation = this.rotation - type.fit.rotation + newType.fit.rotation;
-            int newHeight = this.height - type.baseHeight;
+            int newHeight = this.height - type.baseHeight + newType.baseHeight;
 
             return new Instance(newHeight, newRotation, newType);
         }

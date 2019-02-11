@@ -1,10 +1,10 @@
 package NG.GameMap;
 
 import NG.ActionHandling.MouseTools.MouseToolListener;
-import NG.DataStructures.Storable;
 import NG.Engine.GameAspect;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Storable;
 import org.joml.*;
 
 /**
