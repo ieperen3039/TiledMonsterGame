@@ -25,7 +25,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * A collection of entities, which manages synchronous updating and drawing.
  * @author Geert van Ieperen. Created on 14-9-2018.
+ * @deprecated this project uses the {@link NG.GameEvent.GameEventDiscreteQueue}
  */
+@Deprecated
 public class GameLoop extends AbstractGameLoop implements GameState {
     private final List<Entity> entities;
     private final Lock entityWriteLock;
@@ -75,7 +77,7 @@ public class GameLoop extends AbstractGameLoop implements GameState {
         float gameDT = game.timer().getGametimeDifference();
         if (gameDT == 0) return;
 
-        entities.forEach(Entity::update);
+//        entities.forEach(Entity::update);
     }
 
     @Override
@@ -127,6 +129,8 @@ public class GameLoop extends AbstractGameLoop implements GameState {
         entityWriteLock.lock();
         entities.clear();
         entityWriteLock.unlock();
+        // just to be sure
+        stopLoop();
     }
 
     @Override

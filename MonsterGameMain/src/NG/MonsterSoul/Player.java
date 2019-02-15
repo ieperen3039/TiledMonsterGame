@@ -1,5 +1,7 @@
 package NG.MonsterSoul;
 
+import NG.Entities.Actions.Command;
+
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */

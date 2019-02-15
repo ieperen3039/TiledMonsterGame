@@ -2,6 +2,7 @@ package NG.Engine;
 
 import NG.ActionHandling.KeyMouseCallbacks;
 import NG.Camera.Camera;
+import NG.GameEvent.Event;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
@@ -42,6 +43,12 @@ public interface Game {
     Version getVersion();
 
     GameLights lights();
+
+    /**
+     * schedules an event on the game loop
+     * @param e the event to execute
+     */
+    void addEvent(Event e);
 
     /**
      * Schedules the specified action to be executed in the OpenGL context. The action is guaranteed to be executed

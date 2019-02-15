@@ -55,7 +55,7 @@ public class PlainTiles {
         register("plain0201.obj", 0, 2, 0, 1, MapTile.Properties.NONE, 2);
         register("plain0202.obj", 0, 2, 0, 2, MapTile.Properties.NONE, 3);
 
-        Logger.INFO.print("Registered plain MapTiles");
+        Logger.INFO.print("Loaded plain MapTiles");
     }
 
     private static void register(

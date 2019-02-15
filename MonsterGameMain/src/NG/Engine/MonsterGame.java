@@ -4,12 +4,14 @@ import NG.ActionHandling.MouseToolCallbacks;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
 import NG.DataStructures.Generic.Color4f;
+import NG.GameEvent.Event;
+import NG.GameEvent.GameEventDiscreteQueue;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.GameState.GameLights;
-import NG.GameState.GameLoop;
 import NG.GameState.GameState;
 import NG.GameState.SingleShadowMapLights;
+import NG.GameState.StaticState;
 import NG.Mods.InitialisationMod;
 import NG.Mods.Mod;
 import NG.Rendering.GLFWWindow;
@@ -39,7 +41,7 @@ import java.util.List;
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public class MonsterGame implements Game, ModLoader {
-    private static final Version GAME_VERSION = new Version(0, 0);
+    private static final Version GAME_VERSION = new Version(0, 1);
     private final String MAIN_THREAD;
 
     private final GameTimer time;
@@ -49,7 +51,8 @@ public class MonsterGame implements Game, ModLoader {
     private final MouseToolCallbacks inputHandler;
     private final GUIManager frameManager;
 
-    private GameLoop gameState;
+    private GameEventDiscreteQueue gameLoop;
+    private GameState gameState;
     private GameMap gameMap;
     private GameLights gameLights;
     private MainMenu mainMenu;
@@ -65,11 +68,11 @@ public class MonsterGame implements Game, ModLoader {
 
         Logger.DEBUG.print("General debug information: " +
                 // manual aligning will do the trick
-                "\n\tSystem OS:          " + System.getProperty("os.name") +
-                "\n\tJava VM:            " + System.getProperty("java.runtime.version") +
-                "\n\tFrame version:      " + getVersion() +
-                "\n\tWorking directory:  " + Directory.workDirectory() +
-                "\n\tMods directory:     " + Directory.mods.getPath()
+                "\n\tSystem OS:             " + System.getProperty("os.name") +
+                "\n\tJava VM:               " + System.getProperty("java.runtime.version") +
+                "\n\tGame version:          " + getVersion() +
+                "\n\tWorking directory:     " + Directory.workDirectory().toAbsolutePath() +
+                "\n\tMods directory:        " + Directory.mods.getPath()
         );
 
         // these two are not GameAspects, and thus the init() rule does not apply.
@@ -79,7 +82,8 @@ public class MonsterGame implements Game, ModLoader {
         camera = new TycoonFixedCamera(new Vector3f(), 10, 10);
         window = new GLFWWindow(Settings.GAME_NAME, settings, true);
         renderer = new RenderLoop(settings.TARGET_FPS);
-        gameState = new GameLoop(Settings.GAME_NAME, settings.TARGET_TPS);
+        gameLoop = new GameEventDiscreteQueue(settings.TARGET_FPS);
+        gameState = new StaticState();
         gameMap = new TileMap(settings.CHUNK_SIZE);
         inputHandler = new MouseToolCallbacks();
         frameManager = new SFrameManager();
@@ -99,6 +103,7 @@ public class MonsterGame implements Game, ModLoader {
         window.init(this);
         renderer.init(this);
         camera.init(this);
+        gameLoop.init(this);
         gameState.init(this);
         inputHandler.init(this);
         frameManager.init(this);
@@ -111,9 +116,9 @@ public class MonsterGame implements Game, ModLoader {
         renderer.addHudItem(frameManager::draw);
         mainMenu = new MainMenu(this, this, renderer::stopLoop);
         frameManager.addFrame(mainMenu);
-        gameState.start();
+        gameLoop.start();
 
-        Logger.INFO.print("Finished initialisation\n");
+        Logger.INFO.print("Finished initialisation");
     }
 
     @Override
@@ -137,31 +142,46 @@ public class MonsterGame implements Game, ModLoader {
 
     public void root() throws Exception {
         init();
-        Logger.INFO.print("Starting game...\n");
+        Logger.DEBUG.newLine();
+        Logger.DEBUG.print("Opening game window...");
 
         // show main menu
         mainMenu.setVisible(true);
         window.open();
         renderer.run();
 
+        Logger.INFO.newLine();
+        Logger.INFO.print("Closing game window and start cleanup...");
+
         cleanMods();
         cleanup();
+
+        Logger.INFO.print("Game engine is stopped");
+        Logger.INFO.newLine();
     }
 
     @Override
     public void startGame() {
+        Logger.INFO.newLine();
+        Logger.INFO.print("Starting game...");
+
         mainMenu.setVisible(false);
 //        frameManager.setToolBar(toolBar);
-        gameState.unPause();
+        gameLoop.unPause();
     }
 
     private void stopGame() {
-        gameState.pause();
-        gameState.cleanup();
+        Logger.INFO.print(); // new line
+        Logger.INFO.print("Stopping game...");
+
+        gameLoop.pause();
+        gameLoop.cleanup();
         gameMap.cleanup();
         frameManager.setToolBar(null);
         cleanMods();
         mainMenu.setVisible(true);
+
+        Logger.DEBUG.print("Game stopped");
     }
 
     @Override
@@ -210,8 +230,15 @@ public class MonsterGame implements Game, ModLoader {
     }
 
     @Override
+    public void addEvent(Event e) {
+        gameLoop.addEvent(e);
+    }
+
+    @Override
     public void executeOnRenderThread(Runnable action) {
-        if (Thread.currentThread().getName().equals(MAIN_THREAD)) {
+        boolean thisIsMainThread = Thread.currentThread().getName().equals(MAIN_THREAD);
+
+        if (thisIsMainThread) {
             action.run();
 
         } else {
@@ -241,7 +268,7 @@ public class MonsterGame implements Game, ModLoader {
         Version fileVersion = new Version(in);
         Logger.INFO.print("Reading state of version " + fileVersion);
 
-        GameLoop newState;
+        GameState newState;
         GameMap newMap;
         GameLights newLights;
 
@@ -259,7 +286,7 @@ public class MonsterGame implements Game, ModLoader {
                 logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
             }
 
-            newState = Storable.readFromFile(in, GameLoop.class);
+            newState = Storable.readFromFile(in, GameState.class);
             newMap = Storable.readFromFile(in, GameMap.class);
             newLights = Storable.readFromFile(in, GameLights.class);
 
@@ -267,9 +294,9 @@ public class MonsterGame implements Game, ModLoader {
             newMap.init(this);
             newLights.init(this);
 
-            gameState.defer(() -> {
+            gameLoop.defer(() -> {
                 // clean up all the replaced stuff
-                this.gameState.stopLoop();
+                this.gameState.cleanup();
                 this.gameMap.cleanup();
                 this.gameLights.cleanup();
 
@@ -305,7 +332,7 @@ public class MonsterGame implements Game, ModLoader {
     }
 
     private void cleanup() {
-        gameState.stopLoop();
+        gameLoop.stopLoop();
         permanentMods.forEach(Mod::cleanup);
 
         window.cleanup();

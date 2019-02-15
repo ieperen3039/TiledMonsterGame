@@ -43,7 +43,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
      * @param targetTps the target frames per second
      */
     public RenderLoop(int targetTps) {
-        super("Renderloop", targetTps);
+        super("Renderloop", 20);
         overlay = new ScreenOverlay();
     }
 
@@ -61,7 +61,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     @Override
     protected void update(float deltaTime) {
-        Toolbox.checkGLError();
 
         // current time
         game.timer().updateRenderTime();
@@ -96,7 +95,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             entities.draw(gl);
         }
         sceneShader.unbind();
-        Toolbox.checkGLError();
 
         overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
 

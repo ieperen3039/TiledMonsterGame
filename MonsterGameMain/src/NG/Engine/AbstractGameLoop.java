@@ -92,8 +92,8 @@ public abstract class AbstractGameLoop extends Thread {
                 // number of milliseconds remaining in this loop
                 float remainingTime = targetDeltaMillis - loopTimer.getTimeSinceLastUpdate();
 
-                // sleep at least one millisecond
-                long correctedTime = (long) Math.max(remainingTime, 1f);
+                // sleep at least 0 milliseconds
+                long correctedTime = (long) Math.max(remainingTime, 0);
                 Thread.sleep(correctedTime);
 
                 // store the duration and set this as length of next update

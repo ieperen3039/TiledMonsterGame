@@ -1,12 +1,12 @@
-package NG;
+package NG.GameState;
 
 import NG.ActionHandling.ClickShader;
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Entities.Entity;
-import NG.GameState.GameState;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Collision;
+import NG.Storable;
 import NG.Tools.Logger;
 import org.joml.Vector3fc;
 
@@ -22,13 +22,17 @@ import java.util.concurrent.FutureTask;
 /**
  * @author Geert van Ieperen created on 10-2-2019.
  */
-class StaticState implements GameState {
-    private static final int WRITE_SAFE_LIMIT = 20;
+public class StaticState implements GameState {
     private final List<Entity> entities;
     private Game game;
 
     public StaticState() {
         entities = Collections.synchronizedList(new ArrayList<>());
+    }
+
+    @Override
+    public void init(Game game) throws Exception {
+        this.game = game;
     }
 
     @Override
@@ -93,11 +97,7 @@ class StaticState implements GameState {
     }
 
     @Override
-    public void init(Game game) throws Exception {
-        this.game = game;
-    }
-
-    @Override
     public void cleanup() {
+        entities.clear();
     }
 }

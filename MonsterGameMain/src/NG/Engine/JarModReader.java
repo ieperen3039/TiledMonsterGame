@@ -95,7 +95,7 @@ public final class JarModReader {
             }
         }
 
-        Logger.INFO.print("Loaded " + mods.size() + " mods\n");
+        Logger.INFO.print("Loaded " + mods.size() + " mods");
 
         modloader.close();
         return mods;

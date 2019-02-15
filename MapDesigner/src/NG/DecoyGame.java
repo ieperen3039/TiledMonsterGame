@@ -7,11 +7,13 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Engine.Version;
+import NG.GameEvent.Event;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.GameState.SingleShadowMapLights;
+import NG.GameState.StaticState;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
 import NG.ScreenOverlay.Frames.GUIManager;
@@ -119,6 +121,19 @@ class DecoyGame implements Game {
     @Override
     public GameLights lights() {
         return gameLights;
+    }
+
+    @Override
+    public void addEvent(Event e) {
+        new Thread(() -> { // works
+            try {
+                Thread.sleep((long) (e.getTime() * 1000));
+            } catch (InterruptedException ex) {
+                Logger.ERROR.print(ex);
+            }
+
+            e.run();
+        }, "Wait to do action " + e).start();
     }
 
     @Override

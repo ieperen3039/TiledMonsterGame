@@ -6,11 +6,13 @@ import NG.Engine.Game;
 import NG.Engine.ModLoader;
 import NG.Entities.Cube;
 import NG.Entities.Entity;
+import NG.GameEvent.Event;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.MonsterSoul.MonsterSoul;
 import NG.ScreenOverlay.Frames.Components.*;
+import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -65,35 +67,47 @@ public class MainMenu extends SFrame {
     }
 
     private void testWorld() {
-        int xSize = game.settings().CHUNK_SIZE;
-        int ySize = game.settings().CHUNK_SIZE;
+        try {
+            int xSize = game.settings().CHUNK_SIZE;
+            int ySize = game.settings().CHUNK_SIZE;
 
-        TileThemeSet.PLAIN.load();
+            TileThemeSet.PLAIN.load();
 
-        // random map
-        int seed = Math.abs(Toolbox.random.nextInt());
-        MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
-        mapGenerator.setSize(xSize + 1, ySize + 1);
-        game.map().generateNew(mapGenerator);
+            // random map
+            int seed = Math.abs(Toolbox.random.nextInt());
+            MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
+            mapGenerator.setSize(xSize + 1, ySize + 1);
+            game.map().generateNew(mapGenerator);
 
-        modLoader.initMods(modLoader.allMods());
+            modLoader.initMods(modLoader.allMods());
 
-        // set camera to middle of map
-        Vector3f cameraFocus = game.map().getPosition(new Vector2i(xSize / 2, ySize / 2));
-        Camera cam = game.camera();
-        int initialZoom = xSize + ySize;
-        Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
-        cam.set(cameraFocus, cameraEye);
+            // set camera to middle of map
+            Vector3f cameraFocus = game.map().getPosition(new Vector2i(xSize / 2, ySize / 2));
+            Camera cam = game.camera();
+            int initialZoom = xSize + ySize;
+            Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
+            cam.set(cameraFocus, cameraEye);
 
-        Vector3i position = game.map().getCoordinate(cameraFocus);
-        Entity e = new MonsterSoul((Path) null).getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
-        game.state().addEntity(e);
+            float eventTime = game.timer().getGametime() + 2;
+            game.addEvent(new Event.DebugEvent(game, eventTime, 1));
 
-        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);
+            // add a default entity
+            Vector3i position = game.map().getCoordinate(cameraFocus);
+            MonsterSoul monsterSoul = new MonsterSoul((Path) null);
+            Entity cow = monsterSoul.getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
+            game.state().addEntity(cow);
 
-        // start
-        modLoader.startGame();
-        newGameFrame.setVisible(false);
+            // add lights
+            game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);
+
+            // start
+            modLoader.startGame();
+            newGameFrame.setVisible(false);
+
+        } catch (Exception e) {
+            Logger.ERROR.print(e);
+
+        }
     }
 
     private void entityCloud() {

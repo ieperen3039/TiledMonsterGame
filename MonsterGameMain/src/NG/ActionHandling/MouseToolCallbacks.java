@@ -30,7 +30,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
     private final Collection<KeyReleaseListener> keyReleaseListeners = new ArrayList<>();
     private final Collection<MousePositionListener> mousePositionListeners = new ArrayList<>();
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService taskScheduler = Executors.newSingleThreadExecutor();
 
     private Game game;
     private KeyTypeListener keyTypeListener = null;
@@ -51,7 +51,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
         keyReleaseListeners.clear();
         mousePositionListeners.clear();
         keyTypeListener = null;
-        executor.shutdown();
+        taskScheduler.shutdown();
     }
 
     @Override
@@ -120,12 +120,22 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
         public void invoke(long window, int keyCode, int scanCode, int action, int mods) {
             if (keyCode < 0) return;
             if (action == GLFW_PRESS) {
-                executor.submit(() -> keyPressListeners.forEach(l -> l.keyPressed(keyCode)));
+                keyPressListeners.forEach(l -> execute(() -> l.keyPressed(keyCode)));
 
             } else if (action == GLFW_RELEASE) {
-                executor.submit(() -> keyReleaseListeners.forEach(l -> l.keyReleased(keyCode)));
+                keyReleaseListeners.forEach(l -> execute(() -> l.keyReleased(keyCode)));
             }
         }
+    }
+
+    private void execute(Runnable action) {
+        taskScheduler.submit(() -> {
+            try {
+                action.run();
+            } catch (Exception ex) {
+                Logger.ERROR.print(ex);
+            }
+        });
     }
 
     private class MouseButtonPressCallback extends GLFWMouseButtonCallback {
@@ -134,7 +144,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
             Vector2i pos = game.window().getMousePosition();
 
             if (action == GLFW_PRESS) {
-                executor.submit(() -> {
+                execute(() -> {
                     int x = pos.x;
                     int y = pos.y;
                     currentTool.setButton(button);
@@ -149,7 +159,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
                 });
 
             } else if (action == GLFW_RELEASE) {
-                executor.submit(() -> currentTool.onRelease(button, pos.x, pos.y));
+                execute(() -> currentTool.onRelease(button, pos.x, pos.y));
             }
         }
     }
@@ -165,24 +175,23 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
 
         @Override
         public void invoke(long window, double xpos, double ypos) {
-            executor.submit(() -> {
-                mouseXPos.update((float) xpos);
-                mouseYPos.update((float) ypos);
+            mouseXPos.update((float) xpos);
+            mouseYPos.update((float) ypos);
 
-                for (MousePositionListener listener : mousePositionListeners) {
-                    listener.mouseMoved((int) xpos, (int) ypos);
-                }
+            for (MousePositionListener listener : mousePositionListeners) {
+                execute(() -> listener.mouseMoved((int) xpos, (int) ypos));
+            }
 
-                int xDiff = Toolbox.randomToInt(mouseXPos.difference());
-                int yDiff = Toolbox.randomToInt(mouseYPos.difference());
-                currentTool.mouseMoved(xDiff, yDiff);
-            });
+            int xDiff = Toolbox.randomToInt(mouseXPos.difference());
+            int yDiff = Toolbox.randomToInt(mouseYPos.difference());
+            execute(() -> currentTool.mouseMoved(xDiff, yDiff));
         }
     }
 
     private class MouseScrollCallback extends GLFWScrollCallback {
         @Override
         public void invoke(long window, double xoffset, double yoffset) {
+            // TODO send signal to mousetool
             game.camera().onScroll((float) yoffset);
         }
     }
@@ -193,7 +202,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
             if (keyTypeListener != null && Character.isAlphabetic(codepoint)) {
                 char s = Character.toChars(codepoint)[0];
 
-                executor.submit(() -> keyTypeListener.keyTyped(s));
+                execute(() -> keyTypeListener.keyTyped(s));
             }
         }
     }

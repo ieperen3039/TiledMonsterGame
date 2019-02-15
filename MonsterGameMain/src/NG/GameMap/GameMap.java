@@ -7,6 +7,9 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import org.joml.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * An object that represents the world where all other entities stand on. This includes both the graphical and the
  * physical representation. The map considers a difference between coordinates and position, in that a coordinate may be
@@ -164,6 +167,16 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      * the number of tiles in x and y direction
      */
     Vector2ic getSize();
+
+    /**
+     * finds a path from A to B.
+     * @param beginPosition the A position
+     * @param target        the B position
+     * @return a path from A (exclusive) to B (inclusive) where the height differences are at most 1.
+     */
+    static List<Vector2i> findPath(Vector2ic beginPosition, Vector2ic target) {
+        return new ArrayList<>();
+    }
 
     interface ChangeListener {
         /** is called when the map is changed */

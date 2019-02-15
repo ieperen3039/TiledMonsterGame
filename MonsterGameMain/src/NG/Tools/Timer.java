@@ -33,7 +33,7 @@ public class Timer {
      * @return The number of milliseconds between the previous two gameticks.
      */
     public long getElapsedTime() {
-        return time.current() - time.previous();
+        return time.difference();
     }
 
     /**

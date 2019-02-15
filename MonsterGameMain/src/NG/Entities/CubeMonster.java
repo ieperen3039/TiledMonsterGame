@@ -8,6 +8,7 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.FileShapes;
+import NG.Tools.Vectors;
 import org.joml.AABBf;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -61,5 +62,10 @@ public class CubeMonster extends MonsterEntity {
     @Override
     public AABBf hitbox() {
         return hitbox;
+    }
+
+    @Override
+    public String toString() {
+        return "Cube " + Vectors.toString(getPosition());
     }
 }

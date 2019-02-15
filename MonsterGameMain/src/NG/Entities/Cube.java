@@ -26,8 +26,7 @@ public class Cube implements Entity {
         return position;
     }
 
-    @Override
-    public void update() {
+    private void update() {
         // physics
     }
 

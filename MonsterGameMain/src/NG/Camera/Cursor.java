@@ -19,8 +19,7 @@ public class Cursor implements Entity {
         this.positionSupplier = positionSupplier;
     }
 
-    @Override
-    public void update() {
+    private void update() {
 
     }
 

@@ -54,7 +54,7 @@ public class Version implements Comparable<Version>, Storable {
 
     @Override
     public String toString() {
-        return major + "." + minor;
+        return "v " + major + "." + minor;
     }
 
     @Override

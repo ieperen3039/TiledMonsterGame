@@ -2,7 +2,6 @@ package NG.Entities;
 
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Storable;
 import org.joml.AABBf;
 import org.joml.Vector3fc;
 
@@ -14,15 +13,6 @@ import org.joml.Vector3fc;
 public interface Entity {
 
     /**
-     * Updates the state of the entity. Use {@link GameTimer#getGametimeDifference()} for speed calculations and {@link
-     * GameTimer#getGametime()} for position calculations.
-     * <p>
-     * If the entity is {@link Storable}, it must provide a constructor that accepts only a {@link
-     * NG.Engine.Game} object.
-     */
-    void update();
-
-    /**
      * Draws this entity using the provided SGL object. This method may only be called from the rendering loop, and
      * should not change the internal representation of this object. Possible animations should be based on {@link
      * GameTimer#getRendertime()}. Material must be set using {@link SGL#getShader()}.
@@ -32,7 +22,7 @@ public interface Entity {
     void draw(SGL gl);
 
     /**
-     * @return the current real position of this entity
+     * @return the real position of this entity at the current game time
      */
     Vector3fc getPosition();
 
