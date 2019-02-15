@@ -11,7 +11,7 @@ public class Settings {
     public boolean DEBUG = true;
 
     // game engine settings
-    public int TARGET_TPS = 20;
+    public int TARGET_TPS = 30;
     public final int CHUNK_SIZE = 16; // number of tiles in a chunk
     public static final float TILE_SIZE = 2f;
     public static final float TILE_SIZE_Z = 0.5f;

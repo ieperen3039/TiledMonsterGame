@@ -43,7 +43,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
      * @param targetTps the target frames per second
      */
     public RenderLoop(int targetTps) {
-        super("Renderloop", 20);
+        super("Renderloop", targetTps);
         overlay = new ScreenOverlay();
     }
 
