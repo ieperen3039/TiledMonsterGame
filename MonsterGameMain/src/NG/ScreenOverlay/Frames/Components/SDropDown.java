@@ -3,11 +3,15 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.Engine.Game;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
+import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_CLOSED;
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_OPEN;
 
 /**
  * A menu item that may assume different options, where the player can choose from using a drop-down selection.
@@ -151,7 +155,8 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.drawDropDown(screenPosition, dimensions, values[current], isOpened);
+        design.draw(isOpened ? DROP_DOWN_HEAD_OPEN : DROP_DOWN_HEAD_CLOSED, screenPosition, dimensions);
+        design.drawText(screenPosition, dimensions, values[current], NGFonts.TextType.REGULAR, true);
         // modal dialogs are drawn separately
     }
 
@@ -186,7 +191,10 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
             for (int i = 0; i < values.length; i++) {
                 final int index = i;
-                SExtendedTextArea option = new SExtendedTextArea(values[index], dropOptionHeight, true);
+                SExtendedTextArea option = new SExtendedTextArea(
+                        values[index], dropOptionHeight, minWidth, true, NGFonts.TextType.REGULAR
+                );
+
                 option.setClickListener((b, x, y) -> {
                     setCurrent(index);
                     close();

@@ -1,10 +1,10 @@
 package NG.GameEvent;
 
-import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
-import NG.Engine.GameAspect;
 import NG.Engine.GameTimer;
 
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * external updates to the queue, like with user interaction.
  * @author Geert van Ieperen created on 14-2-2019.
  */
-public class GameEventDiscreteQueue extends AbstractGameLoop implements GameAspect {
+public class GameEventDiscreteQueue extends EventLoop {
     private final PriorityQueue<Event> eventQueue; // requires explicit synchronisation
     private final Lock lockEventQueue;
     private Game game;
@@ -59,6 +59,7 @@ public class GameEventDiscreteQueue extends AbstractGameLoop implements GameAspe
         }
     }
 
+    @Override
     public void addEvent(Event e) {
         lockEventQueue.lock();
         try {
@@ -73,6 +74,12 @@ public class GameEventDiscreteQueue extends AbstractGameLoop implements GameAspe
     public void cleanup() {
         lockEventQueue.lock();
         eventQueue.clear();
+        lockEventQueue.unlock();
+    }
+
+    @Override
+    public void writeToFile(DataOutput out) throws IOException {
+        lockEventQueue.lock();
         lockEventQueue.unlock();
     }
 }

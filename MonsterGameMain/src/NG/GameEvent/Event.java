@@ -60,7 +60,7 @@ public abstract class Event implements Comparable<Event>, Runnable {
          */
         public DebugEvent(Game game, float eventTime, float recurrence) {
             super(eventTime);
-            Logger.DEBUG.print("Scheduled debug timer at " + eventTime);
+            Logger.DEBUG.printFrom(2, "Scheduled debug timer at " + eventTime);
             this.game = game;
             this.recurrence = recurrence;
             this.id = nextID++;

@@ -2,10 +2,13 @@ package NG.ScreenOverlay.Frames.Components;
 
 import NG.ScreenOverlay.Frames.LayoutManagers.SingleElementLayout;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
+import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector4i;
 import org.joml.Vector4ic;
+
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.FRAME_BODY;
 
 /**
  * A Frame object similar to {@link javax.swing.JFrame} objects. The {@link #setMainPanel(SContainer)} can be used for
@@ -63,7 +66,7 @@ public class SFrame extends SContainer {
         upperBar.add(exit, new Vector2i(4, 0));
         SComponent minimize = new SButton("M", () -> setMinimized(true), FRAME_TITLE_BAR_SIZE, FRAME_TITLE_BAR_SIZE);
         upperBar.add(minimize, new Vector2i(3, 0));
-        SExtendedTextArea title = new SExtendedTextArea(frameTitle, 20, true);
+        SExtendedTextArea title = new SExtendedTextArea(frameTitle, FRAME_TITLE_BAR_SIZE, 0, true, NGFonts.TextType.TITLE);
         title.setDragListener(this::addToPosition);
         upperBar.add(title, new Vector2i(1, 0));
 
@@ -116,7 +119,7 @@ public class SFrame extends SContainer {
 
         } else {
             // take offset into account for consistency.
-            design.drawRectangle(screenPosition, dimensions);
+            design.draw(FRAME_BODY, screenPosition, dimensions);
             upperBar.draw(design, screenPosition);
             drawChildren(design, screenPosition);
         }

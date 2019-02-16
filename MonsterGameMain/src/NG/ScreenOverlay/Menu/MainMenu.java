@@ -30,24 +30,26 @@ public class MainMenu extends SFrame {
     private static final int NUM_BOT_BUTTONS = 10;
     public static final int BUTTON_MIN_WIDTH = 300;
     public static final int BUTTON_MIN_HEIGHT = 50;
+    public static final int NUM_BUTTONS = NUM_TOP_BUTTONS + NUM_BOT_BUTTONS + 1;
     private static final int NOF_ENTITIES = 4 * 4 * 4;
 
     private final Vector2i topButtonPos;
     private final Vector2i bottomButtonPos;
-    public static final int NUM_BUTTONS = NUM_TOP_BUTTONS + NUM_BOT_BUTTONS + 1;
-    private final Game game;
+    private final Game overworld;
+    private final Game pocketworld;
     private final ModLoader modLoader;
     private final SFrame newGameFrame;
 
-    public MainMenu(Game game, ModLoader modManager, Runnable exitGameAction) {
+    public MainMenu(Game overworld, Game pocketworld, ModLoader modManager, Runnable exitGameAction) {
         super("Main Menu", 400, 500, false);
-        this.game = game;
+        this.overworld = overworld;
+        this.pocketworld = pocketworld;
         this.modLoader = modManager;
         topButtonPos = new Vector2i(1, -1);
         bottomButtonPos = new Vector2i(1, NUM_BUTTONS);
         SContainer buttons = new SPanel(3, NUM_BUTTONS);
 
-        newGameFrame = new NewGameFrame(game, modLoader);
+        newGameFrame = new NewGameFrame(overworld, modLoader);
 
         SButton newGame = new SButton("Start new game", this::showNewGame, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
         buttons.add(newGame, onTop());
@@ -68,8 +70,8 @@ public class MainMenu extends SFrame {
 
     private void testWorld() {
         try {
-            int xSize = game.settings().CHUNK_SIZE;
-            int ySize = game.settings().CHUNK_SIZE;
+            int xSize = overworld.settings().CHUNK_SIZE;
+            int ySize = overworld.settings().CHUNK_SIZE;
 
             TileThemeSet.PLAIN.load();
 
@@ -77,28 +79,28 @@ public class MainMenu extends SFrame {
             int seed = Math.abs(Toolbox.random.nextInt());
             MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
             mapGenerator.setSize(xSize + 1, ySize + 1);
-            game.map().generateNew(mapGenerator);
+            overworld.map().generateNew(mapGenerator);
 
             modLoader.initMods(modLoader.allMods());
 
             // set camera to middle of map
-            Vector3f cameraFocus = game.map().getPosition(new Vector2i(xSize / 2, ySize / 2));
-            Camera cam = game.camera();
+            Vector3f cameraFocus = overworld.map().getPosition(new Vector2i(xSize / 2, ySize / 2));
+            Camera cam = overworld.camera();
             int initialZoom = xSize + ySize;
             Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
             cam.set(cameraFocus, cameraEye);
 
-            float eventTime = game.timer().getGametime() + 2;
-            game.addEvent(new Event.DebugEvent(game, eventTime, 1));
+            float eventTime = overworld.timer().getGametime() + 2;
+            overworld.addEvent(new Event.DebugEvent(overworld, eventTime, 1));
 
             // add a default entity
-            Vector3i position = game.map().getCoordinate(cameraFocus);
+            Vector3i position = overworld.map().getCoordinate(cameraFocus);
             MonsterSoul monsterSoul = new MonsterSoul((Path) null);
-            Entity cow = monsterSoul.getAsEntity(game, new Vector2i(position.x, position.y), Vectors.X);
-            game.state().addEntity(cow);
+            Entity cow = monsterSoul.getAsEntity(overworld, new Vector2i(position.x, position.y), Vectors.X);
+            overworld.entities().addEntity(cow);
 
             // add lights
-            game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);
+            overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);
 
             // start
             modLoader.startGame();
@@ -121,17 +123,17 @@ public class MainMenu extends SFrame {
                 for (int z = 0; z < cbrtc; z++) {
                     Vector3f pos = new Vector3f(x, y, z).mul(spacing);
                     Entity cube = new Cube(pos);
-                    game.state().addEntity(cube);
+                    overworld.entities().addEntity(cube);
                     if (--i == 0) break cubing;
                 }
             }
         }
 
-        Camera cam = game.camera();
+        Camera cam = overworld.camera();
         Vector3f cameraEye = new Vector3f(cbrtc, cbrtc, cbrtc).mul(spacing).add(10, 10, 10);
         cam.set(Vectors.O, cameraEye);
 
-        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
+        overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         modLoader.startGame();
         newGameFrame.setVisible(false);
@@ -139,7 +141,7 @@ public class MainMenu extends SFrame {
 
     private void showNewGame() {
         newGameFrame.setVisible(true);
-        game.gui().addFrame(newGameFrame);
+        overworld.gui().addFrame(newGameFrame);
     }
 
     private Vector2i onTop() {

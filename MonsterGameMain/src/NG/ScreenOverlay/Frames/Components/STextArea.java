@@ -16,16 +16,16 @@ public class STextArea extends SComponent {
     private int height;
     private int specMinWidth;
 
-    public STextArea(String text, int minHeight, int minWidth, boolean doGrowInWidth) {
+    public STextArea(String text, int minHeight, int minWidth, boolean doGrowInWidth, NGFonts.TextType textType) {
         this.text = text;
         this.height = minHeight;
         this.specMinWidth = minWidth;
         this.doGrowInWidth = doGrowInWidth;
-        textType = NGFonts.TextType.REGULAR;
+        this.textType = textType;
     }
 
     public STextArea(String text, int minHeight, boolean doGrowInWidth) {
-        this(text, minHeight, 0, doGrowInWidth);
+        this(text, minHeight, 0, doGrowInWidth, NGFonts.TextType.REGULAR);
     }
 
     @Override

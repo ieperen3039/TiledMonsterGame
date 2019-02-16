@@ -5,6 +5,7 @@ import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
 import NG.DataStructures.Generic.Color4f;
 import NG.GameEvent.Event;
+import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventDiscreteQueue;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
@@ -24,6 +25,7 @@ import NG.Storable;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -34,29 +36,26 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A game of planning and making money.
  * <p>
  * This class initializes all gameAspects, allow for starting a game, loading mods and cleaning up afterwards. It
  * provides all aspects of the game engine through the {@link Game} interface.
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
-public class MonsterGame implements Game, ModLoader {
-    private static final Version GAME_VERSION = new Version(0, 1);
+public class MonsterGame implements ModLoader {
+    private static final Version GAME_VERSION = new Version(0, 2);
     private final String MAIN_THREAD;
 
-    private final GameTimer time;
     private final RenderLoop renderer;
     private final Settings settings;
     private final GLFWWindow window;
     private final MouseToolCallbacks inputHandler;
     private final GUIManager frameManager;
-
-    private GameEventDiscreteQueue gameLoop;
-    private GameState gameState;
-    private GameMap gameMap;
-    private GameLights gameLights;
     private MainMenu mainMenu;
-    private Camera camera;
+
+    private SubGame pocketGame;
+    private SubGame worldGame;
+    private Game.Multiplexer combinedGame;
+    private boolean currentIsPocket;
 
     private List<Mod> allMods;
     private List<Mod> activeMods = Collections.emptyList();
@@ -70,24 +69,35 @@ public class MonsterGame implements Game, ModLoader {
                 // manual aligning will do the trick
                 "\n\tSystem OS:             " + System.getProperty("os.name") +
                 "\n\tJava VM:               " + System.getProperty("java.runtime.version") +
-                "\n\tGame version:          " + getVersion() +
+                "\n\tGame version:          " + GAME_VERSION +
                 "\n\tWorking directory:     " + Directory.workDirectory().toAbsolutePath() +
                 "\n\tMods directory:        " + Directory.mods.getPath()
         );
 
-        // these two are not GameAspects, and thus the init() rule does not apply.
+        // these are not GameAspects, and thus the init() rule does not apply.
         settings = new Settings();
-        time = new GameTimer(settings.RENDER_DELAY);
 
-        camera = new TycoonFixedCamera(new Vector3f(), 10, 10);
         window = new GLFWWindow(Settings.GAME_NAME, settings, true);
         renderer = new RenderLoop(settings.TARGET_FPS);
-        gameLoop = new GameEventDiscreteQueue(settings.TARGET_TPS);
-        gameState = new StaticState();
-        gameMap = new TileMap(settings.CHUNK_SIZE);
         inputHandler = new MouseToolCallbacks();
         frameManager = new SFrameManager();
-        gameLights = new SingleShadowMapLights();
+
+        Camera pocketView = new TycoonFixedCamera(new Vector3f(), 10, 10);
+        EventLoop pocketGameLoop = new GameEventDiscreteQueue(settings.TARGET_TPS);
+        GameState pocketGameState = new StaticState();
+        GameLights pocketLights = new SingleShadowMapLights();
+        GameMap pocketMap = new TileMap(settings.CHUNK_SIZE);
+        pocketGame = new SubGame(pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView);
+
+        Camera worldView = new TycoonFixedCamera(new Vector3f(), 10, 10);
+        EventLoop worldGameLoop = new GameEventDiscreteQueue(settings.TARGET_TPS);
+        GameState worldGameState = new StaticState();
+        GameLights worldLights = new SingleShadowMapLights();
+        GameMap worldMap = new TileMap(settings.CHUNK_SIZE);
+        worldGame = new SubGame(worldGameLoop, worldGameState, worldMap, worldLights, worldView);
+
+        combinedGame = new Game.Multiplexer(0, pocketGame, worldGame);
+        currentIsPocket = true;
 
         // load mods
         allMods = JarModReader.loadMods(Directory.mods);
@@ -100,23 +110,31 @@ public class MonsterGame implements Game, ModLoader {
     public void init() throws Exception {
         Logger.DEBUG.print("Initializing...");
         // init all fields
-        window.init(this);
-        renderer.init(this);
-        camera.init(this);
-        gameLoop.init(this);
-        gameState.init(this);
-        inputHandler.init(this);
-        frameManager.init(this);
-        gameMap.init(this);
-        gameLights.init(this);
+        window.init(combinedGame);
+        renderer.init(combinedGame);
+        inputHandler.init(combinedGame);
+        frameManager.init(combinedGame);
+        pocketGame.init();
+        worldGame.init();
 
-        permanentMods = JarModReader.filterInitialisationMods(allMods, this);
-
-        gameLights.addDirectionalLight(new Vector3f(1, -1.5f, 2), Color4f.WHITE, 0.5f);
         renderer.addHudItem(frameManager::draw);
-        mainMenu = new MainMenu(this, this, renderer::stopLoop);
+
+        permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
+
+        mainMenu = new MainMenu(pocketGame, worldGame, this, renderer::stopLoop);
         frameManager.addFrame(mainMenu);
-        gameLoop.start();
+
+        inputHandler.addKeyPressListener(k -> {
+            if (k == GLFW.GLFW_KEY_SPACE) {
+                combinedGame.executeOnRenderThread(() -> {
+                    combinedGame.select(currentIsPocket ? 1 : 0);
+                    currentIsPocket = !currentIsPocket;
+                });
+            }
+        });
+
+        pocketGame.thisLights.addDirectionalLight(new Vector3f(1, 1, 2), Color4f.rgb(255, 241, 224), 0.5f);
+        worldGame.thisLights.addDirectionalLight(new Vector3f(2, 1.5f, 1), Color4f.WHITE, 0.5f);
 
         Logger.INFO.print("Finished initialisation");
     }
@@ -131,7 +149,7 @@ public class MonsterGame implements Game, ModLoader {
             try {
                 assert !(mod instanceof InitialisationMod) : "Init mods should not be loaded here";
 
-                mod.init(this);
+                mod.init(combinedGame);
 
             } catch (Exception ex) {
                 Logger.ERROR.print("Error while loading " + mod.getModName(), ex);
@@ -166,154 +184,24 @@ public class MonsterGame implements Game, ModLoader {
         Logger.INFO.print("Starting game...");
 
         mainMenu.setVisible(false);
-//        frameManager.setToolBar(toolBar);
-        gameLoop.unPause();
+//        frameManager.setToolBar();
+
+        pocketGame.start();
+        worldGame.start();
     }
 
     private void stopGame() {
         Logger.INFO.print(); // new line
         Logger.INFO.print("Stopping game...");
 
-        gameLoop.pause();
-        gameLoop.cleanup();
-        gameMap.cleanup();
+        pocketGame.stop();
+        worldGame.stop();
+
         frameManager.setToolBar(null);
         cleanMods();
         mainMenu.setVisible(true);
 
         Logger.DEBUG.print("Game stopped");
-    }
-
-    @Override
-    public GameTimer timer() {
-        return time;
-    }
-
-    @Override
-    public Camera camera() {
-        return camera;
-    }
-
-    @Override
-    public GameState state() {
-        return gameState;
-    }
-
-    @Override
-    public GameMap map() {
-        return gameMap;
-    }
-
-    @Override
-    public Settings settings() {
-        return settings;
-    }
-
-    @Override
-    public GLFWWindow window() {
-        return window;
-    }
-
-    @Override
-    public MouseToolCallbacks inputHandling() {
-        return inputHandler;
-    }
-
-    @Override
-    public Version getVersion() {
-        return GAME_VERSION;
-    }
-
-    @Override
-    public GameLights lights() {
-        return gameLights;
-    }
-
-    @Override
-    public void addEvent(Event e) {
-        gameLoop.addEvent(e);
-    }
-
-    @Override
-    public void executeOnRenderThread(Runnable action) {
-        boolean thisIsMainThread = Thread.currentThread().getName().equals(MAIN_THREAD);
-
-        if (thisIsMainThread) {
-            action.run();
-
-        } else {
-            renderer.defer(action);
-        }
-    }
-
-    @Override
-    public void writeStateToFile(DataOutput out) throws IOException {
-        GAME_VERSION.writeToFile(out);
-
-        Collection<Mod> listOfMods = allMods();
-        out.writeInt(listOfMods.size());
-
-        for (Mod mod : listOfMods) {
-            out.writeUTF(mod.getModName());
-            mod.getVersionNumber().writeToFile(out);
-        }
-
-        Storable.writeToFile(out, gameState);
-        Storable.writeToFile(out, gameMap);
-        Storable.writeToFile(out, gameLights);
-    }
-
-    @Override
-    public void readStateFromFile(DataInput in) throws IOException {
-        Version fileVersion = new Version(in);
-        Logger.INFO.print("Reading state of version " + fileVersion);
-
-        GameState newState;
-        GameMap newMap;
-        GameLights newLights;
-
-        try {
-            int nOfMods = in.readInt();
-            if (nOfMods > 0) Logger.INFO.print("Required mods:");
-
-            for (int i = 0; i < nOfMods; i++) {
-                String modName = in.readUTF();
-                Mod targetMod = getModByName(modName);
-                Version version = new Version(in);
-
-                boolean hasMod = targetMod != null;
-                Logger logger = hasMod ? Logger.INFO : Logger.WARN;
-                logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
-            }
-
-            newState = Storable.readFromFile(in, GameState.class);
-            newMap = Storable.readFromFile(in, GameMap.class);
-            newLights = Storable.readFromFile(in, GameLights.class);
-
-            newState.init(this);
-            newMap.init(this);
-            newLights.init(this);
-
-            gameLoop.defer(() -> {
-                // clean up all the replaced stuff
-                this.gameState.cleanup();
-                this.gameMap.cleanup();
-                this.gameLights.cleanup();
-
-                // set new state
-                this.gameState = newState;
-                this.gameMap = newMap;
-                this.gameLights = newLights;
-            });
-
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
-    }
-
-    @Override
-    public GUIManager gui() {
-        return frameManager;
     }
 
     @Override
@@ -331,19 +219,208 @@ public class MonsterGame implements Game, ModLoader {
         return null;
     }
 
-    private void cleanup() {
-        gameLoop.stopLoop();
-        permanentMods.forEach(Mod::cleanup);
-
-        window.cleanup();
-        renderer.cleanup();
-        camera.cleanup();
-        inputHandler.cleanup();
-    }
-
     @Override
     public void cleanMods() {
         activeMods.forEach(Mod::cleanup);
         activeMods.clear();
+    }
+
+    private void cleanup() {
+        permanentMods.forEach(Mod::cleanup);
+
+        pocketGame.cleanup();
+        worldGame.cleanup();
+
+        window.cleanup();
+        renderer.cleanup();
+        inputHandler.cleanup();
+    }
+
+    private class SubGame implements Game {
+        private final GameTimer gameTimer;
+        private Camera thisCamera;
+
+        private EventLoop thisLoop;
+        private GameState thisState;
+        private GameMap thisMap;
+        private GameLights thisLights;
+
+        private SubGame(
+                EventLoop gameLoop, GameState gameState, GameMap gameMap, GameLights gameLights,
+                Camera thisCamera
+        ) {
+            this.thisLoop = gameLoop;
+            this.thisState = gameState;
+            this.thisMap = gameMap;
+            this.thisLights = gameLights;
+            this.thisCamera = thisCamera;
+            this.gameTimer = new GameTimer(settings.RENDER_DELAY);
+            gameTimer.pause();
+        }
+
+        public void init() throws Exception {
+            thisLoop.init(this);
+            thisState.init(this);
+            thisMap.init(this);
+            thisLights.init(this);
+            thisCamera.init(combinedGame);
+
+            thisLoop.start();
+        }
+
+        public void start() {
+            thisLoop.unPause();
+            gameTimer.unPause();
+        }
+
+        public void stop() {
+            thisLoop.pause();
+            gameTimer.pause();
+        }
+
+        @Override
+        public GameTimer timer() {
+            return gameTimer;
+        }
+
+        @Override
+        public Camera camera() {
+            return thisCamera;
+        }
+
+        @Override
+        public GameState entities() {
+            return thisState;
+        }
+
+        @Override
+        public GameMap map() {
+            return thisMap;
+        }
+
+        @Override
+        public Settings settings() {
+            return settings;
+        }
+
+        @Override
+        public GLFWWindow window() {
+            return window;
+        }
+
+        @Override
+        public GUIManager gui() {
+            return frameManager;
+        }
+
+        @Override
+        public MouseToolCallbacks inputHandling() {
+            return inputHandler;
+        }
+
+        @Override
+        public Version getVersion() {
+            return GAME_VERSION;
+        }
+
+        @Override
+        public GameLights lights() {
+            return thisLights;
+        }
+
+        @Override
+        public void addEvent(Event e) {
+            thisLoop.addEvent(e);
+        }
+
+        @Override
+        public void executeOnRenderThread(Runnable action) {
+            boolean thisIsMainThread = Thread.currentThread().getName().equals(MAIN_THREAD);
+
+            if (thisIsMainThread) {
+                action.run();
+
+            } else {
+                renderer.defer(action);
+            }
+        }
+
+        @Override
+        public void writeStateToFile(DataOutput out) throws IOException {
+            GAME_VERSION.writeToFile(out);
+
+            // store timestamp
+            out.writeFloat(gameTimer.getGametime());
+
+            // write mods
+            Collection<Mod> listOfMods = allMods();
+            out.writeInt(listOfMods.size());
+
+            for (Mod mod : listOfMods) {
+                out.writeUTF(mod.getModName());
+                mod.getVersionNumber().writeToFile(out);
+            }
+
+            Storable.writeToFile(out, thisLoop);
+            Storable.writeToFile(out, thisState);
+            Storable.writeToFile(out, thisMap);
+            Storable.writeToFile(out, thisLights);
+        }
+
+        @Override
+        public void readStateFromFile(DataInput in) throws Exception {
+            Version fileVersion = new Version(in);
+            Logger.INFO.print("Reading state of version " + fileVersion);
+
+            float restoredTime = in.readFloat();
+
+            int nOfMods = in.readInt();
+            if (nOfMods > 0) Logger.INFO.print("Required mods:");
+
+            for (int i = 0; i < nOfMods; i++) {
+                String modName = in.readUTF();
+                Mod targetMod = getModByName(modName);
+                Version version = new Version(in);
+
+                boolean hasMod = targetMod != null;
+                Logger logger = hasMod ? Logger.INFO : Logger.WARN;
+                logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
+            }
+
+            EventLoop newLoop = Storable.readFromFile(in, EventLoop.class);
+            GameState newState = Storable.readFromFile(in, GameState.class);
+            GameMap newMap = Storable.readFromFile(in, GameMap.class);
+            GameLights newLights = Storable.readFromFile(in, GameLights.class);
+
+            newLights.init(this);
+            newState.init(this);
+            newMap.init(this);
+            newLights.init(this);
+
+            // replace at end of gameloop
+            thisLoop.defer(() -> {
+                // clean up all the replaced stuff
+                this.thisLoop.stopLoop();
+                this.thisState.cleanup();
+                this.thisMap.cleanup();
+                this.thisLights.cleanup();
+
+                // set new state
+                this.thisLoop = newLoop;
+                this.thisState = newState;
+                this.thisMap = newMap;
+                this.thisLights = newLights;
+
+                gameTimer.set(restoredTime);
+            });
+        }
+
+        public void cleanup() {
+            thisLoop.cleanup();
+            thisState.cleanup();
+            thisMap.cleanup();
+            thisLights.cleanup();
+            thisCamera.cleanup();
+        }
     }
 }

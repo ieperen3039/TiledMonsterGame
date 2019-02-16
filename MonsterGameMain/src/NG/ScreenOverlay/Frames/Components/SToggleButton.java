@@ -2,10 +2,14 @@ package NG.ScreenOverlay.Frames.Components;
 
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
+import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2ic;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
 
 /**
  * A button with a state that only changes upon clicking the button
@@ -75,7 +79,8 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         if (dimensions.x == 0 || dimensions.y == 0) return;
-        design.drawButton(screenPosition, dimensions, text, state);
+        design.draw(state ? BUTTON_ACTIVE : BUTTON_INACTIVE, screenPosition, dimensions);
+        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, true);
     }
 
     @Override

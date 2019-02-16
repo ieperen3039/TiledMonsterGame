@@ -78,20 +78,12 @@ public class StaticState implements GameState {
             }
         }
 
-        out.writeInt(box.size());
-        for (Storable s : box) {
-            Storable.writeToFile(out, s);
-        }
+        Storable.storeList(out, box);
     }
 
     public StaticState(DataInput in) throws IOException, ClassNotFoundException {
-        int size = in.readInt();
-        ArrayList<Entity> list = new ArrayList<>(size);
 
-        for (int i = 0; i < size; i++) {
-            Entity entity = Storable.readFromFile(in, Entity.class);
-            list.add(entity);
-        }
+        List<Entity> list = Storable.readList(in, Entity.class);
 
         entities = Collections.synchronizedList(list);
     }

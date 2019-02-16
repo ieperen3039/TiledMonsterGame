@@ -7,6 +7,8 @@ import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.FRAME_BODY;
+
 /**
  * @author Geert van Ieperen. Created on 20-9-2018.
  */
@@ -121,7 +123,7 @@ public class SPanel extends SContainer {
         assert getWidth() > 0 && getHeight() > 0 :
                 String.format("Non-positive dimensions of %s: width = %d, height = %d", this, getWidth(), getHeight());
 
-        lookFeel.drawRectangle(screenPosition, dimensions);
+        lookFeel.draw(FRAME_BODY, screenPosition, dimensions);
         drawChildren(lookFeel, screenPosition);
     }
 }

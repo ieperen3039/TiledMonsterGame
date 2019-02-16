@@ -251,7 +251,7 @@ public class ClickShader implements ShaderProgram {
         SGL flatColorRender =
                 new ClickShaderGL(shader, window.getWidth(), window.getHeight(), game.camera(), doIsometric);
 
-        game.state().draw(flatColorRender);
+        game.entities().draw(flatColorRender);
         shader.unbind();
 
         if (game.settings().DEBUG) {

@@ -28,7 +28,7 @@ public interface Game {
 
     Camera camera();
 
-    GameState state();
+    GameState entities();
 
     GameMap map();
 
@@ -93,5 +93,97 @@ public interface Game {
      * returns, the elements that represent the state of this object are set to the streamed state.
      * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(DataOutput)}
      */
-    void readStateFromFile(DataInput in) throws IOException;
+    void readStateFromFile(DataInput in) throws Exception;
+
+    /**
+     * a class that allows run-time switching between game instances
+     */
+    class Multiplexer implements Game {
+        private final Game[] instances;
+        private int current;
+
+        protected Multiplexer(int initial, Game... instances) {
+            this.instances = instances;
+            this.current = initial;
+        }
+
+        public void select(int instance) {
+            current = instance;
+        }
+
+        @Override
+        public GameTimer timer() {
+            return instances[current].timer();
+        }
+
+        @Override
+        public Camera camera() {
+            return instances[current].camera();
+        }
+
+        @Override
+        public GameState entities() {
+            return instances[current].entities();
+        }
+
+        @Override
+        public GameMap map() {
+            return instances[current].map();
+        }
+
+        @Override
+        public Settings settings() {
+            return instances[current].settings();
+        }
+
+        @Override
+        public GLFWWindow window() {
+            return instances[current].window();
+        }
+
+        @Override
+        public KeyMouseCallbacks inputHandling() {
+            return instances[current].inputHandling();
+        }
+
+        @Override
+        public GUIManager gui() {
+            return instances[current].gui();
+        }
+
+        @Override
+        public Version getVersion() {
+            return instances[current].getVersion();
+        }
+
+        @Override
+        public GameLights lights() {
+            return instances[current].lights();
+        }
+
+        @Override
+        public void addEvent(Event e) {
+            instances[current].addEvent(e);
+        }
+
+        @Override
+        public void executeOnRenderThread(Runnable action) {
+            instances[current].executeOnRenderThread(action);
+        }
+
+        @Override
+        public void writeStateToFile(DataOutput out) throws IOException {
+            instances[current].writeStateToFile(out);
+        }
+
+        @Override
+        public void readStateFromFile(DataInput in) throws Exception {
+            instances[current].readStateFromFile(in);
+        }
+
+        @Override
+        public <V> Future<V> computeOnRenderThread(Callable<V> action) {
+            return instances[current].computeOnRenderThread(action);
+        }
+    }
 }

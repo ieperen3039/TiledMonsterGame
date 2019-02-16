@@ -21,75 +21,48 @@ public interface SFrameLookAndFeel extends InitialisationMod {
     void setPainter(ScreenOverlay.Painter painter);
 
     /**
-     * a rectangle that serves as base for panels
-     * @param pos upper left position of the rectangle
-     * @param dim dimension of the rectangle
+     * Draw the given element on the given position
+     * @param type the type of element
+     * @param pos  the position of the upper left corner of this element in pixels
+     * @param dim  the (width, height) of the button in pixels
      */
-    void drawRectangle(Vector2ic pos, Vector2ic dim);
+    void draw(UIComponent type, Vector2ic pos, Vector2ic dim);
 
-    /**
-     * draws a button with the given text on it. All the text must fit within the button, but no restrictions are given
-     * to the size of the text
-     * @param pos   upper left position of the button
-     * @param dim   dimension of the button
-     * @param text  the text displayed on the button
-     * @param state true if the button is activated, which can be pressed or toggled on
-     */
-    void drawButton(Vector2ic pos, Vector2ic dim, String text, boolean state);
+    void drawText(
+            Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, boolean center
+    );
 
     /**
      * draw a button with an image on it. The image should be scaled uniformly to fit the button
      * @param pos   upper left position of the button
      * @param dim   dimension of the button
      * @param icon  a path to the file containing the icon to display
-     * @param state true if the button is activated, which can be pressed or toggled on
      * @throws IOException if the file could not be found or accessed
      */
-    void drawIconButton(Vector2ic pos, Vector2ic dim, Path icon, boolean state) throws IOException;
+    void drawIcon(Vector2ic pos, Vector2ic dim, Path icon) throws IOException;
 
     /**
-     * Writes the given text within the given bounds. The position and dimension are hard bounds, the size can be
-     * adapted
-     * @param pos    upper left position of the area where text may occur
-     * @param dim    dimensions of the button
-     * @param text   the displayed text
-     * @param size   the preferred font size of the text
-     * @param center if true, the text is placed in the center of the area. If false, it is place in the upper left
-     *               corner.
-     */
-    void drawText(Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType size, boolean center);
-
-    /**
-     * draws an area with text that hints the user that the text can be changed. This should include an opaque
-     * background and a visual hint when selected.
-     * @param pos    upper left position of the area where text may occur
-     * @param dim    dimensions of the area
-     * @param text   the displayed text
-     * @param size   the preferred font size of the text
-     * @param cursor the position of the cursor in the text, or -1 if the area is not selected.
-     */
-    void drawInputField(Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType size, int cursor);
-
-    /**
-     * draw a marking to indicate that e.g. a textfield is selected.
-     * @param pos upper left position of the selection
-     * @param dim dimensions of the selection
-     */
-    void drawSelection(Vector2ic pos, Vector2ic dim);
-
-    /**
-     * Draws the top panel of a dropdown menu. The options of the menu are drawn using drawRectangle and drawText with
-     * size {@link NGFonts.TextType#REGULAR}
-     * @param pos      top left position of the button
-     * @param dim      the dimension of just this single element
-     * @param value    the value to be displayed
-     * @param isOpened if true, the options are shown below this component
-     */
-    void drawDropDown(Vector2ic pos, Vector2ic dim, String value, boolean isOpened);
-
-    /**
-     * Draw a rectangle on the top of the screen
+     * Draw a rectangle on the top of the screen with the given height
      * @param height height of the bar in pixels
      */
     void drawToolbar(int height);
+
+    enum UIComponent {
+        /** a simple button, either held down or not held down */
+        BUTTON_ACTIVE, BUTTON_INACTIVE,
+        /** draw a button with an image on it. The image should be scaled uniformly to fit the button */
+        ICON_BUTTON_ACTIVE, ICON_BUTTON_INACTIVE,
+        /** The top panel of a dropdown menu. */
+        DROP_DOWN_HEAD_CLOSED, DROP_DOWN_HEAD_OPEN,
+        /** The background of the options as visible when a dropdown menu is opened. */
+        DROP_DOWN_OPTION_FIELD,
+        /** The background of a frame */
+        FRAME_BODY,
+        /** the bar on top of a frame carrying the title */
+        FRAME_HEADER,
+        /** An area with text that hints the user that the text can be changed. */
+        INPUT_FIELD,
+        /** A marking to indicate that e.g. a textfield is selected. */
+        SELECTION,
+    }
 }

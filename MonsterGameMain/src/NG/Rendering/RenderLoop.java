@@ -49,9 +49,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     public void init(Game game) throws IOException {
         this.game = game;
-        overlay.init(game.settings().ANTIALIAS_LEVEL);
+        Settings settings = game.settings();
+
+        overlay.init(settings.ANTIALIAS_LEVEL);
         overlay.addHudItem((hud) -> {
-            if (game.settings().DEBUG_SCREEN) {
+            if (settings.DEBUG_SCREEN) {
                 Logger.setOnlineOutput(hud::printRoll);
             }
         });
@@ -69,7 +71,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         game.camera().updatePosition(deltaTime); // real-time deltatime
 
         GameMap world = game.map();
-        GameState entities = game.state();
+        GameState entities = game.entities();
         GameLights lights = game.lights();
 
         GLFWWindow window = game.window();

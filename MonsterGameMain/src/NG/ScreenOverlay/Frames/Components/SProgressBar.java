@@ -6,6 +6,9 @@ import org.joml.Vector2ic;
 
 import java.util.function.Supplier;
 
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.FRAME_BODY;
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.SELECTION;
+
 /**
  * @author Geert van Ieperen. Created on 28-9-2018.
  */
@@ -42,8 +45,8 @@ public class SProgressBar extends SComponent {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.drawRectangle(screenPosition, dimensions);
+        design.draw(FRAME_BODY, screenPosition, dimensions);
         Vector2i bar = new Vector2i(dimensions.x, (int) (dimensions.y * progress.get()));
-        design.drawSelection(screenPosition, bar);
+        design.draw(SELECTION, screenPosition, bar);
     }
 }

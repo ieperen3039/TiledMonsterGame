@@ -3,8 +3,11 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ActionHandling.MouseReleaseListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
+import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2ic;
 
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 /**
@@ -40,7 +43,8 @@ public class SCloseButton extends SComponent implements MouseReleaseListener, Mo
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic scPos) {
-        design.drawButton(scPos, dimensions, "X", state);
+        design.draw(state ? BUTTON_ACTIVE : BUTTON_INACTIVE, scPos, dimensions);
+        design.drawText(scPos, dimensions, "X", NGFonts.TextType.REGULAR, true);
 
 //        try {
 //            design.drawIconButton(position, dimensions, null, state);

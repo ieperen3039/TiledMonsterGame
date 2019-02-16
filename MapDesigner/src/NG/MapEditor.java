@@ -90,7 +90,7 @@ public class MapEditor {
         searchTiles(Directory.mapTileModels.getPath());
 
         BigArrow bigArrow = new BigArrow(new Vector3f());
-        game.state().addEntity(bigArrow);
+        game.entities().addEntity(bigArrow);
 
         game.inputHandling().addMousePositionListener((xPos, yPos) -> {
             Vector3f origin = new Vector3f();
@@ -227,6 +227,8 @@ public class MapEditor {
 
                 } catch (IOException e) {
                     display(e);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
                 Logger.removeOnlinePrint(loadNotify);
@@ -381,11 +383,11 @@ public class MapEditor {
                 MapTile.Instance tileData = tileMap.getTileData(x, y);
                 SPanel elements = new SPanel(1, 5);
 
-                STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT, BUTTON_MIN_WIDTH, true);
+                STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT, true);
                 elements.add(typeDist, new Vector2i(0, 0));
 
                 // TODO make this live
-                STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT, BUTTON_MIN_WIDTH, true);
+                STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT, true);
                 elements.add(heightDisp, new Vector2i(0, 1));
 
 

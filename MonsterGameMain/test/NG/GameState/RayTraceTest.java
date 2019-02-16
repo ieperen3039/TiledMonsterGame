@@ -2,11 +2,12 @@ package NG.GameState;
 
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
-import NG.Engine.MonsterGame;
 import NG.Entities.Entity;
 import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.RenderLoop;
 import NG.ScreenOverlay.Frames.Components.SComponent;
+import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
@@ -25,7 +26,7 @@ public class RayTraceTest {
 
     @Before
     public void setUp() throws Exception {
-        game = new MonsterGame();
+        game = new DecoyGame("Testgame", new RenderLoop(60), new Settings());
         game.window().init(game);
         game.camera().init(game);
         instance = game.map();

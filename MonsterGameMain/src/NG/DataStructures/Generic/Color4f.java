@@ -69,16 +69,6 @@ public class Color4f {
     }
 
     /**
-     * create a color using integer arguments [0 - 255] with 0 = none and 255 = max
-     */
-    public Color4f(int ired, int igreen, int iblue, int ialpha) {
-        red = cap(ired / 255f);
-        green = cap(igreen / 255f);
-        blue = cap(iblue / 255f);
-        alpha = cap(ialpha / 255f);
-    }
-
-    /**
      * create a new color based on another color with new intensity. if (intensity == source.alpha), then
      * (this.equals(source))
      * @param source    a source color, of which the red green and blue values are taken
@@ -91,8 +81,18 @@ public class Color4f {
         alpha = cap(intensity);
     }
 
-    public Color4f(float[] values) {
-        this(values[0], values[1], values[2], values[3]);
+    /**
+     * create a color using integer arguments [0 - 255] with 0 = none and 255 = max
+     */
+    public static Color4f rgb(int ired, int igreen, int iblue, float alpha) {
+        return new Color4f(ired / 255f, igreen / 255f, iblue / 255f, alpha);
+    }
+
+    /**
+     * create a color using integer arguments [0 - 255] with 0 = none and 255 = max
+     */
+    public static Color4f rgb(int ired, int igreen, int iblue) {
+        return rgb(ired, igreen, iblue, 1f);
     }
 
     public static Color4f randomBetween(Color4f color1, Color4f color2) {

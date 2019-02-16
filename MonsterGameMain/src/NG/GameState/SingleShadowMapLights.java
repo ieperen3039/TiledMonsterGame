@@ -120,7 +120,7 @@ public class SingleShadowMapLights implements GameLights {
                     glCullFace(GL_FRONT);
                     DepthShader.DepthGL gl = shadowShader.getGL(true);
                     shadowShader.setDirectionalLight(sunLight);
-                    game.state().draw(gl);
+                    game.entities().draw(gl);
                     glCullFace(GL_BACK);
 
                     gl.cleanup();

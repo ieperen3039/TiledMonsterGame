@@ -154,7 +154,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
                     // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
                     y = game.window().getHeight() - y;
 
-                    if (game.state().checkMouseClick(currentTool, x, y)) return;
+                    if (game.entities().checkMouseClick(currentTool, x, y)) return;
                     game.map().checkMouseClick(currentTool, x, y);
                 });
 

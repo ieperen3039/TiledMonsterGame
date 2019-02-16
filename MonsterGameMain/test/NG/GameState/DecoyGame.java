@@ -1,4 +1,4 @@
-package NG;
+package NG.GameState;
 
 import NG.ActionHandling.MouseToolCallbacks;
 import NG.Camera.Camera;
@@ -10,15 +10,12 @@ import NG.Engine.Version;
 import NG.GameEvent.Event;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
-import NG.GameState.GameLights;
-import NG.GameState.GameState;
-import NG.GameState.SingleShadowMapLights;
-import NG.GameState.StaticState;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.Frames.SFrameManager;
 import NG.Settings.Settings;
+import NG.Storable;
 import NG.Tools.Logger;
 import org.joml.Vector3f;
 
@@ -173,4 +170,5 @@ class DecoyGame implements Game {
         this.gameMap = newMap;
         this.gameLights = newLights;
     }
+
 }

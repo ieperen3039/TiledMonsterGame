@@ -1,5 +1,6 @@
 package NG.ScreenOverlay.Frames.Components;
 
+import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2i;
 
 import java.util.function.Consumer;
@@ -19,7 +20,7 @@ public class SModifiableIntegerPanel extends SPanel {
     public SModifiableIntegerPanel(Consumer<Integer> onUpdate, String name, int initialValue) {
         super(8, 1);
         this.onUpdate = onUpdate;
-        this.valueDisplay = new STextArea(String.valueOf(initialValue), ADD_BUTTON_HEIGHT, VALUE_SIZE, false);
+        this.valueDisplay = new STextArea(String.valueOf(initialValue), ADD_BUTTON_HEIGHT, VALUE_SIZE, false, NGFonts.TextType.REGULAR);
         this.value = initialValue;
 
         add(new STextArea(name, 0, true), new Vector2i(0, 0));

@@ -3,6 +3,7 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.MouseMoveListener;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ActionHandling.MouseReleaseListener;
+import NG.ScreenOverlay.NGFonts;
 
 /**
  * @author Geert van Ieperen. Created on 25-9-2018.
@@ -13,12 +14,14 @@ public class SExtendedTextArea extends STextArea
     private MouseRelativeClickListener clickListener;
     private MouseReleaseListener releaseListener;
 
-    public SExtendedTextArea(String frameTitle, int minHeight, boolean doGrowInWidth) {
-        super(frameTitle, minHeight, doGrowInWidth);
+    public SExtendedTextArea(
+            String frameTitle, int minHeight, int minWidth, boolean doGrowInWidth, NGFonts.TextType textType
+    ) {
+        super(frameTitle, minHeight, minWidth, doGrowInWidth, textType);
     }
 
     public SExtendedTextArea(STextArea source) {
-        this(source.getText(), 20, source.wantHorizontalGrow());
+        this(source.getText(), source.minWidth(), source.minWidth(), source.wantHorizontalGrow(), source.textType);
     }
 
     @Override

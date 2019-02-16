@@ -10,7 +10,10 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * An Object of this type can be written to file using a {@link DataOutput} and read from that file using a {@link
@@ -172,5 +175,22 @@ public interface Storable {
                 in.readFloat(),
                 in.readFloat()
         );
+    }
+
+    static void storeList(DataOutput out, Collection<Storable> box) throws IOException {
+        out.writeInt(box.size());
+        for (Storable s : box) {
+            Storable.writeToFile(out, s);
+        }
+    }
+
+    static <T> List<T> readList(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
+        int size = in.readInt();
+        ArrayList<T> list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            T entity = Storable.readFromFile(in, expected);
+            list.add(entity);
+        }
+        return list;
     }
 }

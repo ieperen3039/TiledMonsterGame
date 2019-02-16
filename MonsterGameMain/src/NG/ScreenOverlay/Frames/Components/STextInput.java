@@ -3,7 +3,10 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.KeyPressListener;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
+import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2ic;
+
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.SELECTION;
 
 /**
  * @author Geert van Ieperen. Created on 5-10-2018.
@@ -15,8 +18,8 @@ public class STextInput extends STextArea implements KeyPressListener, MouseRela
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.drawSelection(screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text, textType, false);
+        design.draw(SELECTION, screenPosition, dimensions);
+        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, true);
     }
 
     @Override

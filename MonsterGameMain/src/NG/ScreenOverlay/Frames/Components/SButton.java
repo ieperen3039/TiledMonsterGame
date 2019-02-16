@@ -3,12 +3,15 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ActionHandling.MouseReleaseListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
+import NG.ScreenOverlay.NGFonts;
 import NG.Tools.Logger;
 import org.joml.Vector2ic;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
+import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
@@ -103,7 +106,8 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.drawButton(screenPosition, dimensions, text, isPressed);
+        design.draw(isPressed ? BUTTON_ACTIVE : BUTTON_INACTIVE, screenPosition, dimensions);
+        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, true);
     }
 
     @Override
