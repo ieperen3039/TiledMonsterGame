@@ -94,6 +94,9 @@ public class SFrameManager implements GUIManager {
 
     @Override
     public void addFrame(SFrame frame, int x, int y) {
+        // if the frame was already visible, still add it to make it focused.
+        frames.remove(frame);
+
         boolean success = frames.offerFirst(frame);
         if (!success) {
             Logger.DEBUG.print("Too much subframes opened, removing the last one");

@@ -142,7 +142,7 @@ public class Color4f {
                 inverseMul(red, other.red),
                 inverseMul(green, other.green),
                 inverseMul(blue, other.blue),
-                inverseMul(alpha, other.alpha)
+                alpha * other.alpha
         );
     }
 

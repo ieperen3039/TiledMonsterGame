@@ -5,6 +5,7 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Plane;
 import org.joml.Vector3fc;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -16,7 +17,7 @@ public class MeshShape implements Mesh, Shape {
     private final Mesh mesh;
     private final Shape shape;
 
-    public MeshShape(Path path) {
+    public MeshShape(Path path) throws IOException {
         ShapeParameters pars = new ShapeParameters(path, path.getFileName().toString());
 
         shape = new BasicShape(pars);

@@ -7,8 +7,8 @@ import NG.Entities.Entity;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
-import org.joml.Vector2fc;
 import org.joml.Vector2ic;
+import org.joml.Vector3fc;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -54,7 +54,7 @@ public class DefaultMouseTool implements MouseTool {
     }
 
     @Override
-    public void apply(Vector2fc position) {
+    public void apply(Vector3fc position) {
         Logger.DEBUG.print("Clicked on " + Vectors.toString(position));
     }
 

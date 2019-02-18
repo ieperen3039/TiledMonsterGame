@@ -6,7 +6,6 @@ import NG.Engine.Game;
 import NG.Engine.ModLoader;
 import NG.Entities.Cube;
 import NG.Entities.Entity;
-import NG.GameEvent.Event;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
@@ -90,8 +89,8 @@ public class MainMenu extends SFrame {
             Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
             cam.set(cameraFocus, cameraEye);
 
-            float eventTime = overworld.timer().getGametime() + 2;
-            overworld.addEvent(new Event.DebugEvent(overworld, eventTime, 1));
+//            float eventTime = overworld.timer().getGametime() + 2;
+//            overworld.addEvent(new Event.DebugEvent(overworld, eventTime, 1));
 
             // add a default entity
             Vector3i position = overworld.map().getCoordinate(cameraFocus);

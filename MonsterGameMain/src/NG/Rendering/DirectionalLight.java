@@ -75,7 +75,7 @@ public class DirectionalLight {
     }
 
     public void setDirection(Vector3fc direction) {
-        this.direction = direction;
+        this.direction = new Vector3f(direction);
 
         lightSpaceMatrix = recalculateLightSpace();
     }

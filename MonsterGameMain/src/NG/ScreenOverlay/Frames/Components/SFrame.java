@@ -24,6 +24,7 @@ public class SFrame extends SContainer {
     private boolean minimized;
     private SContainer upperBar;
     private boolean isDisposed = false;
+    private STextArea titleComponent;
 
     /**
      * Creates a SFrame with the given title, width and height
@@ -44,7 +45,12 @@ public class SFrame extends SContainer {
         super(new SingleElementLayout(), false, false);
         this.title = title;
 
-        upperBar = manipulable ? makeUpperBar(title) : SContainer.singleton(new STextArea(title, FRAME_TITLE_BAR_SIZE, true));
+        if (manipulable) {
+            upperBar = makeUpperBar(title);
+        } else {
+            titleComponent = new STextArea(title, FRAME_TITLE_BAR_SIZE, true);
+            upperBar = SContainer.singleton(titleComponent);
+        }
         upperBar.setParent(this);
 
         setMainPanel(new SPanel());
@@ -60,15 +66,20 @@ public class SFrame extends SContainer {
         this(title, 0, 0);
     }
 
+    public void setTitle(String title) {
+        titleComponent.setText(title);
+    }
+
     private SPanel makeUpperBar(String frameTitle) {
         SPanel upperBar = new SPanel(0, FRAME_TITLE_BAR_SIZE, 5, 1, true, false);
         SComponent exit = new SCloseButton(this);
         upperBar.add(exit, new Vector2i(4, 0));
-        SComponent minimize = new SButton("M", () -> setMinimized(true), FRAME_TITLE_BAR_SIZE, FRAME_TITLE_BAR_SIZE);
-        upperBar.add(minimize, new Vector2i(3, 0));
+//        SComponent minimize = new SButton("_", () -> setMinimized(true), FRAME_TITLE_BAR_SIZE, FRAME_TITLE_BAR_SIZE);
+//        upperBar.add(minimize, new Vector2i(3, 0));
         SExtendedTextArea title = new SExtendedTextArea(frameTitle, FRAME_TITLE_BAR_SIZE, 0, true, NGFonts.TextType.TITLE);
         title.setDragListener(this::addToPosition);
         upperBar.add(title, new Vector2i(1, 0));
+        titleComponent = title;
 
         return upperBar;
     }

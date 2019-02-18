@@ -3,7 +3,6 @@ package NG.GameMap;
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
-import NG.Entities.Entity;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
@@ -17,8 +16,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static NG.Settings.Settings.TILE_SIZE;
 import static NG.Settings.Settings.TILE_SIZE_Z;
@@ -36,19 +33,13 @@ public class TileMap implements GameMap {
     private MapChunk[][] map;
     private Game game;
 
-    private HashMap<Vector2ic, Entity> claimRegistry;
-    private Lock claimLock;
     private Collection<MapChunk> highlightedChunks;
 
     public TileMap(int chunkSize) {
         this.chunkSize = chunkSize;
         this.realChunkSize = chunkSize * Settings.TILE_SIZE;
         this.changeListeners = new ArrayList<>();
-        this.claimRegistry = new HashMap<>();
-        this.claimLock = new ReentrantLock(false);
         highlightedChunks = new HashSet<>();
-
-        Logger.printOnline(() -> String.valueOf(highlightedChunks.size()));
     }
 
     @Override
@@ -64,22 +55,23 @@ public class TileMap implements GameMap {
         float[][] heightmap = mapGenerator.generateHeightMap();
         int randomSeed = mapGenerator.getMapSeed();
 
+        if (heightmap.length == 0) throw new IllegalArgumentException("Received map with 0 size in x direction");
+
         xSize = (heightmap.length - 1) / chunkSize;
         ySize = (heightmap[0].length - 1) / chunkSize;
 
-        map = new MapChunk[xSize][];
+        MapChunk[][] newMap = new MapChunk[xSize][ySize];
         for (int mx = 0; mx < xSize; mx++) {
-            MapChunk[] yStrip = new MapChunk[ySize];
-
             for (int my = 0; my < ySize; my++) {
                 int fromY = my * chunkSize;
                 int fromX = mx * chunkSize;
                 MapChunkArray chunk = new MapChunkArray(chunkSize, heightmap, fromX, fromY, randomSeed);
 
-                yStrip[my] = chunk;
+                newMap[mx][my] = chunk;
             }
-            map[mx] = yStrip;
         }
+
+        this.map = newMap;
     }
 
     @Override
@@ -130,23 +122,21 @@ public class TileMap implements GameMap {
         assert gl.getPosition(new Vector3f()).equals(new Vector3f()) : "gl object not placed at origin";
 
         ShaderProgram shader = gl.getShader();
-        if (shader instanceof MaterialShader) {
+        boolean isMaterialShader = shader instanceof MaterialShader;
+        if (isMaterialShader) {
             ((MaterialShader) shader).setMaterial(Material.ROUGH, new Color4f(85, 153, 0, 1));
         }
 
-        boolean doHighlight = game.inputHandling().mouseIsOnMap();
-
         gl.pushMatrix();
         {
-            for (MapChunk[] chunks : map) {
-                if (chunks == null) continue; // happens when generating a new map
+            // tile 1 stretches form (0, 0) to (TILE_SIZE, TILE_SIZE)
+            gl.translate(TILE_SIZE * 0.5f, TILE_SIZE * 0.5f, -1);
 
+            for (MapChunk[] chunks : map) {
                 gl.pushMatrix();
                 {
                     for (MapChunk chunk : chunks) {
-                        if (chunk == null) continue; // happens when generating a new map
-
-                        chunk.setHighlight(doHighlight);
+                        chunk.setHighlight(isMaterialShader);
                         chunk.draw(gl);
                         gl.translate(0, realChunkSize, 0);
                     }
@@ -164,56 +154,8 @@ public class TileMap implements GameMap {
 
         Vector3fc point = game.camera().getFocus();
         float t = Intersectionf.intersectRayPlane(origin, direction, point, Vectors.Z, 1E-6f);
+
         return origin.add(direction.mul(t, temp), temp);
-    }
-
-    @Override
-    public boolean createClaim(Vector2ic coordinate, Entity entity) {
-        // check bounds
-        int cx = coordinate.x() / chunkSize;
-        int cy = coordinate.y() / chunkSize;
-
-        if (cx >= xSize || cx < 0 || cy >= ySize || cy < 0) {
-            return false;
-        }
-
-        // perform claim
-        claimLock.lock();
-        try {
-            boolean isClaimed = claimRegistry.containsKey(coordinate);
-
-            if (!isClaimed) {
-                Vector2i copy = new Vector2i(coordinate);
-                claimRegistry.put(copy, entity);
-                return true;
-            }
-            return false;
-
-        } finally {
-            claimLock.unlock();
-        }
-    }
-
-    @Override
-    public Entity getClaim(Vector2ic coordinate) {
-        return claimRegistry.get(coordinate); // no lock needed
-    }
-
-    @Override
-    public boolean dropClaim(Vector2ic coordinate, Entity entity) {
-        claimLock.lock();
-        try {
-            Entity claimant = claimRegistry.get(coordinate);
-
-            if (entity == null || entity == claimant) {
-                claimRegistry.remove(coordinate);
-                return true;
-            }
-            return false;
-
-        } finally {
-            claimLock.unlock();
-        }
     }
 
     @Override
@@ -249,13 +191,7 @@ public class TileMap implements GameMap {
 
     @Override
     public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
-        Vector3f origin = new Vector3f();
-        Vector3f direction = new Vector3f();
-        Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
-
-        Vector3f position = intersectWithRay(origin, direction);
-        tool.apply(new Vector2f(position.x, position.y));
-        return true;
+        return checkMouseClick(tool, xSc, ySc, game);
     }
 
     @Override

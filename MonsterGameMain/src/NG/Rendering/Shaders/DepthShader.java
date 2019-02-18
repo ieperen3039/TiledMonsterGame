@@ -28,8 +28,8 @@ import static org.lwjgl.opengl.GL30.glBindFramebuffer;
  */
 @SuppressWarnings("Duplicates")
 public class DepthShader implements ShaderProgram, LightShader {
-    private static final Path VERTEX_PATH = Directory.shaders.getPath("Shadow", "depth_vertex.vert");
-    private static final Path FRAGMENT_PATH = Directory.shaders.getPath("Shadow", "depth_fragment.frag");
+    private static final Path VERTEX_PATH = Directory.shaders.getPath("BlinnPhong", "depth_vertex.vert");
+    private static final Path FRAGMENT_PATH = Directory.shaders.getPath("BlinnPhong", "depth_fragment.frag");
     private final Map<String, Integer> uniforms;
 
     private int programId;

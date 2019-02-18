@@ -11,9 +11,7 @@ import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
-import NG.Rendering.Shaders.AdvancedSceneShader;
-import NG.Rendering.Shaders.SceneShader;
-import NG.Rendering.Shaders.TextureShader;
+import NG.Rendering.Shaders.*;
 import NG.Rendering.Shapes.FileShapes;
 import NG.Rendering.Textures.Texture;
 import NG.ScreenOverlay.ScreenOverlay;
@@ -23,6 +21,8 @@ import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
+import org.joml.Vector3i;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -37,6 +37,9 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private final ScreenOverlay overlay;
     private Game game;
     private SceneShader sceneShader;
+    private SceneShader worldShader;
+    private BigArrow bigArrow;
+    private boolean cursorIsVisible = false;
 
     /**
      * creates a new, paused gameloop
@@ -58,12 +61,43 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             }
         });
 
-        sceneShader = new AdvancedSceneShader();
+        sceneShader = new BlinnPhongShader();
+        worldShader = new WorldBPShader();
+
+        bigArrow = new BigArrow(new Vector3f());
+        game.inputHandling().addMousePositionListener(this::updateArrow);
+    }
+
+    private void updateArrow(int xPos, int yPos) {
+        if (game.inputHandling().mouseIsOnMap()) {
+            Vector3f origin = new Vector3f();
+            Vector3f direction = new Vector3f();
+
+            int correctedY = game.window().getHeight() - yPos;
+            Vectors.windowCoordToRay(game, xPos, correctedY, origin, direction);
+
+            GameMap map = game.map();
+            Vector3f position = map.intersectWithRay(origin, direction);
+            Vector3i coordinate = map.getCoordinate(position);
+            position.set(map.getPosition(coordinate.x, coordinate.y));
+
+            bigArrow.setPosition(position);
+
+            if (cursorIsVisible) {
+                game.window().hideCursor(false);
+                cursorIsVisible = false;
+            }
+
+        } else {
+            if (!cursorIsVisible) {
+                game.window().showCursor();
+                cursorIsVisible = true;
+            }
+        }
     }
 
     @Override
     protected void update(float deltaTime) {
-
         // current time
         game.timer().updateRenderTime();
 
@@ -77,12 +111,27 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         GLFWWindow window = game.window();
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
-        Settings settings = game.settings();
-        boolean doIsometric = settings.ISOMETRIC_VIEW;
 
         lights.renderShadowMaps();
 
-        // scene shader
+        renderWith(sceneShader, entities::draw, lights, windowWidth, windowHeight);
+        renderWith(worldShader, world::draw, lights, windowWidth, windowHeight);
+
+        overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
+
+        // update window
+        window.update();
+
+        // loop clean
+        Toolbox.checkGLError();
+        if (window.shouldClose()) stopLoop();
+    }
+
+    private void renderWith(
+            SceneShader sceneShader, Consumer<SGL> draw, GameLights lights, int windowWidth, int windowHeight
+    ) {
+        boolean doIsometric = game.settings().ISOMETRIC_VIEW;
+
         sceneShader.bind();
         {
             sceneShader.initialize(game);
@@ -93,19 +142,20 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             // order is important
             lights.draw(gl);
-            world.draw(gl);
-            entities.draw(gl);
+            draw.accept(gl);
+            bigArrow.draw(gl);
         }
         sceneShader.unbind();
+    }
 
-        overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
+    public void addHudItem(Consumer<ScreenOverlay.Painter> draw) {
+        overlay.addHudItem(draw);
+    }
 
-        // update window
-        window.update();
-
-        // loop clean
-        Toolbox.checkGLError();
-        if (window.shouldClose()) stopLoop();
+    @Override
+    public void cleanup() {
+        sceneShader.cleanup();
+        overlay.cleanup();
     }
 
     private void dumpTexture(Texture texture, String fileName) {
@@ -130,13 +180,35 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    @Override
-    public void cleanup() {
-        sceneShader.cleanup();
-        overlay.cleanup();
-    }
+    private class BigArrow {
+        private static final float SIZE = 2;
+        private Vector3f position;
 
-    public void addHudItem(Consumer<ScreenOverlay.Painter> draw) {
-        overlay.addHudItem(draw);
+        private BigArrow(Vector3f position) {
+            this.position = position;
+        }
+
+        public void draw(SGL gl) {
+            gl.pushMatrix();
+            {
+                gl.translate(position);
+                Toolbox.draw3DPointer(gl);
+
+                gl.translate(0, 0, 1);
+                gl.scale(SIZE, SIZE, -SIZE);
+
+                if (gl.getShader() instanceof MaterialShader) {
+                    MaterialShader mShader = (MaterialShader) gl.getShader();
+                    mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
+                }
+
+                gl.render(FileShapes.ARROW, null);
+            }
+            gl.popMatrix();
+        }
+
+        public void setPosition(Vector3fc targetPosition) {
+            position.set(targetPosition);
+        }
     }
 }

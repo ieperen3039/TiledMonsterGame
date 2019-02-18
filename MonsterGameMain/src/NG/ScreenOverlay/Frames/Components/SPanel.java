@@ -101,11 +101,34 @@ public class SPanel extends SContainer {
 
     /**
      * the basic panel for holding components. Growth policy is false, and minimum size is (0, 0).
+     * Use {@link Vector2i} for positioning elements. Note that indices are 0-indexed.
      * @param cols number of components
      * @param rows number of rows
      */
     public SPanel(int cols, int rows) {
         this(0, 0, cols, rows, false, false);
+    }
+
+    /** creates a new panel with the given components on a row */
+    public static SPanel column(SComponent... components) {
+        SPanel newPanel = new SPanel(1, components.length);
+
+        for (int i = 0; i < components.length; i++) {
+            newPanel.add(components[i], new Vector2i(0, i));
+        }
+
+        return newPanel;
+    }
+
+    /** creates a new panel with the given components in a column */
+    public static SPanel row(SComponent... components) {
+        SPanel newPanel = new SPanel(components.length, 1);
+
+        for (int i = 0; i < components.length; i++) {
+            newPanel.add(components[i], new Vector2i(i, 0));
+        }
+
+        return newPanel;
     }
 
     @Override

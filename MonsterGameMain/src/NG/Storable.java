@@ -177,7 +177,7 @@ public interface Storable {
         );
     }
 
-    static void storeList(DataOutput out, Collection<Storable> box) throws IOException {
+    static void writeCollection(DataOutput out, Collection<Storable> box) throws IOException {
         out.writeInt(box.size());
         for (Storable s : box) {
             Storable.writeToFile(out, s);

@@ -2,10 +2,15 @@ package NG.GameMap;
 
 import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.Shaders.ShaderProgram;
+import NG.Rendering.Shaders.TextureShader;
 import NG.Rendering.Shapes.MeshShape;
+import NG.Rendering.Textures.FileTexture;
+import NG.Rendering.Textures.Texture;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,7 +26,7 @@ import static java.lang.Math.PI;
  */
 public class MapTile {
     public static final MapTile DEFAULT_TILE = // circumvent registration due to initialisation of static fields
-            new MapTile("default", Directory.mapTileModels.getPath("plain0000.obj"), 0, 0, 0, 0, Properties.NONE, 2, null);
+            new MapTile("default", Directory.mapTileModels.getPath("plain0000.obj"), null, 0, 0, 0, 0, Properties.NONE, 2, null);
 
     private static final Set<String> NAMES = new HashSet<>();
     private static final Set<Path> PATHS = new HashSet<>();
@@ -34,9 +39,11 @@ public class MapTile {
     public final EnumSet<Properties> properties;
     public final int baseHeight; // height of the middle part, the height the user stands on
     public final TileThemeSet sourceSet;
-    private final Path meshPath;
 
+    private final Path meshPath;
     private Mesh mesh; // lazy initialized
+    private final Path texturePath;
+    private Texture texture;
 
     public enum Properties {
         /** this object allows light through */
@@ -55,24 +62,26 @@ public class MapTile {
      * register a new MapTile instance with relative heights as given
      * @param name       a unique name for this tile
      * @param meshPath   the path to the visual element of this tile
+     * @param texture    the path to the texture of this tile
      * @param pos_pos    the relative height of the mesh at (1, 1) [-3, 3]
      * @param pos_neg    the relative height of the mesh at (1, 0) [-3, 3]
      * @param neg_neg    the relative height of the mesh at (0, 0) [-3, 3]
      * @param neg_pos    the relative height of the mesh at (0, 1) [-3, 3]
      * @param properties the properties of this tile
      * @param baseHeight the height of the middle of the tile
-     * @param sourceSet the tileset where this tile is part of, or null if this is a custom tile.
+     * @param sourceSet  the tileset where this tile is part of, or null if this is a custom tile.
      */
     private MapTile(// pp, pn, nn, np
-                    String name, Path meshPath, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
+                    String name, Path meshPath, Path texture, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
                     EnumSet<Properties> properties, int baseHeight, TileThemeSet sourceSet
     ) {
         this.name = name;
+        this.meshPath = meshPath;
+        this.texturePath = texture;
         this.sourceSet = sourceSet;
         this.tileID = nextIdentity++;
         // the order is important
         this.fit = new RotationFreeFit(pos_pos, pos_neg, neg_neg, neg_pos);
-        this.meshPath = meshPath;
         this.properties = properties;
         this.baseHeight = baseHeight;
     }
@@ -121,15 +130,7 @@ public class MapTile {
     }
 
     public static MapTile registerTile(
-            String name, String fileName, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
-            EnumSet<Properties> properties, int baseHeight, TileThemeSet sourceSet
-    ) {
-        Path path = Directory.mapTileModels.getPath(fileName);
-        return registerTile(name, path, pos_pos, pos_neg, neg_neg, neg_pos, properties, baseHeight, sourceSet);
-    }
-
-    public static MapTile registerTile(
-            String name, Path meshPath, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
+            String name, Path meshPath, String texture, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
             EnumSet<Properties> properties, int baseHeight, TileThemeSet sourceSet
     ) {
         // ensure uniqueness in mesh
@@ -153,7 +154,9 @@ public class MapTile {
         NAMES.add(name);
         PATHS.add(meshPath);
 
-        MapTile tile = new MapTile(name, meshPath, pos_pos, pos_neg, neg_neg, neg_pos, properties, baseHeight, sourceSet);
+        Path texturePath = (texture == null || texture.isEmpty()) ? null : meshPath.resolve(texture);
+
+        MapTile tile = new MapTile(name, meshPath, texturePath, pos_pos, pos_neg, neg_neg, neg_pos, properties, baseHeight, sourceSet);
 
         List<MapTile> tiles = tileFinder.computeIfAbsent(tile.fit.id, (k) -> new ArrayList<>());
         tiles.add(tile);
@@ -199,6 +202,7 @@ public class MapTile {
         private int rotation;
         private int offset;
 
+        @SuppressWarnings("Duplicates")
         RotationFreeFit(int a, int b, int c, int d) {
             // make all candidates positive, with minimum == 0
             offset = a;
@@ -211,43 +215,55 @@ public class MapTile {
             d -= offset;
 
             assert a < 127 && b < 127 && c < 127 && d < 127;
-            final int[] candidates = new int[4];
 
-            add(a, b, c, d, candidates);
+            int i0 = a;
+            int i1 = b;
+            int i2 = c;
+            int i3 = d;
+
             a = a << 8;
             b = b << 8;
             c = c << 8;
             d = d << 8;
-            add(d, a, b, c, candidates);
+            i0 += d;
+            i1 += a;
+            i2 += b;
+            i3 += c;
+
             a = a << 8;
             b = b << 8;
             c = c << 8;
             d = d << 8;
-            add(c, d, a, b, candidates);
+            i0 += c;
+            i1 += d;
+            i2 += a;
+            i3 += b;
+
             a = a << 8;
             b = b << 8;
             c = c << 8;
             d = d << 8;
-            add(b, c, d, a, candidates);
+            i0 += b;
+            i1 += c;
+            i2 += d;
+            i3 += a;
 
             // choose one deterministically ; pick the maximum
-            int max = 0; // all candidates are positive
+            int max = i0; // all candidates are positive
             rotation = 0;
-            for (int i = 0; i < 4; i++) {
-                int cand = candidates[i];
-                if (cand > max) {
-                    max = cand;
-                    rotation = 4 - i;
-                }
+            if (i1 > max) {
+                max = i1;
+                rotation = 3;
+            }
+            if (i2 > max) {
+                max = i2;
+                rotation = 2;
+            }
+            if (i3 > max) {
+                max = i3;
+                rotation = 1;
             }
             id = max;
-        }
-
-        private static void add(int a, int b, int c, int d, int[] candidates) {
-            candidates[0] += a;
-            candidates[1] += b;
-            candidates[2] += c;
-            candidates[3] += d;
         }
     }
 
@@ -275,11 +291,31 @@ public class MapTile {
                 gl.rotate(rotation * QUARTER, 0, 0, 1);
 
                 if (type.mesh == null) {
-                    type.mesh = new MeshShape(type.meshPath);
+                    loadMesh(type);
                 }
+
+                ShaderProgram shader = gl.getShader();
+                if (type.texture != null && shader instanceof TextureShader) {
+                    TextureShader tShader = (TextureShader) shader;
+                    tShader.setTexture(type.texture);
+                }
+
                 gl.render(type.mesh, null);
             }
             gl.popMatrix();
+        }
+
+        private void loadMesh(MapTile type) {
+            try {
+                type.mesh = new MeshShape(type.meshPath);
+
+                if (type.texturePath != null) {
+                    type.texture = FileTexture.get(type.texturePath);
+                }
+
+            } catch (IOException ex) {
+                Logger.ERROR.print(ex);
+            }
         }
 
         public Instance cycle(int offset) {

@@ -4,13 +4,14 @@ import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.GameMap.GameMap;
-import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.RenderLoop;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
-import org.joml.*;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.junit.Before;
 import org.junit.Test;
 import org.lwjgl.glfw.GLFW;
@@ -43,9 +44,9 @@ public class RayTraceTest {
         // middle of screen must be focus
         instance.checkMouseClick(new TestTool() {
             @Override
-            public void apply(Vector2fc position) {
+            public void apply(Vector3fc position) {
                 Logger.DEBUG.print(position);
-                assertTrue(position.distance(new Vector2f(0, 0)) < 1f);
+                assertTrue(position.distance(new Vector3f(0, 0, 0)) < 1f);
             }
         }, width / 2, height / 2);
     }
@@ -59,9 +60,9 @@ public class RayTraceTest {
         // middle of screen must be focus
         instance.checkMouseClick(new TestTool() {
             @Override
-            public void apply(Vector2fc position) {
+            public void apply(Vector3fc position) {
                 Logger.DEBUG.print(position);
-                assertTrue(position.distance(new Vector2f(0, 0)) < 1f);
+                assertTrue(position.distance(new Vector3f(0, 0, 0)) < 1f);
             }
         }, width / 2, height / 2);
     }
@@ -103,7 +104,7 @@ public class RayTraceTest {
         int width = game.window().getWidth();
         int height = game.window().getHeight();
 
-        Matrix4f proj = SGL.getViewProjection(width, height, game.camera(), isometricView);
+        Matrix4f proj = game.camera().getViewProjection(width, height, isometricView);
 
         int[] viewport = {0, 0, width, height};
         Vector3f screen = proj.project(original, viewport, new Vector3f());
@@ -111,9 +112,9 @@ public class RayTraceTest {
         // test whether this screen position results in almost the right coordinate
         instance.checkMouseClick(new TestTool() {
             @Override
-            public void apply(Vector2fc position) {
+            public void apply(Vector3fc position) {
                 Logger.DEBUG.print(original, screen, position);
-                assertTrue(position.distance(new Vector2f(original.x(), original.y())) < 1f);
+                assertTrue(position.distance(new Vector3f(original.x(), original.y(), 0f)) < 1f);
             }
         }, (int) screen.x, (int) screen.y);
     }
@@ -131,7 +132,7 @@ public class RayTraceTest {
         }
 
         @Override
-        public void apply(Vector2fc position) {
+        public void apply(Vector3fc position) {
             Logger.DEBUG.print(Vectors.toString(position));
         }
 

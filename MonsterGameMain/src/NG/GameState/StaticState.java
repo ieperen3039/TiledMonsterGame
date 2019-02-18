@@ -37,6 +37,7 @@ public class StaticState implements GameState {
 
     @Override
     public void addEntity(Entity entity) {
+        assert !entities.contains(entity) : "duplicate entity";
         entities.add(entity);
     }
 
@@ -78,7 +79,7 @@ public class StaticState implements GameState {
             }
         }
 
-        Storable.storeList(out, box);
+        Storable.writeCollection(out, box);
     }
 
     public StaticState(DataInput in) throws IOException, ClassNotFoundException {

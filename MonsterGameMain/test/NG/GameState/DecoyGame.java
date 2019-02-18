@@ -8,6 +8,7 @@ import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Engine.Version;
 import NG.GameEvent.Event;
+import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.Rendering.GLFWWindow;
@@ -118,6 +119,11 @@ class DecoyGame implements Game {
     @Override
     public GameLights lights() {
         return gameLights;
+    }
+
+    @Override
+    public ClaimRegistry claims() {
+        return null;
     }
 
     @Override

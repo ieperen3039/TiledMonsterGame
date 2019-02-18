@@ -17,7 +17,7 @@ public class ClickShaderGL extends AbstractSGL {
             ClickShader shader, int windowWidth, int windowHeight, Camera viewpoint, boolean isometric
     ) {
         this.shader = shader;
-        viewProjectionMatrix = SGL.getViewProjection(windowWidth, windowHeight, viewpoint, isometric);
+        viewProjectionMatrix = viewpoint.getViewProjection(windowWidth, windowHeight, isometric);
 
     }
 

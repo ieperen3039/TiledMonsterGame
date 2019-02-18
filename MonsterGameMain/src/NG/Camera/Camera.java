@@ -2,6 +2,8 @@ package NG.Camera;
 
 import NG.ActionHandling.MouseScrollListener;
 import NG.Engine.GameAspect;
+import NG.Settings.Settings;
+import org.joml.Matrix4f;
 import org.joml.Vector3fc;
 
 /**
@@ -33,4 +35,37 @@ public interface Camera extends GameAspect, MouseScrollListener {
     Vector3fc getUpVector();
 
     void set(Vector3fc focus, Vector3fc eye);
+
+    /**
+     * Calculates a projection matrix based on a camera position and the given parameters of the viewport
+     * @param windowWidth  the width of the viewport in pixels
+     * @param windowHeight the height of the viewport in pixels
+     * @param isometric    if true, an isometric projection will be calculated. Otherwise a perspective transformation
+     *                     is used.
+     * @return a projection matrix, such that modelspace vectors multiplied with this matrix will be transformed to
+     * viewspace.
+     */
+    default Matrix4f getViewProjection(float windowWidth, float windowHeight, boolean isometric) {
+        Matrix4f vpMatrix = new Matrix4f();
+
+        // Set the projection.
+        float aspectRatio = windowWidth / windowHeight;
+
+        if (isometric) {
+            float visionSize = vectorToFocus().length() - Settings.Z_NEAR;
+            visionSize /= 4;
+            vpMatrix.orthoSymmetric(aspectRatio * visionSize, visionSize, Settings.Z_NEAR, Settings.Z_FAR);
+        } else {
+            vpMatrix.setPerspective(Settings.FOV, aspectRatio, Settings.Z_NEAR, Settings.Z_FAR);
+        }
+
+        // set the view
+        vpMatrix.lookAt(
+                getEye(),
+                getFocus(),
+                getUpVector()
+        );
+
+        return vpMatrix;
+    }
 }

@@ -10,6 +10,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +51,8 @@ public class BasicShape implements Shape {
      * @param debugName     a name to identify this shape
      * @return a list of shapes, each being roughly containersize in size
      */
-    public static List<Shape> loadSplit(float containerSize, float scale, Path path, String debugName) {
+    public static List<Shape> loadSplit(float containerSize, float scale, Path path, String debugName)
+            throws IOException {
         ShapeParameters file = new ShapeParameters(Vectors.O, scale, path, debugName);
         HashMap<Vector3i, CustomShape> world = new HashMap<>();
 

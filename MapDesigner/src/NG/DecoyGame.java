@@ -8,6 +8,7 @@ import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Engine.Version;
 import NG.GameEvent.Event;
+import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.GameState.GameLights;
@@ -33,16 +34,17 @@ class DecoyGame implements Game {
     private static final Version VERSION = new Version(0, 2);
     private final String MAIN_THREAD;
 
-    private final Settings settings;
-    private final GLFWWindow window;
-    private final MouseToolCallbacks inputHandler;
-    private final GUIManager frameManager;
-    private GameLights gameLights;
-    private GameTimer timer;
-    private Camera camera;
-    private GameMap gameMap;
-    private GameState gameState;
-    private RenderLoop renderloop;
+    public final Settings settings;
+    public final GLFWWindow window;
+    public final MouseToolCallbacks inputHandler;
+    public final GUIManager frameManager;
+    public GameLights gameLights;
+    public GameTimer timer;
+    public Camera camera;
+    public GameMap gameMap;
+    public GameState gameState;
+    public RenderLoop renderloop;
+    public ClaimRegistry claimRegistry;
 
     public DecoyGame(String title, RenderLoop renderloop, Settings settings) {
         Logger.INFO.print("Starting up a partial game engine...");
@@ -59,6 +61,7 @@ class DecoyGame implements Game {
         this.gameMap = new TileMap(settings.CHUNK_SIZE);
         this.camera = new TycoonFixedCamera(new Vector3f(), 0, 10);
         this.gameState = new StaticState();
+        this.claimRegistry = new ClaimRegistry();
     }
 
     public void init() throws Exception {
@@ -69,6 +72,8 @@ class DecoyGame implements Game {
         gameMap.init(this);
         camera.init(this);
         gameState.init(this);
+        claimRegistry.init(this);
+        renderloop.init(this);
 
         gameLights.addDirectionalLight(new Vector3f(1, -1.5f, 2), Color4f.WHITE, 0.5f);
     }
@@ -121,6 +126,11 @@ class DecoyGame implements Game {
     @Override
     public GameLights lights() {
         return gameLights;
+    }
+
+    @Override
+    public ClaimRegistry claims() {
+        return claimRegistry;
     }
 
     @Override

@@ -19,7 +19,7 @@ public enum GenericTextures implements Texture {
         File file = Directory.meshes.getFile(path);
 
         try {
-            tex = new FileTexture(file);
+            tex = FileTexture.get(file);
         } catch (IOException ex) {
             Logger.ERROR.print(ex);
             tex = null;

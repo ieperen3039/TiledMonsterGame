@@ -3,14 +3,9 @@ package NG;
 import NG.ActionHandling.MouseTools.DefaultMouseTool;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Version;
-import NG.Entities.Cube;
 import NG.GameMap.*;
 import NG.Rendering.GLFWWindow;
-import NG.Rendering.Material;
-import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.RenderLoop;
-import NG.Rendering.Shaders.MaterialShader;
-import NG.Rendering.Shapes.FileShapes;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.SToolBar;
@@ -28,22 +23,25 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static NG.Tools.Vectors.toVector2i;
-
 /**
  * @author Geert van Ieperen created on 6-2-2019.
  */
 public class MapEditor {
     private static final Version EDITOR_VERSION = new Version(0, 2);
     private static final String MAP_FILE_EXTENSION = "mgm";
-    private static final int BUTTON_MIN_WIDTH = 200;
+    private static final int BUTTON_MIN_WIDTH = 180;
     private static final int BUTTON_MIN_HEIGHT = 80;
+
+    private final TileCycleTool tileCycleTool = new TileCycleTool();
+    private final BlockModificationTool blockModificationTool = new BlockModificationTool();
 
     private final RenderLoop renderloop;
     private final DecoyGame game;
+
     private final JFileChooser saveMapDialog;
     private final JFileChooser loadTileDialog;
     private final JFileChooser loadMapDialog;
+    private BlockMap blockMap;
 
     public MapEditor() {
         Settings settings = new Settings();
@@ -59,6 +57,8 @@ public class MapEditor {
         };
 
         game = new DecoyGame("MonsterGame Map designer", renderloop, settings);
+        blockMap = new BlockMap();
+        game.gameMap = blockMap;
 
         loadMapDialog = new JFileChooser(Directory.savedMaps.getDirectory());
         loadMapDialog.setDialogTitle("Load map");
@@ -72,14 +72,14 @@ public class MapEditor {
 
         loadTileDialog = new JFileChooser(Directory.mapTileModels.getDirectory());
         loadTileDialog.setDialogTitle("Load Tiles");
-        FileNameExtensionFilter filter2 = new FileNameExtensionFilter("Tile files", "obj");
+        FileNameExtensionFilter filter2 = new FileNameExtensionFilter("Tile description files", "txt");
         loadTileDialog.setApproveButtonText("Load");
         loadTileDialog.setFileFilter(filter2);
     }
 
     public void init() throws Exception {
         game.init();
-        renderloop.init(game);
+
         renderloop.addHudItem(game.gui()::draw);
 
         GLFWWindow window = game.window();
@@ -89,41 +89,28 @@ public class MapEditor {
 
         searchTiles(Directory.mapTileModels.getPath());
 
-        BigArrow bigArrow = new BigArrow(new Vector3f());
-        game.entities().addEntity(bigArrow);
+        game.inputHandling().setMouseTool(blockModificationTool);
 
-        game.inputHandling().addMousePositionListener((xPos, yPos) -> {
-            Vector3f origin = new Vector3f();
-            Vector3f direction = new Vector3f();
-
-            Vectors.windowCoordToRay(game, xPos, window.getHeight() - yPos, origin, direction);
-            GameMap map = game.map();
-            Vector3f position = map.intersectWithRay(origin, direction);
-
-            Vector3i coordinate = map.getCoordinate(position);
-            position.set(map.getPosition(coordinate.x, coordinate.y));
-            position.z = coordinate.z + 3;
-
-            map.setHighlights(toVector2i(coordinate));
-            bigArrow.setPosition(position);
-        });
-
-        game.inputHandling().setMouseTool(new CoordinatePopupTool());
-
-        game.lights().addDirectionalLight(new Vector3f(1, 1, 1), Color4f.WHITE, 0.5f);
+        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 4f), Color4f.WHITE, 0.4f);
     }
 
     private static void searchTiles(Path path) {
-        File file = path.toFile();
-        Logger.INFO.print("Searching in " + file + " for map tiles");
-        FileMapTileReader.readDirectory(file);
+        try {
+            File file = path.toFile();
+            Logger.INFO.print("Searching in " + file + " for map tiles");
+            MapTiles.readFile(null, file.toPath());
+
+        } catch (IOException e) {
+            display(e);
+        }
     }
 
     private SToolBar getFileToolbar(GLFWWindow window) {
         SToolBar mainMenu = new SToolBar(game, false);
         window.addSizeChangeListener(() -> mainMenu.setSize(window.getWidth(), 0));
 
-        mainMenu.addButton("Create new Map", this::createNew, 250);
+        mainMenu.addButton("Generate Random", this::createNew, 250);
+        mainMenu.addButton("Transform Tiles", this::generateTileMap, 250);
         mainMenu.addButton("Load Map", this::loadMap, BUTTON_MIN_WIDTH);
         mainMenu.addButton("Save Map", this::saveMap, BUTTON_MIN_WIDTH);
         mainMenu.addButton("Load Tiles", this::loadTiles, BUTTON_MIN_WIDTH);
@@ -132,6 +119,45 @@ public class MapEditor {
         mainMenu.addButton("Exit editor", renderloop::stopLoop, BUTTON_MIN_WIDTH);
 
         return mainMenu;
+    }
+
+    private void generateTileMap() {
+        SFrame transformDialog = new SFrame("Tile map generator");
+
+        SButton generate = new SButton("Generate Tilemap", () -> {
+            TileThemeSet.PLAIN.load();
+            int chunkSize = game.settings().CHUNK_SIZE;
+            GameMap newMap = new TileMap(chunkSize);
+            try {
+                newMap.init(game);
+                newMap.generateNew(new CopyGenerator(blockMap));
+                game.gameMap = newMap;
+
+                blockModificationTool.dispose();
+                game.inputHandling().setMouseTool(tileCycleTool);
+
+            } catch (Exception ex) {
+                display(ex);
+                game.gameMap = blockMap;
+            }
+        }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
+        generate.setGrowthPolicy(true, false);
+
+        SButton back = new SButton("Back to Blockmap", () -> {
+            game.gameMap = blockMap;
+            tileCycleTool.dispose();
+            game.inputHandling().setMouseTool(blockModificationTool);
+
+        }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
+        back.setGrowthPolicy(true, false);
+
+        transformDialog.setMainPanel(SPanel.column(
+                generate,
+                back
+        ));
+
+        transformDialog.pack();
+        game.gui().addFrame(transformDialog);
     }
 
     private void loadTiles() {
@@ -146,8 +172,13 @@ public class MapEditor {
             Logger.printOnline(progressBar);
 
             for (File file : selectedFiles) {
-                FileMapTileReader.readDirectory(file);
-                inc[0]++;
+                try {
+                    inc[0]++;
+                    MapTiles.readFile(null, file.toPath());
+
+                } catch (IOException ex) {
+                    Logger.ERROR.print(ex);
+                }
             }
 
             Logger.removeOnlinePrint(progressBar);
@@ -221,7 +252,13 @@ public class MapEditor {
 
                     game.readStateFromFile(input);
 
-                    Vector2ic size = game.map().getSize();
+                    GameMap newMap = game.map();
+
+                    if (newMap instanceof BlockMap) {
+                        blockMap = (BlockMap) newMap;
+                    }
+
+                    Vector2ic size = newMap.getSize();
                     setCameraToMiddle(size.x(), size.y());
                     Logger.INFO.print("Loaded map of size " + Vectors.toString(size));
 
@@ -250,8 +287,6 @@ public class MapEditor {
     private void createNew() {
         SFrame newMapFrame = new SFrame("New Map Settings", 200, 200, true);
         MapGeneratorMod generator = new SimpleMapGenerator(Toolbox.random.nextInt());
-        Supplier<String> processDisplay = () -> "Generating heightmap : " + generator.heightmapProgress() * 100 + "%";
-        Logger.printOnline(processDisplay);
 
         final int ROWS = 10;
         final int COLS = 3;
@@ -286,6 +321,7 @@ public class MapEditor {
         SButton generate = new SButton("Generate", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
         mainPanel.add(generate, mpos.add(0, 1));
 
+        Supplier<String> processDisplay = () -> "Generating heightmap : " + generator.heightmapProgress() * 100 + "%";
 
         generate.addLeftClickListener(() -> {
             Logger.printOnline(processDisplay);
@@ -296,10 +332,9 @@ public class MapEditor {
             generator.setXSize(xSize + 1); // heightmap is 1 larger
             generator.setYSize(ySize + 1);
 
-            boolean success = TileThemeSet.PLAIN.loadAndWait(game);
-            assert success;
+            TileThemeSet.PLAIN.load();
 
-            game.map().generateNew(generator); // hangs
+            game.map().generateNew(generator);
 
             setCameraToMiddle(xSize, ySize);
             Logger.removeOnlinePrint(processDisplay);
@@ -338,72 +373,150 @@ public class MapEditor {
         }
     }
 
-    private class BigArrow extends Cube {
+    private class BlockModificationTool extends DefaultMouseTool {
+        private SFrame window;
+        private STextArea heightDisp;
+        private Integer selectionSize;
+        private STextArea selectionDisp;
 
-        private static final float SIZE = 2;
-
-        public BigArrow(Vector3f position) {
-            super(position);
+        public BlockModificationTool() {
+            heightDisp = new STextArea("-", BUTTON_MIN_HEIGHT, true);
+            selectionDisp = new STextArea("-", BUTTON_MIN_HEIGHT, true);
         }
 
         @Override
-        public void draw(SGL gl) {
-            gl.pushMatrix();
-            {
-                gl.translate(position);
-                gl.scale(SIZE, SIZE, -SIZE);
+        public void apply(Vector3fc position) {
+            Vector2ic wPos = null;
+            boolean recycle = true;
 
-                if (gl.getShader() instanceof MaterialShader) {
-                    ((MaterialShader) gl.getShader()).setMaterial(Material.ROUGH, Color4f.RED);
-                }
+            if (window == null) {
+                window = new SFrame("No tile selected");
+                recycle = false;
 
-                gl.render(FileShapes.ARROW, this);
+            } else if (window.isDisposed()) {
+                wPos = window.getScreenPosition();
+                window = new SFrame("No tile selected");
+                recycle = false;
             }
-            gl.popMatrix();
-        }
 
-        public void setPosition(Vector3fc targetPosition) {
-            position.set(targetPosition);
-        }
-    }
-
-    private class CoordinatePopupTool extends DefaultMouseTool {
-        @Override
-        public void apply(Vector2fc position) {
-            GameMap map = game.map();
-            Vector3i coordinate = map.getCoordinate(new Vector3f(position, 0));
+            Vector3i coordinate = blockMap.getCoordinate(position);
             int x = coordinate.x;
             int y = coordinate.y;
 
-            SFrame window = new SFrame("Tile at (" + x + ", " + y + ")");
+            window.setTitle("Block at (" + x + ", " + y + ")");
 
-            if (map instanceof TileMap) {
-                TileMap tileMap = (TileMap) map;
+            selectionSize = 1;
+            incSelect(x, y, 0);
+            heightDisp.setText("Height: " + blockMap.getHeightAt(x, y));
 
-                MapTile.Instance tileData = tileMap.getTileData(x, y);
-                SPanel elements = new SPanel(1, 5);
+            SPanel mainPanel = SPanel.column(
+                    SPanel.column(
+                            heightDisp,
+                            new SButton("increase", () -> incTile(x, y, 1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                            new SButton("decrease", () -> incTile(x, y, -1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                    ),
+                    SPanel.column(
+                            selectionDisp,
+                            new SButton("increase", () -> incSelect(x, y, 1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                            new SButton("decrease", () -> incSelect(x, y, -1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                    )
+            );
 
-                STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT, true);
-                elements.add(typeDist, new Vector2i(0, 0));
+            window.setMainPanel(mainPanel);
 
-                // TODO make this live
-                STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT, true);
-                elements.add(heightDisp, new Vector2i(0, 1));
-
-
-                Runnable switchAction = () -> {
-                    MapTile.Instance instance = tileData.cycle(1);
-                    tileMap.setTile(x, y, instance);
-                    typeDist.setText("Type: " + tileData.type.name);
-                    heightDisp.setText("Height: " + map.getHeightAt(x, y));
-                };
-                elements.add(new SButton("Cycle tile type", switchAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT), new Vector2i(0, 3));
-
-                window.setMainPanel(elements);
+            if (!recycle) {
+                if (wPos == null) {
+                    game.gui().addFrame(window);
+                } else {
+                    game.gui().addFrame(window, wPos.x(), wPos.y());
+                }
             }
+        }
+
+        /**
+         * not necessarily a circle
+         * @param r number of tiles including middle
+         * @return a collection of tiles, the given radius around the given coordinate
+         */
+        private Vector2ic[] getCircleOf(int x, int y, int r) {
+            float hRadius = (r - 1) / 2f;
+            Vector2ic[] result = new Vector2ic[r * r];
+
+            int i = 0;
+            for (int u = (int) (x - hRadius); u <= x + hRadius; u++) {
+                for (int v = (int) (y - hRadius); v <= y + hRadius; v++) {
+                    result[i++] = new Vector2i(u, v);
+                }
+            }
+
+            return result;
+        }
+
+        private void incTile(int x, int y, int change) {
+            Vector2ic[] tiles = getCircleOf(x, y, selectionSize);
+
+            for (Vector2ic tile : tiles) {
+                int tx = tile.x();
+                int ty = tile.y();
+                blockMap.setTile(tx, ty, blockMap.getHeightAt(tx, ty) + change);
+            }
+
+            heightDisp.setText("Height: " + blockMap.getHeightAt(x, y));
+        }
+
+        private void incSelect(int x, int y, int v) {
+            selectionSize += v;
+            selectionDisp.setText("Selection range: " + selectionSize);
+            blockMap.setHighlights(getCircleOf(x, y, selectionSize));
+        }
+
+        public void dispose() {
+            if (window != null) window.dispose();
+        }
+    }
+
+    private class TileCycleTool extends DefaultMouseTool {
+        private SFrame window;
+
+        @Override
+        public void apply(Vector3fc position) {
+            GameMap map = game.map();
+            assert (map instanceof TileMap);
+
+            Vector3i coordinate = map.getCoordinate(position);
+            int x = coordinate.x;
+            int y = coordinate.y;
+            map.setHighlights(new Vector2i(x, y));
+
+            if (window != null) window.dispose();
+            window = new SFrame("Tile at (" + x + ", " + y + ")");
+
+            TileMap tileMap = (TileMap) map;
+            MapTile.Instance tileData = tileMap.getTileData(x, y);
+            SPanel elements = new SPanel(1, 5);
+
+            STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT, true);
+            elements.add(typeDist, new Vector2i(0, 0));
+
+            STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT, true);
+            elements.add(heightDisp, new Vector2i(0, 1));
+
+            Runnable switchAction = () -> {
+                MapTile.Instance instance = tileData.cycle(1);
+                tileMap.setTile(x, y, instance);
+                typeDist.setText("Type: " + tileData.type.name);
+                heightDisp.setText("Height: " + map.getHeightAt(x, y));
+            };
+            elements.add(new SButton("Cycle tile type", switchAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT), new Vector2i(0, 3));
+
+            window.setMainPanel(elements);
 
             window.pack();
             game.gui().addFrame(window);
+        }
+
+        public void dispose() {
+            if (window != null) window.dispose();
         }
     }
 }

@@ -364,23 +364,18 @@ public class GLFWWindow implements GameAspect {
     }
 
     /**
-     * sets mouse to invisible and restrict movement
+     * sets mouse to invisible and optionally restrict movement
+     * @param capture if true, mouse is reset to middle of the screen as well
      */
-    public void capturePointer() {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        mouseIsCaptured = true;
+    public void hideCursor(boolean capture) {
+        glfwSetInputMode(window, GLFW_CURSOR, capture ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_HIDDEN);
     }
 
     /**
      * sets mouse to visible
      */
-    public void freePointer() {
+    public void showCursor() {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        mouseIsCaptured = false;
-    }
-
-    public boolean isMouseCaptured() {
-        return mouseIsCaptured;
     }
 
     public void setClearColor(Color4f color4f) {

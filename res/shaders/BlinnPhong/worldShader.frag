@@ -40,6 +40,11 @@ const int MAX_POINT_LIGHTS = 10;
 const float ATT_LIN = 0.1f;
 const float ATT_EXP = 0.01f;
 
+const float BORDER_SIZE = 0.01f;
+
+uniform vec2 tileSize;
+uniform vec2 tileOffset;
+
 uniform Material material;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform DirectionalLight directionalLight;
@@ -149,7 +154,22 @@ vec3 calcDirectionalLightComponents(DirectionalLight light) {
     }
 }
 
+float sigm(float x){
+    return x / sqrt(1 + x * x * x);
+}
+
 void main() {
+    // if normal is not flat enough
+    if (mVertexNormal.z > 0.1f){
+        float fx = fract((mVertexPosition.x + tileOffset.x) / tileSize.x);
+        float fy = fract((mVertexPosition.y + tileOffset.y) / tileSize.y);
+        // part of border
+        if (fx < BORDER_SIZE || fx > (1 - BORDER_SIZE) || fy < BORDER_SIZE || fy > (1 - BORDER_SIZE)){
+            fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            return;
+        }
+    }
+
     // Setup Material
     // TODO combine these options
     if (hasTexture){
@@ -182,6 +202,7 @@ void main() {
     diffuseSpecular += calcPointLightComponents(pointLights[8]);
     diffuseSpecular += calcPointLightComponents(pointLights[9]);
 
-    fragColor = diffuse_color * vec4(ambientLight, 1.0) + vec4(diffuseSpecular, 0.0);
+    vec4 col = diffuse_color * vec4(ambientLight, 1.0) + vec4(diffuseSpecular, 0.0);
 
+    fragColor = vec4(sigm(col.x), sigm(col.y), sigm(col.z), col.w);
 }

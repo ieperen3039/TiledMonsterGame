@@ -1,53 +1,34 @@
 package NG.GameMap;
 
-import NG.Engine.Game;
+import NG.Tools.Directory;
+import NG.Tools.Logger;
 
-import java.util.concurrent.Semaphore;
+import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @author Geert van Ieperen created on 8-2-2019.
  */
 public enum TileThemeSet {
-    PLAIN(PlainTiles::loadAll);
+    // general purpose tiles
+    PLAIN("Plain", "tileSetPlain.txt");
 
-    private final Runnable loadCommand;
-    private boolean isLoaded = false;
+    private final Path path;
 
-    TileThemeSet(Runnable loadCommand) {
-        this.loadCommand = loadCommand;
+    /**
+     * a set of tiles loaded using a description file.
+     * @param path the path to the description file, which must be in the same directory as the described tiles.
+     */
+    TileThemeSet(String... path) {
+        this.path = Directory.mapTileModels.getPath(path);
     }
 
     public void load() {
-        if (isLoaded) return;
-        isLoaded = true;
-        loadCommand.run();
-    }
-
-    /**
-     * schedules a load action on the render thread, then waits until all tiles have been loaded before returning.
-     * @param game a reference to the game instance
-     * @return true iff the tiles are loaded upon returning
-     */
-    public boolean loadAndWait(Game game) {
-        if (isLoaded) return true;
-
-        Semaphore lock = new Semaphore(0);
-
-        game.executeOnRenderThread(() -> {
-            load();
-            lock.release();
-        });
-
         try {
-            lock.acquire();
-            return true;
+            MapTiles.readFile(this, path);
 
-        } catch (InterruptedException e) {
-            return false;
+        } catch (IOException ex) {
+            Logger.ERROR.print("Error while trying to load " + this, ex);
         }
-    }
-
-    public void unload() {
-        // TODO
     }
 }

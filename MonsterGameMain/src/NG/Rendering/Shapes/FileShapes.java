@@ -4,8 +4,10 @@ import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Plane;
 import NG.Tools.Directory;
+import NG.Tools.Logger;
 import org.joml.Vector3fc;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -26,7 +28,17 @@ public enum FileShapes implements Mesh, Shape {
 
     FileShapes(String... path) {
         Path asPath = Directory.meshes.getPath(path);
-        ShapeParameters pars = new ShapeParameters(asPath, path[path.length - 1]);
+
+        ShapeParameters pars;
+        try {
+            pars = new ShapeParameters(asPath, path[path.length - 1]);
+
+        } catch (IOException ex) {
+            Logger.ERROR.print(ex);
+            shape = null;
+            mesh = null;
+            return;
+        }
 
         shape = new BasicShape(pars);
 

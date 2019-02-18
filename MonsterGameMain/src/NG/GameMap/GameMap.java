@@ -1,10 +1,12 @@
 package NG.GameMap;
 
+import NG.ActionHandling.MouseTools.MouseTool;
 import NG.ActionHandling.MouseTools.MouseToolListener;
+import NG.Engine.Game;
 import NG.Engine.GameAspect;
-import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
+import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.util.ArrayList;
@@ -78,7 +80,7 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     /**
      * @param x an exact x position on the map
      * @param y an exact y position on the map
-     * @return the height at position (x, y) on the map
+     * @return the coordinate height at position (x, y) on the map
      */
     int getHeightAt(int x, int y);
 
@@ -121,33 +123,6 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction);
 
     /**
-     * try to assign the given entity to the given coordinate. If there is already an entity on the coordinate, no claim
-     * is made and false is returned
-     * @param coordinate a coordinate on the map
-     * @param entity     the entity that wants to enter the coordinate
-     * @return true if the claim was made, false if the claim could not be made.
-     * @throws NullPointerException when entity or coordinate is null
-     * @see #dropClaim(Vector2ic, Entity)
-     */
-    boolean createClaim(Vector2ic coordinate, Entity entity);
-
-    /**
-     * queries what entity owns the claim on the given coordinate.
-     * @param coordinate a coordinate on the map
-     * @return the entity that claimed the coordinate, and didn't drop it's claim yet
-     */
-    Entity getClaim(Vector2ic coordinate);
-
-    /**
-     * release a previously made claim
-     * @param coordinate a coordinate on the map
-     * @param entity     the entity that has claimed the given coordinate, or null to drop it regardless
-     * @return true if the entity previously owned the claim, or if entity is null. When false is returned, the claim
-     * register is not updated
-     */
-    boolean dropClaim(Vector2ic coordinate, Entity entity);
-
-    /**
      * allows objects to listen for when this map is changed, as a result of {@link #generateNew(MapGeneratorMod)} or
      * possibly an internal reason. Any call to {@link #draw(SGL)}, {@link #getHeightAt(int, int)} etc. will represent
      * the new values as soon as this callback is activated.
@@ -164,9 +139,19 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     void setHighlights(Vector2ic... coordinates);
 
     /**
-     * the number of tiles in x and y direction
+     * the number of coordinates in x and y direction. The real (floating-point) size can be completely different.
      */
     Vector2ic getSize();
+
+    default boolean checkMouseClick(MouseTool tool, int xSc, int ySc, Game game) {
+        Vector3f origin = new Vector3f();
+        Vector3f direction = new Vector3f();
+        Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
+
+        Vector3f position = intersectWithRay(origin, direction);
+        tool.apply(position);
+        return true;
+    }
 
     /**
      * finds a path from A to B.

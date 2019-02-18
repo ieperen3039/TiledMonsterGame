@@ -3,6 +3,7 @@ package NG.Engine;
 import NG.ActionHandling.KeyMouseCallbacks;
 import NG.Camera.Camera;
 import NG.GameEvent.Event;
+import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
@@ -43,6 +44,8 @@ public interface Game {
     Version getVersion();
 
     GameLights lights();
+
+    ClaimRegistry claims();
 
     /**
      * schedules an event on the game loop
@@ -159,6 +162,11 @@ public interface Game {
         @Override
         public GameLights lights() {
             return instances[current].lights();
+        }
+
+        @Override
+        public ClaimRegistry claims() {
+            return instances[current].claims();
         }
 
         @Override

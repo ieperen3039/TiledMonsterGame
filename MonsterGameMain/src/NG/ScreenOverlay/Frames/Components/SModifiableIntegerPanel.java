@@ -14,16 +14,28 @@ public class SModifiableIntegerPanel extends SPanel {
     private static final int VALUE_SIZE = 150;
     private final Consumer<Integer> onUpdate;
     private final STextArea valueDisplay;
+    private final int upperBound;
+    private final int lowerBound;
 
     private int value;
 
     public SModifiableIntegerPanel(Consumer<Integer> onUpdate, String name, int initialValue) {
+        this(onUpdate, name, Integer.MIN_VALUE, Integer.MAX_VALUE, initialValue);
+    }
+
+    public SModifiableIntegerPanel(
+            Consumer<Integer> onUpdate, String name, int lowerBound, int upperBound, int initialValue
+    ) {
         super(8, 1);
         this.onUpdate = onUpdate;
-        this.valueDisplay = new STextArea(String.valueOf(initialValue), ADD_BUTTON_HEIGHT, VALUE_SIZE, false, NGFonts.TextType.REGULAR);
         this.value = initialValue;
+        this.upperBound = upperBound;
+        this.lowerBound = lowerBound;
 
-        add(new STextArea(name, 0, true), new Vector2i(0, 0));
+        this.valueDisplay = new STextArea(String.valueOf(initialValue), ADD_BUTTON_HEIGHT, VALUE_SIZE, false, NGFonts.TextType.REGULAR);
+
+        if (!name.isEmpty()) add(new STextArea(name, 0, true), new Vector2i(0, 0));
+
         add(new SButton("-100", () -> addToValue(-100), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(1, 0));
         add(new SButton("-10", () -> addToValue(-10), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(2, 0));
         add(new SButton("-1", () -> addToValue(-1), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(3, 0));
@@ -34,8 +46,8 @@ public class SModifiableIntegerPanel extends SPanel {
     }
 
     private void addToValue(Integer i) {
-        value += i;
-        onUpdate.accept(value);
+        value = Math.min(Math.max(value + i, lowerBound), upperBound);
         valueDisplay.setText(String.valueOf(value));
+        onUpdate.accept(value);
     }
 }

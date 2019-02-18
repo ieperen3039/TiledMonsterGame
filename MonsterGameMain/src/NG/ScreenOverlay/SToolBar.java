@@ -18,7 +18,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
  * @author Geert van Ieperen. Created on 1-11-2018.
  */
 public class SToolBar extends SContainer implements MouseReleaseListener, MouseRelativeClickListener {
-    public static final int MAX_BAR_ICONS = 30; // TODO look for opportunity of calculating this
+    public static final int MAX_BAR_ICONS = 20; // TODO look for opportunity of calculating this
     private static int BUTTON_SIZE = TOOL_BAR_HEIGHT - (SContainer.INNER_BORDER + SContainer.OUTER_BORDER);
 
     private Game game;
@@ -111,6 +111,6 @@ public class SToolBar extends SContainer implements MouseReleaseListener, MouseR
 
     @Override
     public Vector2ic getScreenPosition() {
-        return new Vector2i();
+        return getPosition();
     }
 }

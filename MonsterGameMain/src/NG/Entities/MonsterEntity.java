@@ -49,7 +49,7 @@ public abstract class MonsterEntity implements Entity {
         this.currentFace = new Pair<>(eyeDir, gametime);
         this.targetFace = currentFace;
 
-        boolean hasClaim = game.map().createClaim(initialPosition, this);
+        boolean hasClaim = game.claims().createClaim(initialPosition, this);
 
         if (!hasClaim) {
             throw new IllegalPositionException("given coordinate " + Vectors.toString(initialPosition) + " is not free");

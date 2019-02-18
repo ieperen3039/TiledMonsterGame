@@ -5,6 +5,8 @@ import NG.Engine.Game;
 import NG.Rendering.DirectionalLight;
 import NG.Rendering.Textures.Texture;
 import NG.Tools.Directory;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.io.IOException;
@@ -19,9 +21,10 @@ import static org.lwjgl.opengl.GL13.*;
  * A shader that uses a shadow-map and a Blinn-Phong model for lighting
  * @author Geert van Ieperen
  */
-public class AdvancedSceneShader extends SceneShader implements TextureShader {
-    private static final Path VERTEX_PATH = Directory.shaders.getPath("Shadow", "blinnphong.vert");
-    private static final Path FRAGMENT_PATH = Directory.shaders.getPath("Shadow", "blinnphong.frag");
+@SuppressWarnings("Duplicates")
+public class WorldBPShader extends SceneShader implements TextureShader {
+    private static final Path VERTEX_PATH = Directory.shaders.getPath("BlinnPhong", "blinnphong.vert");
+    private static final Path FRAGMENT_PATH = Directory.shaders.getPath("BlinnPhong", "worldShader.frag");
     private static final int MAX_POINT_LIGHTS = 10;
     private static final float SPECULAR_POWER = 10f;
 
@@ -32,7 +35,7 @@ public class AdvancedSceneShader extends SceneShader implements TextureShader {
      * @throws IOException     if the defined files could not be found (the file is searched for in the shader folder
      *                         itself, and should exclude any first slash)
      */
-    public AdvancedSceneShader() throws ShaderException, IOException {
+    public WorldBPShader() throws ShaderException, IOException {
         super(VERTEX_PATH, null, FRAGMENT_PATH);
 
         createUniform("material.diffuse");
@@ -55,6 +58,9 @@ public class AdvancedSceneShader extends SceneShader implements TextureShader {
         createUniform("specularPower");
         createUniform("cameraPosition");
 
+        createUniform("tileSize");
+        createUniform("tileOffset");
+
         createUniform("hasTexture");
         createUniform("hasColor");
     }
@@ -75,6 +81,16 @@ public class AdvancedSceneShader extends SceneShader implements TextureShader {
         setUniform("texture_sampler", 0);
         setUniform("staticShadowMap", 1);
         setUniform("dynamicShadowMap", 2);
+
+        // origin gives middle of first tile
+        Vector3f origin = game.map().getPosition(0, 0);
+        // second gives middle of second tile
+        Vector3f second = game.map().getPosition(1, 1);
+        Vector2f tileSize = new Vector2f(second.x - origin.x, second.y - origin.y);
+        Vector2f zero = new Vector2f(origin.x - (tileSize.x / 2), origin.y - (tileSize.y / 2));
+
+        setUniform("tileSize", tileSize);
+        setUniform("tileOffset", zero);
 
         CHECKER.bind(GL_TEXTURE0);
         CHECKER.bind(GL_TEXTURE1);
@@ -103,14 +119,16 @@ public class AdvancedSceneShader extends SceneShader implements TextureShader {
         setUniform("directionalLight.lightSpaceMatrix", light.getLightSpaceMatrix());
 
         // Static Shadows
-        if (!(false ? light.doDynamicShadows() : light.doStaticShadows())) return;
-        ShadowMap staticShadowMap = light.getStaticShadowMap();
-        staticShadowMap.bind(GL_TEXTURE1);
+        if (light.doStaticShadows()) {
+            ShadowMap staticShadowMap = light.getStaticShadowMap();
+            staticShadowMap.bind(GL_TEXTURE1);
+        }
 
         // Dynamic Shadows
-        if (!(true ? light.doDynamicShadows() : light.doStaticShadows())) return;
-        ShadowMap dynamicShadowMap = light.getDynamicShadowMap();
-        dynamicShadowMap.bind(GL_TEXTURE2);
+        if (light.doDynamicShadows()) {
+            ShadowMap dynamicShadowMap = light.getDynamicShadowMap();
+            dynamicShadowMap.bind(GL_TEXTURE2);
+        }
     }
 
     @Override

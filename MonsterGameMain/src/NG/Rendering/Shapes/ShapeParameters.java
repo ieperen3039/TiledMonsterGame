@@ -30,7 +30,7 @@ public class ShapeParameters {
      * @param path the path to the file to read
      * @param name the generic name of this shape
      */
-    public ShapeParameters(Path path, String name) {
+    public ShapeParameters(Path path, String name) throws IOException {
         this(Vectors.O, 1f, path, name);
     }
 
@@ -40,7 +40,7 @@ public class ShapeParameters {
      * @param path   the path to the object
      * @param name   debug name of the shape
      */
-    public ShapeParameters(Vector3fc offSet, float scale, Path path, String name) {
+    public ShapeParameters(Vector3fc offSet, float scale, Path path, String name) throws IOException {
         this.name = name;
         vertices = new ArrayList<>();
         normals = new ArrayList<>();
@@ -95,12 +95,7 @@ public class ShapeParameters {
         return !textureCoords.isEmpty();
     }
 
-    private static List<String> openMesh(Path path) {
-        try {
-            return Files.readAllLines(path);
-        } catch (IOException e) {
-            Logger.ERROR.print("Could not read mesh '" + path.toAbsolutePath() + "'. Continuing game without model.");
-            return new ArrayList<>();
-        }
+    private static List<String> openMesh(Path path) throws IOException {
+        return Files.readAllLines(path);
     }
 }

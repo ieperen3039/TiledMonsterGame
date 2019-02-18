@@ -4,7 +4,6 @@ import NG.Camera.Camera;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Rendering.GLFWWindow;
-import NG.Rendering.MatrixStack.SGL;
 import org.joml.Math;
 import org.joml.*;
 
@@ -265,30 +264,15 @@ public class Vectors {
     public static void windowCoordToRay(Game game, int xSc, int ySc, Vector3f origin, Vector3f direction) {
         GLFWWindow window = game.window();
         Camera camera = game.camera();
-        Vector2f winCoords = new Vector2f(xSc, ySc);
         boolean isometric = game.settings().ISOMETRIC_VIEW;
-        windowCoordToRay(camera, window.getWidth(), window.getHeight(), winCoords, origin, direction, isometric);
-    }
 
-    /**
-     * transforms a click on a screen of the given size on the given coordinate to a ray. Modifies origin and
-     * direction.
-     * @param camera       the view on the game world
-     * @param windowWidth  the number of pixels of the viewport on the x axis
-     * @param windowHeight the number of pixels of the viewport on the y axis
-     * @param clickCoords  the coordinates of where was clicked on the screen
-     * @param origin       the destination vector of the origin of the ray. The exact result is ({@link Camera#getEye()}
-     *                     + Z_NEAR * direction)
-     * @param direction    the direction of the ray, not normalized.
-     * @param isometric    true if isometric perspective should be used
-     */
-    public static void windowCoordToRay(
-            Camera camera, int windowWidth, int windowHeight, Vector2f clickCoords, Vector3f origin, Vector3f direction,
-            boolean isometric
-    ) {
-        Matrix4f projection = SGL.getViewProjection(windowWidth, windowHeight, camera, isometric);
+        int windowWidth = window.getWidth();
+        int windowHeight = window.getHeight();
+        Matrix4f projection = camera.getViewProjection(windowWidth, windowHeight, isometric);
+
+        Vector2f winCoords = new Vector2f(xSc, ySc);
         int[] viewport = {0, 0, windowWidth, windowHeight};
-        projection.unprojectRay(clickCoords, viewport, origin, direction);
+        projection.unprojectRay(winCoords, viewport, origin, direction);
     }
 
     /**

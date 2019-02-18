@@ -26,13 +26,14 @@ public class GameEventDiscreteQueue extends EventLoop {
      * @param targetTps the target number of executions of {@link #update(float)} per second
      */
     public GameEventDiscreteQueue(int targetTps) {
-        super("Discrete Game Event Loop", targetTps);
+        super("Discrete Event Loop", targetTps);
         eventQueue = new PriorityQueue<>();
         lockEventQueue = new ReentrantLock();
     }
 
     @Override
     public void init(Game game) throws Exception {
+        setName("Discrete Event Loop " + game);
         this.game = game;
     }
 

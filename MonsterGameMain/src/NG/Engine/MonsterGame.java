@@ -7,6 +7,7 @@ import NG.DataStructures.Generic.Color4f;
 import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventDiscreteQueue;
+import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.GameState.GameLights;
@@ -133,8 +134,8 @@ public class MonsterGame implements ModLoader {
             }
         });
 
-        pocketGame.thisLights.addDirectionalLight(new Vector3f(1, 1, 2), Color4f.rgb(255, 241, 224), 0.5f);
-        worldGame.thisLights.addDirectionalLight(new Vector3f(2, 1.5f, 1), Color4f.WHITE, 0.5f);
+        pocketGame.thisLights.addDirectionalLight(new Vector3f(1, 1, 2), Color4f.rgb(255, 241, 224), 0.8f);
+        worldGame.thisLights.addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         Logger.INFO.print("Finished initialisation");
     }
@@ -244,6 +245,7 @@ public class MonsterGame implements ModLoader {
         private GameState thisState;
         private GameMap thisMap;
         private GameLights thisLights;
+        private ClaimRegistry thisClaims;
 
         private SubGame(
                 EventLoop gameLoop, GameState gameState, GameMap gameMap, GameLights gameLights,
@@ -255,6 +257,7 @@ public class MonsterGame implements ModLoader {
             this.thisLights = gameLights;
             this.thisCamera = thisCamera;
             this.gameTimer = new GameTimer(settings.RENDER_DELAY);
+            this.thisClaims = new ClaimRegistry();
             gameTimer.pause();
         }
 
@@ -263,6 +266,7 @@ public class MonsterGame implements ModLoader {
             thisState.init(this);
             thisMap.init(this);
             thisLights.init(this);
+            thisClaims.init(this);
             thisCamera.init(combinedGame);
 
             thisLoop.start();
@@ -329,6 +333,11 @@ public class MonsterGame implements ModLoader {
         }
 
         @Override
+        public ClaimRegistry claims() {
+            return thisClaims;
+        }
+
+        @Override
         public void addEvent(Event e) {
             thisLoop.addEvent(e);
         }
@@ -365,6 +374,7 @@ public class MonsterGame implements ModLoader {
             Storable.writeToFile(out, thisState);
             Storable.writeToFile(out, thisMap);
             Storable.writeToFile(out, thisLights);
+            Storable.writeToFile(out, thisClaims);
         }
 
         @Override
@@ -391,6 +401,7 @@ public class MonsterGame implements ModLoader {
             GameState newState = Storable.readFromFile(in, GameState.class);
             GameMap newMap = Storable.readFromFile(in, GameMap.class);
             GameLights newLights = Storable.readFromFile(in, GameLights.class);
+            ClaimRegistry newClaims = Storable.readFromFile(in, ClaimRegistry.class);
 
             newLights.init(this);
             newState.init(this);
@@ -404,12 +415,14 @@ public class MonsterGame implements ModLoader {
                 this.thisState.cleanup();
                 this.thisMap.cleanup();
                 this.thisLights.cleanup();
+                this.thisClaims.cleanup();
 
                 // set new state
                 this.thisLoop = newLoop;
                 this.thisState = newState;
                 this.thisMap = newMap;
                 this.thisLights = newLights;
+                this.thisClaims = newClaims;
 
                 gameTimer.set(restoredTime);
             });

@@ -5,6 +5,7 @@ import NG.Engine.Game;
 import NG.Engine.ModLoader;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
+import NG.GameMap.TileThemeSet;
 import NG.Mods.Mod;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.Tools.Logger;
@@ -140,6 +141,7 @@ public class NewGameFrame extends SFrame implements Runnable {
         }
 
         modLoader.initMods(targets);
+        TileThemeSet.PLAIN.load();
         game.map().generateNew(generatorMod);
 
         // set camera to middle of map

@@ -100,7 +100,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
 
         float tgtHeight = game.map().getHeightAt(focus.x, focus.y);
         height.updateFluent(tgtHeight, deltaTime);
-        focus.z = height.current();
+        focus.z = 0;//height.current();
 
         if (cameraRotation != NOT) {
             float angle = deltaTime * ROTATION_MODIFIER;

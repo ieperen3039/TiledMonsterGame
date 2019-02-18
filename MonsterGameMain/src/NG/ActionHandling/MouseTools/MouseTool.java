@@ -4,7 +4,7 @@ import NG.ActionHandling.MouseMoveListener;
 import NG.ActionHandling.MouseReleaseListener;
 import NG.Entities.Entity;
 import NG.ScreenOverlay.Frames.Components.SComponent;
-import org.joml.Vector2fc;
+import org.joml.Vector3fc;
 
 /**
  * Determines the behaviour of clicking
@@ -32,7 +32,7 @@ public interface MouseTool extends MouseMoveListener, MouseReleaseListener {
      * applies the functionality of this tool to the given position in the world
      * @param position a position in the world where is clicked.
      */
-    void apply(Vector2fc position);
+    void apply(Vector3fc position);
 
     void setButton(int button);
 }

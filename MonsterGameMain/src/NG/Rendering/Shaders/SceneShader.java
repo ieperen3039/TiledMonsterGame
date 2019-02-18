@@ -69,6 +69,15 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
 
         link();
 
+        if (glGetProgrami(programId, GL_LINK_STATUS) == GL_FALSE) {
+            throw new ShaderException("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
+        }
+
+        glValidateProgram(programId);
+        if (glGetProgrami(programId, GL_VALIDATE_STATUS) == GL_FALSE) {
+            System.err.println("Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024));
+        }
+
         // Create uniforms for world and projection matrices
         createUniform("viewProjectionMatrix");
         createUniform("modelMatrix");
@@ -101,26 +110,8 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
         }
     }
 
-    public void link() throws ShaderException {
+    public void link() {
         glLinkProgram(programId);
-        if (glGetProgrami(programId, GL_LINK_STATUS) == GL_FALSE) {
-            throw new ShaderException("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
-        }
-
-        if (vertexShaderID != 0) {
-            glDetachShader(programId, vertexShaderID);
-        }
-        if (geometryShaderID != 0) {
-            glDetachShader(programId, geometryShaderID);
-        }
-        if (fragmentShaderID != 0) {
-            glDetachShader(programId, fragmentShaderID);
-        }
-
-        glValidateProgram(programId);
-        if (glGetProgrami(programId, GL_VALIDATE_STATUS) == GL_FALSE) {
-            System.err.println("Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024));
-        }
     }
 
     /**
@@ -189,6 +180,15 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
      */
     protected void setUniform(String uniformName, Vector3fc value) {
         glUniform3f(unif(uniformName), value.x(), value.y(), value.z());
+    }
+
+    /**
+     * Set the value of a certain 2D Vector shader uniform
+     * @param uniformName The name of the uniform.
+     * @param value       The new value of the uniform.
+     */
+    protected void setUniform(String uniformName, Vector2fc value) {
+        glUniform2f(unif(uniformName), value.x(), value.y());
     }
 
     private int unif(String uniformName) {
