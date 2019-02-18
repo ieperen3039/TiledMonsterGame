@@ -1,7 +1,5 @@
 package NG.GameMap;
 
-import NG.Tools.Logger;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.EnumSet;
@@ -34,7 +32,6 @@ public class MapTiles {
 
             String texture = (elts.length >= 8) ? elts[7] : null;
 
-            Logger.DEBUG.print(fileName, texture, pos_pos, pos_neg, neg_neg, neg_pos, height);
             MapTile.registerTile(fileName, folder.resolve(fileName), texture, pos_pos, pos_neg, neg_neg, neg_pos, properties, height, sourceSet);
         }
     }

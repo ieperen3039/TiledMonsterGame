@@ -27,7 +27,7 @@ public class RayTraceTest {
 
     @Before
     public void setUp() throws Exception {
-        game = new DecoyGame("Testgame", new RenderLoop(60), new Settings());
+        game = new TestGame(new RenderLoop(60), new Settings());
         game.window().init(game);
         game.camera().init(game);
         instance = game.map();

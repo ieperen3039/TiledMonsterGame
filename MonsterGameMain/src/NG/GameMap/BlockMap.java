@@ -7,6 +7,7 @@ import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
+import NG.Rendering.Shapes.FileShapes;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Tools.Vectors;
 import org.joml.*;
@@ -14,6 +15,7 @@ import org.joml.*;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.Math;
 import java.util.*;
 
 import static NG.Settings.Settings.TILE_SIZE;
@@ -29,7 +31,7 @@ public class BlockMap implements GameMap {
     private Map<Integer, Set<Integer>> highlightedTiles = new HashMap<>();
     private Game game;
 
-    private int[][] map;
+    private short[][] map; // strictly positive
     private int xSize;
     private int ySize;
 
@@ -47,12 +49,12 @@ public class BlockMap implements GameMap {
 
         xSize = heightMap.length;
         ySize = heightMap[0].length;
-        int[][] intMap = new int[xSize][ySize];
+        short[][] intMap = new short[xSize][ySize];
 
         // we should copy anyway
         for (int x = 0; x < xSize; x++) {
             for (int y = 0; y < ySize; y++) {
-                intMap[x][y] = (int) heightMap[x][y];
+                intMap[x][y] = (short) Math.max(heightMap[x][y], 0);
             }
         }
 
@@ -64,7 +66,7 @@ public class BlockMap implements GameMap {
     public void setTile(int x, int y, int height) {
         if (map == null || x < 0 || y < 0 || x >= xSize || y >= ySize) return;
 
-        map[x][y] = height;
+        map[x][y] = (short) height;
 
         changeListeners.forEach(ChangeListener::onMapChange);
     }
@@ -118,7 +120,7 @@ public class BlockMap implements GameMap {
         gl.pushMatrix();
         {
             for (int x = 0; x < xSize; x++) {
-                int[] slice = map[x];
+                short[] slice = map[x];
 
                 for (int y = 0; y < ySize; y++) {
                     boolean highlightThis = doHighlight &&
@@ -134,9 +136,17 @@ public class BlockMap implements GameMap {
                     // +/- mesh size (-0.5 * MESH_SIZE)
                     float height = slice[y] * TILE_SIZE_Z;
 
-                    gl.translate(0, 0, height);
-                    gl.render(GenericShapes.QUAD, null);
-                    gl.translate(0, TILE_SIZE, -height);
+                    if (height > 0) {
+                        gl.scale(1, 1, height);
+                        gl.render(FileShapes.CUBE, null); // todo make half cube
+                        gl.scale(1, 1, 1 / height);
+
+                    } else {
+                        gl.render(GenericShapes.QUAD, null);
+                    }
+
+
+                    gl.translate(0, TILE_SIZE, 0);
                 }
                 gl.translate(TILE_SIZE, totalYTranslation, 0);
             }
@@ -189,9 +199,9 @@ public class BlockMap implements GameMap {
         out.writeInt(ySize);
 
         for (int x = 0; x < xSize; x++) {
-            int[] slice = map[x];
+            short[] slice = map[x];
             for (int y = 0; y < ySize; y++) {
-                out.writeInt(slice[y]);
+                out.writeShort(slice[y]);
             }
         }
     }
@@ -200,10 +210,10 @@ public class BlockMap implements GameMap {
         xSize = in.readInt();
         ySize = in.readInt();
 
-        map = new int[xSize][ySize];
+        map = new short[xSize][ySize];
         for (int x = 0; x < xSize; x++) {
             for (int y = 0; y < ySize; y++) {
-                map[x][y] = in.readInt();
+                map[x][y] = in.readShort();
             }
         }
     }

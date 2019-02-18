@@ -14,6 +14,7 @@ public enum TileThemeSet {
     PLAIN("Plain", "tileSetPlain.txt");
 
     private final Path path;
+    private boolean isLoaded = false;
 
     /**
      * a set of tiles loaded using a description file.
@@ -24,8 +25,11 @@ public enum TileThemeSet {
     }
 
     public void load() {
+        if (isLoaded) return;
+
         try {
             MapTiles.readFile(this, path);
+            isLoaded = true;
 
         } catch (IOException ex) {
             Logger.ERROR.print("Error while trying to load " + this, ex);

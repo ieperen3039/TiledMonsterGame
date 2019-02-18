@@ -67,7 +67,7 @@ public class Version implements Comparable<Version>, Storable {
     public Version(DataInput in) throws IOException {
         char c = in.readChar();
         if (c != 'v') {
-            throw new IOException("Expected a 'v', but found a " + c);
+            throw new IOException(String.format("Expected '%04x', but found %04x", (int) 'v', (int) c));
         }
 
         major = in.readInt();

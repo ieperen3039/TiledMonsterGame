@@ -1,6 +1,7 @@
 package NG.Rendering.Shaders;
 
 import NG.DataStructures.Generic.Color4f;
+import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.*;
 import org.lwjgl.system.MemoryStack;
@@ -40,7 +41,7 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
      * @param vertexPath   the path to the vertex shader, or null for the standard implementation
      * @param geometryPath the path to the geometry shader, or null for the standard implementation
      * @param fragmentPath the path to the fragment shader, or null for the standard implementation
-     * @throws ShaderException if a new shader could not be created by some opengl reason
+     * @throws ShaderException if a new shader could not be created for internal reasons
      * @throws IOException     if the defined files could not be found (the file is searched for in the shader folder
      *                         itself, and should exclude any first slash)
      */
@@ -67,15 +68,27 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
             fragmentShaderID = createShader(programId, GL_FRAGMENT_SHADER, shaderCode);
         }
 
-        link();
+        glLinkProgram(programId);
 
         if (glGetProgrami(programId, GL_LINK_STATUS) == GL_FALSE) {
             throw new ShaderException("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
         }
 
+        if (vertexShaderID != 0) {
+            glDetachShader(programId, vertexShaderID);
+        }
+
+        if (geometryShaderID != 0) {
+            glDetachShader(programId, geometryShaderID);
+        }
+
+        if (fragmentShaderID != 0) {
+            glDetachShader(programId, fragmentShaderID);
+        }
+
         glValidateProgram(programId);
         if (glGetProgrami(programId, GL_VALIDATE_STATUS) == GL_FALSE) {
-            System.err.println("Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024));
+            Logger.WARN.print("Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024));
         }
 
         // Create uniforms for world and projection matrices
@@ -108,10 +121,6 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
         if (programId != 0) {
             glDeleteProgram(programId);
         }
-    }
-
-    public void link() {
-        glLinkProgram(programId);
     }
 
     /**

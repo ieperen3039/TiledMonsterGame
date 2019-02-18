@@ -28,9 +28,7 @@ import NG.Tools.Logger;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -428,12 +426,28 @@ public class MonsterGame implements ModLoader {
             });
         }
 
+        @Override
+        public void loadMap(File map) throws Exception {
+            FileInputStream fs = new FileInputStream(map);
+            DataInput input = new DataInputStream(fs);
+            GameMap newMap = Storable.readFromFile(input, GameMap.class);
+
+            newMap.init(this);
+            this.thisMap.cleanup();
+            this.thisMap = newMap;
+        }
+
         public void cleanup() {
-            thisLoop.cleanup();
+            thisLoop.stopLoop();
             thisState.cleanup();
             thisMap.cleanup();
             thisLights.cleanup();
             thisCamera.cleanup();
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName();
         }
     }
 }

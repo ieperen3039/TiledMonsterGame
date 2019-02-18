@@ -8,7 +8,6 @@ import NG.Engine.Game;
 import NG.Engine.GameAspect;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
-import NG.GameState.GameState;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
 import NG.Rendering.Shaders.*;
@@ -105,7 +104,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         game.camera().updatePosition(deltaTime); // real-time deltatime
 
         GameMap world = game.map();
-        GameState entities = game.entities();
         GameLights lights = game.lights();
 
         GLFWWindow window = game.window();
@@ -114,7 +112,9 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
         lights.renderShadowMaps();
 
-        renderWith(sceneShader, entities::draw, lights, windowWidth, windowHeight);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        renderWith(sceneShader, this::drawEntities, lights, windowWidth, windowHeight);
         renderWith(worldShader, world::draw, lights, windowWidth, windowHeight);
 
         overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
@@ -125,6 +125,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         // loop clean
         Toolbox.checkGLError();
         if (window.shouldClose()) stopLoop();
+    }
+
+    private void drawEntities(SGL gl) {
+        game.entities().draw(gl);
+        bigArrow.draw(gl);
     }
 
     private void renderWith(
@@ -138,12 +143,10 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             // GL object
             SGL gl = new SceneShaderGL(sceneShader, windowWidth, windowHeight, game.camera(), doIsometric);
-            Toolbox.drawAxisFrame(gl);
 
             // order is important
             lights.draw(gl);
             draw.accept(gl);
-            bigArrow.draw(gl);
         }
         sceneShader.unbind();
     }
@@ -165,7 +168,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         sceneShader.bind();
         {
             sceneShader.initialize(game);
-            Camera viewpoint = new StaticCamera(new Vector3f(0, 0, 2), Vectors.newZeroVector(), Vectors.newXVector());
+            Camera viewpoint = new StaticCamera(new Vector3f(0, 0, 3), Vectors.newZeroVector(), Vectors.newXVector());
 
             SGL tgl = new SceneShaderGL(sceneShader, texture.getWidth(), texture.getHeight(), viewpoint, true);
 
@@ -194,7 +197,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                 gl.translate(position);
                 Toolbox.draw3DPointer(gl);
 
-                gl.translate(0, 0, 1);
+                gl.translate(0, 0, 2);
                 gl.scale(SIZE, SIZE, -SIZE);
 
                 if (gl.getShader() instanceof MaterialShader) {

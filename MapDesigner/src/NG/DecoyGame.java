@@ -23,9 +23,7 @@ import NG.Settings.Settings;
 import NG.Tools.Logger;
 import org.joml.Vector3f;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * @author Geert van Ieperen created on 6-2-2019.
@@ -182,5 +180,17 @@ class DecoyGame implements Game {
         this.gameState = newState;
         this.gameMap = newMap;
         this.gameLights = newLights;
+    }
+
+    @Override
+    public void loadMap(File map) throws Exception {
+        FileInputStream fs = new FileInputStream(map);
+        DataInput input = new DataInputStream(fs);
+
+        GameMap newMap = Storable.readFromFile(input, GameMap.class);
+
+        newMap.init(this);
+        this.gameMap.cleanup();
+        this.gameMap = newMap;
     }
 }

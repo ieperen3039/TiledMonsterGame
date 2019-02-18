@@ -135,7 +135,7 @@ public class MapTile {
     ) {
         // ensure uniqueness in mesh
         if (PATHS.contains(meshPath)) {
-            Logger.WARN.print("Tile " + meshPath + " was already loaded");
+            Logger.WARN.printSpamless(String.valueOf(sourceSet), "Tile " + meshPath + " from set " + sourceSet + " was already loaded");
             return null;
         }
 

@@ -19,7 +19,6 @@ import org.joml.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -87,22 +86,9 @@ public class MapEditor {
         SToolBar files = getFileToolbar(window);
         gui.setToolBar(files);
 
-        searchTiles(Directory.mapTileModels.getPath());
-
         game.inputHandling().setMouseTool(blockModificationTool);
 
         game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 4f), Color4f.WHITE, 0.4f);
-    }
-
-    private static void searchTiles(Path path) {
-        try {
-            File file = path.toFile();
-            Logger.INFO.print("Searching in " + file + " for map tiles");
-            MapTiles.readFile(null, file.toPath());
-
-        } catch (IOException e) {
-            display(e);
-        }
     }
 
     private SToolBar getFileToolbar(GLFWWindow window) {
@@ -205,9 +191,7 @@ public class MapEditor {
                         new FileOutputStream(nameWithExtension)
                 ) {
                     DataOutput output = new DataOutputStream(fileOut);
-
-                    EDITOR_VERSION.writeToFile(output);
-                    game.writeStateToFile(output);
+                    Storable.writeToFile(output, game.map());
 
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
@@ -244,13 +228,7 @@ public class MapEditor {
                 Logger.printOnline(loadNotify);
 
                 try {
-                    FileInputStream fs = new FileInputStream(selectedFile);
-                    DataInput input = new DataInputStream(fs);
-
-                    Version fileVersion = new Version(input);
-                    Logger.INFO.print("Reading file " + selectedFile + " with version " + fileVersion);
-
-                    game.readStateFromFile(input);
+                    game.loadMap(selectedFile);
 
                     GameMap newMap = game.map();
 

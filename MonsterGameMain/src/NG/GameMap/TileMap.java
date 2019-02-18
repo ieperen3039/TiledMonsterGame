@@ -40,6 +40,7 @@ public class TileMap implements GameMap {
         this.realChunkSize = chunkSize * Settings.TILE_SIZE;
         this.changeListeners = new ArrayList<>();
         highlightedChunks = new HashSet<>();
+        map = new MapChunk[0][0];
     }
 
     @Override
@@ -57,8 +58,8 @@ public class TileMap implements GameMap {
 
         if (heightmap.length == 0) throw new IllegalArgumentException("Received map with 0 size in x direction");
 
-        xSize = (heightmap.length - 1) / chunkSize;
-        ySize = (heightmap[0].length - 1) / chunkSize;
+        int xSize = (heightmap.length - 1) / chunkSize;
+        int ySize = (heightmap[0].length - 1) / chunkSize;
 
         MapChunk[][] newMap = new MapChunk[xSize][ySize];
         for (int mx = 0; mx < xSize; mx++) {
@@ -72,6 +73,8 @@ public class TileMap implements GameMap {
         }
 
         this.map = newMap;
+        this.xSize = xSize;
+        this.ySize = ySize;
     }
 
     @Override

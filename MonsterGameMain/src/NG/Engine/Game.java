@@ -10,10 +10,12 @@ import NG.GameState.GameState;
 import NG.Rendering.GLFWWindow;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.Settings.Settings;
+import NG.Storable;
 import NG.Tools.Logger;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -97,6 +99,16 @@ public interface Game {
      * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(DataOutput)}
      */
     void readStateFromFile(DataInput in) throws Exception;
+
+    /**
+     * reads a binary GameMap instance from the provided file. This file must have been generated with a {@link
+     * java.io.FileOutputStream} where {@link NG.Storable#writeToFile(DataOutput, Storable)} has been called on a
+     * gameMap instance.
+     * @param map the file of
+     * @throws java.io.FileNotFoundException if the file does not point to a valid file
+     * @throws Exception                     if an exception happens when reading the file
+     */
+    void loadMap(File map) throws Exception;
 
     /**
      * a class that allows run-time switching between game instances
@@ -187,6 +199,11 @@ public interface Game {
         @Override
         public void readStateFromFile(DataInput in) throws Exception {
             instances[current].readStateFromFile(in);
+        }
+
+        @Override
+        public void loadMap(File map) throws Exception {
+            instances[current].loadMap(map);
         }
 
         @Override

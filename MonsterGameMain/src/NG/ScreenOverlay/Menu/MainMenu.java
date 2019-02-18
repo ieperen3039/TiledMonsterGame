@@ -11,6 +11,7 @@ import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.MonsterSoul.MonsterSoul;
 import NG.ScreenOverlay.Frames.Components.*;
+import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -79,6 +80,8 @@ public class MainMenu extends SFrame {
             MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
             mapGenerator.setSize(xSize + 1, ySize + 1);
             overworld.map().generateNew(mapGenerator);
+
+            pocketworld.loadMap(Directory.savedMaps.getFile("pocketDefault.mgm"));
 
             modLoader.initMods(modLoader.allMods());
 
