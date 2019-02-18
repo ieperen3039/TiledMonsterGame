@@ -11,6 +11,7 @@ import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.MonsterSoul.MonsterSoul;
 import NG.ScreenOverlay.Frames.Components.*;
+import NG.ScreenOverlay.SToolBar;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
@@ -152,6 +153,17 @@ public class MainMenu extends SFrame {
 
     private Vector2i onBot() {
         return bottomButtonPos.sub(0, 1);
+    }
+
+    public SToolBar getToolBar(Game game) {
+        SToolBar toolBar = new SToolBar(game, true);
+
+        toolBar.addButton("Stop", () -> {
+            game.gui().setToolBar(null);
+            setVisible(true);
+        }, 100);
+
+        return toolBar;
     }
 
 }

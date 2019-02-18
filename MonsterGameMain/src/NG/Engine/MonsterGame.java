@@ -183,7 +183,7 @@ public class MonsterGame implements ModLoader {
         Logger.INFO.print("Starting game...");
 
         mainMenu.setVisible(false);
-//        frameManager.setToolBar();
+        frameManager.setToolBar(mainMenu.getToolBar(combinedGame));
 
         pocketGame.start();
         worldGame.start();

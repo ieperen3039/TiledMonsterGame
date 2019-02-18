@@ -14,12 +14,13 @@ import java.util.Iterator;
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public class ActionQueue extends ArrayDeque<EntityAction> {
+// there is always at least one action in the queue.
 
-    // there is always at least one action in the queue.
+    private float firstActionStart;
 
     /**
      * an action queue with an initial idle action on the given position
-     * @param position
+     * @param position initial position
      */
     public ActionQueue(Game game, Vector2ic position) {
         this(new ActionIdle(game, position));
@@ -32,22 +33,33 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
         if (initialAction == null) throw new NullPointerException("initial action was null");
         // avoid checking on the queue content
         super.addLast(initialAction);
+        firstActionStart = 0;
     }
 
+    /**
+     * returns the position according to the action executing at the given time
+     * @param currentTime the moment to query
+     * @return the position described by this action queue.
+     */
     public Vector3f getPositionAt(float currentTime) {
-        Iterator<EntityAction> iterator = iterator();
-
-        EntityAction previous = iterator.next();
-        while (iterator.hasNext()) {
-            EntityAction current = iterator.next();
-
-            if (current.getStartTime() > currentTime) {
-                return previous.getPositionAt(currentTime);
-            }
-            previous = current;
+        if (currentTime < firstActionStart) {
+            return peekFirst().getStartPosition();
         }
 
-        return previous.getPositionAt(currentTime);
+        Iterator<EntityAction> iterator = iterator();
+        float passedTime = currentTime - firstActionStart;
+
+        while (iterator.hasNext()) {
+            EntityAction action = iterator.next();
+            if (passedTime > action.duration()) {
+                passedTime -= action.duration();
+
+            } else {
+                return action.getPositionAfter(passedTime);
+            }
+        }
+
+        return peekLast().getEndPosition();
     }
 
     /**
@@ -55,8 +67,9 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * @param time the time until where to remove actions, exclusive.
      */
     public void removeUntil(float time) {
-        while (size() > 1 && getFirst().getEndTime() < time) {
-            pollFirst();
+        while (size() > 1 && firstActionStart < time) {
+            EntityAction firstAction = super.removeFirst();
+            firstActionStart += firstAction.duration();
         }
 
         assert size() > 0;
@@ -66,17 +79,16 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
     public EntityAction pollFirst() {
         assert size() > 0;
         if (size() == 1) return peekFirst();
-        return super.pollFirst();
+
+        EntityAction firstAction = super.removeFirst();
+        firstActionStart += firstAction.duration();
+        return firstAction;
     }
 
     @Override
     public void addLast(EntityAction action) {
         assert size() > 0;
-        if (action.isUndefined()) {
-            float prevEndTime = getLast().getEndTime();
-            action.setStartTime(prevEndTime);
-
-        } else if (!action.follows(getLast())) {
+        if (!action.follows(getLast())) {
             throw new IllegalArgumentException(
                     "New action " + action + " does not follow the last action known " + getLast());
         }
@@ -87,16 +99,20 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
     @Override
     public void addFirst(EntityAction action) {
         assert size() > 0;
-        if (action.isUndefined()) {
-            Float firstStart = getFirst().getStartTime();
-            action.setStartTime(firstStart - action.duration());
-
-        } else if (!getFirst().follows(action)) {
+        if (!getFirst().follows(action)) {
             throw new IllegalArgumentException(
                     "New action " + action + " does not precede the first action known " + getFirst());
         }
 
         super.addFirst(action);
+    }
+
+    /**
+     * add an idling after executing all actions in the queue
+     * @param duration the exact duration of the idling. Must be positive
+     */
+    public void addWait(float duration) {
+        super.addLast(new ActionIdle(peekLast(), duration));
     }
 
     /**

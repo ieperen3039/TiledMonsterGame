@@ -23,16 +23,22 @@ public class MapTiles {
             String[] elts = SPACES.split(line);
 
             String fileName = elts[0];
-            int pos_pos = Integer.parseInt(elts[1]);
-            int pos_neg = Integer.parseInt(elts[2]);
-            int neg_neg = Integer.parseInt(elts[3]);
-            int neg_pos = Integer.parseInt(elts[4]);
-            EnumSet<MapTile.Properties> properties = MapTile.Properties.NONE; // elts[5]
-            int height = Integer.parseInt(elts[6]);
+            int[] heights = new int[]{
+                    Integer.parseInt(elts[1]),
+                    Integer.parseInt(elts[2]),
+                    Integer.parseInt(elts[3]),
+                    Integer.parseInt(elts[4]),
+                    Integer.parseInt(elts[5]),
+                    Integer.parseInt(elts[6]),
+                    Integer.parseInt(elts[7]),
+                    Integer.parseInt(elts[8]),
+            };
+            EnumSet<MapTile.Properties> properties = MapTile.Properties.NONE; // elts[9]
+            int height = Integer.parseInt(elts[10]);
 
-            String texture = (elts.length >= 8) ? elts[7] : null;
+            String texture = (elts.length >= 12) ? elts[11] : null;
 
-            MapTile.registerTile(fileName, folder.resolve(fileName), texture, pos_pos, pos_neg, neg_neg, neg_pos, properties, height, sourceSet);
+            MapTile.registerTile(fileName, folder.resolve(fileName), texture, heights, properties, height, sourceSet);
         }
     }
 }

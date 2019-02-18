@@ -26,7 +26,7 @@ import static java.lang.Math.PI;
  */
 public class MapTile {
     public static final MapTile DEFAULT_TILE = // circumvent registration due to initialisation of static fields
-            new MapTile("default", Directory.mapTileModels.getPath("plain0000.obj"), null, 0, 0, 0, 0, Properties.NONE, 2, null);
+            new MapTile("default", Directory.mapTileModels.getPath("cube.obj"), null, new int[]{0, 0, 0, 0, 0, 0, 0, 0}, Properties.NONE, 2, null);
 
     private static final Set<String> NAMES = new HashSet<>();
     private static final Set<Path> PATHS = new HashSet<>();
@@ -39,6 +39,9 @@ public class MapTile {
     public final EnumSet<Properties> properties;
     public final int baseHeight; // height of the middle part, the height the user stands on
     public final TileThemeSet sourceSet;
+
+    // all eight height values in rotational order
+    public final int[] heights;
 
     private final Path meshPath;
     private Mesh mesh; // lazy initialized
@@ -59,31 +62,30 @@ public class MapTile {
     }
 
     /**
-     * register a new MapTile instance with relative heights as given
      * @param name       a unique name for this tile
      * @param meshPath   the path to the visual element of this tile
      * @param texture    the path to the texture of this tile
-     * @param pos_pos    the relative height of the mesh at (1, 1) [-3, 3]
-     * @param pos_neg    the relative height of the mesh at (1, 0) [-3, 3]
-     * @param neg_neg    the relative height of the mesh at (0, 0) [-3, 3]
-     * @param neg_pos    the relative height of the mesh at (0, 1) [-3, 3]
+     * @param heights    the heights of this tile in rotational order, 8 in total
      * @param properties the properties of this tile
      * @param baseHeight the height of the middle of the tile
      * @param sourceSet  the tileset where this tile is part of, or null if this is a custom tile.
      */
     private MapTile(// pp, pn, nn, np
-                    String name, Path meshPath, Path texture, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
+                    String name, Path meshPath, Path texture, int[] heights,
                     EnumSet<Properties> properties, int baseHeight, TileThemeSet sourceSet
     ) {
+        assert heights.length == 8;
         this.name = name;
         this.meshPath = meshPath;
         this.texturePath = texture;
         this.sourceSet = sourceSet;
         this.tileID = nextIdentity++;
         // the order is important
-        this.fit = new RotationFreeFit(pos_pos, pos_neg, neg_neg, neg_pos);
+        this.fit = new RotationFreeFit(heights[0], heights[2], heights[4], heights[6]);
         this.properties = properties;
         this.baseHeight = baseHeight;
+
+        this.heights = heights;
     }
 
     public int orientationBytes() {
@@ -129,8 +131,18 @@ public class MapTile {
                 .orElse(DEFAULT_TILE);
     }
 
+    /**
+     * register a new MapTile instance with relative heights as given
+     * @param name       a unique name for this tile
+     * @param meshPath   the path to the visual element of this tile
+     * @param texture    the path to the texture of this tile
+     * @param heights    the heights of this tile in rotational order, 8 in total
+     * @param properties the properties of this tile
+     * @param baseHeight the height of the middle of the tile
+     * @param sourceSet  the tileset where this tile is part of, or null if this is a custom tile.
+     */
     public static MapTile registerTile(
-            String name, Path meshPath, String texture, int pos_pos, int pos_neg, int neg_neg, int neg_pos,
+            String name, Path meshPath, String texture, int[] heights,
             EnumSet<Properties> properties, int baseHeight, TileThemeSet sourceSet
     ) {
         // ensure uniqueness in mesh
@@ -156,7 +168,7 @@ public class MapTile {
 
         Path texturePath = (texture == null || texture.isEmpty()) ? null : meshPath.resolve(texture);
 
-        MapTile tile = new MapTile(name, meshPath, texturePath, pos_pos, pos_neg, neg_neg, neg_pos, properties, baseHeight, sourceSet);
+        MapTile tile = new MapTile(name, meshPath, texturePath, heights, properties, baseHeight, sourceSet);
 
         List<MapTile> tiles = tileFinder.computeIfAbsent(tile.fit.id, (k) -> new ArrayList<>());
         tiles.add(tile);

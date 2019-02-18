@@ -1,9 +1,6 @@
 package NG.Entities.Actions;
 
-import NG.Tools.Toolbox;
 import org.joml.Vector3f;
-
-import java.util.Arrays;
 
 /**
  * Several {@link EntityAction}s combined into one action.
@@ -12,104 +9,77 @@ import java.util.Arrays;
 public class CompoundAction implements EntityAction {
     private final EntityAction[] actions;
     private final EntityAction lastAction;
-
-    public CompoundAction(EntityAction first, EntityAction... others) {
-        this(combine(first, others));
-    }
-
-    private static EntityAction[] combine(EntityAction first, EntityAction... others) {
-        EntityAction[] actions = new EntityAction[others.length + 1];
-        actions[0] = first;
-        System.arraycopy(others, 0, actions, 1, others.length);
-        return actions;
-    }
+    private final float totalDuration;
 
     /**
      * combines a set of actions
-     * @param actions the actions to be combined, not overlapping in time and agreeing in position. They may be in any
-     *                order.
+     * @param others the actions to be combined, following each other in position the way they are ordered
      */
-    CompoundAction(EntityAction[] actions) {
-        int nrOfActions = actions.length;
+    public CompoundAction(EntityAction... others) {
+        int nrOfActions = others.length;
 
-        // sort actions on start times
-        this.actions = Arrays.copyOf(actions, nrOfActions);
-        Toolbox.insertionSort(actions, EntityAction::getStartTime);
-        this.lastAction = actions[actions.length - 1];
+        EntityAction lastAction = others[0];
+        float duration = lastAction.duration();
 
-        // optimized checking for successive actions to follow each other
-        int i = 0;
-        Float lastEnd = null;
-        EntityAction firstAction = actions[i++];
-        while (lastEnd == null) lastEnd = firstAction.getEndTime();
-        Vector3f lastPos = firstAction.getPositionAt(lastEnd);
+        for (int i = 1; i < others.length; i++) {
+            EntityAction action = others[i];
 
-        while (i < nrOfActions) {
-            EntityAction action = actions[i++];
-
-            if (action.isUndefined()) {
-                action.setStartTime(lastEnd + action.duration());
+            if (!action.follows(lastAction)) {
+                throw new IllegalArgumentException("action " + action + " and " + lastAction + " do not follow on position");
             }
 
-            float startTime = action.getStartTime();
-            Vector3f startPos = action.getPositionAt(startTime);
-
-            if (startTime < lastEnd) {
-                throw new IllegalArgumentException("Compound actions overlap in execution time");
-            }
-            if (!startPos.equals(lastPos)) {
-                throw new IllegalArgumentException("Compound actions do not agree on positions");
-            }
-
-            lastEnd = startTime;
-            lastPos = startPos;
+            duration += action.duration();
         }
 
+        actions = new EntityAction[nrOfActions];
+        System.arraycopy(others, 0, actions, 0, nrOfActions);
+
+        this.lastAction = others[others.length - 1];
+        totalDuration = duration;
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
-        for (int i = 0; i < actions.length; i++) {
-            if (actions[i].getStartTime() > currentTime) {
-                return actions[i - 1].getPositionAt(currentTime);
+    public Vector3f getPositionAfter(float passedTime) {
+        for (EntityAction action : actions) {
+            if (passedTime > action.duration()) {
+                passedTime -= action.duration();
+
+            } else {
+                return action.getPositionAfter(passedTime);
             }
         }
-        return lastAction.getPositionAt(currentTime);
+
+        return lastAction.getEndPosition();
     }
 
     @Override
-    public Float getStartTime() {
-        return actions[0].getStartTime();
+    public Vector3f getEndPosition() {
+        return lastAction.getEndPosition();
     }
 
-    /**
-     * Set the start time of the first action, and move all next actions that have conflicts to the minimum start time.
-     * @param time the time at which to start this action.
-     */
     @Override
-    public void setStartTime(float time) {
-        int i = 0;
-        EntityAction action = actions[i++];
+    public Vector3f getStartPosition() {
+        return actions[0].getStartPosition();
+    }
 
-        while (i < actions.length && action.getStartTime() < time) {
-            action = actions[i++];
-            action.setStartTime(time);
-            time = action.getEndTime();
+    @Override
+    public float interrupt(float passedTime) {
+        float remainder = passedTime;
+
+        for (EntityAction action : actions) {
+            if (remainder > action.duration()) {
+                remainder -= action.duration();
+
+            } else {
+                return action.duration() - remainder + passedTime;
+            }
         }
-    }
 
-    @Override
-    public Float getEndTime() {
-        return lastAction.getEndTime();
-    }
-
-    @Override
-    public void interrupt(float moment) {
-
+        return passedTime;
     }
 
     @Override
     public float duration() {
-        return getEndTime() - getStartTime();
+        return totalDuration;
     }
 }

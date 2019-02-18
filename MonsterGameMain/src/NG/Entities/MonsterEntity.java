@@ -2,8 +2,8 @@ package NG.Entities;
 
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
-import NG.Entities.Actions.ActionIdle;
 import NG.Entities.Actions.ActionQueue;
+import NG.Entities.Actions.Command;
 import NG.Entities.Actions.EntityAction;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
@@ -40,8 +40,7 @@ public abstract class MonsterEntity implements Entity {
     ) {
         this.game = game;
         this.controller = controller;
-        ActionIdle initialAction = new ActionIdle(game, initialPosition);
-        this.currentActions = new ActionQueue(initialAction);
+        this.currentActions = new ActionQueue(game, initialPosition);
 
         float gametime = game.timer().getGametime();
 
@@ -59,12 +58,12 @@ public abstract class MonsterEntity implements Entity {
     @Override
     public void draw(SGL gl) {
         float now = game.timer().getRendertime();
-//        currentActions.removeUntil(now);
+        currentActions.removeUntil(now);
 
         gl.pushMatrix();
         {
-//            Vector3f pos = currentActions.getPositionAt(now);
-//            gl.translate(pos);
+            Vector3f pos = currentActions.getPositionAt(now);
+            gl.translate(pos);
 
             gl.translate(0, 0, 2);
             Toolbox.draw3DPointer(gl); // sims
@@ -125,7 +124,7 @@ public abstract class MonsterEntity implements Entity {
     }
 
     /**
-     * retrieve the next action of this entity. Should only be called with the current game time as argument
+     * retrieves and removes the next action of this entity.
      * @param currentTime the current time. Must be more than any previous invocation
      * @return the action that has the most recently been started at the given time.
      */
@@ -149,6 +148,13 @@ public abstract class MonsterEntity implements Entity {
 
     protected abstract void lookAt(Vector3fc position);
 
+    public void execute(Command command, MonsterSoul source) {
+        assert source.equals(controller);
+
+        EntityAction action = command.toAction(game, this);
+        currentActions.offer(action);
+    }
+
     @Override
     public void dispose() {
         isDisposed = true;
@@ -159,14 +165,8 @@ public abstract class MonsterEntity implements Entity {
         return isDisposed;
     }
 
-    private class Controller {
-        public void queueAction(EntityAction action) {
-            currentActions.offer(action);
-        }
-
-        public void lookAt(Vector3fc position) {
-            MonsterEntity.this.lookAt(position);
-        }
+    public EntityAction getLastQueuedAction() {
+        return currentActions.peek();
     }
 
     private class IllegalPositionException extends IllegalArgumentException {

@@ -197,7 +197,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                 gl.translate(position);
                 Toolbox.draw3DPointer(gl);
 
-                gl.translate(0, 0, 2);
+                gl.translate(0, 0, 3);
                 gl.scale(SIZE, SIZE, -SIZE);
 
                 if (gl.getShader() instanceof MaterialShader) {

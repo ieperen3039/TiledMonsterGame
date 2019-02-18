@@ -19,11 +19,11 @@ import java.nio.file.Path;
 public class MonsterSoul implements Living, Storable {
     private MonsterEntity currentEntity;
 
+    private Emotion.Collection emotions; // TODO initialize
+
     public MonsterSoul(Path emotions) {
         this.emotions = new Emotion.Collection(emotions);
     }
-
-    private Emotion.Collection emotions; // TODO initialize
 
     public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
         if (currentEntity != null) {
@@ -43,6 +43,7 @@ public class MonsterSoul implements Living, Storable {
         // consider to reject
         if (emotions.get(Emotion.RESPECT) > 100) ; // todo ideas for making this work
 
+        currentEntity.execute(command, this);
     }
 
     @Override

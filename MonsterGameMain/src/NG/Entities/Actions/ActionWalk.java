@@ -5,8 +5,6 @@ import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.util.Objects;
-
 import static NG.Settings.Settings.TILE_SIZE;
 
 /**
@@ -17,7 +15,6 @@ public class ActionWalk implements EntityAction {
     private final Vector3fc start;
     private final Vector3fc end;
     private final float duration;
-    private Float startTime;
 
     /**
      * @param game      the current game instance
@@ -29,32 +26,15 @@ public class ActionWalk implements EntityAction {
         this.start = game.map().getPosition(start);
         this.end = game.map().getPosition(end);
         duration = walkSpeed / TILE_SIZE;
-        this.startTime = TIME_UNDEFINED;
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
-        assert !Objects.equals(startTime, TIME_UNDEFINED);
-        return start.lerp(end, currentTime - startTime, new Vector3f());
+    public Vector3f getPositionAfter(float passedTime) {
+        return new Vector3f(start).lerp(end, passedTime);
     }
 
     @Override
     public float duration() {
         return duration;
-    }
-
-    @Override
-    public Float getStartTime() {
-        return startTime;
-    }
-
-    @Override
-    public void setStartTime(float time) {
-        startTime = time;
-    }
-
-    @Override
-    public void interrupt(float moment) {
-        // no support
     }
 }
