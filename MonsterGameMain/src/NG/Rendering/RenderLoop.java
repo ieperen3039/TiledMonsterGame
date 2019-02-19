@@ -11,7 +11,7 @@ import NG.GameState.GameLights;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
 import NG.Rendering.Shaders.*;
-import NG.Rendering.Shapes.FileShapes;
+import NG.Rendering.Shapes.GenericShapes;
 import NG.Rendering.Textures.Texture;
 import NG.ScreenOverlay.ScreenOverlay;
 import NG.Settings.Settings;
@@ -174,7 +174,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             sceneShader.setPointLight(Vectors.Z, Color4f.WHITE, 0.8f);
             ((TextureShader) sceneShader).setTexture(texture);
-            tgl.render(FileShapes.TEXTURED_QUAD, null);
+            tgl.render(GenericShapes.TEXTURED_QUAD, null);
             ((TextureShader) sceneShader).unsetTexture();
 
         }
@@ -205,7 +205,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                     mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
                 }
 
-                gl.render(FileShapes.ARROW, null);
+                gl.render(GenericShapes.ARROW, null);
             }
             gl.popMatrix();
         }

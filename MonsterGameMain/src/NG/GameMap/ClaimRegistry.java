@@ -102,7 +102,9 @@ public class ClaimRegistry implements GameAspect, Storable {
 
     @Override
     public void cleanup() {
-
+        claimLock.lock();
+        claimRegistry.clear();
+        claimLock.unlock();
     }
 
     @Override

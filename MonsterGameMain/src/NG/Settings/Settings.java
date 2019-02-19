@@ -32,7 +32,7 @@ public class Settings {
     public int MAX_CAMERA_DIST = 1000;
     public float MIN_CAMERA_DIST = 0.5f;
     public int STATIC_SHADOW_RESOLUTION = 2048;
-    public int DYNAMIC_SHADOW_RESOLUTION = 256;
+    public int DYNAMIC_SHADOW_RESOLUTION = 0;
 
     // UI settings
     public static int TOOL_BAR_HEIGHT = 70;

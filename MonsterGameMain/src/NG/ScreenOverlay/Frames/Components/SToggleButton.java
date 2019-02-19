@@ -7,6 +7,7 @@ import org.joml.Vector2ic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
 import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
@@ -51,6 +52,19 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
         this(text, minWidth, minHeight, false);
     }
 
+    /**
+     * Create a button with the given properties, starting disabled and with the given listener
+     * @param text                the displayed text
+     * @param minWidth            the minimal width of this buttion, which {@link NG.ScreenOverlay.Frames.LayoutManagers.SLayoutManager}s
+     *                            should respect
+     * @param minHeight           the minimal height of this button.
+     * @param stateChangeListener upon change, this action is activated with the current state as argument
+     */
+    public SToggleButton(String text, int minWidth, int minHeight, Consumer<Boolean> stateChangeListener) {
+        this(text, minWidth, minHeight);
+        addStateChangeListener(() -> stateChangeListener.accept(state));
+    }
+
     public void setGrowthPolicy(boolean horizontal, boolean vertical) {
         hzGrow = horizontal;
         vtGrow = vertical;
@@ -88,6 +102,9 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
         setState(!state);
     }
 
+    /**
+     * @param action Upon change, this action is activated
+     */
     public void addStateChangeListener(Runnable action) {
         stateChangeListeners.add(action);
     }

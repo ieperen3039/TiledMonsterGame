@@ -1,7 +1,7 @@
 package NG.Entities;
 
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.Shapes.FileShapes;
+import NG.Rendering.Shapes.GenericShapes;
 import org.joml.AABBf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -35,7 +35,7 @@ public class Cube implements Entity {
         gl.pushMatrix();
         {
             gl.translate(position);
-            gl.render(FileShapes.CUBE, this);
+            gl.render(GenericShapes.CUBE, this);
         }
         gl.popMatrix();
     }

@@ -1,5 +1,6 @@
 package NG.ScreenOverlay.Menu;
 
+import NG.ActionHandling.MouseTools.DefaultMouseTool;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
@@ -16,11 +17,11 @@ import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
-import org.joml.Vector2i;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
+import org.joml.*;
 
+import java.lang.Math;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * @author Geert van Ieperen. Created on 28-9-2018.
@@ -73,6 +74,7 @@ public class MainMenu extends SFrame {
         try {
             int xSize = overworld.settings().CHUNK_SIZE;
             int ySize = overworld.settings().CHUNK_SIZE;
+            overworld.claims().cleanup();
 
             TileThemeSet.PLAIN.load();
 
@@ -83,15 +85,12 @@ public class MainMenu extends SFrame {
             overworld.map().generateNew(mapGenerator);
 
             pocketworld.loadMap(Directory.savedMaps.getFile("pocketDefault.mgm"));
+            centerCamera(pocketworld);
 
             modLoader.initMods(modLoader.allMods());
 
             // set camera to middle of map
-            Vector3f cameraFocus = overworld.map().getPosition(new Vector2i(xSize / 2, ySize / 2));
-            Camera cam = overworld.camera();
-            int initialZoom = xSize + ySize;
-            Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
-            cam.set(cameraFocus, cameraEye);
+            Vector3f cameraFocus = centerCamera(overworld);
 
 //            float eventTime = overworld.timer().getGametime() + 2;
 //            overworld.addEvent(new Event.DebugEvent(overworld, eventTime, 1));
@@ -103,7 +102,7 @@ public class MainMenu extends SFrame {
             overworld.entities().addEntity(cow);
 
             // add lights
-            overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.5f);
+            overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 1f), Color4f.WHITE, 0.2f);
 
             // start
             modLoader.startGame();
@@ -111,8 +110,17 @@ public class MainMenu extends SFrame {
 
         } catch (Exception e) {
             Logger.ERROR.print(e);
-
         }
+    }
+
+    private Vector3f centerCamera(Game game) {
+        Vector2ic edge = game.map().getSize();
+        Vector3f cameraFocus = game.map().getPosition(edge.x() / 2, edge.y() / 2);
+        Camera cam = game.camera();
+        int initialZoom = (int) edge.length();
+        Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
+        cam.set(cameraFocus, cameraEye);
+        return cameraFocus;
     }
 
     private void entityCloud() {
@@ -163,7 +171,48 @@ public class MainMenu extends SFrame {
             setVisible(true);
         }, 100);
 
+        SFrame aTester = new SFrame("pathfinder tester");
+        aTester.setMainPanel(SPanel.column(
+                new SToggleButton("A*", 100, BUTTON_MIN_HEIGHT, (s) -> {
+                    game.inputHandling().setMouseTool(s ? new AStartTestMouseTool(game) : null);
+                })
+        ));
+        aTester.pack();
+
+//        toolBar.addButton("Pathfinders", () -> game.gui().addFrame(aTester), 200);
+        toolBar.addButton("A* tester", () -> game.inputHandling().setMouseTool(new AStartTestMouseTool(game)), 200);
+
         return toolBar;
     }
 
+    private class AStartTestMouseTool extends DefaultMouseTool {
+        Vector2i first;
+        private Game game;
+
+        public AStartTestMouseTool(Game game) {
+            this.game = game;
+        }
+
+        @Override
+        public void apply(Vector3fc position) {
+            Vector3i temp = game.map().getCoordinate(position);
+            Vector2i second = new Vector2i(temp.x, temp.y);
+
+            if (first == null) {
+                this.first = second;
+                game.map().setHighlights(first);
+
+            } else {
+                Vector2ic size = game.map().getSize();
+                List<Vector2i> path = game.map().findPath(first, second, 1, 0.1f);
+                game.map().setHighlights(path.toArray(new Vector2ic[0]));
+                first = null;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "A* tool";
+        }
+    }
 }

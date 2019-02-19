@@ -1,5 +1,6 @@
 package NG.GameMap;
 
+import NG.DataStructures.Direction;
 import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.ShaderProgram;
@@ -26,7 +27,7 @@ import static java.lang.Math.PI;
  */
 public class MapTile {
     public static final MapTile DEFAULT_TILE = // circumvent registration due to initialisation of static fields
-            new MapTile("default", Directory.mapTileModels.getPath("cube.obj"), null, new int[]{0, 0, 0, 0, 0, 0, 0, 0}, Properties.NONE, 2, null);
+            new MapTile("default", Directory.mapTileModels.getPath("cube.obj"), null, new int[]{2, 2, 2, 2, 2, 2, 2, 2}, Properties.NONE, 2, null);
 
     private static final Set<String> NAMES = new HashSet<>();
     private static final Set<Path> PATHS = new HashSet<>();
@@ -261,21 +262,36 @@ public class MapTile {
             i3 += a;
 
             // choose one deterministically ; pick the maximum
-            int max = i0; // all candidates are positive
-            rotation = 0;
+            int max = i0;
+            rotation = 3;
             if (i1 > max) {
                 max = i1;
-                rotation = 3;
+                rotation = 2;
             }
             if (i2 > max) {
                 max = i2;
-                rotation = 2;
+                rotation = 1;
             }
             if (i3 > max) {
                 max = i3;
-                rotation = 1;
+                rotation = 0;
             }
             id = max;
+        }
+    }
+
+    public static int index(Direction direction) {
+        switch (direction) {
+            case POSITIVE_X:
+                return 7;
+            case NEGATIVE_Y:
+                return 5;
+            case NEGATIVE_X:
+                return 3;
+            case POSITIVE_Y:
+                return 1;
+            default:
+                throw new IllegalArgumentException(String.valueOf(direction));
         }
     }
 
@@ -285,13 +301,13 @@ public class MapTile {
     public static class Instance {
         private static final float QUARTER = (float) (PI / 2);
 
-        public final byte height;
+        public final byte offset;
         public final byte rotation;
         public final MapTile type;
 
-        Instance(int height, int rotation, MapTile type) {
+        Instance(int offset, int rotation, MapTile type) {
             assert type != null;
-            this.height = (byte) (height);
+            this.offset = (byte) (offset);
             this.rotation = (byte) rotation;
             this.type = type;
         }
@@ -299,7 +315,7 @@ public class MapTile {
         public void draw(SGL gl) {
             gl.pushMatrix();
             {
-                gl.translate(0, 0, (height) * TILE_SIZE_Z);
+                gl.translate(0, 0, offset * TILE_SIZE_Z);
                 gl.rotate(rotation * QUARTER, 0, 0, 1);
 
                 if (type.mesh == null) {
@@ -334,10 +350,20 @@ public class MapTile {
             List<MapTile> list = MapTile.tileFinder.get(type.fit.id);
             int index = (list.indexOf(type) + offset) % list.size();
             MapTile newType = list.get(index);
-            int newRotation = this.rotation - type.fit.rotation + newType.fit.rotation;
-            int newHeight = this.height - type.baseHeight + newType.baseHeight;
+            int newRotation = this.rotation + (newType.fit.rotation - type.fit.rotation);
+            int newHeight = this.offset + (newType.baseHeight - type.baseHeight);
 
             return new Instance(newHeight, newRotation, newType);
+        }
+
+        public int heightOf(Direction direction) {
+            int shift = rotation * -2;
+            int index = (shift + index(direction) + 8) % 8;
+            return offset + type.heights[index];
+        }
+
+        public int getHeight() {
+            return offset + type.baseHeight;
         }
     }
 }

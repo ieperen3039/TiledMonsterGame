@@ -2,7 +2,6 @@ package NG.Entities.Actions;
 
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
-import NG.GameMap.GameMap;
 import NG.MonsterSoul.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -17,7 +16,7 @@ import java.util.List;
 public class CommandWalk extends Command {
     private final Vector2ic target;
 
-    protected CommandWalk(Living source, Vector2ic target) {
+    public CommandWalk(Living source, Vector2ic target) {
         super(source);
         this.target = new Vector2i(target);
     }
@@ -28,7 +27,7 @@ public class CommandWalk extends Command {
         Vector3i lastActionEndCoord = game.map().getCoordinate(lastActionEndPos);
         Vector2ic beginPosition = new Vector2i(lastActionEndCoord.x, lastActionEndCoord.y);
 
-        List<Vector2i> path = GameMap.findPath(beginPosition, target); // TODO pathfinding
+        List<Vector2i> path = game.map().findPath(beginPosition, target, 1f, 1f); // TODO entity parameters
         EntityAction[] actions = new EntityAction[path.size()];
 
         Vector2ic lastPos = beginPosition;

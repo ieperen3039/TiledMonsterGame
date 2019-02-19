@@ -32,7 +32,7 @@ public class MapChunkArray implements MapChunk {
 
     public MapChunkArray(int size, float[][] heightmap, int fromX, int fromY, int randomSeed) {
         this.size = size;
-        this.tiles = new MapTile.Instance[size][];
+        this.tiles = new MapTile.Instance[size][size];
         this.highlights = new HashSet<>();
         Random random = new Random(randomSeed);
 
@@ -41,7 +41,6 @@ public class MapChunkArray implements MapChunk {
 
             float[] xHeight = heightmap[hx]; // can be optimized further
             float[] x2Height = heightmap[hx + 1];
-            MapTile.Instance[] strip = new MapTile.Instance[size];
 
             for (int cy = 0; cy < size; cy++) {
                 int hy = fromY + cy;
@@ -51,9 +50,8 @@ public class MapChunkArray implements MapChunk {
                 int neg_neg = (int) xHeight[hy];
                 int neg_pos = (int) x2Height[hy];
 
-                strip[cy] = MapTile.getRandomOf(random, pos_pos, pos_neg, neg_neg, neg_pos);
+                tiles[cx][cy] = MapTile.getRandomOf(random, pos_pos, pos_neg, neg_neg, neg_pos);
             }
-            tiles[cx] = strip;
         }
     }
 
@@ -72,8 +70,7 @@ public class MapChunkArray implements MapChunk {
     @Override
     public int getHeightAt(int x, int y) {
         if (x < 0 || y < 0 || x >= size || y >= size) return 0;
-        MapTile.Instance tile = tiles[x][y];
-        return tile.height + tile.type.baseHeight;
+        return tiles[x][y].getHeight();
     }
 
     @Override
@@ -133,7 +130,7 @@ public class MapChunkArray implements MapChunk {
                 MapTile type = tile.type; // implementation dependent
                 out.writeInt(type.tileID);
                 out.writeByte(tile.rotation);
-                out.writeByte(tile.height);
+                out.writeByte(tile.offset);
             }
         }
     }
@@ -145,10 +142,10 @@ public class MapChunkArray implements MapChunk {
 
                 int typeID = in.readInt();
                 byte rotation = in.readByte();
-                byte height = in.readByte();
+                byte offset = in.readByte();
 
                 tileStrip[i] = new MapTile.Instance(
-                        height,
+                        offset,
                         rotation,
                         mapping.get(typeID)
                 );

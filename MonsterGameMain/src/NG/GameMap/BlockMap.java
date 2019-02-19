@@ -7,8 +7,8 @@ import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
-import NG.Rendering.Shapes.FileShapes;
 import NG.Rendering.Shapes.GenericShapes;
+import NG.Tools.AStar;
 import NG.Tools.Vectors;
 import org.joml.*;
 
@@ -138,13 +138,12 @@ public class BlockMap implements GameMap {
 
                     if (height > 0) {
                         gl.scale(1, 1, height);
-                        gl.render(FileShapes.CUBE, null); // todo make half cube
+                        gl.render(GenericShapes.CUBE, null); // todo make half cube
                         gl.scale(1, 1, 1 / height);
 
                     } else {
                         gl.render(GenericShapes.QUAD, null);
                     }
-
 
                     gl.translate(0, TILE_SIZE, 0);
                 }
@@ -217,4 +216,21 @@ public class BlockMap implements GameMap {
             }
         }
     }
+
+    @Override
+    public List<Vector2i> findPath(
+            Vector2ic source, Vector2ic target, float walkSpeed, float climbSpeed
+    ) {
+        return new AStar(source, target, xSize - 1, ySize - 1) {
+            @Override
+            public float distanceAdjacent(int x1, int y1, int x2, int y2) {
+                float heightDiff = getHeightAt(x2, y2) - getHeightAt(x1, y1);
+                float distDiff = (float) (Math.abs(x1 - x2) + Math.abs(y1 - y2));
+                return (walkSpeed * distDiff * TILE_SIZE) + (climbSpeed * heightDiff * TILE_SIZE_Z);
+            }
+
+        }.call();
+    }
+
+
 }

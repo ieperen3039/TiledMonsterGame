@@ -7,6 +7,9 @@ import NG.Entities.Actions.Command;
 import NG.Entities.Actions.EntityAction;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
+import NG.ScreenOverlay.Frames.Components.SButton;
+import NG.ScreenOverlay.Frames.Components.SFrame;
+import NG.ScreenOverlay.Frames.Components.SPanel;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Quaternionf;
@@ -143,7 +146,15 @@ public abstract class MonsterEntity implements Entity {
 
     @Override
     public void onClick(int button) {
-        // open entity interface
+        SFrame frame = new SFrame("Entity " + this);
+        WalkCommandTool walkTool = new WalkCommandTool(game, this);
+
+        SPanel mainPanel = SPanel.column(
+                new SButton("Walk to...", () -> game.inputHandling().setMouseTool(walkTool), 300, 100)
+        );
+
+        frame.setMainPanel(mainPanel);
+        game.gui().addFrame(frame);
     }
 
     protected abstract void lookAt(Vector3fc position);

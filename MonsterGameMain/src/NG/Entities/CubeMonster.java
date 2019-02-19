@@ -7,7 +7,7 @@ import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
-import NG.Rendering.Shapes.FileShapes;
+import NG.Rendering.Shapes.GenericShapes;
 import NG.Tools.Vectors;
 import org.joml.AABBf;
 import org.joml.Vector2i;
@@ -47,10 +47,10 @@ public class CubeMonster extends MonsterEntity {
 
         gl.scale(SIZE / 2);
         gl.translate(0, 0, 1);
-        gl.render(FileShapes.CUBE, this);
+        gl.render(GenericShapes.CUBE, this);
         gl.translate(1, 0, 1);
         gl.scale(0.5f);
-        gl.render(FileShapes.CUBE, this);
+        gl.render(GenericShapes.CUBE, this);
     }
 
     @Override

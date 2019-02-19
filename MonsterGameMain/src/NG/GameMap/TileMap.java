@@ -1,6 +1,7 @@
 package NG.GameMap;
 
 import NG.ActionHandling.MouseTools.MouseTool;
+import NG.DataStructures.Direction;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.Rendering.Material;
@@ -8,6 +9,7 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Settings.Settings;
+import NG.Tools.AStar;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
@@ -58,12 +60,12 @@ public class TileMap implements GameMap {
 
         if (heightmap.length == 0) throw new IllegalArgumentException("Received map with 0 size in x direction");
 
-        int xSize = (heightmap.length - 1) / chunkSize;
-        int ySize = (heightmap[0].length - 1) / chunkSize;
+        int xChunks = (heightmap.length - 1) / chunkSize;
+        int yChunks = (heightmap[0].length - 1) / chunkSize;
 
-        MapChunk[][] newMap = new MapChunk[xSize][ySize];
-        for (int mx = 0; mx < xSize; mx++) {
-            for (int my = 0; my < ySize; my++) {
+        MapChunk[][] newMap = new MapChunk[xChunks][yChunks];
+        for (int mx = 0; mx < xChunks; mx++) {
+            for (int my = 0; my < yChunks; my++) {
                 int fromY = my * chunkSize;
                 int fromX = mx * chunkSize;
                 MapChunkArray chunk = new MapChunkArray(chunkSize, heightmap, fromX, fromY, randomSeed);
@@ -73,8 +75,8 @@ public class TileMap implements GameMap {
         }
 
         this.map = newMap;
-        this.xSize = xSize;
-        this.ySize = ySize;
+        this.xSize = xChunks;
+        this.ySize = yChunks;
     }
 
     @Override
@@ -289,16 +291,17 @@ public class TileMap implements GameMap {
     }
 
     public MapTile.Instance getTileData(int x, int y) {
+        if (x < 0 || y < 0) return null;
+
         int cx = x / chunkSize;
         int cy = y / chunkSize;
 
-        if (cx >= xSize || cx < 0 || cy >= ySize || cy < 0) return null;
+        if (cx >= xSize || cy >= ySize) return null;
 
         MapChunk chunk = map[cx][cy];
 
         int rx = x - cx * chunkSize;
         int ry = y - cy * chunkSize;
-
         return chunk.get(rx, ry);
     }
 
@@ -314,5 +317,53 @@ public class TileMap implements GameMap {
         int ry = y - cy * chunkSize;
 
         chunk.set(rx, ry, instance);
+    }
+
+    @Override
+    public List<Vector2i> findPath(
+            Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
+    ) {
+        int xMax = (xSize * chunkSize) - 1;
+        int yMax = (ySize * chunkSize) - 1;
+
+        return new AStar(beginPosition, target, xMax, yMax) {
+            @Override
+            public float distanceAdjacent(int x1, int y1, int x2, int y2) {
+                assert x1 == x2 || y1 == y2;
+
+                MapTile.Instance fromTile = getTileData(x1, y1);
+                MapTile.Instance toTile = getTileData(x2, y2);
+                assert fromTile != null && toTile != null;
+
+                Direction move = Direction.get(x2 - x1, y2 - y1);
+
+                // the total duration of this movement
+                float duration = 0;
+
+                // heights of tile sides
+                int fromHeight = fromTile.heightOf(move);
+                int toHeight = toTile.heightOf(move.inverse());
+                float hDiff = (fromHeight - toHeight) * TILE_SIZE_Z;
+
+                // climbing if more than 'an acceptable height'
+                if (hDiff < 0.5f) {
+                    duration += (climbSpeed * hDiff);
+                }
+
+                // steepness
+                float t1inc = (fromHeight - fromTile.getHeight()) * (TILE_SIZE / 2);
+                float t2inc = (toHeight - toTile.getHeight()) * (TILE_SIZE / 2);
+
+                // actual duration of walking
+                float walkSpeedT1 = lift(t1inc) * walkSpeed;
+                float walkSpeedT2 = lift(t2inc) * walkSpeed;
+
+                // duration += walkspeed(steepness_1) * dist + walkspeed(steepness_2) * dist
+                duration += (walkSpeedT1 + walkSpeedT2) * (TILE_SIZE / 2);
+
+                return duration;
+            }
+
+        }.call();
     }
 }

@@ -9,7 +9,6 @@ import NG.Storable;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -157,14 +156,18 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      * finds a path from A to B.
      * @param beginPosition the A position
      * @param target        the B position
-     * @return a path from A (exclusive) to B (inclusive) where the height differences are at most 1.
-     */
-    static List<Vector2i> findPath(Vector2ic beginPosition, Vector2ic target) {
-        return new ArrayList<>();
-    }
+     * @param walkSpeed the maximum steepness (y over x) this unit can walk
+     * @param climbSpeed a function that maps height of a cliff to climb speed
+     * @return the shortest path from A (exclusive) to B (inclusive)
+     * @see NG.Tools.AStar
+     */ // TODO add shortcut for situations where the tiles are close
+    List<Vector2i> findPath(
+            Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
+    );
 
     interface ChangeListener {
         /** is called when the map is changed */
         void onMapChange();
     }
+
 }

@@ -9,10 +9,25 @@ import org.joml.Vector2i;
 public enum Direction {
     POSITIVE_X, POSITIVE_Y, NEGATIVE_X, NEGATIVE_Y, NONE;
 
-    public static Direction get(Vector2fc direction) {
-        float x = direction.x();
-        float y = direction.y();
+    public Direction inverse() {
+        switch (this) {
+            case POSITIVE_X:
+                return NEGATIVE_X;
+            case POSITIVE_Y:
+                return NEGATIVE_Y;
+            case NEGATIVE_X:
+                return POSITIVE_X;
+            case NEGATIVE_Y:
+                return POSITIVE_Y;
+        }
+        return NONE;
+    }
 
+    public static Direction get(Vector2fc direction) {
+        return get(direction.x(), direction.y());
+    }
+
+    public static Direction get(float x, float y) {
         if (x == 0 && y == 0) {
             return NONE;
 

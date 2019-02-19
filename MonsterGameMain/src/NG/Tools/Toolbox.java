@@ -5,7 +5,7 @@ import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
-import NG.Rendering.Shapes.FileShapes;
+import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -57,19 +57,19 @@ public final class Toolbox {
         gl.pushMatrix();
         {
             matShader.setMaterial(mat, Color4f.BLUE);
-            gl.render(FileShapes.ARROW, null);
+            gl.render(GenericShapes.ARROW, null);
             gl.rotate((float) Math.toRadians(90), 0f, 1f, 0f);
 
             matShader.setMaterial(mat, Color4f.RED);
-            gl.render(FileShapes.ARROW, null);
+            gl.render(GenericShapes.ARROW, null);
             gl.rotate((float) Math.toRadians(-90), 1f, 0f, 0f);
 
             matShader.setMaterial(mat, Color4f.GREEN);
-            gl.render(FileShapes.ARROW, null);
+            gl.render(GenericShapes.ARROW, null);
             gl.scale(0.2f);
 
             matShader.setMaterial(mat, Color4f.WHITE);
-            gl.render(FileShapes.CUBE, null);
+            gl.render(GenericShapes.CUBE, null);
         }
         gl.popMatrix();
     }
@@ -87,7 +87,7 @@ public final class Toolbox {
         gl.pushMatrix();
         {
             gl.scale(1, CURSOR_SIZE, CURSOR_SIZE);
-            gl.render(FileShapes.CUBE, null);
+            gl.render(GenericShapes.CUBE, null);
         }
         gl.popMatrix();
 
@@ -95,7 +95,7 @@ public final class Toolbox {
         gl.pushMatrix();
         {
             gl.scale(CURSOR_SIZE, 1, CURSOR_SIZE);
-            gl.render(FileShapes.CUBE, null);
+            gl.render(GenericShapes.CUBE, null);
         }
         gl.popMatrix();
 
@@ -103,7 +103,7 @@ public final class Toolbox {
         gl.pushMatrix();
         {
             gl.scale(CURSOR_SIZE, CURSOR_SIZE, 1);
-            gl.render(FileShapes.CUBE, null);
+            gl.render(GenericShapes.CUBE, null);
         }
         gl.popMatrix();
     }

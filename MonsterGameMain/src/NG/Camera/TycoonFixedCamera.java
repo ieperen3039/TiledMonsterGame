@@ -1,5 +1,6 @@
 package NG.Camera;
 
+import NG.ActionHandling.KeyMouseCallbacks;
 import NG.ActionHandling.KeyPressListener;
 import NG.ActionHandling.KeyReleaseListener;
 import NG.ActionHandling.MousePositionListener;
@@ -48,10 +49,10 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     @Override
     public void init(Game game) {
         this.game = game;
-        game.inputHandling().addMousePositionListener(this);
-        game.inputHandling().addKeyPressListener(this);
-        game.inputHandling().addKeyReleaseListener(this);
-//        game.state().addEntity(new Cursor(() -> new Vector3f(focus.x, focus.y, height.current())));
+        KeyMouseCallbacks callbacks = game.inputHandling();
+        callbacks.addMousePositionListener(this);
+        callbacks.addKeyPressListener(this);
+        callbacks.addKeyReleaseListener(this);
     }
 
     @Override

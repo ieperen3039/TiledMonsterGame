@@ -24,6 +24,10 @@ public class SExtendedTextArea extends STextArea
         this(source.getText(), source.minWidth(), source.minWidth(), source.wantHorizontalGrow(), source.textType);
     }
 
+    public SExtendedTextArea(String text, int minHeight, boolean doGrowInWidth) {
+        super(text, minHeight, doGrowInWidth);
+    }
+
     @Override
     public void onClick(int button, int xRel, int yRel) {
         if (clickListener == null) return;

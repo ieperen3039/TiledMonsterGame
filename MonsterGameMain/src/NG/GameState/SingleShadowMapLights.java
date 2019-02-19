@@ -95,7 +95,7 @@ public class SingleShadowMapLights implements GameLights {
             staticMapIsDirty = true;
 
         } else if (Math.abs(viewDist - lightDist) > UPDATE_MARGIN) {
-            float lightCubeSize = 10 + 4 * viewDist + UPDATE_MARGIN;
+            float lightCubeSize = 10 + 8 * viewDist + UPDATE_MARGIN;
             sunLight.setLightSize(lightCubeSize);
 
             staticMapIsDirty = true;
@@ -108,7 +108,7 @@ public class SingleShadowMapLights implements GameLights {
             {
                 shadowShader.initialize(game);
 
-                if (sunLight.doStaticShadows() && staticMapIsDirty) {
+                if (staticMapIsDirty && sunLight.doStaticShadows()) {
                     DepthShader.DepthGL gl = shadowShader.getGL(false);
                     shadowShader.setDirectionalLight(sunLight);
                     game.map().draw(gl);
