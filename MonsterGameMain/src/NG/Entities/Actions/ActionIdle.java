@@ -63,4 +63,9 @@ public class ActionIdle implements EntityAction {
     public float interrupt(float passedTime) {
         return passedTime; // always succeeds
     }
+
+    @Override
+    public String toString() {
+        return "Idle (" + duration + ")";
+    }
 }

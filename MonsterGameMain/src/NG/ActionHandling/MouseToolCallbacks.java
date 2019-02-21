@@ -145,23 +145,17 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
 
             if (action == GLFW_PRESS) {
                 execute(() -> {
-                    try {
-                        int x = pos.x;
-                        int y = pos.y;
-                        currentTool.setButton(button);
+                    int x = pos.x;
+                    int y = pos.y;
+                    currentTool.setButton(button);
 
-                        if (game.gui().checkMouseClick(currentTool, x, y)) return;
+                    if (game.gui().checkMouseClick(currentTool, x, y)) return;
 
-                        // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
-                        y = game.window().getHeight() - y;
+                    // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
+                    y = game.window().getHeight() - y;
 
-                        if (game.entities().checkMouseClick(currentTool, x, y)) return;
-                        game.map().checkMouseClick(currentTool, x, y);
-
-                    } catch (Throwable ex) {
-                        Logger.ERROR.print(ex);
-                        throw ex;
-                    }
+                    if (game.entities().checkMouseClick(currentTool, x, y)) return;
+                    game.map().checkMouseClick(currentTool, x, y);
                 });
 
             } else if (action == GLFW_RELEASE) {

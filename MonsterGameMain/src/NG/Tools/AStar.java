@@ -66,6 +66,9 @@ public abstract class AStar implements Callable<List<Vector2i>> {
             node = node.source; // all nodes but srcNode have a source
         }
 
+        // make list start with source
+        Collections.reverse(path);
+
         return path;
     }
 

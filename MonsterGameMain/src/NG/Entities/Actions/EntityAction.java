@@ -6,7 +6,6 @@ import org.joml.Vector3f;
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public interface EntityAction {
-    Float TIME_UNDEFINED = Float.MAX_VALUE;
 
     /**
      * calculates the position resulting from this action, the given time after the start of this action
@@ -31,9 +30,11 @@ public interface EntityAction {
     /**
      * stops this action on the first possibility. This may not happen until the end of this action, and will always
      * result in the end position to be a coordinate. The default behaviour is that noting happens, and {@link
-     * #duration()} is returned.
+     * #duration()} is returned. This action may change the behaviour of {@link #duration()} and when it does so, also
+     * changes {@link #getStartPosition()}, {@link #getEndPosition()}, and invalidates previous invocations of {@link
+     * #follows(EntityAction)} (with this as argument).
      * @param passedTime the moment the interrupt is activated
-     * @return the actual moment this action is interrupted
+     * @return the actual moment this action is interrupted, which is also the new value of {@link #duration()}
      */
     default float interrupt(float passedTime) {
         return duration();
@@ -52,6 +53,6 @@ public interface EntityAction {
         }
 
         Vector3f firstEndPos = first.getEndPosition();
-        return firstEndPos.equals(getStartPosition());
+        return firstEndPos.equals(getStartPosition(), 1e-3f);
     }
 }

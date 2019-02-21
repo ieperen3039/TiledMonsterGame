@@ -41,7 +41,7 @@ public class GameEventDiscreteQueue extends EventLoop {
     protected void update(float deltaTime) throws Exception {
         GameTimer timer = game.timer();
         timer.updateGameTime();
-        float gametime = game.timer().getGametime();
+        float gametime = timer.getGametime();
 
         if (next == null) {
             // update next

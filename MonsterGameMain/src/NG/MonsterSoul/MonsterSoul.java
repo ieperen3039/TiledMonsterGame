@@ -41,7 +41,7 @@ public class MonsterSoul implements Living, Storable {
     @Override
     public void command(Command command) {
         // consider to reject
-        if (emotions.get(Emotion.RESPECT) > 100) ; // todo ideas for making this work
+//        if (emotions.get(Emotion.RESPECT) > 100) ; // todo ideas for making this work
 
         currentEntity.execute(command, this);
     }

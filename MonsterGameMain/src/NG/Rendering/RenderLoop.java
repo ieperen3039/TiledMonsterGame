@@ -37,7 +37,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private Game game;
     private SceneShader sceneShader;
     private SceneShader worldShader;
-    private BigArrow bigArrow;
+    private Pointer pointer;
     private boolean cursorIsVisible = false;
 
     /**
@@ -63,7 +63,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         sceneShader = new BlinnPhongShader();
         worldShader = new WorldBPShader();
 
-        bigArrow = new BigArrow(new Vector3f());
+        pointer = new Pointer(new Vector3f());
         game.inputHandling().addMousePositionListener(this::updateArrow);
     }
 
@@ -80,7 +80,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             Vector3i coordinate = map.getCoordinate(position);
             position.set(map.getPosition(coordinate.x, coordinate.y));
 
-            bigArrow.setPosition(position);
+            pointer.setPosition(position);
 
             if (cursorIsVisible) {
                 game.window().hideCursor(false);
@@ -129,7 +129,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     private void drawEntities(SGL gl) {
         game.entities().draw(gl);
-        bigArrow.draw(gl);
+        pointer.draw(gl);
     }
 
     private void renderWith(
@@ -183,11 +183,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    private class BigArrow {
+    private class Pointer {
         private static final float SIZE = 2;
         private Vector3f position;
 
-        private BigArrow(Vector3f position) {
+        private Pointer(Vector3f position) {
             this.position = position;
         }
 
@@ -197,7 +197,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                 gl.translate(position);
                 Toolbox.draw3DPointer(gl);
 
-                gl.translate(0, 0, 3);
+                gl.translate(0, 0, 4);
                 gl.scale(SIZE, SIZE, -SIZE);
 
                 if (gl.getShader() instanceof MaterialShader) {

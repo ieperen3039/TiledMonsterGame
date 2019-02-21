@@ -7,9 +7,9 @@ import NG.Entities.Actions.Command;
 import NG.Entities.Actions.EntityAction;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
-import NG.ScreenOverlay.Frames.Components.SButton;
 import NG.ScreenOverlay.Frames.Components.SFrame;
 import NG.ScreenOverlay.Frames.Components.SPanel;
+import NG.ScreenOverlay.Frames.Components.SToggleButton;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Quaternionf;
@@ -36,7 +36,6 @@ public abstract class MonsterEntity implements Entity {
     private final float rotationSpeedRS = 0.1f;
 
     private boolean isDisposed;
-    private float lastActionQueryTime = -Float.MAX_VALUE;
 
     public MonsterEntity(
             Game game, Vector2i initialPosition, Vector3fc faceDirection, MonsterSoul controller
@@ -126,31 +125,13 @@ public abstract class MonsterEntity implements Entity {
         targetFace = new Pair<>(direction, gametime + angle / rotationSpeedRS);
     }
 
-    /**
-     * retrieves and removes the next action of this entity.
-     * @param currentTime the current time. Must be more than any previous invocation
-     * @return the action that has the most recently been started at the given time.
-     */
-    public EntityAction getAction(float currentTime) {
-        if (lastActionQueryTime > currentTime) {
-            throw new IllegalArgumentException(
-                    "getAction argument time must be more than any previous invocation. " +
-                            "(was " + lastActionQueryTime + " but got " + currentTime + ")"
-            );
-        }
-
-        lastActionQueryTime = currentTime;
-        currentActions.removeUntil(currentTime);
-        return currentActions.pollFirst();
-    }
-
     @Override
     public void onClick(int button) {
         SFrame frame = new SFrame("Entity " + this);
         WalkCommandTool walkTool = new WalkCommandTool(game, this);
 
         SPanel mainPanel = SPanel.column(
-                new SButton("Walk to...", () -> game.inputHandling().setMouseTool(walkTool), 300, 100)
+                new SToggleButton("Walk to...", 300, 80, (s) -> game.inputHandling().setMouseTool(s ? walkTool : null))
         );
 
         frame.setMainPanel(mainPanel);
@@ -160,10 +141,15 @@ public abstract class MonsterEntity implements Entity {
     protected abstract void lookAt(Vector3fc position);
 
     public void execute(Command command, MonsterSoul source) {
-        assert source.equals(controller);
+        if (!source.equals(controller)) {
+            throw new IllegalCommandSourceException(
+                    String.format("Entity %s only accepts commands from %s, but was commanded by %s", this, controller, source)
+            );
+        }
 
         EntityAction action = command.toAction(game, this);
-        currentActions.offer(action);
+        float gameTime = game.timer().getGametime();
+        currentActions.addAfter(action, gameTime);
     }
 
     @Override
@@ -177,12 +163,18 @@ public abstract class MonsterEntity implements Entity {
     }
 
     public EntityAction getLastQueuedAction() {
-        return currentActions.peek();
+        return currentActions.peekLast();
     }
 
     private class IllegalPositionException extends IllegalArgumentException {
         public IllegalPositionException(String s) {
             super(s);
+        }
+    }
+
+    private class IllegalCommandSourceException extends IllegalArgumentException {
+        public IllegalCommandSourceException(String message) {
+            super(message);
         }
     }
 }

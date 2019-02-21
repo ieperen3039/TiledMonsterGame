@@ -10,30 +10,33 @@ import java.util.Iterator;
 /**
  * A queue of actions with additional robustness checking and a {@link #getPositionAt(float)} method. If the actions
  * added to this queue have undefined start time, the start time is set to be the closest to the other actions in this
- * queue.
+ * queue. This collection is not synchronized.
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public class ActionQueue extends ArrayDeque<EntityAction> {
 // there is always at least one action in the queue.
 
+    /** start time of the next action */
     private float firstActionStart;
+
+    /** end time of the last action */
+    private float lastActionEnd;
 
     /**
      * an action queue with an initial idle action on the given position
      * @param position initial position
      */
     public ActionQueue(Game game, Vector2ic position) {
-        this(new ActionIdle(game, position));
+        this(new ActionIdle(game, position), 0f);
     }
 
     /**
-     * @param initialAction a non-null action, like IDLE
+     * @param initialAction   a non-null action, like {@link ActionIdle}
+     * @param actionStartTime the time at which this action is started.
      */
-    public ActionQueue(EntityAction initialAction) {
+    public ActionQueue(EntityAction initialAction, float actionStartTime) {
         if (initialAction == null) throw new NullPointerException("initial action was null");
-        // avoid checking on the queue content
-        super.addLast(initialAction);
-        firstActionStart = 0;
+        setToAction(initialAction, actionStartTime);
     }
 
     /**
@@ -44,8 +47,12 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
     public Vector3f getPositionAt(float currentTime) {
         if (currentTime < firstActionStart) {
             return peekFirst().getStartPosition();
+
+        } else if (currentTime > lastActionEnd) {
+            return peekLast().getEndPosition();
         }
 
+        // a currently executing action...
         Iterator<EntityAction> iterator = iterator();
         float passedTime = currentTime - firstActionStart;
 
@@ -67,33 +74,22 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * @param time the time until where to remove actions, exclusive.
      */
     public void removeUntil(float time) {
-        while (size() > 1 && firstActionStart < time) {
-            EntityAction firstAction = super.removeFirst();
-            firstActionStart += firstAction.duration();
+        if (time < firstActionStart || size() == 1) return;
+
+        if (time > lastActionEnd) { // size > 1
+            EntityAction last = peekLast();
+            clear();
+            super.addLast(last);
+            // recalculate start time of the last action
+            firstActionStart = lastActionEnd - last.duration();
+            return;
         }
 
-        assert size() > 0;
-    }
-
-    @Override
-    public EntityAction pollFirst() {
-        assert size() > 0;
-        if (size() == 1) return peekFirst();
-
-        EntityAction firstAction = super.removeFirst();
-        firstActionStart += firstAction.duration();
-        return firstAction;
-    }
-
-    @Override
-    public void addLast(EntityAction action) {
-        assert size() > 0;
-        if (!action.follows(getLast())) {
-            throw new IllegalArgumentException(
-                    "New action " + action + " does not follow the last action known " + getLast());
+        while (size() > 1) {
+            float duration = peekFirst().duration();
+            if (firstActionStart + duration > time) return;
+            pollFirst();
         }
-
-        super.addLast(action);
     }
 
     @Override
@@ -104,15 +100,146 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
                     "New action " + action + " does not precede the first action known " + getFirst());
         }
 
+        firstActionStart -= action.duration();
         super.addFirst(action);
     }
 
+    @Override
+    public void addLast(EntityAction action) {
+        assert size() > 0;
+        if (!action.follows(getLast())) {
+            throw new IllegalArgumentException(
+                    "New action " + action + " does not follow the last action known " + getLast());
+        }
+
+        lastActionEnd += action.duration();
+        super.addLast(action);
+    }
+
+    @Override
+    public EntityAction pollFirst() {
+        assert size() > 0;
+        if (size() == 1) return peekFirst();
+
+        EntityAction firstAction = super.pollFirst();
+        //noinspection ConstantConditions
+        firstActionStart += firstAction.duration();
+
+        return firstAction;
+    }
+
+    @Override
+    public EntityAction pollLast() {
+        assert size() > 0;
+        if (size() == 1) return peekLast();
+
+        EntityAction lastAction = super.pollLast();
+        //noinspection ConstantConditions
+        lastActionEnd -= lastAction.duration();
+
+        return lastAction;
+    }
+
     /**
-     * add an idling after executing all actions in the queue
+     * adds the given action to the queue, executing not earlier, but possibly later than the given time. The action
+     * will always be placed last in execution. If there are any action in this queue executing any later than the given
+     * start time, then this action will execute only after the last of those actions are executed.
+     * @param action    the action to add to the queue
+     * @param startTime the minimal start time of this action.
+     */
+    public void addAfter(EntityAction action, float startTime) {
+        if (startTime > lastActionEnd) {
+            addWait(startTime - lastActionEnd);
+        }
+
+        addLast(action);
+    }
+
+    /**
+     * sets the action to execute at the given start time, removing any action remaining in the queue. The given action
+     * may be delayed to let the executing action finish.
+     * @param action    the action to do
+     * @param startTime the moment of interrupt
+     */
+    public void insert(EntityAction action, float startTime) {
+        if (startTime > lastActionEnd) {
+            addAfter(action, startTime);
+            return;
+        }
+
+        if (startTime < firstActionStart) {
+            setToAction(action, startTime);
+        }
+
+        // a currently executing action...
+        float remainingTime = lastActionEnd - startTime;
+        EntityAction found;
+        float duration = 0;
+
+        do {
+            // reduce the remaining time with the previous non-target action duration
+            remainingTime -= duration;
+            // get the next action
+            found = removeLast();
+            duration = found.duration();
+            // until we found the target action
+        } while (remainingTime > duration);
+
+        found.interrupt(duration - remainingTime);
+        addLast(found);
+        addLast(action);
+    }
+
+    /**
+     * finds the action that is executing at the given time.
+     * @param currentTime a moment in time
+     * @return the action that should be taking place under normal circumstances. Note that this is not certain, as
+     * calls to {@link #insert(EntityAction, float)} and {@link #removeLast()} may change this.
+     */
+    public EntityAction getActionAt(float currentTime) {
+        if (currentTime < firstActionStart) {
+            return peekFirst();
+
+        } else if (currentTime > lastActionEnd) {
+            return peekLast();
+        }
+
+        // a currently executing action...
+        Iterator<EntityAction> iterator = iterator();
+        float passedTime = currentTime - firstActionStart;
+
+        while (iterator.hasNext()) {
+            EntityAction action = iterator.next();
+            if (passedTime > action.duration()) {
+                passedTime -= action.duration();
+
+            } else {
+                return action;
+            }
+        }
+
+        throw new AssertionError("invalid state of lastActionEnd, missing " + passedTime);
+    }
+
+    /**
+     * sets the content of this queue to contain only the given action, starting at the given time.
+     * @param action    an action
+     * @param startTime a start time of this action
+     */
+    private void setToAction(EntityAction action, float startTime) {
+        clear();
+        super.addLast(action);
+        this.firstActionStart = startTime;
+        lastActionEnd = startTime + action.duration();
+    }
+
+    /**
+     * adds a fixed idling after executing all actions in the queue
      * @param duration the exact duration of the idling. Must be positive
      */
     public void addWait(float duration) {
-        super.addLast(new ActionIdle(peekLast(), duration));
+        assert duration >= 0;
+        addLast(new ActionIdle(peekLast(), duration));
     }
 
     /**
@@ -120,5 +247,10 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      */
     public EntityAction toAction() {
         return new CompoundAction(toArray(new EntityAction[0]));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ActionQueue (time:[%1.02f, %1.02f]: actions %s)", firstActionStart, lastActionEnd, super.toString());
     }
 }

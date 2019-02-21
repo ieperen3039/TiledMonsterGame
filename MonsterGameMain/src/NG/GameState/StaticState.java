@@ -1,14 +1,17 @@
 package NG.GameState;
 
-import NG.ActionHandling.ClickShader;
 import NG.ActionHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Entities.Entity;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Collision;
 import NG.Storable;
-import NG.Tools.Logger;
+import NG.Tools.Vectors;
+import org.joml.Vector2i;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.joml.Vector3i;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -16,8 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 
 /**
  * @author Geert van Ieperen created on 10-2-2019.
@@ -53,20 +54,18 @@ public class StaticState implements GameState {
 
     @Override
     public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
-        FutureTask<Entity> identifier = new FutureTask<>(() -> ClickShader.getEntity(game, xSc, ySc));
-        game.executeOnRenderThread(identifier);
+        Vector3f origin = new Vector3f();
+        Vector3f direction = new Vector3f();
+        Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
 
-        try {
-            Entity entity = identifier.get();
-            if (entity == null) return false;
+        GameMap map = game.map();
+        Vector3f position = map.intersectWithRay(origin, direction);
+        Vector3i asCoord = map.getCoordinate(position);
+        Entity claimant = game.claims().getClaim(new Vector2i(asCoord.x, asCoord.y));
+        if (claimant == null) return false;
 
-            tool.apply(entity, xSc, ySc);
-            return true;
-
-        } catch (InterruptedException | ExecutionException ex) {
-            Logger.ERROR.print(ex);
-            return false;
-        }
+        tool.apply(claimant, xSc, ySc);
+        return true;
     }
 
     @Override
@@ -83,9 +82,7 @@ public class StaticState implements GameState {
     }
 
     public StaticState(DataInput in) throws IOException, ClassNotFoundException {
-
         List<Entity> list = Storable.readList(in, Entity.class);
-
         entities = Collections.synchronizedList(list);
     }
 

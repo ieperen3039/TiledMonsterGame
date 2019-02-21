@@ -20,6 +20,7 @@ public enum Emotion {
     /** Deep emotions */
     RESPECT, SELF_CONFIDENCE, STRESS;
 
+    private static final float MINIMUM_PROCESS_DELTA = 0.1f;
     public static final int count = Emotion.values().length;
 
     public static class Collection implements Storable { // TODO MAKE TEST JAR FOR TILING
@@ -34,6 +35,11 @@ public enum Emotion {
         }
 
         public void process(float deltaTime) {
+            while (deltaTime > MINIMUM_PROCESS_DELTA) {
+                process(MINIMUM_PROCESS_DELTA);
+                deltaTime -= MINIMUM_PROCESS_DELTA;
+            }
+
             for (int i = 0; i < Emotion.count; i++) {
                 float[] transformations = transformationMatrix[i];
                 float newValue = 0;
@@ -69,6 +75,7 @@ public enum Emotion {
             }
         }
 
+        // TODO add robustness in matching names
         public Collection(DataInput in) throws IOException {
             int nrOfEmotions = in.readInt();
             if (nrOfEmotions != Emotion.count) {
@@ -83,13 +90,9 @@ public enum Emotion {
             }
 
             for (int i = 0; i < nrOfEmotions; i++) {
-                float[] array = new float[nrOfEmotions];
-
                 for (int j = 0; j < nrOfEmotions; j++) {
-                    array[j] = in.readFloat();
+                    transformationMatrix[i][j] = in.readFloat();
                 }
-
-                transformationMatrix[i] = array;
             }
         }
     }
