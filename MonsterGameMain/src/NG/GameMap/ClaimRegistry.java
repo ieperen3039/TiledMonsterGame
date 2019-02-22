@@ -10,7 +10,9 @@ import org.joml.Vector2ic;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -139,5 +141,19 @@ public class ClaimRegistry implements GameAspect, Storable {
         Entity entity = Storable.readFromFile(in, Entity.class);
         Vector2i pos = new Vector2i(x, y);
         claimRegistry.put(pos, entity);
+    }
+
+    /**
+     * @return a list of the claimed tiles. The list is not backed by this object, the list can be modified and changes
+     * to the registry will not be visible in the list.
+     */
+    public List<Vector2ic> getClaimedTiles() {
+        claimLock.lock();
+        try {
+            return new ArrayList<>(claimRegistry.keySet());
+
+        } finally {
+            claimLock.unlock();
+        }
     }
 }

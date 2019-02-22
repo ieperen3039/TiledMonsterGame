@@ -8,6 +8,7 @@ import NG.DataStructures.Generic.Color4f;
  */
 public class Settings {
     public static final String GAME_NAME = "MonsterGame"; // laaaaame
+    public static final boolean RENDER_CLAIMED_TILES = true;
     public boolean DEBUG = true;
 
     // game engine settings

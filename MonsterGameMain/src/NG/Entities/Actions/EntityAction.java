@@ -1,8 +1,12 @@
 package NG.Entities.Actions;
 
-import org.joml.Vector3f;
+import NG.GameEvent.Event;
+import NG.MonsterSoul.ActionFinishListener;
+import org.joml.Vector2ic;
+import org.joml.Vector3fc;
 
 /**
+ * An immutable action with a fixed start position, end position and duration.
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public interface EntityAction {
@@ -12,33 +16,16 @@ public interface EntityAction {
      * @param passedTime the time of measurement in seconds
      * @return the position at the given moment in time as described by this action.
      */
-    Vector3f getPositionAfter(float passedTime);
+    Vector3fc getPositionAfter(float passedTime);
 
-    default Vector3f getStartPosition() {
-        return getPositionAfter(0);
-    }
+    Vector2ic getStartPosition();
 
-    default Vector3f getEndPosition() {
-        return getPositionAfter(duration());
-    }
+    Vector2ic getEndPosition();
 
     /**
      * @return the duration of the action in seconds.
      */
     float duration();
-
-    /**
-     * stops this action on the first possibility. This may not happen until the end of this action, and will always
-     * result in the end position to be a coordinate. The default behaviour is that noting happens, and {@link
-     * #duration()} is returned. This action may change the behaviour of {@link #duration()} and when it does so, also
-     * changes {@link #getStartPosition()}, {@link #getEndPosition()}, and invalidates previous invocations of {@link
-     * #follows(EntityAction)} (with this as argument).
-     * @param passedTime the moment the interrupt is activated
-     * @return the actual moment this action is interrupted, which is also the new value of {@link #duration()}
-     */
-    default float interrupt(float passedTime) {
-        return duration();
-    }
 
     /**
      * checks whether this action may follow the given action
@@ -52,7 +39,11 @@ public interface EntityAction {
             throw new IllegalArgumentException("Action is compared to null");
         }
 
-        Vector3f firstEndPos = first.getEndPosition();
-        return firstEndPos.equals(getStartPosition(), 1e-3f);
+        Vector2ic firstEndPos = first.getEndPosition();
+        return firstEndPos.equals(getStartPosition());
+    }
+
+    default Event getFinishEvent(float startTime, ActionFinishListener listener) {
+        return new Event.Anonymous(startTime + duration(), () -> listener.onActionFinish(this));
     }
 }

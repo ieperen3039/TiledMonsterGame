@@ -34,22 +34,22 @@ public class ActionWalk implements EntityAction {
     }
 
     @Override
-    public Vector3f getPositionAfter(float passedTime) {
-        if (passedTime < 0) return getStartPosition();
-        if (passedTime > duration) return getEndPosition();
+    public Vector3fc getPositionAfter(float passedTime) {
+        if (passedTime < 0) return start;
+        if (passedTime > duration) return end;
 
         float fraction = passedTime / duration;
         return new Vector3f(start).lerp(end, fraction);
     }
 
     @Override
-    public Vector3f getStartPosition() {
-        return new Vector3f(start);
+    public Vector2ic getStartPosition() {
+        return startCoord;
     }
 
     @Override
-    public Vector3f getEndPosition() {
-        return new Vector3f(end);
+    public Vector2ic getEndPosition() {
+        return endCoord;
     }
 
     @Override

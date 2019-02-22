@@ -79,13 +79,13 @@ public class SFrameManager implements GUIManager {
         // reposition frame not to overlap other frames (greedy)
         for (Iterator<SFrame> iterator = frames.descendingIterator(); iterator.hasNext(); ) {
             SFrame other = iterator.next();
-            if (other.isMinimized() || !other.isVisible()) continue;
+            if (other.isDisposed() || other.isMinimized() || !other.isVisible()) continue;
 
             Vector2ic otherPos = other.getScreenPosition();
 
             if (otherPos.x() == x && otherPos.y() == y) {
                 x += 20;
-                y += 20; // windows-style
+                y += 20; // MS windows-style
             }
         }
 

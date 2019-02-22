@@ -1,8 +1,9 @@
 package NG.Entities.Actions;
 
 import NG.Engine.Game;
-import NG.Entities.MonsterEntity;
 import NG.MonsterSoul.Living;
+
+import java.util.List;
 
 /**
  * a command issued to a MonsterSoul
@@ -25,8 +26,8 @@ public abstract class Command {
      * transforms the command into an action that is executed by the given entity and starts on the given moment in
      * time.
      * @param game          the current game instance
-     * @param entity        the entity that is going to execute the action.
+     * @param preceding
      * @return an action such that it corresponds exactly to this command
      */
-    public abstract EntityAction toAction(Game game, MonsterEntity entity);
+    public abstract List<EntityAction> toActions(Game game, EntityAction preceding);
 }

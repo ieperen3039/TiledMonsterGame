@@ -2,12 +2,14 @@ package NG.Entities;
 
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.Entities.Actions.EntityAction;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
+import NG.Tools.Vectors;
 import org.joml.AABBf;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -37,13 +39,15 @@ public class CubeMonster extends MonsterEntity {
     }
 
     @Override
-    protected void drawDetail(SGL gl) {
+    protected void drawDetail(SGL gl, EntityAction action, float actionProgress) {
         ShaderProgram shader = gl.getShader();
 
         if (shader instanceof MaterialShader) {
             ((MaterialShader) shader).setMaterial(Material.SILVER, Color4f.BLUE);
         }
 
+        Vector2i move = new Vector2i(action.getEndPosition()).sub(action.getStartPosition());
+        gl.rotate(Vectors.getPitchYawRotation(new Vector3f(move, 0)));
         gl.scale(SIZE / 2);
         gl.translate(0, 0, 1);
         gl.render(GenericShapes.CUBE, this);

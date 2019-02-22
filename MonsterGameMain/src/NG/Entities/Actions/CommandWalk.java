@@ -1,14 +1,12 @@
 package NG.Entities.Actions;
 
 import NG.Engine.Game;
-import NG.Entities.MonsterEntity;
-import NG.GameMap.GameMap;
 import NG.MonsterSoul.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,31 +21,25 @@ public class CommandWalk extends Command {
     }
 
     @Override
-    public EntityAction toAction(Game game, MonsterEntity entity) {
-        GameMap map = game.map();
-        Vector3f lastActionEndPos = entity.getLastQueuedAction().getEndPosition();
-        Vector3i lastActionEndCoord = map.getCoordinate(lastActionEndPos);
-        Vector2ic beginPosition = new Vector2i(lastActionEndCoord.x, lastActionEndCoord.y);
+    public List<EntityAction> toActions(Game game, EntityAction preceding) {
+        Vector2ic beginPosition = preceding.getEndPosition();
 
-        List<Vector2i> path = map.findPath(beginPosition, target, 1f, 0.5f); // TODO entity parameters
-
-        if (path.isEmpty()) {
-            // already there, but return a non-null action
-            return new ActionIdle(game, beginPosition);
+        if (beginPosition.equals(target)) {
+            // already there, return an empty list of actions
+            return Collections.emptyList();
         }
 
+        List<Vector2i> path = game.map().findPath(beginPosition, target, 1f, 0.5f); // TODO entity parameters
+
         Vector2ic lastPos = beginPosition;
-        EntityAction[] actions = new EntityAction[path.size()];
+        List<EntityAction> actions = new ArrayList<>(path.size());
 
-        for (int i = 0; i < actions.length; i++) {
-            Vector2i pos = path.get(i);
-            float walkSpeed = 1;//entity.stat(WALK_SPEED);
-
-            actions[i] = new ActionWalk(game, lastPos, pos, walkSpeed);
-
+        float walkSpeed = 1;//entity.stat(WALK_SPEED);
+        for (Vector2i pos : path) {
+            actions.add(new ActionWalk(game, lastPos, pos, walkSpeed));
             lastPos = pos;
         }
 
-        return new CompoundAction(actions);
+        return actions;
     }
 }

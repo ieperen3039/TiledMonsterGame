@@ -1,6 +1,7 @@
 package NG.Entities.Actions;
 
-import org.joml.Vector3f;
+import org.joml.Vector2ic;
+import org.joml.Vector3fc;
 
 import java.util.Arrays;
 
@@ -10,8 +11,8 @@ import java.util.Arrays;
  */
 public class CompoundAction implements EntityAction {
     private final EntityAction[] actions;
-    private EntityAction lastAction;
-    private float totalDuration;
+    private final EntityAction lastAction;
+    private final float totalDuration;
 
     /**
      * combines a set of actions
@@ -46,9 +47,14 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
-    public Vector3f getPositionAfter(float passedTime) {
-        if (passedTime <= 0) return getStartPosition();
-        if (passedTime >= totalDuration) return getEndPosition();
+    public Vector3fc getPositionAfter(float passedTime) {
+        if (passedTime <= 0) {
+            return actions[0].getPositionAfter(0);
+
+        } else if (passedTime >= totalDuration) {
+            float end = lastAction.duration();
+            return lastAction.getPositionAfter(end);
+        }
 
         for (EntityAction action : actions) {
             float duration = action.duration();
@@ -64,32 +70,13 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
-    public Vector3f getEndPosition() {
+    public Vector2ic getEndPosition() {
         return lastAction.getEndPosition();
     }
 
     @Override
-    public Vector3f getStartPosition() {
+    public Vector2ic getStartPosition() {
         return actions[0].getStartPosition();
-    }
-
-    @Override
-    public float interrupt(float passedTime) {
-        if (passedTime >= totalDuration) return totalDuration;
-        float remainder = passedTime;
-
-        for (EntityAction action : actions) {
-            if (remainder > action.duration()) {
-                remainder -= action.duration();
-
-            } else {
-                lastAction = action;
-                totalDuration = action.interrupt(remainder) + (passedTime - remainder);
-                return totalDuration;
-            }
-        }
-
-        throw new AssertionError("invalid value of totalDuration, missing " + remainder);
     }
 
     @Override

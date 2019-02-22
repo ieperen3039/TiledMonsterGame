@@ -19,11 +19,13 @@ import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
+import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -107,16 +109,31 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         GameLights lights = game.lights();
 
         GLFWWindow window = game.window();
-        int windowWidth = window.getWidth();
-        int windowHeight = window.getHeight();
 
         lights.renderShadowMaps();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderWith(sceneShader, this::drawEntities, lights, windowWidth, windowHeight);
-        renderWith(worldShader, world::draw, lights, windowWidth, windowHeight);
+        renderWith(sceneShader, this::drawEntities, lights, window);
+        renderWith(worldShader, world::draw, lights, window);
 
+        if (Settings.RENDER_CLAIMED_TILES) {
+            Collection<Vector2ic> claims = game.claims().getClaimedTiles();
+
+            renderWith(sceneShader,
+                    (gl) -> claims.forEach(c -> {
+                        Vector3f tr = world.getPosition(c);
+                        gl.translate(tr);
+                        Toolbox.drawAxisFrame(gl);
+                        gl.translate(tr.negate());
+                    }),
+                    lights,
+                    window
+            );
+        }
+
+        int windowWidth = window.getWidth();
+        int windowHeight = window.getHeight();
         overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
 
         // update window
@@ -133,9 +150,12 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     }
 
     private void renderWith(
-            SceneShader sceneShader, Consumer<SGL> draw, GameLights lights, int windowWidth, int windowHeight
+            SceneShader sceneShader, Consumer<SGL> draw, GameLights lights,
+            GLFWWindow window
     ) {
         boolean doIsometric = game.settings().ISOMETRIC_VIEW;
+        int windowWidth = window.getWidth();
+        int windowHeight = window.getHeight();
 
         sceneShader.bind();
         {

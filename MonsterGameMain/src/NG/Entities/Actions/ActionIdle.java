@@ -2,7 +2,7 @@ package NG.Entities.Actions;
 
 import NG.Engine.Game;
 import org.joml.Vector2ic;
-import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 /**
  * Stand still and do nothing at all. Can be interrupted any time.
@@ -10,15 +10,17 @@ import org.joml.Vector3f;
  */
 public class ActionIdle implements EntityAction {
     private final float duration;
-    private final Vector3f position;
+    private final Vector3fc position;
+    private final Vector2ic coordinate;
 
     /**
      * idle for a given duration after executing the given task
+     * @param game
      * @param preceding the action that happens just before this idling
      * @param duration  the duration of staying idle.
      */
-    public ActionIdle(EntityAction preceding, float duration) {
-        this(preceding.getEndPosition(), duration);
+    public ActionIdle(Game game, EntityAction preceding, float duration) {
+        this(game, preceding.getEndPosition(), duration);
     }
 
     /**
@@ -31,37 +33,44 @@ public class ActionIdle implements EntityAction {
 
     /**
      * idle for a given duration.
-     * @param position the position to idle
+     * @param coordinate the position to idle
      * @param duration how long to stay idle
      */
-    public ActionIdle(Game game, Vector2ic position, float duration) {
-        this(game.map().getPosition(position), duration);
+    public ActionIdle(Game game, Vector2ic coordinate, float duration) {
+        this(coordinate, game.map().getPosition(coordinate), duration);
     }
 
     /**
-     * idle for an given duration starting at a given moment.
-     * @param position  the exact position of idling
-     * @param duration  how long to stay idle
+     * idle for a given duration.
+     * @param coordinate the position to idle
+     * @param position the position mapped to the 3d space
+     * @param duration how long to stay idle
      */
-    private ActionIdle(Vector3f position, float duration) {
+    public ActionIdle(Vector2ic coordinate, Vector3fc position, float duration) {
         if (duration < 0) throw new IllegalArgumentException("Idle duration must be greater than zero");
         this.position = position;
+        this.coordinate = coordinate;
         this.duration = duration;
     }
 
     @Override
-    public Vector3f getPositionAfter(float passedTime) {
+    public Vector3fc getPositionAfter(float passedTime) {
         return position;
+    }
+
+    @Override
+    public Vector2ic getStartPosition() {
+        return coordinate;
+    }
+
+    @Override
+    public Vector2ic getEndPosition() {
+        return coordinate;
     }
 
     @Override
     public float duration() {
         return duration;
-    }
-
-    @Override
-    public float interrupt(float passedTime) {
-        return passedTime; // always succeeds
     }
 
     @Override
