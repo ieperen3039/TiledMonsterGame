@@ -16,10 +16,4 @@ public interface Living extends Consumer<Stimulus> {
      * @param c the command considered by this unit
      */
     void command(Command c);
-
-    /**
-     * update the state of this living entity
-     */
-    void update();
-
 }

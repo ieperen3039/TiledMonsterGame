@@ -1,11 +1,13 @@
 package NG.Entities.Actions;
 
+import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import org.joml.Vector2ic;
-import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * A queue of actions with additional robustness checking and a {@link #getPositionAt(float)} method. If the actions
@@ -44,29 +46,9 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * @param currentTime the moment to query
      * @return the position described by this action queue.
      */
-    public Vector3f getPositionAt(float currentTime) {
-        if (currentTime < firstActionStart) {
-            return peekFirst().getStartPosition();
-
-        } else if (currentTime > lastActionEnd) {
-            return peekLast().getEndPosition();
-        }
-
-        // a currently executing action...
-        Iterator<EntityAction> iterator = iterator();
-        float passedTime = currentTime - firstActionStart;
-
-        while (iterator.hasNext()) {
-            EntityAction action = iterator.next();
-            if (passedTime > action.duration()) {
-                passedTime -= action.duration();
-
-            } else {
-                return action.getPositionAfter(passedTime);
-            }
-        }
-
-        return peekLast().getEndPosition();
+    public Vector3fc getPositionAt(float currentTime) {
+        Pair<EntityAction, Float> pair = getActionAt(currentTime);
+        return pair.left.getPositionAfter(pair.right);
     }
 
     /**
@@ -144,15 +126,32 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * adds the given action to the queue, executing not earlier, but possibly later than the given time. The action
      * will always be placed last in execution. If there are any action in this queue executing any later than the given
      * start time, then this action will execute only after the last of those actions are executed.
-     * @param action    the action to add to the queue
      * @param startTime the minimal start time of this action.
+     * @param action    the action to add to the queue
      */
-    public void addAfter(EntityAction action, float startTime) {
+    public void addAfter(float startTime, EntityAction action) {
         if (startTime > lastActionEnd) {
             addWait(startTime - lastActionEnd);
         }
 
         addLast(action);
+    }
+
+    /**
+     * adds the given actions to the queue, executing not earlier, but possibly later than the given time. The new
+     * actions all happen at the end of the existing queue of actions. If actions is empty, nothing will happen and the
+     * startTime is ignored.
+     * @param actions   a number of actions.
+     * @param startTime the start time of the first action in the list.
+     */
+    public void addAllAfter(List<EntityAction> actions, float startTime) {
+        if (actions.isEmpty()) return;
+
+        if (startTime > lastActionEnd) {
+            addWait(startTime - lastActionEnd);
+        }
+
+        addAll(actions);
     }
 
     /**
@@ -163,7 +162,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      */
     public void insert(EntityAction action, float startTime) {
         if (startTime > lastActionEnd) {
-            addAfter(action, startTime);
+            addAfter(startTime, action);
             return;
         }
 
@@ -185,23 +184,27 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
             // until we found the target action
         } while (remainingTime > duration);
 
-        found.interrupt(duration - remainingTime);
         addLast(found);
         addLast(action);
     }
 
     /**
-     * finds the action that is executing at the given time.
+     * finds the action that is executing at the given time, and calculates how far this action is executed.
+     * <p>
+     * Note that the eventual execution of this action on this time is not certain, as calls to {@link
+     * #insert(EntityAction, float)} and {@link #removeLast()} may change this.
      * @param currentTime a moment in time
-     * @return the action that should be taking place under normal circumstances. Note that this is not certain, as
-     * calls to {@link #insert(EntityAction, float)} and {@link #removeLast()} may change this.
+     * @return a pair with on left the action that should be taking place under normal circumstances, and on right the
+     * fraction of execution of this action. If no action has started, return the first action, with right == 0. If all
+     * actions are finished, return the last action with right == action.duration().
      */
-    public EntityAction getActionAt(float currentTime) {
+    public Pair<EntityAction, Float> getActionAt(float currentTime) {
         if (currentTime < firstActionStart) {
-            return peekFirst();
+            return new Pair<>(peekFirst(), 0f);
 
         } else if (currentTime > lastActionEnd) {
-            return peekLast();
+            EntityAction last = peekLast();
+            return new Pair<>(last, last.duration());
         }
 
         // a currently executing action...
@@ -214,11 +217,11 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
                 passedTime -= action.duration();
 
             } else {
-                return action;
+                return new Pair<>(action, passedTime);
             }
         }
 
-        throw new AssertionError("invalid state of lastActionEnd, missing " + passedTime);
+        throw new IllegalStateException("invalid values of firstActionStart and lastActionEnd, missing " + passedTime);
     }
 
     /**
@@ -239,7 +242,9 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      */
     public void addWait(float duration) {
         assert duration >= 0;
-        addLast(new ActionIdle(peekLast(), duration));
+        EntityAction last = peekLast();
+        float end = last.duration();
+        addLast(new ActionIdle(last.getEndPosition(), last.getPositionAfter(end), duration));
     }
 
     /**

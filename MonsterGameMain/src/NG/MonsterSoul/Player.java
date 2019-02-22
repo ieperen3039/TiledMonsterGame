@@ -12,11 +12,6 @@ public class Player implements Living {
     }
 
     @Override
-    public void update() {
-
-    }
-
-    @Override
     public void accept(Stimulus stimulus) {
         // popup?
     }
