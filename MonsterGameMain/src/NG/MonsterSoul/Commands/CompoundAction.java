@@ -1,5 +1,6 @@
-package NG.Entities.Actions;
+package NG.MonsterSoul.Commands;
 
+import NG.Entities.Actions.EntityAction;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 

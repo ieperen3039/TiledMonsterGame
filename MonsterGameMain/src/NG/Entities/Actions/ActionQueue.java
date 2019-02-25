@@ -2,6 +2,7 @@ package NG.Entities.Actions;
 
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
+import NG.MonsterSoul.Commands.CompoundAction;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 

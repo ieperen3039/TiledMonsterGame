@@ -3,7 +3,6 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ActionHandling.MouseReleaseListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
-import NG.ScreenOverlay.NGFonts;
 import NG.Tools.Logger;
 import org.joml.Vector2ic;
 
@@ -107,7 +106,7 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         design.draw(isPressed ? BUTTON_ACTIVE : BUTTON_INACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, true);
+        design.drawText(screenPosition, dimensions, text);
     }
 
     @Override

@@ -34,7 +34,7 @@ public class SModifiableIntegerPanel extends SPanel {
 
         this.valueDisplay = new STextArea(String.valueOf(initialValue), ADD_BUTTON_HEIGHT, VALUE_SIZE, false, NGFonts.TextType.REGULAR);
 
-        if (!name.isEmpty()) add(new STextArea(name, 0, true), new Vector2i(0, 0));
+        if (!name.isEmpty()) add(new STextArea(name, 0), new Vector2i(0, 0));
 
         add(new SButton("-100", () -> addToValue(-100), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(1, 0));
         add(new SButton("-10", () -> addToValue(-10), ADD_BUTTON_WIDTH, ADD_BUTTON_HEIGHT), new Vector2i(2, 0));

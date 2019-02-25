@@ -1,7 +1,5 @@
 package NG.MonsterSoul;
 
-import NG.Entities.Actions.Command;
-
 import java.util.function.Consumer;
 
 /**
@@ -11,9 +9,4 @@ import java.util.function.Consumer;
  */
 public interface Living extends Consumer<Stimulus> {
 
-    /**
-     * issue a command to this unit. The unit may ignore or decide to do other things.
-     * @param c the command considered by this unit
-     */
-    void command(Command c);
 }

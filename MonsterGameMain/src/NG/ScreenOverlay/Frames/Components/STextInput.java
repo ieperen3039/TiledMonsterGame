@@ -3,7 +3,6 @@ package NG.ScreenOverlay.Frames.Components;
 import NG.ActionHandling.KeyPressListener;
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
-import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2ic;
 
 import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.SELECTION;
@@ -13,13 +12,13 @@ import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.SELECTION;
  */
 public class STextInput extends STextArea implements KeyPressListener, MouseRelativeClickListener {
     public STextInput(int minHeight, boolean doGrowInWidth) {
-        super("", minHeight, doGrowInWidth);
+        super("", minHeight);
     }
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         design.draw(SELECTION, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, true);
+        design.drawText(screenPosition, dimensions, text);
     }
 
     @Override

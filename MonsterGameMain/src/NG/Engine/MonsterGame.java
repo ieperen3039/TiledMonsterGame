@@ -6,7 +6,7 @@ import NG.Camera.TycoonFixedCamera;
 import NG.DataStructures.Generic.Color4f;
 import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
-import NG.GameEvent.GameEventDiscreteQueue;
+import NG.GameEvent.GameEventQueueLoop;
 import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
@@ -82,14 +82,14 @@ public class MonsterGame implements ModLoader {
         frameManager = new SFrameManager();
 
         Camera pocketView = new TycoonFixedCamera(new Vector3f(), 10, 10);
-        EventLoop pocketGameLoop = new GameEventDiscreteQueue(settings.TARGET_TPS);
+        EventLoop pocketGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
         GameState pocketGameState = new StaticState();
         GameLights pocketLights = new SingleShadowMapLights();
         GameMap pocketMap = new TileMap(settings.CHUNK_SIZE);
         pocketGame = new SubGame(pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView);
 
         Camera worldView = new TycoonFixedCamera(new Vector3f(), 10, 10);
-        EventLoop worldGameLoop = new GameEventDiscreteQueue(settings.TARGET_TPS);
+        EventLoop worldGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
         GameState worldGameState = new StaticState();
         GameLights worldLights = new SingleShadowMapLights();
         GameMap worldMap = new TileMap(settings.CHUNK_SIZE);
@@ -115,6 +115,8 @@ public class MonsterGame implements ModLoader {
         frameManager.init(combinedGame);
         pocketGame.init();
         worldGame.init();
+
+        Logger.DEBUG.print("Initial world processing...");
 
         renderer.addHudItem(frameManager::draw);
 

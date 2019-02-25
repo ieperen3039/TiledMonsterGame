@@ -24,13 +24,13 @@ public class STextArea extends SComponent {
         this.textType = textType;
     }
 
-    public STextArea(String text, int minHeight, boolean doGrowInWidth) {
-        this(text, minHeight, 0, doGrowInWidth, NGFonts.TextType.REGULAR);
+    public STextArea(String text, int minHeight) {
+        this(text, minHeight, 0, true, NGFonts.TextType.REGULAR);
     }
 
     @Override
     public int minWidth() {
-        return Math.max(text.length() * LETTER_WIDTH, specMinWidth);
+        return Math.max(getText().length() * LETTER_WIDTH, specMinWidth);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class STextArea extends SComponent {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.drawText(screenPosition, dimensions, text, textType, true);
+        design.drawText(screenPosition, dimensions, getText(), textType, SFrameLookAndFeel.Alignment.LEFT);
     }
 
     public String getText() {
@@ -63,7 +63,8 @@ public class STextArea extends SComponent {
 
     @Override
     public String toString() {
-        int end = Math.min(text.length(), 30);
-        return this.getClass().getSimpleName() + " (" + text.substring(0, end) + ")";
+        String text = getText();
+        String substring = text.length() > 30 ? text.substring(0, 20) + "..." : text;
+        return this.getClass().getSimpleName() + " (" + substring + ")";
     }
 }

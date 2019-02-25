@@ -5,7 +5,6 @@ import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
 import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2ic;
 
-import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
 import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
 
 /**
@@ -45,8 +44,8 @@ public class SDragEdge extends SComponent implements MouseMoveListener {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.draw(false ? BUTTON_ACTIVE : BUTTON_INACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, "+", NGFonts.TextType.REGULAR, true);
+        design.draw(BUTTON_INACTIVE, screenPosition, dimensions);
+        design.drawText(screenPosition, dimensions, "+", NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.LEFT);
     }
 
     @Override

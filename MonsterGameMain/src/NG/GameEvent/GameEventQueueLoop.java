@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * external updates to the queue, like with user interaction.
  * @author Geert van Ieperen created on 14-2-2019.
  */
-public class GameEventDiscreteQueue extends EventLoop {
+public class GameEventQueueLoop extends EventLoop {
     private final PriorityQueue<Event> eventQueue; // requires explicit synchronisation
     private final Lock lockEventQueue;
     private Game game;
@@ -25,7 +25,7 @@ public class GameEventDiscreteQueue extends EventLoop {
      * creates a new, paused event loop
      * @param targetTps the target number of executions of {@link #update(float)} per second
      */
-    public GameEventDiscreteQueue(int targetTps) {
+    public GameEventQueueLoop(int targetTps) {
         super("Discrete Event Loop", targetTps);
         eventQueue = new PriorityQueue<>();
         lockEventQueue = new ReentrantLock();

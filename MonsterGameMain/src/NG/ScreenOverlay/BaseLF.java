@@ -94,7 +94,7 @@ public class BaseLF implements SFrameLookAndFeel {
 
     @Override
     public void drawText(
-            Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, boolean center
+            Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, Alignment align
     ) {
         int x = pos.x();
         int y = pos.y();
@@ -114,14 +114,27 @@ public class BaseLF implements SFrameLookAndFeel {
                 break;
         }
 
-        if (center) {
-            hud.text(x + (width / 2), y + (height / 2), actualSize,
-                    font, NanoVG.NVG_ALIGN_CENTER | NanoVG.NVG_ALIGN_MIDDLE, textColor, text
-            );
-        } else {
-            hud.text(x, y, actualSize,
-                    font, NanoVG.NVG_ALIGN_LEFT | NanoVG.NVG_ALIGN_TOP, textColor, text
-            );
+        switch (align) {
+            case LEFT:
+                hud.text(x, y + (height / 2), actualSize,
+                        font, NanoVG.NVG_ALIGN_LEFT | NanoVG.NVG_ALIGN_MIDDLE, textColor, text
+                );
+                break;
+            case CENTER:
+                hud.text(x + (width / 2), y + (height / 2), actualSize,
+                        font, NanoVG.NVG_ALIGN_CENTER | NanoVG.NVG_ALIGN_MIDDLE, textColor, text
+                );
+                break;
+            case CENTER_TOP:
+                hud.text(x + (width / 2), y, actualSize,
+                        font, NanoVG.NVG_ALIGN_CENTER | NanoVG.NVG_ALIGN_TOP, textColor, text
+                );
+                break;
+            case RIGHT:
+                hud.text(x + width, y + (height / 2), actualSize,
+                        font, NanoVG.NVG_ALIGN_RIGHT | NanoVG.NVG_ALIGN_MIDDLE, textColor, text
+                );
+                break;
         }
     }
 

@@ -9,9 +9,11 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.ScreenOverlay.Frames.Components.SFrame;
 import NG.ScreenOverlay.Frames.Components.SPanel;
 import NG.ScreenOverlay.Frames.Components.SToggleButton;
+import NG.ScreenOverlay.Menu.MainMenu;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
+import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -21,39 +23,28 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 4-2-2019.
  */
 public abstract class MonsterEntity implements Entity {
-    private final Game game;
+    protected final Game game;
     private final MonsterSoul controller;
     /** the current action that is executed */
     public ActionQueue currentActions;
-
-    /** the direction this entity is facing relative to the world */
-    private Pair<Vector3fc, Float> currentFace;
-    /** the direction this entity is rotating to relative to the world */
-    private Pair<Vector3fc, Float> targetFace;
 
     private boolean isDisposed;
     private SFrame frame;
     private final WalkCommandTool walkTool;
 
     public MonsterEntity(
-            Game game, Vector2i initialPosition, Vector3fc faceDirection, MonsterSoul controller
+            Game game, Vector2i initialPosition, MonsterSoul controller
     ) {
         this.game = game;
         this.controller = controller;
         this.currentActions = new ActionQueue(game, initialPosition);
-
-        float gametime = game.timer().getGametime();
-
-        Vector3f eyeDir = new Vector3f(faceDirection);
-        this.currentFace = new Pair<>(eyeDir, gametime);
-        this.targetFace = currentFace;
 
         boolean hasClaim = game.claims().createClaim(initialPosition, this);
 
         if (!hasClaim) {
             throw new IllegalPositionException("given coordinate " + Vectors.toString(initialPosition) + " is not free");
         }
-        walkTool = new WalkCommandTool(this.game, this);
+        walkTool = new WalkCommandTool(game, this);
     }
 
     @Override
@@ -63,17 +54,19 @@ public abstract class MonsterEntity implements Entity {
         float now = game.timer().getRendertime();
         currentActions.removeUntil(now);
         Pair<EntityAction, Float> action = currentActions.getActionAt(now);
+        EntityAction theAction = action.left;
 
         gl.pushMatrix();
         {
-            Vector3fc pos = action.left.getPositionAfter(action.right);
+            Vector3fc pos = theAction.getPositionAfter(action.right);
             gl.translate(pos);
 
             gl.translate(0, 0, 2);
             Toolbox.draw3DPointer(gl); // sims
             gl.translate(0, 0, -2);
 
-            drawDetail(gl, action.left, action.right / action.left.duration());
+            float progress = action.right / theAction.duration();
+            drawDetail(gl, theAction, progress);
         }
         gl.popMatrix();
     }
@@ -86,27 +79,6 @@ public abstract class MonsterEntity implements Entity {
      */
     protected abstract void drawDetail(SGL gl, EntityAction action, float actionProgress);
 
-    /**
-     * Returns the rotation of this entity on the given moment. This is influenced by {@link
-     * #setTargetRotation(Vector3fc)}
-     * @param currentTime the time of measurement.
-     * @return the rotation at the given moment
-     */
-    private Vector3f getFaceRotation(float currentTime) {
-        if (currentTime > targetFace.right) {
-            return new Vector3f(targetFace.left);
-        }
-
-        float base = currentFace.right;
-        float range = targetFace.right - base;
-        float fraction = (currentTime - base) / range;
-
-        Vector3fc current = currentFace.left;
-        Vector3fc target = targetFace.left;
-
-        return new Vector3f(current).lerp(target, fraction);
-    }
-
     public MonsterSoul getController() {
         return controller;
     }
@@ -117,23 +89,20 @@ public abstract class MonsterEntity implements Entity {
         return currentActions.getPositionAt(currentTime);
     }
 
-    protected void setTargetRotation(Vector3fc direction) {
-        float gametime = game.timer().getGametime();
-        Vector3fc curDir = getFaceRotation(gametime);
-        float angle = curDir.angle(direction);
-
-        currentFace = new Pair<>(getFaceRotation(gametime), gametime);
-        float rotationSpeedRS = 0.1f;
-        targetFace = new Pair<>(direction, gametime + angle / rotationSpeedRS);
-    }
+    protected abstract void setTargetRotation(Vector3fc direction);
 
     @Override
     public void onClick(int button) {
         if (frame != null) frame.dispose();
+        int buttonHeight = MainMenu.BUTTON_MIN_HEIGHT;
 
         frame = new SFrame("Entity " + this);
         frame.setMainPanel(SPanel.column(
-                new SToggleButton("Walk to...", 300, 80, (s) -> game.inputHandling().setMouseTool(s ? walkTool : null))
+                controller.getStatisticsPanel(buttonHeight),
+                SPanel.column(
+                        new SToggleButton("Walk to...", 400, buttonHeight, (s) -> game.inputHandling()
+                                .setMouseTool(s ? walkTool : null))
+                )
         ));
         game.gui().addFrame(frame);
     }
@@ -153,6 +122,13 @@ public abstract class MonsterEntity implements Entity {
 
     public EntityAction getLastAction() {
         return currentActions.peekLast();
+    }
+
+    public void addAction(EntityAction action, float gameTime) {
+        currentActions.addAfter(gameTime, action);
+        Vector2ic coord = action.getEndPosition();
+        Vector3f position = game.map().getPosition(coord);
+        lookAt(position);
     }
 
     private class IllegalPositionException extends IllegalArgumentException {

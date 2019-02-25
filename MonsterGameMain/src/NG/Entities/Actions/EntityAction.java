@@ -1,7 +1,7 @@
 package NG.Entities.Actions;
 
 import NG.GameEvent.Event;
-import NG.MonsterSoul.ActionFinishListener;
+import NG.MonsterSoul.Stimulus;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
@@ -9,7 +9,7 @@ import org.joml.Vector3fc;
  * An immutable action with a fixed start position, end position and duration.
  * @author Geert van Ieperen created on 12-2-2019.
  */
-public interface EntityAction {
+public interface EntityAction extends Stimulus {
 
     /**
      * calculates the position resulting from this action, the given time after the start of this action
@@ -26,6 +26,11 @@ public interface EntityAction {
      * @return the duration of the action in seconds.
      */
     float duration();
+
+    @Override
+    default float getMagnitude(Vector3fc position) {
+        return 1;
+    }
 
     /**
      * checks whether this action may follow the given action

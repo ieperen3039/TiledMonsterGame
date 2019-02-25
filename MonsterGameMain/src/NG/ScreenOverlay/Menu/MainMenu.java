@@ -20,7 +20,6 @@ import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.lang.Math;
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -97,7 +96,7 @@ public class MainMenu extends SFrame {
 
             // add a default entity
             Vector3i position = overworld.map().getCoordinate(cameraFocus);
-            MonsterSoul monsterSoul = new MonsterSoul((Path) null);
+            MonsterSoul monsterSoul = new MonsterSoul(Directory.souls.getFile("soul1.txt"));
             Entity cow = monsterSoul.getAsEntity(overworld, new Vector2i(position.x, position.y), Vectors.X);
             overworld.entities().addEntity(cow);
 
@@ -171,13 +170,13 @@ public class MainMenu extends SFrame {
             setVisible(true);
         }, 100);
 
-        SFrame aTester = new SFrame("pathfinder tester");
-        aTester.setMainPanel(SPanel.column(
-                new SToggleButton("A*", 100, BUTTON_MIN_HEIGHT, (s) -> {
-                    game.inputHandling().setMouseTool(s ? new AStartTestMouseTool(game) : null);
-                })
-        ));
-        aTester.pack();
+//        SFrame aTester = new SFrame("pathfinder tester");
+//        aTester.setMainPanel(SPanel.column(
+//                new SToggleButton("A*", 100, BUTTON_MIN_HEIGHT, (s) -> {
+//                    game.inputHandling().setMouseTool(s ? new AStartTestMouseTool(game) : null);
+//                })
+//        ));
+//        aTester.pack();
 
 //        toolBar.addButton("Pathfinders", () -> game.gui().addFrame(aTester), 200);
         toolBar.addButton("A* tester", () -> game.inputHandling().setMouseTool(new AStartTestMouseTool(game)), 200);
@@ -203,7 +202,6 @@ public class MainMenu extends SFrame {
                 game.map().setHighlights(first);
 
             } else {
-                Vector2ic size = game.map().getSize();
                 List<Vector2i> path = game.map().findPath(first, second, 1, 0.1f);
                 game.map().setHighlights(path.toArray(new Vector2ic[0]));
                 first = null;

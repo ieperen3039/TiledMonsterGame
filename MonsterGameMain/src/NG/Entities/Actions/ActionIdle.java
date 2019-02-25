@@ -77,4 +77,9 @@ public class ActionIdle implements EntityAction {
     public String toString() {
         return "Idle (" + duration + ")";
     }
+
+    @Override
+    public float getMagnitude(Vector3fc position) {
+        return 0;
+    }
 }

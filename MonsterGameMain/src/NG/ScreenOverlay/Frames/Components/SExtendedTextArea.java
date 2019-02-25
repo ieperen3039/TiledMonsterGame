@@ -25,7 +25,7 @@ public class SExtendedTextArea extends STextArea
     }
 
     public SExtendedTextArea(String text, int minHeight, boolean doGrowInWidth) {
-        super(text, minHeight, doGrowInWidth);
+        super(text, minHeight);
     }
 
     @Override

@@ -28,15 +28,19 @@ public interface SFrameLookAndFeel extends InitialisationMod {
      */
     void draw(UIComponent type, Vector2ic pos, Vector2ic dim);
 
+    default void drawText(Vector2ic pos, Vector2ic dim, String text) {
+        drawText(pos, dim, text, NGFonts.TextType.REGULAR, Alignment.CENTER);
+    }
+
     void drawText(
-            Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, boolean center
+            Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, Alignment align
     );
 
     /**
      * draw a button with an image on it. The image should be scaled uniformly to fit the button
-     * @param pos   upper left position of the button
-     * @param dim   dimension of the button
-     * @param icon  a path to the file containing the icon to display
+     * @param pos  upper left position of the button
+     * @param dim  dimension of the button
+     * @param icon a path to the file containing the icon to display
      * @throws IOException if the file could not be found or accessed
      */
     void drawIcon(Vector2ic pos, Vector2ic dim, Path icon) throws IOException;
@@ -46,6 +50,11 @@ public interface SFrameLookAndFeel extends InitialisationMod {
      * @param height height of the bar in pixels
      */
     void drawToolbar(int height);
+
+    enum Alignment {
+        LEFT, CENTER, RIGHT,
+        CENTER_TOP,
+    }
 
     enum UIComponent {
         /** a simple button, either held down or not held down */

@@ -2,6 +2,7 @@ package NG.Rendering.Shapes;
 
 import NG.Rendering.MatrixStack.Mesh;
 import NG.Tools.Logger;
+import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2f;
 import org.joml.Vector2fc;
@@ -50,7 +51,7 @@ public class ShapeParameters {
         List<String> lines = openMesh(path);
 
         for (String line : lines) {
-            String[] tokens = line.split("\\s+");
+            String[] tokens = Toolbox.SPACES.split(line);
             switch (tokens[0]) {
                 case "v":
                     // Geometric vertex

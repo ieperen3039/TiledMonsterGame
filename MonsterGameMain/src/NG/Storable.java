@@ -1,5 +1,6 @@
 package NG;
 
+import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector4f;
@@ -42,6 +43,12 @@ public interface Storable {
      * @throws IOException if an I/O error occurs while writing data to the stream.
      */
     static void writeToFile(DataOutput out, Storable object) throws IOException {
+        if (object instanceof Enum) {
+            Enum asEnum = (Enum) object;
+            out.writeUTF(asEnum.toString());
+            return;
+        }
+
         writeToFile(out, object, DataInput.class);
     }
 
@@ -57,6 +64,11 @@ public interface Storable {
      * @see #readFromFile(DataInput, Class, Object...)
      */
     static <T> T readFromFile(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
+        if (expected.isEnum()) {
+            String enumName = in.readUTF();
+            return Toolbox.findClosest(enumName, expected.getEnumConstants());
+        }
+
         return readFromFile(in, expected, in);
     }
 
@@ -98,42 +110,36 @@ public interface Storable {
      */
     static <T> T readFromFile(DataInput in, Class<T> expected, Object... arguments)
             throws IOException, ClassNotFoundException {
+        Class<? extends T> foundClass = readClass(in, expected);
 
-        Class<?> foundClass = readClass(in);
-        if (expected.isAssignableFrom(foundClass)) {
-
-            int nOfArguments = in.readInt();
-            if (nOfArguments == arguments.length) {
-                // collect classes of arguments
-                Class<?>[] argClasses = new Class<?>[nOfArguments];
-                try {
-                    for (int i = 0; i < nOfArguments; i++) {
-                        argClasses[i] = readClass(in);
-                    }
-
-                    // find and call constructor
-                    Class<? extends T> foundImpl = foundClass.asSubclass(expected);
-                    Constructor<? extends T> constructor = foundImpl.getDeclaredConstructor(argClasses);
-                    return constructor.newInstance(arguments);
-
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    throw new IOException("Could not access the constructor of type " + foundClass, ex);
-
-                } catch (InvocationTargetException ex) {
-                    String exception = ex.getCause().getClass().getSimpleName();
-                    throw new IOException("Initializer caused an " + exception, ex.getCause());
-
-                } catch (NoSuchMethodException ex) {
-                    throw new IOException(foundClass + " has no constructor that accepts as arguments: " + Arrays.toString(argClasses), ex);
-
-                } catch (ClassNotFoundException ex) {
-                    throw new IllegalArgumentException("The class of one of the arguments is unknown");
+        int nOfArguments = in.readInt();
+        if (nOfArguments == arguments.length) {
+            // collect classes of arguments
+            Class<?>[] argClasses = new Class<?>[nOfArguments];
+            try {
+                for (int i = 0; i < nOfArguments; i++) {
+                    argClasses[i] = readClass(in, Object.class);
                 }
-            } else {
-                throw new IllegalArgumentException("Invalid number of arguments given: " + arguments.length + " where " + nOfArguments + " are required");
+
+                // find and call constructor
+                Constructor<? extends T> constructor = foundClass.getDeclaredConstructor(argClasses);
+                return constructor.newInstance(arguments);
+
+            } catch (InstantiationException | IllegalAccessException ex) {
+                throw new IOException("Could not access the constructor of type " + foundClass, ex);
+
+            } catch (InvocationTargetException ex) {
+                String exception = ex.getCause().getClass().getSimpleName();
+                throw new IOException("Initializer caused an " + exception, ex.getCause());
+
+            } catch (NoSuchMethodException ex) {
+                throw new IOException(foundClass + " has no constructor that accepts as arguments: " + Arrays.toString(argClasses), ex);
+
+            } catch (ClassNotFoundException ex) {
+                throw new IllegalArgumentException("The class of one of the arguments is unknown");
             }
         } else {
-            throw new ClassCastException("Found " + foundClass + " which does not implement or override " + expected);
+            throw new IllegalArgumentException("Invalid number of arguments given: " + arguments.length + " where " + nOfArguments + " are required");
         }
     }
 
@@ -142,9 +148,19 @@ public interface Storable {
         out.writeUTF(name);
     }
 
-    static Class<?> readClass(DataInput in) throws IOException, ClassNotFoundException {
-        String className = in.readUTF(); // works assuming that the class is loaded (and why should it not be)
-        return Class.forName(className);
+    static <T> Class<? extends T> readClass(DataInput in, Class<T> expected)
+            throws IOException, ClassNotFoundException {
+        String className = in.readUTF();
+        Class<?> foundClass = Class.forName(className);
+
+        if (expected.isAssignableFrom(foundClass)) {
+            //noinspection unchecked
+            return (Class<? extends T>) foundClass;
+
+        } else {
+            throw new ClassCastException("Found " + foundClass + " which does not implement or override " + expected);
+        }
+
     }
 
     static void writeVector3f(DataOutput out, Vector3fc vec) throws IOException {

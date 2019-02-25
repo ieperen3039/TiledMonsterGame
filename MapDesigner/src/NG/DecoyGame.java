@@ -193,4 +193,5 @@ class DecoyGame implements Game {
         this.gameMap.cleanup();
         this.gameMap = newMap;
     }
+
 }

@@ -117,7 +117,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         renderWith(sceneShader, this::drawEntities, lights, window);
         renderWith(worldShader, world::draw, lights, window);
 
-        if (Settings.RENDER_CLAIMED_TILES) {
+        if (game.settings().RENDER_CLAIMED_TILES) {
             Collection<Vector2ic> claims = game.claims().getClaimedTiles();
 
             renderWith(sceneShader,

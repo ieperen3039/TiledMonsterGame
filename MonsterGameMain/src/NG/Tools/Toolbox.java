@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -31,9 +32,11 @@ public final class Toolbox {
     // universal random to be used everywhere
     public static final Random random = new Random();
     public static final double PHI = 1.6180339887498948;
+    public static final Pattern SPACES = Pattern.compile("\\s+");
+    public static final Pattern PERIOD_MATCHER = Pattern.compile("\\.");
 
     private static final float ROUNDINGERROR = 1E-6F;
-    public static final float CURSOR_SIZE = 0.05f;
+    private static final float CURSOR_SIZE = 0.05f;
 
     /**
      * Draws the x-axis (red), y-axis (green), z-axis (blue), and origin (yellow).

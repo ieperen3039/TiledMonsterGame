@@ -276,10 +276,10 @@ public class MapEditor {
 
         // size selection
         SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
-        sizeSelection.add(new STextArea("Size", 0, true), new Vector2i(0, 0));
+        sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
         SDropDown xSizeSelector = new SDropDown(game, 100, 60, 1, "16", "32", "64", "128");
         sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
-        sizeSelection.add(new STextArea("X", 0, true), new Vector2i(2, 0));
+        sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
         SDropDown ySizeSelector = new SDropDown(game, 100, 60, 1, "16", "32", "64", "128");
         sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
         mainPanel.add(sizeSelection, mpos.add(0, 1));
@@ -353,14 +353,7 @@ public class MapEditor {
 
     private class BlockModificationTool extends DefaultMouseTool {
         private SFrame window;
-        private STextArea heightDisp;
         private Integer selectionSize;
-        private STextArea selectionDisp;
-
-        public BlockModificationTool() {
-            heightDisp = new STextArea("-", BUTTON_MIN_HEIGHT, true);
-            selectionDisp = new STextArea("-", BUTTON_MIN_HEIGHT, true);
-        }
 
         @Override
         public void apply(Vector3fc position) {
@@ -385,16 +378,15 @@ public class MapEditor {
 
             selectionSize = 1;
             incSelect(x, y, 0);
-            heightDisp.setText("Height: " + blockMap.getHeightAt(x, y));
 
             SPanel mainPanel = SPanel.column(
                     SPanel.column(
-                            heightDisp,
+                            new SNamedValue("Height", () -> blockMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT), // supplier is expensive
                             new SButton("increase", () -> incTile(x, y, 1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                             new SButton("decrease", () -> incTile(x, y, -1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
                     ),
                     SPanel.column(
-                            selectionDisp,
+                            new SNamedValue("Selection range", () -> selectionSize, BUTTON_MIN_HEIGHT),
                             new SButton("increase", () -> incSelect(x, y, 1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                             new SButton("decrease", () -> incSelect(x, y, -1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
                     )
@@ -438,13 +430,10 @@ public class MapEditor {
                 int ty = tile.y();
                 blockMap.setTile(tx, ty, blockMap.getHeightAt(tx, ty) + change);
             }
-
-            heightDisp.setText("Height: " + blockMap.getHeightAt(x, y));
         }
 
         private void incSelect(int x, int y, int v) {
             selectionSize += v;
-            selectionDisp.setText("Selection range: " + selectionSize);
             blockMap.setHighlights(getCircleOf(x, y, selectionSize));
         }
 
@@ -473,10 +462,10 @@ public class MapEditor {
             MapTile.Instance tileData = tileMap.getTileData(x, y);
             SPanel elements = new SPanel(1, 5);
 
-            STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT, true);
+            STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT);
             elements.add(typeDist, new Vector2i(0, 0));
 
-            STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT, true);
+            STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT);
             elements.add(heightDisp, new Vector2i(0, 1));
 
             Runnable switchAction = () -> {

@@ -20,7 +20,8 @@ public enum Directory {
     mods(false, "Mods"),
     screenshots(false, "img", "screenshots"),
     mapTileModels(true, "res", "mapTiles"),
-    savedMaps(false, "Saved maps");
+    savedMaps(false, "Saved maps"),
+    souls(true, "res", "soul_jar");
 
     private static final String TARGET_WORKING_DIRECTORY = "MonsterGame";
     private static Path WORKING_DIRECTORY = null;

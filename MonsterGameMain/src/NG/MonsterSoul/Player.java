@@ -1,15 +1,9 @@
 package NG.MonsterSoul;
 
-import NG.Entities.Actions.Command;
-
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */
 public class Player implements Living {
-    @Override
-    public void command(Command command) {
-        // popup?
-    }
 
     @Override
     public void accept(Stimulus stimulus) {

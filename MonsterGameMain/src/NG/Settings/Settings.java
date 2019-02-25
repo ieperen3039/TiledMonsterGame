@@ -8,8 +8,11 @@ import NG.DataStructures.Generic.Color4f;
  */
 public class Settings {
     public static final String GAME_NAME = "MonsterGame"; // laaaaame
-    public static final boolean RENDER_CLAIMED_TILES = true;
+
+    // debug settings
     public boolean DEBUG = true;
+    public boolean DEBUG_SCREEN = true;
+    public boolean RENDER_CLAIMED_TILES = false;
 
     // game engine settings
     public int TARGET_TPS = 30;
@@ -39,5 +42,4 @@ public class Settings {
     public static int TOOL_BAR_HEIGHT = 70;
 
     public Color4f AMBIENT_LIGHT = new Color4f(1, 1, 1, 0.2f);
-    public boolean DEBUG_SCREEN = true;
 }

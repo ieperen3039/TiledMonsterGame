@@ -46,16 +46,16 @@ public class NewGameFrame extends SFrame implements Runnable {
         mainPanel.add(new SFiller(100, 100), new Vector2i(COLS - 1, ROWS - 1));
 
         // message
-        notice = new STextArea("Select which mods to load", 50, false);
+        notice = new STextArea("Select which mods to load", 50);
         mainPanel.add(notice, mpos.add(0, 1));
 
         // size selection
         SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
-        sizeSelection.add(new STextArea("Size", 0, true), new Vector2i(0, 0));
+        sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
         this.game = game;
         xSizeSelector = new SDropDown(this.game, 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
-        sizeSelection.add(new STextArea("X", 0, true), new Vector2i(2, 0));
+        sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
         ySizeSelector = new SDropDown(this.game, 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
         mainPanel.add(sizeSelection, mpos.add(0, 1));

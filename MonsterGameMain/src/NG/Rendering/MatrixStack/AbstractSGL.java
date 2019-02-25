@@ -5,7 +5,8 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * An implementation of the Shader GL object, which handles a model matrix and stack operations. No shader-specific
@@ -14,11 +15,11 @@ import java.util.Stack;
  */
 public abstract class AbstractSGL implements SGL {
     protected static final Painter LOCK = new Painter();
-    private Stack<Matrix4f> matrixStack;
+    private Deque<Matrix4f> matrixStack;
     private Matrix4f modelMatrix;
 
     public AbstractSGL() {
-        matrixStack = new Stack<>();
+        matrixStack = new ArrayDeque<>();
         modelMatrix = new Matrix4f();
     }
 

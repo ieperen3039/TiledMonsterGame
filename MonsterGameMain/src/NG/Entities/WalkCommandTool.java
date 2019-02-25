@@ -2,8 +2,8 @@ package NG.Entities;
 
 import NG.ActionHandling.MouseTools.DefaultMouseTool;
 import NG.Engine.Game;
-import NG.Entities.Actions.Command;
-import NG.Entities.Actions.CommandWalk;
+import NG.MonsterSoul.Commands.Command;
+import NG.MonsterSoul.Commands.CommandWalk;
 import NG.MonsterSoul.MonsterSoul;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;
@@ -25,6 +25,6 @@ public class WalkCommandTool extends DefaultMouseTool {
     public void apply(Vector3fc position) {
         Vector3i coord = game.map().getCoordinate(position);
         Command command = new CommandWalk(controller, new Vector2i(coord.x, coord.y));
-        controller.command(command);
+        controller.accept(command);
     }
 }

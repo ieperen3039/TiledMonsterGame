@@ -1,6 +1,4 @@
-package NG.MonsterSoul;
-
-import NG.Entities.Actions.EntityAction;
+package NG.Entities.Actions;
 
 /**
  * @author Geert van Ieperen created on 22-2-2019.

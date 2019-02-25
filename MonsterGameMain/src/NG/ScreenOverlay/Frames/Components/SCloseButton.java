@@ -52,7 +52,7 @@ public class SCloseButton extends SComponent implements MouseReleaseListener, Mo
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic scPos) {
         design.draw(state ? BUTTON_ACTIVE : BUTTON_INACTIVE, scPos, dimensions);
-        design.drawText(scPos, dimensions, "X", NGFonts.TextType.ACCENT, true);
+        design.drawText(scPos, dimensions, "X", NGFonts.TextType.ACCENT, SFrameLookAndFeel.Alignment.LEFT);
 
 //        try {
 //            design.drawIconButton(position, dimensions, null, state);

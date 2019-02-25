@@ -2,7 +2,6 @@ package NG.ScreenOverlay.Frames.Components;
 
 import NG.ActionHandling.MouseRelativeClickListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
-import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2ic;
 
 import java.util.ArrayList;
@@ -94,7 +93,7 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         if (dimensions.x == 0 || dimensions.y == 0) return;
         design.draw(state ? BUTTON_ACTIVE : BUTTON_INACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, true);
+        design.drawText(screenPosition, dimensions, text);
     }
 
     @Override

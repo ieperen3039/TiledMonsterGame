@@ -48,7 +48,7 @@ public class SFrame extends SContainer {
         if (manipulable) {
             upperBar = makeUpperBar(title);
         } else {
-            titleComponent = new STextArea(title, FRAME_TITLE_BAR_SIZE, true);
+            titleComponent = new STextArea(title, FRAME_TITLE_BAR_SIZE);
             upperBar = SContainer.singleton(titleComponent);
         }
         upperBar.setParent(this);

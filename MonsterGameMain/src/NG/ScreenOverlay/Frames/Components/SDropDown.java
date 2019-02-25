@@ -156,7 +156,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         design.draw(isOpened ? DROP_DOWN_HEAD_OPEN : DROP_DOWN_HEAD_CLOSED, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, values[current], NGFonts.TextType.REGULAR, true);
+        design.drawText(screenPosition, dimensions, values[current], NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.LEFT);
         // modal dialogs are drawn separately
     }
 
