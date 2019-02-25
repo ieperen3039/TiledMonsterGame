@@ -21,6 +21,33 @@ public class PairList<L, R> extends AbstractList<Pair<L, R>> {
         rightList = new ArrayList<>();
     }
 
+    /**
+     * creates a pairlist by copying the pairs of the given list.
+     * @param pairs a list of pairs.
+     */
+    public PairList(List<Pair<L, R>> pairs) {
+        this(pairs.size());
+        addAll(pairs);
+    }
+
+    /**
+     * creates a pairlist whose elements are represented by the given lists. Changes in this object write through the
+     * given lists, and changes in the given lists write through this pairlist. Unbalance between the size of the two
+     * lists due to external interference is not checked.
+     * @param leftElements  elements that are used as left elements
+     * @param rightElements elements that are used as right elements
+     */
+    public PairList(List<L> leftElements, List<R> rightElements) {
+        if (leftElements.size() != rightElements.size()) {
+            throw new IllegalArgumentException(
+                    "Given arrays are of unequal size: " + leftElements.size() + ", " + rightElements.size()
+            );
+        }
+
+        this.leftList = leftElements;
+        this.rightList = rightElements;
+    }
+
     /** adds the given pair to the end of the list */
     public boolean add(Pair<L, R> p) {
         return add(p.left, p.right);
