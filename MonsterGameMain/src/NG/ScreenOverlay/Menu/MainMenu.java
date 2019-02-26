@@ -7,10 +7,14 @@ import NG.Engine.Game;
 import NG.Engine.ModLoader;
 import NG.Entities.Cube;
 import NG.Entities.Entity;
+import NG.Entities.MonsterEntity;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
+import NG.MonsterSoul.Commands.Command;
+import NG.MonsterSoul.Commands.CommandWalk;
 import NG.MonsterSoul.MonsterSoul;
+import NG.MonsterSoul.Player;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.ScreenOverlay.SToolBar;
 import NG.Tools.Directory;
@@ -69,7 +73,8 @@ public class MainMenu extends SFrame {
         setMainPanel(buttons);
     }
 
-    private void testWorld() {
+    public void testWorld() {
+        Logger.DEBUG.printFrom(2, "Start test-world");
         try {
             int xSize = overworld.settings().CHUNK_SIZE;
             int ySize = overworld.settings().CHUNK_SIZE;
@@ -91,14 +96,19 @@ public class MainMenu extends SFrame {
             // set camera to middle of map
             Vector3f cameraFocus = centerCamera(overworld);
 
-//            float eventTime = overworld.timer().getGametime() + 2;
-//            overworld.addEvent(new Event.DebugEvent(overworld, eventTime, 1));
+            /* --- DEBUG SECTION --- */
 
             // add a default entity
             Vector3i position = overworld.map().getCoordinate(cameraFocus);
             MonsterSoul monsterSoul = new MonsterSoul(Directory.souls.getFile("soul1.txt"));
-            Entity cow = monsterSoul.getAsEntity(overworld, new Vector2i(position.x, position.y), Vectors.X);
+            MonsterEntity cow = monsterSoul.getAsEntity(overworld, new Vector2i(position.x, position.y), Vectors.X);
             overworld.entities().addEntity(cow);
+
+            // give it some command
+            Command command = new CommandWalk(new Player(), monsterSoul, new Vector2i(position.x + 2, position.y + 2));
+            monsterSoul.accept(command);
+
+            /* --- END SECTION --- */
 
             // add lights
             overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 1f), Color4f.WHITE, 0.2f);

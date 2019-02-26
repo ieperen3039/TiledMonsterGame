@@ -56,11 +56,6 @@ public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
         public Type getType() {
             return UNKNOWN;
         }
-
-        @Override
-        public float getMagnitude(Vector3fc position) {
-            return 0;
-        }
     }
 
     /**

@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 public enum Emotion {
     /** Shallow emotions */
-    EXCITEMENT, CURIOUSNESS, FRIGHT,
+    EXCITEMENT, CURIOUSNESS, FRIGHT, // focus,
 
     /** Hidden emotions */
     ANGER, PATIENCE,

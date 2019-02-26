@@ -33,7 +33,7 @@ public class PriorityCollection<T> extends AbstractCollection<T> {
      */
     public PriorityCollection(Class<T> newType, int maximumSize) {
         //noinspection unchecked
-        this.elements = (T[]) Array.newInstance(newType.getComponentType(), maximumSize);
+        this.elements = (T[]) Array.newInstance(newType, maximumSize);
         this.values = new float[maximumSize];
     }
 

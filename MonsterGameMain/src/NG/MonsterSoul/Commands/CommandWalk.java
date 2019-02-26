@@ -17,9 +17,9 @@ import java.util.List;
 public class CommandWalk extends Command {
     private final Vector2ic target;
 
-    public CommandWalk(Living source, Vector2ic target) {
-        super(source);
-        this.target = new Vector2i(target);
+    public CommandWalk(Living source, Living target, Vector2ic position) {
+        super(source, target);
+        this.target = new Vector2i(position);
     }
 
     @Override

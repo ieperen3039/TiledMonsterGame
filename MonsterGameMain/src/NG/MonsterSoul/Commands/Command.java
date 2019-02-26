@@ -4,36 +4,32 @@ import NG.DataStructures.Direction;
 import NG.Engine.Game;
 import NG.Entities.Actions.EntityAction;
 import NG.Entities.MonsterEntity;
-import NG.MonsterSoul.EnvironmentalStimulus;
-import NG.MonsterSoul.Living;
-import NG.MonsterSoul.Stimulus;
-import NG.MonsterSoul.Type;
+import NG.MonsterSoul.*;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * a command issued to a MonsterSoul
  */
 public abstract class Command implements Stimulus {
-    private final Living source;
+    private final Living source; // may be equal
+    private final Living target;
 
-    protected Command(Living source) {
+    protected Command(Living source, Living target) {
         this.source = source;
+        this.target = target;
     }
 
     @Override
-    public Type getType() {
-        return new CType();
-    }
-
-    @Override
-    public float getMagnitude(Vector3fc position) {
-        return 0;
+    public CType getType() {
+        // the type of an arbitrary command is not directed to the callee
+        return new CType(false);
     }
 
     /**
@@ -47,15 +43,42 @@ public abstract class Command implements Stimulus {
      * transforms the command into an action that is executed by the given entity and starts on the given moment in
      * time.
      * @param game      the current game instance
-     * @param preceding
-     * @return an action such that it corresponds exactly to this command
+     * @param preceding the last action executed
+     * @return a list {@code l} of actions, sorted on first action first, such that they corresponds exactly to this command, and it holds that {@code
+     * l.get(0).}{@link EntityAction#follows(EntityAction) follows}{@code (preceding)}
      */
     public abstract List<EntityAction> toActions(Game game, EntityAction preceding);
 
+    public Living getTarget() {
+        return target;
+    }
+
+    /**
+     * a type of command, which can be translated back into a command of this type
+     */
     public static class CType implements Type {
+        private final boolean isTarget;
+
+        public CType(boolean isTarget) {
+            this.isTarget = isTarget;
+        }
+
+        // compatibility to Storable
+        private CType(DataInput in) throws IOException {
+            isTarget = in.readBoolean();
+        }
+
+        public boolean isTarget() {
+            return isTarget;
+        }
+
+        public CType invert() {
+            return new CType(!isTarget);
+        }
+
         @Override
         public void writeToFile(DataOutput out) throws IOException {
-
+            out.writeBoolean(isTarget);
         }
 
         public Command generateNew(MonsterEntity entity, Stimulus cause) {
@@ -69,7 +92,8 @@ public abstract class Command implements Stimulus {
                 direction.sub(positional.getPosition());
                 Vector2ic target = Direction.get(direction.x, direction.y).toVector();
 
-                return new CommandWalk(entity.getController(), target);
+                MonsterSoul self = entity.getController();
+                return new CommandWalk(self, self, target);
             }
 
             return null;
@@ -77,16 +101,22 @@ public abstract class Command implements Stimulus {
 
         @Override
         public boolean equals(Object obj) {
-            return obj.getClass().equals(getClass()); // class equality
+            if (obj instanceof CType) {
+                CType other = (CType) obj;
+                return Objects.equals(this.getClass(), other.getClass()) &&
+                        this.isTarget == other.isTarget;
+            }
+            return false;
         }
 
         @Override
         public int hashCode() {
-            return getClass().hashCode();
+            int h = getClass().hashCode();
+            return isTarget ? h : ~h;
         }
 
         public static CType valueOf(String string) {
-            return new CType();
+            return new CType(false);
         }
     }
 }

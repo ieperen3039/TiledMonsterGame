@@ -30,7 +30,7 @@ public class Associator<T extends Storable> implements Storable {
     /** maximum number of elements in the work-memory */
     private int attentionSize; // magic number 7 +/- 2 (or 4 +/- 1)
     /** maps two stimuli to a number of other stimuli, each with an intensity value */
-    private Map<StimulusPair, PriorityCollection<T>> memory;
+    private Map<StimulusPair, PriorityCollection<T>> memory; // TODO pairlist
     /** the stimuli that happened recently with the respective dominance */
     private PriorityCollection<Type> attention;
 

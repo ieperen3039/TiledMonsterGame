@@ -33,9 +33,10 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
     private static final int ATTENTION_SIZE = 6;
     private static final int ASSOCIATION_SIZE = 10;
     private static final int ACTION_CONSIDERATION_SIZE = 4;
+    private static final int PREDICITON_BRANCH_SIZE = 4;
 
     private final Emotion.Collection emotions;
-    private final Associator<Type> associationEngine;
+    private final Associator<Type> associationStimuli;
     private final Associator<CType> actionAssociator;
 
     /* TODO serialize */
@@ -46,6 +47,9 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
 
     protected Game game;
     private MonsterEntity entity;
+
+    private Living commandFocus = this;
+    private float focusRelevance = 0;
 
     private ArrayDeque<Command> plan;
     private volatile Command executionTarget;
@@ -62,7 +66,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
     public MonsterSoul(File description) throws IOException {
         this.plan = new ArrayDeque<>();
         this.actionEventLock = new Semaphore(1, false);
-        this.associationEngine = new Associator<>(Type.class, ATTENTION_SIZE, ASSOCIATION_SIZE);
+        this.associationStimuli = new Associator<>(Type.class, ATTENTION_SIZE, ASSOCIATION_SIZE);
         this.actionAssociator = new Associator<>(CType.class, ATTENTION_SIZE, 4);
 
         this.importance = new HashMap<>();
@@ -176,66 +180,129 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
     @Override
     public void accept(Stimulus stimulus) {
         update();
+
         Type sType = stimulus.getType();
+        float realMagnitude = stimulus.getMagnitude(entity.getPosition());
+
+        Logger.DEBUG.print(stimulus, realMagnitude);
+        if (realMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;
 
         float mainJudge = importance.computeIfAbsent(sType, s ->
                 // initial judgement of importance depends on emotional influence
-                1 - (1 / (1 + Math.abs(stimulusEffects.get(s).calculateValue(emotionValue))))
+                stimulusEffects.containsKey(s) ?
+                        1 - (0.9f / (1 + Math.abs(stimulusEffects.get(s).calculateValue(emotionValue)))) :
+                        0.1f
         );
-        float realMagnitude = stimulus.getMagnitude(entity.getPosition());
         float relativeMagnitude = realMagnitude * realMagnitude * mainJudge;
-        if (relativeMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;
 
         Emotion.Translation sEffect = stimulusEffects.get(sType);
-        sEffect.addTo(emotions, relativeMagnitude);
+        sEffect.addTo(emotions, realMagnitude);
+
+        // process stimulus in associations
+        associationStimuli.record(sType, realMagnitude);
+        associationStimuli.notice(sType, realMagnitude);
+
+        focusRelevance *= (1 - (1f / emotions.get(Emotion.EXCITEMENT)));
+        if (stimulus instanceof Command) {
+            Command asCommand = (Command) stimulus;
+            actionAssociator.record((CType) sType, relativeMagnitude);
+
+            if (relativeMagnitude > focusRelevance) {
+                commandFocus = asCommand.getTarget();
+                focusRelevance = relativeMagnitude;
+            }
+
+            if (commandFocus == asCommand.getTarget()) {
+                actionAssociator.notice(sType, relativeMagnitude);
+            }
+
+        } else {
+            actionAssociator.notice(sType, relativeMagnitude);
+        }
+
+        Logger.DEBUG.print(commandFocus, relativeMagnitude);
+        if (relativeMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;
 
         // calculate projected gain for a number of target actions
-        PairList<CType, Float> actions =
-                actionAssociator.query(sType, ACTION_CONSIDERATION_SIZE).asPairList();
+        CType best = getDesiredAction(stimulus, relativeMagnitude);
+        // if all actions dont pass the MINIMUM_NOTICE_MAGNITUDE
+        if (best == null) return;
 
-        float max = 0;
+        // otherwise, execute action
+        Command command = best.generateNew(entity, stimulus);
+        acceptCommand(command);
+    }
+
+    /**
+     * Evaluates the current state of mind and returns the command it wants to execute
+     * @param stimulus          the stimulus that caused the consideration
+     * @param relativeMagnitude relative magnitude of the stimulus
+     * @return the type of command to execute.
+     */
+    private CType getDesiredAction(Stimulus stimulus, float relativeMagnitude) {
+        PairList<CType, Float> actions =
+                actionAssociator.query(stimulus.getType(), ACTION_CONSIDERATION_SIZE).asPairList();
+
+        float max = MINIMUM_NOTICE_MAGNITUDE;
         CType best = null;
 
         if (stimulus instanceof Command) {
             // consider executing the command
-            best = (CType) stimulus.getType();
-            Emotion.Translation moveEffect = stimulusEffects.get(best);
-            max = moveEffect.calculateValue(emotionValue) * relativeMagnitude;
+            Command command = (Command) stimulus;
+            Living target = command.getTarget();
+            if (target != null && target.equals(this)) { // may be redundant
+
+                best = (CType) stimulus.getType();
+                max = getGainOf(best, relativeMagnitude);
+            }
         }
 
         for (int i = 0; i < actions.size(); i++) {
             CType moveType = actions.left(i);
             float relevance = actions.right(i);
 
-            Emotion.Translation moveEffect = stimulusEffects.get(moveType);
-            float value = moveEffect.calculateValue(emotionValue) * relevance;
+            float value = getGainOf(moveType, relevance);
             if (value > max) {
                 max = value;
                 best = moveType;
             }
         }
 
-        assert best != null;
-        Command command = best.generateNew(entity, stimulus);
-        acceptCommand(command);
-
-        associationEngine.record(sType, realMagnitude);
-        associationEngine.notice(sType, realMagnitude);
-
-        if (sType instanceof CType) {
-            actionAssociator.record((CType) sType, relativeMagnitude);
-        }
-        actionAssociator.notice(sType, relativeMagnitude);
+        return best;
     }
 
     /**
-     * issue a command to this unit. The unit may ignore or decide to do other things.
+     * Calculate an 'emotion gain' value for the given stimulus, how 'good' it is. It uses associations to predict
+     * future effects. Can be used to evaluate a plan, by supplying a CType object.
+     * @param stimulusType the stimulus to evaluate
+     * @param relevance    how relevant the stimulus is, e.g. how likely it is to appear.
+     * @return a value that
+     */
+    public float getGainOf(Type stimulusType, float relevance) {
+        Emotion.Translation moveEffect = stimulusEffects.get(stimulusType);
+        float moveGain = moveEffect.calculateValue(emotionValue);
+
+        PairList<Type, Float> prediction =
+                associationStimuli.query(stimulusType, PREDICITON_BRANCH_SIZE).asPairList();
+
+        for (int i = 0; i < prediction.size(); i++) {
+            Type elt = prediction.left(i);
+            float eltRel = prediction.right(i);
+            // may recurse here, on condition of relevance
+            Emotion.Translation eltEffect = stimulusEffects.get(elt);
+            moveGain += eltEffect.calculateValue(emotionValue) * eltRel;
+        }
+
+        moveGain *= relevance;
+
+        return moveGain;
+    }
+
+    /**
+     * Execute the given command
      * @param c the command considered by this unit
      */
     private void acceptCommand(Command c) {
-        // consider to reject
-//        if (emotions.get(Emotion.RESPECT) > 100) ;
-
         plan.offer(c);
 
         if (executionTarget == null) {
@@ -247,7 +314,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
     @Override
     public void writeToFile(DataOutput out) throws IOException {
         emotions.writeToFile(out);
-        associationEngine.writeToFile(out);
+        associationStimuli.writeToFile(out);
         actionAssociator.writeToFile(out);
     }
 
@@ -259,7 +326,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
         emotionValue = new EnumMap<>(Emotion.class);
 
         emotions = new Emotion.Collection(in);
-        associationEngine = new Associator<>(in, Type.class);
+        associationStimuli = new Associator<>(in, Type.class);
         actionAssociator = new Associator<>(in, Command.CType.class);
     }
 

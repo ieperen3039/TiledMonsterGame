@@ -35,7 +35,7 @@ public interface EntityAction extends Stimulus {
     /**
      * checks whether this action may follow the given action
      * @param first an action that happened before this action
-     * @return if first happens strictly before this, and the position where first ends is the same as the position
+     * @return if the position where first ends is the same as the position
      * where this starts.
      * @throws IllegalArgumentException if first is null
      */

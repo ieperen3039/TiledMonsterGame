@@ -5,6 +5,7 @@ import NG.Engine.Game;
 import NG.MonsterSoul.Commands.Command;
 import NG.MonsterSoul.Commands.CommandWalk;
 import NG.MonsterSoul.MonsterSoul;
+import NG.MonsterSoul.Player;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;
@@ -24,7 +25,7 @@ public class WalkCommandTool extends DefaultMouseTool {
     @Override
     public void apply(Vector3fc position) {
         Vector3i coord = game.map().getCoordinate(position);
-        Command command = new CommandWalk(controller, new Vector2i(coord.x, coord.y));
+        Command command = new CommandWalk(new Player(), controller, new Vector2i(coord.x, coord.y));
         controller.accept(command);
     }
 }
