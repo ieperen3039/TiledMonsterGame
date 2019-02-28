@@ -7,6 +7,7 @@ import NG.GameMap.GameMap;
 import NG.Rendering.RenderLoop;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Settings.Settings;
+import NG.Tools.DecoyGame;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Matrix4f;
@@ -27,8 +28,8 @@ public class RayTraceTest {
 
     @Before
     public void setUp() throws Exception {
-        game = new TestGame(new RenderLoop(60), new Settings());
-        game.window().init(game);
+        game = new DecoyGame("Test", new RenderLoop(60), new Settings());
+        game.window();
         game.camera().init(game);
         instance = game.map();
         instance.init(game);

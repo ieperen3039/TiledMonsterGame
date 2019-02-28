@@ -75,8 +75,8 @@ public class MonsterGame implements ModLoader {
 
         // these are not GameAspects, and thus the init() rule does not apply.
         settings = new Settings();
-
         window = new GLFWWindow(Settings.GAME_NAME, settings, true);
+
         renderer = new RenderLoop(settings.TARGET_FPS);
         inputHandler = new MouseToolCallbacks();
         frameManager = new SFrameManager();
@@ -109,7 +109,6 @@ public class MonsterGame implements ModLoader {
     public void init() throws Exception {
         Logger.DEBUG.print("Initializing...");
         // init all fields
-        window.init(combinedGame);
         renderer.init(combinedGame);
         inputHandler.init(combinedGame);
         frameManager.init(combinedGame);

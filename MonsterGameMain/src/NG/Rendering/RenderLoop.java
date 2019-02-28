@@ -44,10 +44,10 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     /**
      * creates a new, paused gameloop
-     * @param targetTps the target frames per second
+     * @param targetFPS the target frames per second
      */
-    public RenderLoop(int targetTps) {
-        super("Renderloop", targetTps);
+    public RenderLoop(int targetFPS) {
+        super("Renderloop", targetFPS);
         overlay = new ScreenOverlay();
     }
 

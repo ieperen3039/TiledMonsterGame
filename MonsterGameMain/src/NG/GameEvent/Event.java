@@ -17,10 +17,16 @@ import static NG.MonsterSoul.BaseStimulus.UNKNOWN;
 public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
     private final float eventTime;
 
+    /**
+     * @param eventTime the time of activation in seconds
+     */
     public Event(float eventTime) {
         this.eventTime = eventTime;
     }
 
+    /**
+     * @return the time of activation in seconds
+     */
     public float getTime() {
         return eventTime;
     }

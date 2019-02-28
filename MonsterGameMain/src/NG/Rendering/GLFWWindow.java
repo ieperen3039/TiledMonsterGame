@@ -1,8 +1,6 @@
 package NG.Rendering;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
-import NG.Engine.GameAspect;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -33,7 +31,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
  * <p>
  * A window which initializes GLFW and manages it.
  */
-public class GLFWWindow implements GameAspect {
+public class GLFWWindow {
     private static final boolean GL_DEBUG_MESSAGES = false;
 
     private final String title;
@@ -41,6 +39,7 @@ public class GLFWWindow implements GameAspect {
     // buffers for mouse input
     private final DoubleBuffer mousePosX;
     private final DoubleBuffer mousePosY;
+    private final Settings settings;
 
     private long primaryMonitor;
     private long window;
@@ -48,18 +47,18 @@ public class GLFWWindow implements GameAspect {
     private int height;
     private boolean fullScreen = false;
     private boolean mouseIsCaptured;
-    private Game game;
     private List<Runnable> sizeChangeListeners = new ArrayList<>();
     private Thread glContext;
 
     public GLFWWindow(String title, Settings settings, boolean resizable) {
         this.title = title;
         this.resizable = resizable;
+        this.settings = settings;
 
         this.mousePosX = BufferUtils.createDoubleBuffer(1);
         this.mousePosY = BufferUtils.createDoubleBuffer(1);
 
-        // Setup error callback, print to System.err
+        // Setup error callback, print to Logger.ERROR
         GLFWErrorCallback.createPrint(Logger.ERROR.getPrintStream()).set();
 
         // Initialize GLFW
@@ -121,10 +120,6 @@ public class GLFWWindow implements GameAspect {
         glCullFace(GL_FRONT);
 
         Toolbox.checkGLError();
-    }
-
-    public void init(Game game) {
-        this.game = game;
     }
 
     /**
@@ -319,14 +314,6 @@ public class GLFWWindow implements GameAspect {
     }
 
     /**
-     * Get whether vSync is currently enabled.
-     * @return Whether vSync is enabled.
-     */
-    public boolean vSyncEnabled() {
-        return game.settings().V_SYNC;
-    }
-
-    /**
      * Clear the window.
      */
     public void clear() {
@@ -360,9 +347,9 @@ public class GLFWWindow implements GameAspect {
 
     public void toggleFullScreen() {
         if (fullScreen) {
-            setWindowed(game.settings());
+            setWindowed(settings);
         } else {
-            setFullScreen(game.settings());
+            setFullScreen(settings);
         }
     }
 
