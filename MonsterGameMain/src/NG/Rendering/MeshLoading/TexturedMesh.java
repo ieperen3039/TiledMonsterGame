@@ -1,6 +1,7 @@
-package NG.Rendering.Shapes;
+package NG.Rendering.MeshLoading;
 
 import NG.Rendering.Shaders.ShaderProgram;
+import NG.Rendering.Shapes.AbstractMesh;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector2fc;
@@ -20,10 +21,10 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
  */
 public class TexturedMesh extends AbstractMesh {
 
-    public TexturedMesh(ShapeParameters model) {
+    public TexturedMesh(MeshFile model) {
         if (!model.isTextured()) Logger.ASSERT.print("Created a textured mesh of an untextured object");
 
-        int nrOfVertices = model.vertices.size();
+        int nrOfVertices = model.getVertices().size();
 
         // prepare empty normals
         List<Vector3f> normals = new ArrayList<>(nrOfVertices);
@@ -36,12 +37,12 @@ public class TexturedMesh extends AbstractMesh {
         int attributeSize = 0;
 
         // combination of triplets of face indices
-        int[] indices = new int[model.faces.size() * 3];
+        int[] indices = new int[model.getFaces().size() * 3];
         int faceAttributeIndex = 0;
 
         // collect all non-overlapping texture coordinates
         // average all normals
-        for (Face face : model.faces) {
+        for (Face face : model.getFaces()) {
             assert face.size() == 3;
 
             for (int i = 0; i < 3; i++) {
@@ -49,9 +50,9 @@ public class TexturedMesh extends AbstractMesh {
                 int texInd = face.tex[i];
                 int normInd = face.norm[i];
 
-                Vector3fc vertex = model.vertices.get(posInd);
-                Vector3fc normal = model.normals.get(normInd);
-                Vector2fc coord = model.textureCoords.get(texInd);
+                Vector3fc vertex = model.getVertices().get(posInd);
+                Vector3fc normal = model.getNormals().get(normInd);
+                Vector2fc coord = model.getTextureCoords().get(texInd);
 
                 // add all normal vectors of a given position vector
                 Vector3f accNormal = normals.get(posInd).add(normal);

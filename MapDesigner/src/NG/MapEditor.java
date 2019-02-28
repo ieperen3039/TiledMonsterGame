@@ -48,7 +48,7 @@ public class MapEditor {
         renderloop = new RenderLoop(settings.TARGET_FPS) {
             @Override // override exception handler
             protected void exceptionHandler(Exception ex) {
-                display(ex);
+                Toolbox.display(ex);
             }
         };
 
@@ -76,8 +76,6 @@ public class MapEditor {
     public void init() throws Exception {
         game.init();
 
-        renderloop.addHudItem(game.gui()::draw);
-
         GLFWWindow window = game.window();
         GUIManager gui = game.gui();
         SToolBar files = getFileToolbar(window);
@@ -90,7 +88,6 @@ public class MapEditor {
 
     private SToolBar getFileToolbar(GLFWWindow window) {
         SToolBar mainMenu = new SToolBar(game, false);
-        window.addSizeChangeListener(() -> mainMenu.setSize(window.getWidth(), 0));
 
         mainMenu.addButton("Generate Random", this::createNew, 250);
         mainMenu.addButton("Transform Tiles", this::generateTileMap, 250);
@@ -120,7 +117,7 @@ public class MapEditor {
                 game.inputHandling().setMouseTool(tileCycleTool);
 
             } catch (Exception ex) {
-                display(ex);
+                Toolbox.display(ex);
                 game.gameMap = blockMap;
             }
         }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
@@ -193,7 +190,7 @@ public class MapEditor {
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
                 } catch (IOException e) {
-                    display(e);
+                    Toolbox.display(e);
                 }
 
                 Logger.removeOnlinePrint(saveNotify);
@@ -201,58 +198,42 @@ public class MapEditor {
         }
     }
 
-    private static void display(Exception e) {
-        Logger.ERROR.print(e);
-        String[] title = {
-                "I Blame Menno", "You're holding it wrong", "This title is at random",
-                "You can't blame me for this", "Something Happened", "Oops!", "stuff's broke lol",
-                "Look at what you have done", "Please ignore the following message", "Congratulations!"
-        };
-        int rng = Toolbox.random.nextInt(title.length);
-
-        JOptionPane.showMessageDialog(null, e.getClass() + ":\n" + e.getMessage(), title[rng], JOptionPane.ERROR_MESSAGE);
-    }
-
     private void loadMap() {
-        SwingUtilities.invokeLater(() -> {
-            int result = showDialog(loadMapDialog);
+        int result = showDialog(loadMapDialog);
 
-            if (result != JFileChooser.APPROVE_OPTION) return;
-            File selectedFile = loadMapDialog.getSelectedFile();
+        if (result != JFileChooser.APPROVE_OPTION) return;
+        File selectedFile = loadMapDialog.getSelectedFile();
 
-            if (selectedFile != null) {
-                Supplier<String> loadNotify = () -> "Loading file " + selectedFile + "...";
-                Logger.printOnline(loadNotify);
+        if (selectedFile != null) {
+            Supplier<String> loadNotify = () -> "Loading file " + selectedFile + "...";
+            Logger.printOnline(loadNotify);
 
-                try {
-                    game.loadMap(selectedFile);
+            try {
+                game.loadMap(selectedFile);
 
-                    GameMap newMap = game.map();
+                GameMap newMap = game.map();
 
-                    if (newMap instanceof BlockMap) {
-                        blockMap = (BlockMap) newMap;
-                    }
-
-                    Vector2ic size = newMap.getSize();
-                    setCameraToMiddle(size.x(), size.y());
-                    Logger.INFO.print("Loaded map of size " + Vectors.toString(size));
-
-                } catch (IOException e) {
-                    display(e);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (newMap instanceof BlockMap) {
+                    blockMap = (BlockMap) newMap;
                 }
 
-                Logger.removeOnlinePrint(loadNotify);
+                Vector2ic size = newMap.getSize();
+                setCameraToMiddle(size.x(), size.y());
+                Logger.INFO.print("Loaded map of size " + Vectors.toString(size));
+
+            } catch (Exception e) {
+                Toolbox.display(e);
             }
-        });
+
+            Logger.removeOnlinePrint(loadNotify);
+        }
     }
 
     private int showDialog(JFileChooser dialog) {
         game.window().setMinimized(true);
         renderloop.pause();
 
-        int result = dialog.showSaveDialog(null);
+        int result = dialog.showDialog(null, null);
 
         renderloop.unPause();
         game.window().setMinimized(false);
@@ -332,8 +313,8 @@ public class MapEditor {
     public void start() {
         game.window().open();
         renderloop.run();
-        game.inputHandling().cleanup();
         game.window().close();
+        game.inputHandling().cleanup();
     }
 
     public static void main(String[] args) {
@@ -344,7 +325,7 @@ public class MapEditor {
             Logger.INFO.print("Editor has stopped.");
 
         } catch (Exception ex) {
-            display(ex);
+            Toolbox.display(ex);
         }
     }
 

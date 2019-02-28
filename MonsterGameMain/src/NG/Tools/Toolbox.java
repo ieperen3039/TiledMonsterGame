@@ -11,6 +11,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.lwjgl.BufferUtils;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
@@ -37,6 +38,13 @@ public final class Toolbox {
 
     private static final float ROUNDINGERROR = 1E-6F;
     private static final float CURSOR_SIZE = 0.05f;
+
+    // a set of possible titles for error messages
+    private static final String[] ERROR_MESSAGES = new String[]{
+            "I Blame Menno", "You're holding it wrong", "This title is at random",
+            "You can't blame me for this", "Something Happened", "Oops!", "stuff's broke lol",
+            "Look at what you have done", "Please ignore the following message", "Congratulations!"
+    };
 
     /**
      * Draws the x-axis (red), y-axis (green), z-axis (blue), and origin (yellow).
@@ -382,5 +390,12 @@ public final class Toolbox {
 
     public static float interpolate(float a, float b, float fraction) {
         return (Math.abs(b - a) * fraction) + a;
+    }
+
+    public static void display(Exception e) {
+        Logger.ERROR.print(e);
+        int rng = random.nextInt(ERROR_MESSAGES.length);
+
+        JOptionPane.showMessageDialog(null, e.getClass() + ":\n" + e.getMessage(), ERROR_MESSAGES[rng], JOptionPane.ERROR_MESSAGE);
     }
 }

@@ -1,7 +1,9 @@
 package NG.Rendering.Shapes;
 
-import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.MeshLoading.Mesh;
+import NG.Rendering.MeshLoading.MeshFile;
+import NG.Rendering.MeshLoading.TexturedMesh;
 import NG.Rendering.Shapes.Primitives.Plane;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -32,9 +34,9 @@ public enum GenericShapes implements Mesh, Shape {
     GenericShapes(String... path) {
         Path asPath = Directory.meshes.getPath(path);
 
-        ShapeParameters pars;
+        MeshFile pars;
         try {
-            pars = new ShapeParameters(asPath, path[path.length - 1]);
+            pars = MeshFile.loadFile(asPath);
 
         } catch (IOException ex) {
             Logger.ERROR.print(ex);
@@ -48,7 +50,7 @@ public enum GenericShapes implements Mesh, Shape {
         if (pars.isTextured()) {
             mesh = new TexturedMesh(pars);
         } else {
-            mesh = new FlatMesh(pars.vertices, pars.normals, pars.faces);
+            mesh = new FlatMesh(pars.getVertices(), pars.getNormals(), pars.getFaces());
         }
     }
 

@@ -1,8 +1,8 @@
 package NG.GameMap;
 
 import NG.DataStructures.Direction;
-import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shaders.TextureShader;
 import NG.Rendering.Shapes.MeshShape;

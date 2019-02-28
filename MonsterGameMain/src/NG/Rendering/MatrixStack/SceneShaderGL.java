@@ -2,6 +2,7 @@ package NG.Rendering.MatrixStack;
 
 import NG.Camera.Camera;
 import NG.Entities.Entity;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.Shaders.SceneShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import org.joml.*;

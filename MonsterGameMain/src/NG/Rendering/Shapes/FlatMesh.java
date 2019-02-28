@@ -1,8 +1,8 @@
 package NG.Rendering.Shapes;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;

@@ -1,6 +1,7 @@
 package NG.Rendering.Shapes;
 
-import NG.Rendering.MatrixStack.Mesh;
+import NG.Rendering.MeshLoading.Mesh;
+import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shapes.Primitives.Plane;
 import NG.Rendering.Shapes.Primitives.Quad;
 import NG.Rendering.Shapes.Primitives.Triangle;
@@ -24,11 +25,11 @@ public class BasicShape implements Shape {
     private List<Vector3fc> vertices;
     private List<Plane> triangles;
 
-    public BasicShape(ShapeParameters model) {
-        this(model.vertices, model.normals, model.faces);
+    public BasicShape(MeshFile model) {
+        this(model.getVertices(), model.getNormals(), model.getFaces());
 
         Logger.DEBUG.printf("loaded model %s: [Faces: %d, vertices: %d]",
-                model.name, model.faces.size(), model.vertices.size());
+                model.getName(), model.getFaces().size(), model.getVertices().size());
     }
 
     /**
@@ -41,62 +42,6 @@ public class BasicShape implements Shape {
         this.triangles = faces.stream()
                 .map(f -> BasicShape.toPlanes(f, vertices, normals))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * loads a mesh, splitting it into sections of size containersize.
-     * @param containerSize size of splitted container, which is applied in 3 dimensions
-     * @param scale         possible scaling factor upon loading
-     * @param path          path to the .obj file without extension
-     * @param debugName     a name to identify this shape
-     * @return a list of shapes, each being roughly containersize in size
-     */
-    public static List<Shape> loadSplit(float containerSize, float scale, Path path, String debugName)
-            throws IOException {
-        ShapeParameters file = new ShapeParameters(Vectors.O, scale, path, debugName);
-        HashMap<Vector3i, CustomShape> world = new HashMap<>();
-
-        for (Mesh.Face f : file.faces) {
-            Vector3fc[] edges = new Vector3fc[f.size()];
-            Vector3f minimum = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
-            for (int i = 0; i < f.size(); i++) {
-                Vector3fc p = file.vertices.get(f.vert[i]);
-                minimum.min(p);
-                edges[i] = p;
-            }
-
-            int x = (int) (minimum.x / containerSize);
-            int y = (int) (minimum.y / containerSize);
-            int z = (int) (minimum.z / containerSize);
-
-            Vector3i key = new Vector3i(x, y, z);
-            CustomShape container = world.computeIfAbsent(key, k ->
-                    new CustomShape(new Vector3f(x + 0.5f, y + 0.5f, -Float.MAX_VALUE))
-            );
-
-            Vector3f normal = new Vector3f();
-            for (int ind : f.norm) {
-                if (ind < 0) continue;
-                normal.add(file.normals.get(ind));
-            }
-            if (Vectors.isScalable(normal)) {
-                normal.normalize();
-            } else {
-                normal = null;
-                Logger.DEBUG.printSpamless(file.name, file.name + " has at least one not-computed normal");
-            }
-
-            container.addPlane(normal, edges);
-        }
-
-        Collection<CustomShape> containers = world.values();
-        Logger.DEBUG.print("Loaded model " + file.name + " in " + containers.size() + " parts");
-
-        List<Shape> shapes = new ArrayList<>();
-        for (CustomShape frame : containers) {
-            shapes.add(frame.wrapToShape());
-        }
-        return shapes;
     }
 
     @Override
@@ -117,6 +62,61 @@ public class BasicShape implements Shape {
     @Override
     public Stream<? extends Vector3fc> getPointStream() {
         return vertices.stream();
+    }
+
+    /**
+     * loads a mesh, splitting it into sections of size containersize.
+     * @param containerSize size of splitted container, which is applied in 3 dimensions
+     * @param scale         possible scaling factor upon loading
+     * @param path          path to the .obj file without extension
+     * @return a list of shapes, each being roughly containersize in size
+     */
+    public static List<Shape> loadSplit(float containerSize, float scale, Path path)
+            throws IOException {
+        MeshFile file = MeshFile.loadFile(path, Vectors.O, scale);
+        HashMap<Vector3i, CustomShape> world = new HashMap<>();
+
+        for (Mesh.Face f : file.getFaces()) {
+            Vector3fc[] edges = new Vector3fc[f.size()];
+            Vector3f minimum = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+            for (int i = 0; i < f.size(); i++) {
+                Vector3fc p = file.getVertices().get(f.vert[i]);
+                minimum.min(p);
+                edges[i] = p;
+            }
+
+            int x = (int) (minimum.x / containerSize);
+            int y = (int) (minimum.y / containerSize);
+            int z = (int) (minimum.z / containerSize);
+
+            Vector3i key = new Vector3i(x, y, z);
+            CustomShape container = world.computeIfAbsent(key, k ->
+                    new CustomShape(new Vector3f(x + 0.5f, y + 0.5f, -Float.MAX_VALUE))
+            );
+
+            Vector3f normal = new Vector3f();
+            for (int ind : f.norm) {
+                if (ind < 0) continue;
+                normal.add(file.getNormals().get(ind));
+            }
+            if (Vectors.isScalable(normal)) {
+                normal.normalize();
+            } else {
+                normal = null;
+                Logger.DEBUG.printSpamless(file.getName(), file.getName() + " has at least one not-computed normal");
+            }
+
+            container.addPlane(normal, edges);
+        }
+
+        Collection<CustomShape> containers = world.values();
+        Logger.DEBUG.print("Loaded model " + file.getName() + " in " + containers.size() + " parts");
+
+        List<Shape> shapes = new ArrayList<>();
+        for (CustomShape frame : containers) {
+            shapes.add(frame.wrapToShape());
+        }
+        return shapes;
     }
 
     /**

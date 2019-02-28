@@ -1,4 +1,6 @@
-package NG.Rendering.MatrixStack;
+package NG.Rendering.MeshLoading;
+
+import NG.Rendering.MatrixStack.SGL;
 
 import java.util.Arrays;
 

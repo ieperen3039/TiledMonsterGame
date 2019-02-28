@@ -8,6 +8,7 @@ import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventQueueLoop;
 import NG.GameMap.ClaimRegistry;
+import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.GameState.GameLights;
@@ -85,7 +86,7 @@ public class MonsterGame implements ModLoader {
         EventLoop pocketGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
         GameState pocketGameState = new StaticState();
         GameLights pocketLights = new SingleShadowMapLights();
-        GameMap pocketMap = new TileMap(settings.CHUNK_SIZE);
+        GameMap pocketMap = new EmptyMap();
         pocketGame = new SubGame(pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView);
 
         Camera worldView = new TycoonFixedCamera(new Vector3f(), 10, 10);
@@ -95,7 +96,7 @@ public class MonsterGame implements ModLoader {
         GameMap worldMap = new TileMap(settings.CHUNK_SIZE);
         worldGame = new SubGame(worldGameLoop, worldGameState, worldMap, worldLights, worldView);
 
-        combinedGame = new Game.Multiplexer(0, pocketGame, worldGame);
+        combinedGame = new Game.Multiplexer(0, worldGame, pocketGame);
         currentIsPocket = true;
 
         // load mods
@@ -121,7 +122,7 @@ public class MonsterGame implements ModLoader {
 
         permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
 
-        mainMenu = new MainMenu(pocketGame, worldGame, this, renderer::stopLoop);
+        mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
         frameManager.addFrame(mainMenu);
 
         inputHandler.addKeyPressListener(k -> {

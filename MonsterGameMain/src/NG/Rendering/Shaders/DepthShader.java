@@ -5,7 +5,7 @@ import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.Rendering.DirectionalLight;
 import NG.Rendering.MatrixStack.AbstractSGL;
-import NG.Rendering.MatrixStack.Mesh;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Tools.Directory;
 import org.joml.Matrix4f;
 import org.joml.Vector3fc;

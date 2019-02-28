@@ -1,7 +1,7 @@
 package NG.Rendering.Shapes;
 
-import NG.Rendering.MatrixStack.Mesh;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Tools.Toolbox;
 import org.lwjgl.system.MemoryUtil;
 

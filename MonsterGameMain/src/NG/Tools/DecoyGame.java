@@ -72,6 +72,7 @@ public class DecoyGame implements Game {
         claimRegistry.init(this);
         renderloop.init(this);
 
+        renderloop.addHudItem(gui()::draw);
         gameLights.addDirectionalLight(new Vector3f(1, -1.5f, 2), Color4f.WHITE, 0.5f);
     }
 

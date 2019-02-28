@@ -1,6 +1,6 @@
 package NG.Rendering.Shapes;
 
-import NG.Rendering.MatrixStack.Mesh;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;

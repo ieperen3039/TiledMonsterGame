@@ -4,6 +4,7 @@ import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.Rendering.DirectionalLight;
+import NG.Rendering.FixedPointLight;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.PointLight;
 import NG.Rendering.Shaders.DepthShader;
@@ -141,8 +142,8 @@ public class SingleShadowMapLights implements GameLights {
             pointLightReadLock.lock();
             try {
                 for (PointLight light : lights) {
-                    Vector3fc mPosition = gl.getPosition(light.position);
-                    lightShader.setPointLight(mPosition, light.color, light.intensity);
+                    Vector3fc mPosition = gl.getPosition(light.getPosition());
+                    lightShader.setPointLight(mPosition, light.getColor(), light.getIntensity());
                 }
             } finally {
                 pointLightReadLock.unlock();
@@ -163,9 +164,9 @@ public class SingleShadowMapLights implements GameLights {
         try {
             out.writeInt(lights.size());
             for (PointLight light : lights) {
-                Storable.writeVector3f(out, light.position);
-                Storable.writeVector4f(out, light.color.toVector4f());
-                out.writeFloat(light.intensity);
+                Storable.writeVector3f(out, light.getPosition());
+                Storable.writeVector4f(out, light.getColor().toVector4f());
+                out.writeFloat(light.getIntensity());
             }
 
         } finally {
@@ -183,7 +184,7 @@ public class SingleShadowMapLights implements GameLights {
                 Vector4f col = Storable.readVector4f(in);
                 float intensity = in.readFloat();
 
-                PointLight light = new PointLight(pos, new Color4f(col), intensity);
+                PointLight light = new FixedPointLight(pos, new Color4f(col), intensity);
                 lights.add(light);
             }
 

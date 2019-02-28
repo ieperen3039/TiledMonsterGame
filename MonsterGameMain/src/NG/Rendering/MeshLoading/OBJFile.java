@@ -1,9 +1,8 @@
-package NG.Rendering.Shapes;
+package NG.Rendering.MeshLoading;
 
-import NG.Rendering.MatrixStack.Mesh;
+import NG.DataStructures.Generic.Color4f;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
-import NG.Tools.Vectors;
 import org.joml.Vector2f;
 import org.joml.Vector2fc;
 import org.joml.Vector3f;
@@ -13,27 +12,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author Geert van Ieperen created on 6-5-2018.
  */
-public class ShapeParameters {
-    public final List<Vector2fc> textureCoords;
-    public final List<Vector3fc> vertices;
-    public final List<Vector3fc> normals;
-    public final List<Mesh.Face> faces;
-    public final String name;
-
-    /**
-     * calls {@link #ShapeParameters(Vector3fc, float, Path, String)} on the file of the given path without offset and
-     * scale of 1
-     * @param path the path to the file to read
-     * @param name the generic name of this shape
-     */
-    public ShapeParameters(Path path, String name) throws IOException {
-        this(Vectors.O, 1f, path, name);
-    }
+public class OBJFile implements MeshFile {
+    private final List<Vector2fc> textureCoords;
+    private final List<Vector3fc> vertices;
+    private final List<Vector3fc> normals;
+    private final List<Mesh.Face> faces;
+    private final String name;
 
     /**
      * @param offSet offset of the gravity middle in this mesh as the negative of the vector to the gravity middle
@@ -41,14 +31,14 @@ public class ShapeParameters {
      * @param path   the path to the object
      * @param name   debug name of the shape
      */
-    public ShapeParameters(Vector3fc offSet, float scale, Path path, String name) throws IOException {
+    public OBJFile(Vector3fc offSet, float scale, Path path, String name) throws IOException {
         this.name = name;
         vertices = new ArrayList<>();
         normals = new ArrayList<>();
         textureCoords = new ArrayList<>();
         faces = new ArrayList<>();
 
-        List<String> lines = openMesh(path);
+        List<String> lines = Files.readAllLines(path);
 
         for (String line : lines) {
             String[] tokens = Toolbox.SPACES.split(line);
@@ -92,11 +82,38 @@ public class ShapeParameters {
         }
     }
 
-    public boolean isTextured() {
-        return !textureCoords.isEmpty();
+    @Override
+    public List<Vector2fc> getTextureCoords() {
+        return textureCoords;
     }
 
-    private static List<String> openMesh(Path path) throws IOException {
-        return Files.readAllLines(path);
+    @Override
+    public List<Vector3fc> getVertices() {
+        return vertices;
+    }
+
+    @Override
+    public List<Vector3fc> getNormals() {
+        return normals;
+    }
+
+    @Override
+    public List<Color4f> getColors() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Mesh.Face> getFaces() {
+        return faces;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "WaveFront file " + getName();
     }
 }

@@ -123,8 +123,10 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             renderWith(sceneShader,
                     (gl) -> claims.forEach(c -> {
                         Vector3f tr = world.getPosition(c);
+                        tr.add(0, 0, 0.01f);
+
                         gl.translate(tr);
-                        Toolbox.drawAxisFrame(gl);
+                        gl.render(GenericShapes.QUAD, null);
                         gl.translate(tr.negate());
                     }),
                     lights,

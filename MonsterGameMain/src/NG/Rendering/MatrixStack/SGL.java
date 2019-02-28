@@ -1,6 +1,7 @@
 package NG.Rendering.MatrixStack;
 
 import NG.Entities.Entity;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.Shaders.ShaderProgram;
 
 /**
