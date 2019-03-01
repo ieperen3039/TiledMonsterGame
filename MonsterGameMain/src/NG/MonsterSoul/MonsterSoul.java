@@ -124,7 +124,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
             Logger.DEBUG.print("Completed " + previous);
         }
 
-        game.claims().dropClaim(previous.getStartPosition(), entity);
+        game.claims().dropClaim(previous.getStartCoordinate(), entity);
         actionEventLock.release();
 
         while (!executionSequence.hasNext()) {// iterate to next plan.
@@ -140,7 +140,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
 
         float now = game.timer().getGametime();
         EntityAction next = executionSequence.next();
-        boolean hasClaim = game.claims().createClaim(next.getEndPosition(), entity);
+        boolean hasClaim = game.claims().createClaim(next.getEndCoordinate(), entity);
 
         if (hasClaim) {
             boolean success = schedule(next, now);

@@ -245,7 +245,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
         assert duration >= 0;
         EntityAction last = peekLast();
         float end = last.duration();
-        addLast(new ActionIdle(last.getEndPosition(), last.getPositionAfter(end), duration));
+        addLast(new ActionIdle(last.getEndCoordinate(), last.getPositionAfter(end), duration));
     }
 
     /**

@@ -1,5 +1,7 @@
 package NG.GameEvent.Actions;
 
+import NG.Animations.Animation;
+import NG.Animations.BodyModel;
 import NG.Engine.Game;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
@@ -20,7 +22,7 @@ public class ActionIdle implements EntityAction {
      * @param duration  the duration of staying idle.
      */
     public ActionIdle(Game game, EntityAction preceding, float duration) {
-        this(game, preceding.getEndPosition(), duration);
+        this(game, preceding.getEndCoordinate(), duration);
     }
 
     /**
@@ -54,17 +56,17 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
-    public Vector3fc getPositionAfter(float passedTime) {
+    public Vector3fc getPositionAfter(float timeSinceStart) {
         return position;
     }
 
     @Override
-    public Vector2ic getStartPosition() {
+    public Vector2ic getStartCoordinate() {
         return coordinate;
     }
 
     @Override
-    public Vector2ic getEndPosition() {
+    public Vector2ic getEndCoordinate() {
         return coordinate;
     }
 
@@ -81,5 +83,10 @@ public class ActionIdle implements EntityAction {
     @Override
     public float getMagnitude(Vector3fc position) {
         return 0;
+    }
+
+    @Override
+    public Animation getAnimation(BodyModel model) {
+        return null; // TODO map animations
     }
 }

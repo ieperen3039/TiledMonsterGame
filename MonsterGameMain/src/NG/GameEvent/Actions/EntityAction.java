@@ -1,8 +1,13 @@
 package NG.GameEvent.Actions;
 
+import NG.Animations.Animation;
+import NG.Animations.BodyModel;
 import NG.GameEvent.Event;
 import NG.MonsterSoul.Stimulus;
+import NG.Tools.Vectors;
+import org.joml.Quaternionf;
 import org.joml.Vector2ic;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**
@@ -13,14 +18,16 @@ public interface EntityAction extends Stimulus {
 
     /**
      * calculates the position resulting from this action, the given time after the start of this action
-     * @param passedTime the time of measurement in seconds
+     * @param timeSinceStart the time since the start of this animation in seconds
      * @return the position at the given moment in time as described by this action.
      */
-    Vector3fc getPositionAfter(float passedTime);
+    Vector3fc getPositionAfter(float timeSinceStart);
 
-    Vector2ic getStartPosition();
+    Vector2ic getStartCoordinate();
 
-    Vector2ic getEndPosition();
+    Vector2ic getEndCoordinate();
+
+    Animation getAnimation(BodyModel model);
 
     /**
      * @return the duration of the action in seconds.
@@ -44,11 +51,18 @@ public interface EntityAction extends Stimulus {
             throw new IllegalArgumentException("Action is compared to null");
         }
 
-        Vector2ic firstEndPos = first.getEndPosition();
-        return firstEndPos.equals(getStartPosition());
+        Vector2ic firstEndPos = first.getEndCoordinate();
+        return firstEndPos.equals(getStartCoordinate());
     }
 
     default Event getFinishEvent(float startTime, ActionFinishListener listener) {
         return new Event.Anonymous(startTime + duration(), () -> listener.onActionFinish(this));
+    }
+
+    default Quaternionf getRotation(float timeSinceStart) {
+        Vector3fc startPosition = getPositionAfter(0);
+        Vector3fc endPosition = getPositionAfter(duration());
+        Vector3f relativeMovement = new Vector3f(startPosition).sub(endPosition);
+        return Vectors.getPitchYawRotation(relativeMovement);
     }
 }

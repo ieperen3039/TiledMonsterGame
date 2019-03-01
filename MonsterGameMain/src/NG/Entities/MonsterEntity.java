@@ -1,5 +1,7 @@
 package NG.Entities;
 
+import NG.Animations.AnimationBone;
+import NG.Animations.BoneElement;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.GameEvent.Actions.ActionQueue;
@@ -16,6 +18,9 @@ import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * the generic class of all {@code MonsterEntity} entities. This is only the physical representation of the entity, NOT
@@ -120,13 +125,18 @@ public abstract class MonsterEntity implements Entity {
         return isDisposed;
     }
 
+    @Override
+    public Map<AnimationBone, BoneElement> getBoneMapping() {
+        return Collections.emptyMap();
+    }
+
     public EntityAction getLastAction() {
         return currentActions.peekLast();
     }
 
     public void addAction(EntityAction action, float gameTime) {
         currentActions.addAfter(gameTime, action);
-        Vector2ic coord = action.getEndPosition();
+        Vector2ic coord = action.getEndCoordinate();
         Vector3f position = game.map().getPosition(coord);
         lookAt(position);
     }

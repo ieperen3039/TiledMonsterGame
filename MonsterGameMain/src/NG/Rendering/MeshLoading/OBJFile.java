@@ -69,7 +69,7 @@ public class OBJFile implements MeshFile {
                     ));
                     break;
                 case "f":
-                    faces.add(new Mesh.Face(tokens));
+                    faces.add(Mesh.Face.parseOBJ(tokens));
                     break;
                 default:
                     // Ignore other lines
@@ -108,12 +108,7 @@ public class OBJFile implements MeshFile {
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
     public String toString() {
-        return "WaveFront file " + getName();
+        return "WaveFront file " + name;
     }
 }

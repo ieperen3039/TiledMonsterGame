@@ -15,11 +15,11 @@ import java.util.List;
 public interface MeshFile {
 
     default boolean isTextured() {
-        return getFaces().isEmpty();
+        return !getTextureCoords().isEmpty();
     }
 
     default boolean isColored() {
-        return getColors().isEmpty();
+        return !getColors().isEmpty();
     }
 
     List<Vector2fc> getTextureCoords();
@@ -31,8 +31,6 @@ public interface MeshFile {
     List<Color4f> getColors();
 
     List<Mesh.Face> getFaces();
-
-    String getName();
 
     static MeshFile loadFile(Path file) throws IOException {
         return loadFile(file, Vectors.O, 1f);
@@ -47,6 +45,8 @@ public interface MeshFile {
         switch (extension) {
             case ".obj":
                 return new OBJFile(offset, scaling, file, fileName);
+            case ".ply":
+                return new PLYFile(offset, scaling, file, fileName);
             default:
                 throw new UnsupportedMeshFileException(fileName);
         }

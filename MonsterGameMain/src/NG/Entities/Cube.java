@@ -1,10 +1,15 @@
 package NG.Entities;
 
+import NG.Animations.AnimationBone;
+import NG.Animations.BoneElement;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.AABBf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Geert van Ieperen created on 9-1-2019.
@@ -58,6 +63,11 @@ public class Cube implements Entity {
     @Override
     public AABBf hitbox() {
         return new AABBf(-1, -1, -1, 1, 1, 1);
+    }
+
+    @Override
+    public Map<AnimationBone, BoneElement> getBoneMapping() {
+        return Collections.emptyMap();
     }
 
     @Override

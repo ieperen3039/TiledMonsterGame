@@ -1,8 +1,14 @@
 package NG.Rendering.MeshLoading;
 
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.Shapes.Primitives.Plane;
+import NG.Rendering.Shapes.Primitives.Quad;
+import NG.Rendering.Shapes.Primitives.Triangle;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Geert van Ieperen created on 17-11-2017.
@@ -27,14 +33,17 @@ public interface Mesh {
         public final int[] norm;
         /** indices of the texture coordinates of this face */
         public final int[] tex;
+        /** indices of the colors of this face */
+        public final int[] col;
 
-        public Face(int[] vertexIndices, int[] normalIndices, int[] textureIndices) {
+        public Face(int[] vertexIndices, int[] normalIndices, int[] textureIndices, int[] colors) {
             int size = vertexIndices.length;
             assert (normalIndices.length == size && textureIndices.length == size);
 
             this.vert = vertexIndices;
             this.norm = normalIndices;
             this.tex = textureIndices;
+            this.col = colors;
         }
 
         /**
@@ -47,8 +56,8 @@ public interface Mesh {
 
             this.vert = vertices;
             this.norm = normals;
-            this.tex = new int[size];
-            for (int i = 0; i < size; i++) tex[i] = -1;
+            this.tex = null;
+            this.col = null;
         }
 
         /**
@@ -60,33 +69,75 @@ public interface Mesh {
             Arrays.fill(norm, nInd);
         }
 
+        public int size() {
+            return vert.length; // vertices is always non-null
+        }
+
         /**
          * parses a face object from a given line of an OBJ formatted file
          * @param tokens a line of a face, split on whitespaces, with 'f' on position 0.
          */
-        public Face(String[] tokens) {
+        public static Face parseOBJ(String[] tokens) {
             assert tokens[0].equals("f") : Arrays.toString(tokens);
 
-            int nOfEdges = tokens.length - 1;
-            vert = new int[nOfEdges];
-            norm = new int[nOfEdges];
-            tex = new int[nOfEdges];
+            int nrOfVerices = tokens.length - 1;
 
-            for (int i = 0; i < nOfEdges; i++) {
+            int[] vert = new int[nrOfVerices];
+            int[] norm = new int[nrOfVerices];
+            int[] tex = new int[nrOfVerices];
+
+            for (int i = 0; i < nrOfVerices; i++) {
                 String[] indices = tokens[i + 1].split("/");
                 vert[i] = readSymbol(indices[0]);
                 tex[i] = readSymbol(indices[1]);
                 norm[i] = readSymbol(indices[2]);
             }
+
+            return new Face(vert, norm, tex, null);
         }
 
-        public int size() {
-            return vert.length;
+        /**
+         * parses a face object from a given line of an PLY formatted file
+         * @param tokens a line describing the index of a face
+         */
+        public static Face parsePLY(String[] tokens) {
+            int nrOfVertices = tokens.length - 1;
+            int[] indices = new int[nrOfVertices];
+
+            for (int i = 0; i < nrOfVertices; i++) {
+                indices[i] = Integer.parseInt(tokens[i + 1]);
+            }
+
+            return new Face(indices, indices, indices, indices);
         }
 
-        private int readSymbol(String index) {
+        private static int readSymbol(String index) {
             return index.isEmpty() ? -1 : Integer.parseInt(index) - 1;
         }
 
+        /**
+         * creates a plane object, using the indices on the given lists
+         * @param vertices a list where the vertex indices of A, B and C refer to
+         * @param normals  a list where the normal indices of A, B and C refer to
+         * @return a triangle whose normal is the average of those of A, B and C, in Shape-space
+         */
+        public Plane toPlanes(List<Vector3fc> vertices, List<Vector3fc> normals) {
+            final Vector3fc[] border = new Vector3fc[size()];
+            Arrays.setAll(border, i -> vertices.get(this.vert[i]));
+            // take average normal as normal of plane, or use default method if none are registered
+            Vector3f normal = new Vector3f();
+            for (int index : this.norm) {
+                if (index >= 0) normal.add(normals.get(index));
+            }
+
+            switch (size()) {
+                case 3:
+                    return Triangle.createTriangle(border[0], border[1], border[2], normal);
+                case 4:
+                    return Quad.createQuad(border[0], border[1], border[2], border[3], normal);
+                default:
+                    throw new UnsupportedOperationException("polygons with " + size() + " edges are not supported");
+            }
+        }
     }
 }

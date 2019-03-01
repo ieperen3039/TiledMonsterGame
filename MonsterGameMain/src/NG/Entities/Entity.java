@@ -1,9 +1,13 @@
 package NG.Entities;
 
+import NG.Animations.AnimationBone;
+import NG.Animations.BoneElement;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.AABBf;
 import org.joml.Vector3fc;
+
+import java.util.Map;
 
 /**
  * An entity is anything that is in the world, excluding the ground itself. Particles and other visual elements are not
@@ -48,4 +52,6 @@ public interface Entity {
      * @return the hitbox that encircles this entity
      */
     AABBf hitbox();
+
+    Map<AnimationBone, BoneElement> getBoneMapping();
 }

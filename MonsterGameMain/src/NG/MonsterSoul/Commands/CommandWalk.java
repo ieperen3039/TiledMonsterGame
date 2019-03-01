@@ -24,7 +24,7 @@ public class CommandWalk extends Command {
 
     @Override
     public List<EntityAction> toActions(Game game, EntityAction preceding) {
-        Vector2ic beginPosition = preceding.getEndPosition();
+        Vector2ic beginPosition = preceding.getEndCoordinate();
 
         if (beginPosition.equals(target)) {
             // already there, return an empty list of actions

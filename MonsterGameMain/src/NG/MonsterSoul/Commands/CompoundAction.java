@@ -1,6 +1,9 @@
 package NG.MonsterSoul.Commands;
 
+import NG.Animations.Animation;
+import NG.Animations.BodyModel;
 import NG.GameEvent.Actions.EntityAction;
+import org.joml.Quaternionf;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
@@ -48,36 +51,64 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
-    public Vector3fc getPositionAfter(float passedTime) {
-        if (passedTime <= 0) {
+    public Vector3fc getPositionAfter(float timeSinceStart) {
+        if (timeSinceStart <= 0) {
             return actions[0].getPositionAfter(0);
 
-        } else if (passedTime >= totalDuration) {
+        } else if (timeSinceStart >= totalDuration) {
             float end = lastAction.duration();
             return lastAction.getPositionAfter(end);
         }
 
         for (EntityAction action : actions) {
             float duration = action.duration();
-            if (passedTime > duration) {
-                passedTime -= duration;
+            if (timeSinceStart > duration) {
+                timeSinceStart -= duration;
 
             } else {
-                return action.getPositionAfter(passedTime);
+                return action.getPositionAfter(timeSinceStart);
             }
         }
 
-        throw new AssertionError("invalid value of totalDuration, missing " + passedTime);
+        throw new AssertionError("invalid value of totalDuration, missing " + timeSinceStart);
     }
 
     @Override
-    public Vector2ic getEndPosition() {
-        return lastAction.getEndPosition();
+    public Quaternionf getRotation(float timeSinceStart) {
+        if (timeSinceStart <= 0) {
+            return actions[0].getRotation(0);
+
+        } else if (timeSinceStart >= totalDuration) {
+            float end = lastAction.duration();
+            return lastAction.getRotation(end);
+        }
+
+        for (EntityAction action : actions) {
+            float duration = action.duration();
+            if (timeSinceStart > duration) {
+                timeSinceStart -= duration;
+
+            } else {
+                return action.getRotation(timeSinceStart);
+            }
+        }
+
+        throw new AssertionError("invalid value of totalDuration, missing " + timeSinceStart);
     }
 
     @Override
-    public Vector2ic getStartPosition() {
-        return actions[0].getStartPosition();
+    public Vector2ic getEndCoordinate() {
+        return lastAction.getEndCoordinate();
+    }
+
+    @Override
+    public Animation getAnimation(BodyModel model) {
+        return null;
+    }
+
+    @Override
+    public Vector2ic getStartCoordinate() {
+        return actions[0].getStartCoordinate();
     }
 
     @Override
@@ -89,4 +120,6 @@ public class CompoundAction implements EntityAction {
     public String toString() {
         return Arrays.toString(actions);
     }
+
+
 }
