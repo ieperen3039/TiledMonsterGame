@@ -41,7 +41,7 @@ public class OBJFile implements MeshFile {
         List<String> lines = Files.readAllLines(path);
 
         for (String line : lines) {
-            String[] tokens = Toolbox.SPACES.split(line);
+            String[] tokens = Toolbox.WHITESPACE_PATTERN.split(line);
             switch (tokens[0]) {
                 case "v":
                     // Geometric vertex

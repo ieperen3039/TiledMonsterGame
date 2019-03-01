@@ -21,7 +21,8 @@ public enum Directory {
     screenshots(false, "img", "screenshots"),
     mapTileModels(true, "res", "mapTiles"),
     savedMaps(false, "Saved maps"),
-    souls(true, "res", "soul_jar");
+    souls(true, "res", "soul_jar"),
+    skeletons(true, "res", "skeletons");
 
     private static final String TARGET_WORKING_DIRECTORY = "MonsterGame";
     private static Path WORKING_DIRECTORY = null;

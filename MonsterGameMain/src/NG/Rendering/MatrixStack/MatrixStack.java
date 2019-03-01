@@ -2,10 +2,7 @@ package NG.Rendering.MatrixStack;
 
 
 import NG.Tools.Vectors;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
+import org.joml.*;
 
 /**
  * @author Geert van Ieperen created on 19-11-2017.
@@ -78,8 +75,9 @@ public interface MatrixStack {
 
     /**
      * @see #rotate(Vector3f, float)
+     * @param rotation
      */
-    void rotate(Quaternionf rotation);
+    void rotate(Quaternionfc rotation);
 
     /**
      * @see #translate(float, float, float)
@@ -107,4 +105,15 @@ public interface MatrixStack {
      * @param postTransformation some affine matrix
      */
     void multiplyAffine(Matrix4f postTransformation);
+
+    /**
+     * @param x the rotation around the x-axis
+     * @param y the rotation around the y-axis
+     * @param z the rotation around the z-axis
+     */
+    void rotateXYZ(float x, float y, float z);
+
+    default void rotateXYZ(Vector3fc rot) {
+        rotateXYZ(rot.x(), rot.y(), rot.z());
+    }
 }

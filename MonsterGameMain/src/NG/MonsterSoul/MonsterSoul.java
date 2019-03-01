@@ -2,11 +2,11 @@ package NG.MonsterSoul;
 
 import NG.DataStructures.Generic.PairList;
 import NG.Engine.Game;
-import NG.Entities.Actions.ActionFinishListener;
-import NG.Entities.Actions.ActionIdle;
-import NG.Entities.Actions.EntityAction;
 import NG.Entities.CubeMonster;
 import NG.Entities.MonsterEntity;
+import NG.GameEvent.Actions.ActionFinishListener;
+import NG.GameEvent.Actions.ActionIdle;
+import NG.GameEvent.Actions.EntityAction;
 import NG.GameEvent.Event;
 import NG.MonsterSoul.Commands.Command;
 import NG.MonsterSoul.Commands.Command.CType;
@@ -335,7 +335,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
         String line;
         while (!(line = reader.nextLine()).equals("end")) {
             if (line.isEmpty() || line.charAt(0) == '#') continue;
-            String[] elts = Toolbox.SPACES.split(line.trim());
+            String[] elts = Toolbox.WHITESPACE_PATTERN.split(line.trim());
 
             Type slt = Stimulus.getByName(elts[0]);
             float value = Float.parseFloat(elts[1]);
@@ -358,7 +358,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
         String line;
         while (!(line = reader.nextLine()).equals("end")) {
             if (line.isEmpty() || line.charAt(0) == '#') continue;
-            String[] elts = Toolbox.SPACES.split(line.trim());
+            String[] elts = Toolbox.WHITESPACE_PATTERN.split(line.trim());
 
             Emotion emotion = Emotion.valueOf(elts[0]);
             float value = Float.parseFloat(elts[1]);

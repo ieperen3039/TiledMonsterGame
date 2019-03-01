@@ -85,7 +85,7 @@ public enum Emotion {
                 if (line.isEmpty() || line.charAt(0) == '#') continue;
 
                 line = PIPES.matcher(line).replaceAll("");
-                String[] elts = Toolbox.SPACES.split(line);
+                String[] elts = Toolbox.WHITESPACE_PATTERN.split(line);
 
                 Emotion emotion = valueOf(elts[0]);
                 short value = (short) Integer.parseInt(elts[1]);

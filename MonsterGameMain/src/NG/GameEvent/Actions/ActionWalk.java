@@ -1,4 +1,4 @@
-package NG.Entities.Actions;
+package NG.GameEvent.Actions;
 
 import NG.Engine.Game;
 import NG.Tools.Vectors;

@@ -1,4 +1,4 @@
-package NG.Entities.Actions;
+package NG.GameEvent.Actions;
 
 import NG.GameEvent.Event;
 import NG.MonsterSoul.Stimulus;

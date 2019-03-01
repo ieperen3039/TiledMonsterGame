@@ -33,7 +33,7 @@ public final class Toolbox {
     // universal random to be used everywhere
     public static final Random random = new Random();
     public static final double PHI = 1.6180339887498948;
-    public static final Pattern SPACES = Pattern.compile("\\s+");
+    public static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     public static final Pattern PERIOD_MATCHER = Pattern.compile("\\.");
 
     private static final float ROUNDINGERROR = 1E-6F;

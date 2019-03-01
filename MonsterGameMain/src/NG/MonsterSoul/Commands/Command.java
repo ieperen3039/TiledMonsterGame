@@ -2,8 +2,8 @@ package NG.MonsterSoul.Commands;
 
 import NG.DataStructures.Direction;
 import NG.Engine.Game;
-import NG.Entities.Actions.EntityAction;
 import NG.Entities.MonsterEntity;
+import NG.GameEvent.Actions.EntityAction;
 import NG.MonsterSoul.*;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;

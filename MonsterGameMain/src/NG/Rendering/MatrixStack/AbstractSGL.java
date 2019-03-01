@@ -1,7 +1,7 @@
 package NG.Rendering.MatrixStack;
 
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -73,7 +73,7 @@ public abstract class AbstractSGL implements SGL {
     }
 
     @Override
-    public void rotate(Quaternionf rotation) {
+    public void rotate(Quaternionfc rotation) {
         modelMatrix.rotate(rotation);
     }
 
@@ -85,6 +85,11 @@ public abstract class AbstractSGL implements SGL {
     @Override
     public void multiplyAffine(Matrix4f postTransformation) {
         modelMatrix.mulAffine(postTransformation);
+    }
+
+    @Override
+    public void rotateXYZ(float x, float y, float z) {
+        modelMatrix.rotateXYZ(x, y, z);
     }
 
     protected Matrix4f getModelMatrix() {

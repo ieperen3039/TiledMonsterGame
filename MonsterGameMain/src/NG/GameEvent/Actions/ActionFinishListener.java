@@ -1,4 +1,4 @@
-package NG.Entities.Actions;
+package NG.GameEvent.Actions;
 
 /**
  * @author Geert van Ieperen created on 22-2-2019.

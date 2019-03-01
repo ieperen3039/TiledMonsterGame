@@ -16,11 +16,11 @@ import static java.lang.Float.isNaN;
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public class Vectors {
-    private static final float PI = (float) Math.PI;
     public static final Vector3fc X = newXVector();
     public static final Vector3fc Y = new Vector3f(0, 1, 0);
     public static final Vector3fc Z = newZVector();
     public static final Vector3fc O = newZeroVector();
+    private static final float PI = (float) Math.PI;
 
     public static Vector3f newZeroVector() {
         return new Vector3f(0, 0, 0);
@@ -294,5 +294,15 @@ public class Vectors {
 
     public static Vector2i toVector2i(Vector3ic coordinate) {
         return new Vector2i(coordinate.x(), coordinate.y());
+    }
+
+    public static class Scaling {
+        public static final Vector3fc UNIFORM = new Vector3f(1, 1, 1);
+        /** scaling that mirrors in the X direction */
+        public static final org.joml.Vector3fc MIRROR_X = new Vector3f(-1, 1, 1);
+        /** scaling that mirrors in the Y direction */
+        public static final Vector3fc MIRROR_Y = new Vector3f(1, -1, 1);
+        /** scaling that mirrors in the Z direction */
+        public static final Vector3fc MIRROR_Z = new Vector3f(1, 1, -1);
     }
 }

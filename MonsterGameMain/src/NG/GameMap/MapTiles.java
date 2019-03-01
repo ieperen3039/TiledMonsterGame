@@ -20,7 +20,7 @@ public class MapTiles {
             String line = sc.nextLine();
             if (line.trim().isEmpty() || line.charAt(0) == '#') continue; // comments
 
-            String[] elts = Toolbox.SPACES.split(line);
+            String[] elts = Toolbox.WHITESPACE_PATTERN.split(line);
 
             String fileName = elts[0];
             int[] heights = new int[]{

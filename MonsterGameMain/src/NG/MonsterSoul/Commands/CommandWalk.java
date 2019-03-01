@@ -1,8 +1,8 @@
 package NG.MonsterSoul.Commands;
 
 import NG.Engine.Game;
-import NG.Entities.Actions.ActionWalk;
-import NG.Entities.Actions.EntityAction;
+import NG.GameEvent.Actions.ActionWalk;
+import NG.GameEvent.Actions.EntityAction;
 import NG.MonsterSoul.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;

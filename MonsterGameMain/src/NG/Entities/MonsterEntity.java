@@ -2,8 +2,8 @@ package NG.Entities;
 
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
-import NG.Entities.Actions.ActionQueue;
-import NG.Entities.Actions.EntityAction;
+import NG.GameEvent.Actions.ActionQueue;
+import NG.GameEvent.Actions.EntityAction;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import NG.ScreenOverlay.Frames.Components.SFrame;

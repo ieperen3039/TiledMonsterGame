@@ -3,7 +3,7 @@ package NG.Entities;
 import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
-import NG.Entities.Actions.EntityAction;
+import NG.GameEvent.Actions.EntityAction;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
