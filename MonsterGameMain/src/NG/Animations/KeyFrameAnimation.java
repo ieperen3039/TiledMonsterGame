@@ -5,10 +5,14 @@ import NG.Animations.ColladaLoader.KeyFrameData;
 import NG.Entities.Entity;
 import NG.GameEvent.Actions.EntityAction;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Storable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3fc;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +25,7 @@ public class KeyFrameAnimation implements Animation {
     public final BodyModel target;
     private final Map<AnimationBone, Integer> indices;
     private final float[] timeFrames;
-    private final Quaternionf[][] keyFrames;
+    private final Quaternionf[][] keyFrames; // [joints][frames]
     private float duration;
 
     public KeyFrameAnimation(BodyModel target, AnimationData data) {
@@ -98,5 +102,65 @@ public class KeyFrameAnimation implements Animation {
         Quaternionf lowerPosition = positions[lowerPoint];
         Quaternionf higherPosition = positions[lowerPoint + 1];
         return new Quaternionf(lowerPosition).nlerpIterative(higherPosition, fraction, 0.1f);
+    }
+
+    @Override
+    public void writeToFile(DataOutput out) throws IOException {
+        String rootName = target.name();
+        out.writeUTF(rootName);
+        int nrOfIndices = indices.size();
+        out.writeInt(nrOfIndices);
+
+        for (AnimationBone bone : indices.keySet()) {
+            out.writeUTF(bone.getName());
+            out.writeInt(indices.get(bone));
+        }
+
+        out.writeInt(timeFrames.length);
+        for (float frame : timeFrames) {
+            out.writeFloat(frame);
+        }
+
+        out.writeInt(keyFrames.length);
+        for (Quaternionf[] movement : keyFrames) {
+            for (Quaternionf rot : movement) {
+                Storable.writeQuaternionf(out, rot);
+            }
+        }
+
+        out.writeFloat(duration);
+    }
+
+    /**
+     * Reads an animation from the data input.
+     * @param in the data input stream
+     * @throws IOException if anything goes wrong
+     */
+    public KeyFrameAnimation(DataInput in) throws IOException {
+        target = BodyModel.valueOf(in.readUTF());
+        int nrOfIndices = in.readInt();
+
+        indices = new HashMap<>(nrOfIndices);
+        for (int i = 0; i < nrOfIndices; i++) {
+            AnimationBone bone = AnimationBone.getByName(in.readUTF());
+            int index = in.readInt();
+            indices.put(bone, index);
+        }
+
+        int nrOfFrames = in.readInt();
+        timeFrames = new float[nrOfFrames];
+        for (int i = 0; i < nrOfFrames; i++) {
+            timeFrames[i] = in.readFloat();
+        }
+
+        int nrOfJoints = in.readInt();
+        keyFrames = new Quaternionf[nrOfJoints][nrOfFrames];
+        for (int i = 0; i < nrOfJoints; i++) {
+            for (int j = 0; j < nrOfFrames; j++) {
+                keyFrames[i][j] = Storable.readQuaternionf(in);
+            }
+        }
+
+        duration = in.readInt();
     }
 }

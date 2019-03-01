@@ -3,12 +3,13 @@ package NG.Animations;
 import NG.Entities.Entity;
 import NG.GameEvent.Actions.EntityAction;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Storable;
 import org.joml.Quaternionf;
 
 /**
  * @author Geert van Ieperen created on 1-3-2019.
  */
-public interface Animation {
+public interface Animation extends Storable {
     /**
      * Draw the animation, applying to the specified entity, as if it were executing the given action
      * @param gl             the gl instance

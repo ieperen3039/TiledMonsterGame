@@ -82,7 +82,7 @@ public class StaticState implements GameState {
     }
 
     public StaticState(DataInput in) throws IOException, ClassNotFoundException {
-        List<Entity> list = Storable.readList(in, Entity.class);
+        List<Entity> list = Storable.readCollection(in, Entity.class);
         entities = Collections.synchronizedList(list);
     }
 

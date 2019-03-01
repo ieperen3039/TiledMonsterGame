@@ -1,10 +1,7 @@
 package NG;
 
 import NG.Tools.Toolbox;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
-import org.joml.Vector4f;
-import org.joml.Vector4fc;
+import org.joml.*;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -12,7 +9,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,7 +26,7 @@ public interface Storable {
      * @throws IOException if an I/O error occurs while writing data to the stream.
      * @implNote The data must be written in exactly the same order as the specified constructor reads.
      * @see #writeToFile(DataOutput, Storable)
-     * @see #readFromFile(DataInput, Class, Object[])
+     * @see #readFromFile(DataInput, Class)
      */
     void writeToFile(DataOutput out) throws IOException;
 
@@ -49,7 +45,8 @@ public interface Storable {
             return;
         }
 
-        writeToFile(out, object, DataInput.class);
+        writeClass(out, object.getClass());
+        object.writeToFile(out);
     }
 
     /**
@@ -58,10 +55,10 @@ public interface Storable {
      * @param in       a stream where this object has been written to.
      * @param expected the class that is expected to be read from the stream.
      * @throws IOException if something goes wrong with reading the data from the input stream.
-     * @implNote An object written to a stream using {@link #writeToFile(DataOutput)} should {@link
-     * Object#equals(Object)} an object constructed with a no-arg constructor, where this method is called on the other
-     * end of that same stream.
-     * @see #readFromFile(DataInput, Class, Object...)
+     * @throws ClassCastException if the read class instance can't be cast to T
+     * @implNote An object written to a stream using {@link #writeToFile(DataOutput)} should be {@link
+     * Object#equals(Object) equal} to the object returned by this method.
+     * @see #writeToFile(DataOutput, Storable)
      */
     static <T> T readFromFile(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
         if (expected.isEnum()) {
@@ -69,85 +66,49 @@ public interface Storable {
             return Toolbox.findClosest(enumName, expected.getEnumConstants());
         }
 
-        return readFromFile(in, expected, in);
-    }
+        Class<? extends T> foundClass = null;
 
-    /**
-     * Writes the given object to the given data stream. The object must have a constructor that accepts exactly a
-     * {@link DataInput} as only parameter. The object can be restored with a call to {@link #readFromFile(DataInput,
-     * Class)}
-     * @param out       the data stream where to put the data to
-     * @param object    the object to store
-     * @param arguments the classes of the arguments that must be used to restore the state of the object.
-     * @throws IOException if an I/O error occurs while writing data to the stream.
-     */
-    static void writeToFile(DataOutput out, Storable object, Class<?>... arguments) throws IOException {
-        writeClass(out, object.getClass());
+        // collect classes of arguments
+        try {
+            foundClass = readClass(in, expected);
 
-        out.writeInt(arguments.length);
-        for (Class argument_i : arguments) {
-            writeClass(out, argument_i);
-        }
+            // find and call constructor
+            Constructor<? extends T> constructor = foundClass.getDeclaredConstructor(DataInput.class);
+            return constructor.newInstance(in);
 
-        object.writeToFile(out);
-    }
+        } catch (InstantiationException | IllegalAccessException ex) {
+            throw new IOException("Could not access the constructor of type " + foundClass, ex);
 
-    /**
-     * reads an object from the input stream, constructs it using a constructor that takes the given parameters as
-     * arguments. The arguments must be ordered as how they are declared in the constructor.
-     * @param in        a stream where this object has been written to.
-     * @param expected  the class that is expected to be read from the stream.
-     * @param arguments an array of which arguments the required class has. If the constructor's declaring class is an
-     *                  inner class in a non-static context, the first argument to the constructor needs to be the
-     *                  enclosing instance.
-     * @throws IOException              if something goes wrong with reading the data from the input stream.
-     * @throws ClassNotFoundException   if the class on the stream is not a loaded class
-     * @throws ClassCastException       if the class on the stream is no subclass of the expected class
-     * @throws IllegalArgumentException if the arguments of this method could not instantiate the given class.
-     * @implNote An object written to a stream using {@link #writeToFile(DataOutput)} should {@link
-     * Object#equals(Object)} an object constructed with a no-arg constructor, where this method is called on the other
-     * end of that same stream.
-     */
-    static <T> T readFromFile(DataInput in, Class<T> expected, Object... arguments)
-            throws IOException, ClassNotFoundException {
-        Class<? extends T> foundClass = readClass(in, expected);
+        } catch (InvocationTargetException ex) {
+            String exception = ex.getCause().getClass().getSimpleName();
+            throw new IOException("Initializer caused an " + exception, ex.getCause());
 
-        int nOfArguments = in.readInt();
-        if (nOfArguments == arguments.length) {
-            // collect classes of arguments
-            Class<?>[] argClasses = new Class<?>[nOfArguments];
-            try {
-                for (int i = 0; i < nOfArguments; i++) {
-                    argClasses[i] = readClass(in, Object.class);
-                }
+        } catch (NoSuchMethodException ex) {
+            throw new IOException(foundClass + " has no constructor that accepts as argument a DataInput class", ex);
 
-                // find and call constructor
-                Constructor<? extends T> constructor = foundClass.getDeclaredConstructor(argClasses);
-                return constructor.newInstance(arguments);
-
-            } catch (InstantiationException | IllegalAccessException ex) {
-                throw new IOException("Could not access the constructor of type " + foundClass, ex);
-
-            } catch (InvocationTargetException ex) {
-                String exception = ex.getCause().getClass().getSimpleName();
-                throw new IOException("Initializer caused an " + exception, ex.getCause());
-
-            } catch (NoSuchMethodException ex) {
-                throw new IOException(foundClass + " has no constructor that accepts as arguments: " + Arrays.toString(argClasses), ex);
-
-            } catch (ClassNotFoundException ex) {
-                throw new IllegalArgumentException("The class of one of the arguments is unknown");
-            }
-        } else {
-            throw new IllegalArgumentException("Invalid number of arguments given: " + arguments.length + " where " + nOfArguments + " are required");
         }
     }
 
+    /**
+     * writes a class object to file by writing package and name as a string.
+     * @see #readClass(DataInput, Class)
+     */
     static void writeClass(DataOutput out, Class<?> theClass) throws IOException {
         String name = theClass.getName();
         out.writeUTF(name);
     }
 
+    /**
+     * reads a class object from the data stream
+     * @param in       the data stream
+     * @param expected a superclass of the expected read class. This is used to cast the return value to the desired
+     *                 class.
+     * @param <T>      The type of the expected class
+     * @return a subclass of the expected class, as it was written to the stream.
+     * @throws IOException            if the next data on the stream does not represent an UTF string
+     * @throws IOException            if an exception occurs while reading the stream
+     * @throws ClassNotFoundException if the found class can not be cast to T
+     */
     static <T> Class<? extends T> readClass(DataInput in, Class<T> expected)
             throws IOException, ClassNotFoundException {
         String className = in.readUTF();
@@ -193,6 +154,22 @@ public interface Storable {
         );
     }
 
+    static void writeQuaternionf(DataOutput out, Quaternionfc vec) throws IOException {
+        out.writeFloat(vec.x());
+        out.writeFloat(vec.y());
+        out.writeFloat(vec.z());
+        out.writeFloat(vec.w());
+    }
+
+    static Quaternionf readQuaternionf(DataInput in) throws IOException {
+        return new Quaternionf(
+                in.readFloat(),
+                in.readFloat(),
+                in.readFloat(),
+                in.readFloat()
+        );
+    }
+
     static void writeCollection(DataOutput out, Collection<Storable> box) throws IOException {
         out.writeInt(box.size());
         for (Storable s : box) {
@@ -200,7 +177,16 @@ public interface Storable {
         }
     }
 
-    static <T> List<T> readList(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
+    /**
+     * reads a collection from the stream, and stores it in a {@link List}
+     * @param in       the data input stream
+     * @param expected the class of the elements
+     * @param <T>      the actual type of the elements
+     * @return an {@link ArrayList} with the values read from the input stream
+     * @throws IOException            if an exception occurs while reading the stream
+     * @throws ClassNotFoundException if any of the elements can not be cast to T
+     */
+    static <T> List<T> readCollection(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
         int size = in.readInt();
         ArrayList<T> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {

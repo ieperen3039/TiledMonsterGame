@@ -3,9 +3,13 @@ package NG.Animations;
 import NG.Animations.ColladaLoader.JointData;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Storable;
 import NG.Tools.Vectors;
 import org.joml.*;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -13,7 +17,7 @@ import java.util.stream.Stream;
  * a rotation of a child bone on a given relative position of some parent animation bone, specifying an initial rotation
  * and additional rotation angles. Objects of this type are immutable
  */
-public class AnimationBone {
+public class AnimationBone implements Storable {
     private static final HashMap<String, AnimationBone> knownBones = new HashMap<>();
 
     private String name;
@@ -140,6 +144,29 @@ public class AnimationBone {
 
     protected String getName() {
         return name;
+    }
+
+    @Override
+    public void writeToFile(DataOutput out) throws IOException {
+        out.writeUTF(name);
+        Storable.writeVector3f(out, offset);
+        Storable.writeQuaternionf(out, baseRotation);
+        out.writeInt(subElements.size());
+        for (AnimationBone elt : subElements) {
+            elt.writeToFile(out);
+        }
+    }
+
+    public AnimationBone(DataInput in) throws IOException {
+        name = in.readUTF();
+        offset = Storable.readVector3f(in);
+        baseRotation = Storable.readQuaternionf(in);
+
+        int nOfElts = in.readInt();
+        subElements = new ArrayList<>(nOfElts);
+        for (int i = 0; i < nOfElts; i++) {
+            subElements.add(new AnimationBone(in));
+        }
     }
 
     /**
