@@ -91,7 +91,7 @@ public class EmptyMap implements GameMap {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
 
     }
 

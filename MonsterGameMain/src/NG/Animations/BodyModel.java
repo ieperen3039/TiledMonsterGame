@@ -1,57 +1,46 @@
 package NG.Animations;
 
-import NG.Animations.ColladaLoader.ColladaLoader;
-import NG.Animations.ColladaLoader.JointData;
+import NG.Animations.ColladaLoader.Converter;
+import NG.Entities.Entity;
+import NG.Rendering.MatrixStack.SGL;
+import NG.Storable;
 import NG.Tools.Directory;
+import NG.Tools.Vectors;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author Geert van Ieperen created on 28-2-2019.
  */
 public enum BodyModel {
-    ANTHRO(
-            "anthro.dae"
-    ),
+    CUBE("cube.skelbi"),
+    ANTHRO("anthro.skelbi"),
 
     ;
 
-    public static final String BINARY_SKELETON_EXT = ".skelbi"; //
-    public final AnimationBone root;
+    private final AnimationBone root;
     private final List<AnimationBone> parts;
 
     BodyModel(String... filePath) {
         Path path = Directory.skeletons.getPath(filePath);
-        String binaryName = path.getFileName().toString();
-        File file = new File(binaryName.replace(".dae", BINARY_SKELETON_EXT));
+        File file = path.toFile();
 
-        if (file.exists()) {
-            // load skelly from binary
-            try (InputStream fileStream = new FileInputStream(file)) {
-                DataInput in = new DataInputStream(fileStream);
-                root = new AnimationBone(in);
+        if (!file.exists()) {
+            Converter.rewriteSkeleton(file.getName());
+        }
 
-            } catch (IOException e) {
+        // load skelly from binary
+        try (InputStream fileStream = new FileInputStream(file)) {
+            DataInput in = new DataInputStream(fileStream);
+            root = Storable.read(in, AnimationBone.class);
+
+        } catch (IOException | ClassNotFoundException e) {
 //                Logger.ERROR.print(e);
-                throw new RuntimeException(e);
-            }
-
-        } else {
-            // extract from collada file
-            ColladaLoader loader = new ColladaLoader(path);
-            JointData skeletonData = loader.loadColladaSkeleton();
-            root = new AnimationBone(skeletonData);
-            // also store binary
-            try (OutputStream fileStream = new FileOutputStream(file)) {
-                DataOutput out = new DataOutputStream(fileStream);
-                root.writeToFile(out);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            throw new RuntimeException(e);
         }
 
         parts = root.stream().collect(Collectors.toUnmodifiableList());
@@ -63,4 +52,13 @@ public enum BodyModel {
 
     public int size() {
         return root.nrOfChildren() + 1;
-    }}
+    }
+
+    /** draws this model using the given parameters */
+    public void draw(
+            SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, Animation animation, float timeSinceStart
+    ) {
+        root.draw(gl, entity, map, animation, timeSinceStart, Vectors.Scaling.UNIFORM);
+    }
+
+}

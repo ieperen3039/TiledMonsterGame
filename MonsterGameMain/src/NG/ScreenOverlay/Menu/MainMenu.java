@@ -1,11 +1,15 @@
 package NG.ScreenOverlay.Menu;
 
 import NG.ActionHandling.MouseTools.DefaultMouseTool;
+import NG.Animations.Animation;
+import NG.Animations.BodyAnimation;
+import NG.Animations.BodyModel;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.Engine.ModLoader;
 import NG.Entities.Cube;
+import NG.Entities.CubeMonster;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.MapGeneratorMod;
@@ -16,6 +20,7 @@ import NG.MonsterSoul.Commands.CommandWalk;
 import NG.MonsterSoul.MonsterSoul;
 import NG.MonsterSoul.Player;
 import NG.ScreenOverlay.Frames.Components.*;
+import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.SToolBar;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -30,16 +35,10 @@ import java.util.List;
  * @author Geert van Ieperen. Created on 28-9-2018.
  */
 public class MainMenu extends SFrame {
-    // these are upper bounds
-    private static final int NUM_TOP_BUTTONS = 10;
-    private static final int NUM_BOT_BUTTONS = 10;
     public static final int BUTTON_MIN_WIDTH = 300;
     public static final int BUTTON_MIN_HEIGHT = 50;
-    public static final int NUM_BUTTONS = NUM_TOP_BUTTONS + NUM_BOT_BUTTONS + 1;
     private static final int NOF_ENTITIES = 4 * 4 * 4;
 
-    private final Vector2i topButtonPos;
-    private final Vector2i bottomButtonPos;
     private final Game overworld;
     private final Game pocketworld;
     private final ModLoader modLoader;
@@ -50,27 +49,20 @@ public class MainMenu extends SFrame {
         this.overworld = overworld;
         this.pocketworld = pocketworld;
         this.modLoader = modManager;
-        topButtonPos = new Vector2i(1, -1);
-        bottomButtonPos = new Vector2i(1, NUM_BUTTONS);
-        SContainer buttons = new SPanel(3, NUM_BUTTONS);
 
         newGameFrame = new NewGameFrame(overworld, modLoader);
 
-        SButton newGame = new SButton("Start new game", this::showNewGame, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        buttons.add(newGame, onTop());
-        SButton justStart = new SButton("Start Testworld", this::testWorld, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        buttons.add(justStart, onTop());
-        SButton entityCloud = new SButton("Start EntityCloud", this::entityCloud, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        buttons.add(entityCloud, onTop());
-        SButton exitGame = new SButton("Exit game", exitGameAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        buttons.add(exitGame, onBot());
-
-        Vector2i mid = onTop();
-        buttons.add(new SFiller(), new Vector2i(0, mid.y));
-        buttons.add(new SFiller(), new Vector2i(1, mid.y));
-        buttons.add(new SFiller(), new Vector2i(2, mid.y));
-
-        setMainPanel(buttons);
+        setMainPanel(SPanel.row(
+                new SFiller(),
+                SPanel.column(
+                        new SButton("Start new game", this::showNewGamePanel, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Start Testworld", this::testWorld, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Animation Tester", this::animationDisplay, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SFiller(),
+                        new SButton("Exit game", exitGameAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                ),
+                new SFiller()
+        ));
     }
 
     public void testWorld() {
@@ -100,7 +92,7 @@ public class MainMenu extends SFrame {
 
             // add a default entity
             Vector3i position = overworld.map().getCoordinate(cameraFocus);
-            MonsterSoul monsterSoul = new MonsterSoul(Directory.souls.getFile("soul1.txt"));
+            MonsterSoul monsterSoul = new CubeMonster(Directory.souls.getFile("soul1.txt"));
             MonsterEntity cow = monsterSoul.getAsEntity(overworld, new Vector2i(position.x, position.y), Vectors.X);
             overworld.entities().addEntity(cow);
 
@@ -114,12 +106,16 @@ public class MainMenu extends SFrame {
             overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 1f), Color4f.WHITE, 0.2f);
 
             // start
-            modLoader.startGame();
-            newGameFrame.setVisible(false);
+            start();
 
         } catch (Exception e) {
             Logger.ERROR.print(e);
         }
+    }
+
+    private void start() {
+        modLoader.startGame();
+        newGameFrame.setVisible(false);
     }
 
     private Vector3f centerCamera(Game game) {
@@ -155,21 +151,37 @@ public class MainMenu extends SFrame {
 
         overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
-        modLoader.startGame();
-        newGameFrame.setVisible(false);
+        start();
     }
 
-    private void showNewGame() {
+    private void animationDisplay() {
+        BodyModel[] models = BodyModel.values();
+        BodyAnimation[] animations = BodyAnimation.values();
+
+        GUIManager targetGUI = overworld.gui();
+        SDropDown animationSelection = new SDropDown(targetGUI, 0, Toolbox.toStringArray(animations));
+        SDropDown modelSelection = new SDropDown(targetGUI, 0, Toolbox.toStringArray(models));
+        Animation.Demonstrator demonstrator = new Animation.Demonstrator(BodyAnimation.WALK_CYCLE, BodyModel.ANTHRO, overworld
+                .timer());
+
+        targetGUI.addFrame(new SFrame("Animations", BUTTON_MIN_WIDTH, 0)
+                .setMainPanel(SPanel.column(
+                        animationSelection,
+                        modelSelection
+                ))
+        );
+
+        animationSelection.addStateChangeListener((i) -> demonstrator.setAnimation(animations[i]));
+        modelSelection.addStateChangeListener(i -> demonstrator.setModel(models[i]));
+
+        overworld.entities().addEntity(demonstrator);
+
+        start();
+    }
+
+    private void showNewGamePanel() {
         newGameFrame.setVisible(true);
         overworld.gui().addFrame(newGameFrame);
-    }
-
-    private Vector2i onTop() {
-        return topButtonPos.add(0, 1);
-    }
-
-    private Vector2i onBot() {
-        return bottomButtonPos.sub(0, 1);
     }
 
     public SToolBar getToolBar(Game game) {
@@ -180,15 +192,6 @@ public class MainMenu extends SFrame {
             setVisible(true);
         }, 100);
 
-//        SFrame aTester = new SFrame("pathfinder tester");
-//        aTester.setMainPanel(SPanel.column(
-//                new SToggleButton("A*", 100, BUTTON_MIN_HEIGHT, (s) -> {
-//                    game.inputHandling().setMouseTool(s ? new AStartTestMouseTool(game) : null);
-//                })
-//        ));
-//        aTester.pack();
-
-//        toolBar.addButton("Pathfinders", () -> game.gui().addFrame(aTester), 200);
         toolBar.addButton("A* tester", () -> game.inputHandling().setMouseTool(new AStartTestMouseTool(game)), 200);
 
         return toolBar;

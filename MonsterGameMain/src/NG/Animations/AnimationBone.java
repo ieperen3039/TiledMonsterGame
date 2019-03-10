@@ -11,6 +11,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -20,42 +21,66 @@ import java.util.stream.Stream;
 public class AnimationBone implements Storable {
     private static final HashMap<String, AnimationBone> knownBones = new HashMap<>();
 
-    private String name;
+    private final String name;
     private final Vector3fc offset;
-    private final Quaternionfc baseRotation;
+    private final Quaternionfc rotation;
+    private final Vector3fc scaling;
     private final Collection<AnimationBone> subElements;
     private Integer hashCash = null;
 
     /**
-     * @param name         the name of this bone
-     * @param offset       position relative to the last joint
-     * @param baseRotation the rotation of this joint relative to the rotation of the last joint
-     * @param childs       the child nodes of this joint/bone
+     * @param name     the name of this bone
+     * @param offset   position relative to the last joint
+     * @param rotation the rotation of this joint relative to the rotation of the last joint
+     * @param scaling
+     * @param childs   the child nodes of this joint/bone
      */
-    public AnimationBone(String name, Vector3fc offset, Quaternionfc baseRotation, List<AnimationBone> childs) {
+    public AnimationBone(
+            String name, Vector3fc offset, Quaternionfc rotation, Vector3fc scaling, List<AnimationBone> childs
+    ) {
         this.name = name;
         this.offset = offset;
-        this.baseRotation = baseRotation;
+        this.rotation = rotation;
+        this.scaling = scaling;
         this.subElements = childs;
+
         if (knownBones.containsKey(name)) {
             throw new IllegalArgumentException("Bone " + name + " already exists");
         }
         knownBones.put(name, this);
     }
 
+    /**
+     * a helper-constructor for recursively defining a bone tree in program code
+     * @param name   unique name of this bone
+     * @param xPos   the x offset relative to the parent bone
+     * @param yPos   the y offset relative to the parent bone
+     * @param zPos   the z offset relative to the parent bone
+     * @param xRot   the x rotation relative to the parent bone
+     * @param yRot   the y rotation relative to the parent bone
+     * @param zRot   the z rotation relative to the parent bone
+     * @param childs a summation of the child nodes of this bone.
+     */
     public AnimationBone(
-            String name, Vector3fc offset, float xRot, float yRot, float zRot, AnimationBone... childs
+            String name, float xPos, float yPos, float zPos, float xRot, float yRot, float zRot, AnimationBone... childs
     ) {
-        this(name, offset, new Quaternionf().rotateXYZ(xRot, yRot, zRot), Arrays.asList(childs));
+        this(
+                name, new Vector3f(xPos, yPos, zPos),
+                new Quaternionf().rotateXYZ(xRot, yRot, zRot),
+                Vectors.Scaling.UNIFORM,
+                Arrays.asList(childs));
     }
 
     public AnimationBone(JointData skeletonData) {
+        this.name = skeletonData.name;
         Matrix4f transform = skeletonData.bindLocalTransform;
 
-        offset = transform.transformPosition(Vectors.newZeroVector());
-        baseRotation = transform.getNormalizedRotation(new Quaternionf());
+        offset = transform.getTranslation(new Vector3f());
+        rotation = transform.getNormalizedRotation(new Quaternionf());
+        scaling = transform.getScale(new Vector3f()); // TODO test assumption of scaling = Scaling.UNIFORM
+
         subElements = new ArrayList<>();
-        knownBones.put(skeletonData.name, this);
+        knownBones.put(name, this);
 
         for (JointData child : skeletonData.children) {
             subElements.add(new AnimationBone(child)); // recursively add children
@@ -78,13 +103,16 @@ public class AnimationBone implements Storable {
     public boolean equals(AnimationBone other) {
         return hashCode() == other.hashCode() &&
                 offset.equals(other.offset) &&
-                baseRotation.equals(other.baseRotation) &&
+                rotation.equals(other.rotation) &&
                 subElements.containsAll(other.subElements);
     }
 
     @Override
     public int hashCode() {
-        if (hashCash == null) hashCash = Objects.hash(offset, baseRotation, subElements);
+        if (hashCash == null) {
+            int childHash = Arrays.hashCode(subElements.toArray(new AnimationBone[0]));
+            hashCash = Objects.hash(offset, rotation, childHash);
+        }
         return hashCash;
     }
 
@@ -94,29 +122,35 @@ public class AnimationBone implements Storable {
      * @param entity        the entity that is being drawn
      * @param elements      a mapping of bone descriptions to implementations.
      * @param animationTime the time since the start of this bone's animation in seconds
-     * @param position      the position of the joint where this bone is attached to.
+     * @param parentScaling scaling of the parent bone in (x, y, z) direction. This scaling is NOT propagated
      */
     public void draw(
             SGL gl, Entity entity, Map<AnimationBone, BoneElement> elements, Animation animation,
-            float animationTime, Vector3fc position
+            float animationTime, Vector3fc parentScaling
     ) {
         gl.pushMatrix();
         {
-            gl.translate(position);
-            gl.rotate(baseRotation);
-
-            Quaternionf rotation = animation.rotationOf(this, animationTime);
+            Vector3f realOffset = new Vector3f(offset).mul(parentScaling);
+            gl.translate(realOffset);
             gl.rotate(rotation);
 
-            BoneElement bone = elements.get(this);
-            bone.draw(gl, entity);
-            Vector3fc scaling = bone.scalingFactor();
+            Matrix4fc transformation = animation.transformationOf(this, animationTime);
+            if (transformation == null) {
+                throw new NullPointerException(String.format("Animation %s has no support for %s", animation, this));
+            }
+            gl.multiplyAffine(transformation);
 
-            for (AnimationBone elt : subElements) {
-                Vector3f jointPosition = new Vector3f(elt.offset).mul(scaling);
-                elt.draw(gl, entity, elements, animation, animationTime, jointPosition);
+            Vector3f eltScaling = new Vector3f(scaling);
+
+            BoneElement bone = elements.get(this);
+            if (bone != null) {
+                bone.draw(gl, entity);
+                eltScaling.mul(bone.scaling());
             }
 
+            for (AnimationBone elt : subElements) {
+                elt.draw(gl, entity, elements, animation, animationTime, eltScaling);
+            }
         }
         gl.popMatrix();
     }
@@ -142,31 +176,58 @@ public class AnimationBone implements Storable {
         return "Bone " + getName();
     }
 
-    protected String getName() {
+    /**
+     * @return a tree representation of this bone and subelements
+     */
+    public String asTree() {
+        StringBuilder builder = new StringBuilder();
+        writeTree(builder, 0);
+        return builder.toString();
+    }
+
+    // the number of lines created is equal to the number of calls to this method
+    private void writeTree(StringBuilder builder, int depth) {
+        for (int i = 0; i < depth; i++) {
+            builder.append('\t');
+        }
+        builder.append(name);
+        builder.append('\n');
+
+        for (AnimationBone elt : subElements) {
+            elt.writeTree(builder, depth + 1);
+        }
+    }
+
+    public String getName() {
         return name;
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         out.writeUTF(name);
         Storable.writeVector3f(out, offset);
-        Storable.writeQuaternionf(out, baseRotation);
+        Storable.writeQuaternionf(out, rotation);
+        Storable.writeVector3f(out, scaling);
+
         out.writeInt(subElements.size());
         for (AnimationBone elt : subElements) {
-            elt.writeToFile(out);
+            elt.writeToDataStream(out);
         }
     }
 
     public AnimationBone(DataInput in) throws IOException {
         name = in.readUTF();
         offset = Storable.readVector3f(in);
-        baseRotation = Storable.readQuaternionf(in);
+        rotation = Storable.readQuaternionf(in);
+        scaling = Storable.readVector3f(in);
 
         int nOfElts = in.readInt();
         subElements = new ArrayList<>(nOfElts);
         for (int i = 0; i < nOfElts; i++) {
             subElements.add(new AnimationBone(in));
         }
+
+        knownBones.put(name, this);
     }
 
     /**
@@ -177,4 +238,77 @@ public class AnimationBone implements Storable {
     public static AnimationBone getByName(String name) {
         return knownBones.get(name);
     }
+
+    /**
+     * Allows easily building a map (AnimationBone, BoneElement) using bone names and meshes.
+     */
+    public static class BodyBuilder {
+        private final Map<AnimationBone, BoneElement> body;
+        private final Set<AnimationBone> model;
+
+        public BodyBuilder(BodyModel model) {
+            this.model = new HashSet<>(model.getElements());
+            body = new HashMap<>();
+        }
+
+        /** @see #add(String, BodyMesh, float, float, float) */
+        public BodyBuilder add(String name, BodyMesh mesh, Vector3fc size) {
+            return add(name, mesh, size.x(), size.y(), size.z());
+        }
+
+        /**
+         * builds a new element on this body
+         * @param name  name of the bone
+         * @param mesh  the mesh to use
+         * @param xSize the real width of the final mesh in x direction
+         * @param ySize the real width of the final mesh in y direction
+         * @param zSize the real width of the final mesh in z direction
+         * @return this
+         */
+        public BodyBuilder add(String name, BodyMesh mesh, float xSize, float ySize, float zSize) {
+            AnimationBone bone = getByName(name);
+
+            // checks
+            assert bone != null : "Unknown bone " + name;
+            assert !body.containsKey(bone) : bone + " was already part of the builder";
+            boolean inModel = model.remove(bone);
+            assert inModel : bone + " is not part of the model";
+
+            Vector3f scaling = new Vector3f(xSize, ySize, zSize);
+            scaling.div(mesh.getSize()).div(bone.scaling);
+
+            BoneElement element = new BoneElement(mesh, scaling);
+            body.put(bone, element);
+            return this;
+        }
+
+        /**
+         * @param name      name of the bone
+         * @param mesh      the mesh to use
+         * @param meshScale the relative scaling applied to the mesh
+         * @return this
+         */
+        public BodyBuilder add(String name, BodyMesh mesh, float meshScale) {
+            return add(name, mesh, mesh.getSize().mul(meshScale));
+        }
+
+        /**
+         * Executes the handler for each bone in the model not yet assigned.
+         * @param handler a handler than accepts all bones not yet assigned
+         * @return the result of {@link #flex()}
+         */
+        public Map<AnimationBone, BoneElement> forEachRemaining(Consumer<AnimationBone> handler) {
+            model.forEach(handler);
+            return flex();
+        }
+
+        /**
+         * returns the built mapping. Future calls to add will write through to the retrieved map.
+         * @return the result
+         */
+        public Map<AnimationBone, BoneElement> flex() {
+            return body;
+        }
+    }
+
 }

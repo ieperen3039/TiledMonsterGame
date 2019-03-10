@@ -3,7 +3,6 @@ package NG.Rendering.Shapes;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
-import NG.Rendering.MeshLoading.TexturedMesh;
 import NG.Rendering.Shapes.Primitives.Plane;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -46,12 +45,7 @@ public enum GenericShapes implements Mesh, Shape {
         }
 
         shape = new BasicShape(pars);
-
-        if (pars.isTextured()) {
-            mesh = new TexturedMesh(pars);
-        } else {
-            mesh = new FlatMesh(pars.getVertices(), pars.getNormals(), pars.getFaces());
-        }
+        mesh = pars.getMesh();
     }
 
     GenericShapes(CustomShape frame) {

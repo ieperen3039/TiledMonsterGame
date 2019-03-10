@@ -27,6 +27,8 @@ public class SPanel extends SContainer {
     private final int minimumWidth;
     private final int minimumHeight;
 
+    private boolean border = true;
+
     /**
      * creates a panel with the given layout manager
      * @param minimumWidth   minimum width of the panel in pixels
@@ -34,14 +36,17 @@ public class SPanel extends SContainer {
      * @param layoutManager  a new layout manager for this component
      * @param growHorizontal if true, the panel tries to grow in its width
      * @param growVertical   if true, the panel tries to grow in its height
+     * @param drawBorder     if true, this panel itself is drawn
      */
     public SPanel(
             int minimumWidth, int minimumHeight, SLayoutManager layoutManager, boolean growHorizontal,
-            boolean growVertical
+            boolean growVertical,
+            boolean drawBorder
     ) {
         super(layoutManager, growHorizontal, growVertical);
         this.minimumWidth = minimumWidth;
         this.minimumHeight = minimumHeight;
+        this.border = drawBorder;
     }
 
     /**
@@ -56,7 +61,7 @@ public class SPanel extends SContainer {
     public SPanel(
             int minimumWidth, int minimumHeight, int cols, int rows, boolean growHorizontal, boolean growVertical
     ) {
-        this(minimumWidth, minimumHeight, (cols * rows > 0 ? new GridLayoutManager(cols, rows) : new SingleElementLayout()), growHorizontal, growVertical);
+        this(minimumWidth, minimumHeight, (cols * rows > 0 ? new GridLayoutManager(cols, rows) : new SingleElementLayout()), growHorizontal, growVertical, true);
     }
 
     /**
@@ -65,7 +70,7 @@ public class SPanel extends SContainer {
      * @param growPolicy    if true, try to grow
      */
     public SPanel(SLayoutManager layoutManager, boolean growPolicy) {
-        this(0, 0, layoutManager, growPolicy, growPolicy);
+        this(0, 0, layoutManager, growPolicy, growPolicy, true);
     }
 
     /**
@@ -112,6 +117,7 @@ public class SPanel extends SContainer {
     /** creates a new panel with the given components on a row */
     public static SPanel column(SComponent... components) {
         SPanel newPanel = new SPanel(1, components.length);
+        newPanel.border = false;
 
         for (int i = 0; i < components.length; i++) {
             newPanel.add(components[i], new Vector2i(0, i));
@@ -123,12 +129,17 @@ public class SPanel extends SContainer {
     /** creates a new panel with the given components in a column */
     public static SPanel row(SComponent... components) {
         SPanel newPanel = new SPanel(components.length, 1);
+        newPanel.border = false;
 
         for (int i = 0; i < components.length; i++) {
             newPanel.add(components[i], new Vector2i(i, 0));
         }
 
         return newPanel;
+    }
+
+    public void setBorderVisible(boolean doVisible) {
+        this.border = doVisible;
     }
 
     @Override
@@ -146,7 +157,7 @@ public class SPanel extends SContainer {
         assert getWidth() > 0 && getHeight() > 0 :
                 String.format("Non-positive dimensions of %s: width = %d, height = %d", this, getWidth(), getHeight());
 
-        lookFeel.draw(FRAME_BODY, screenPosition, dimensions);
+        if (border) lookFeel.draw(FRAME_BODY, screenPosition, dimensions);
         drawChildren(lookFeel, screenPosition);
     }
 }

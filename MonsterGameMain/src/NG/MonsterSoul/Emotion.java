@@ -140,7 +140,7 @@ public enum Emotion {
         }
 
         @Override
-        public void writeToFile(DataOutput out) throws IOException {
+        public void writeToDataStream(DataOutput out) throws IOException {
             out.writeInt(Emotion.count);
 
             for (short value : values) {

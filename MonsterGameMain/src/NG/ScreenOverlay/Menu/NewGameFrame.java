@@ -42,8 +42,8 @@ public class NewGameFrame extends SFrame implements Runnable {
         Vector2i mpos = new Vector2i(1, 0);
 
         SPanel mainPanel = new SPanel(COLS, ROWS);
-        mainPanel.add(new SFiller(100, 100), new Vector2i(0, 0));
-        mainPanel.add(new SFiller(100, 100), new Vector2i(COLS - 1, ROWS - 1));
+        mainPanel.add(new SFiller(20, 20), new Vector2i(0, 0));
+        mainPanel.add(new SFiller(20, 20), new Vector2i(COLS - 1, ROWS - 1));
 
         // message
         notice = new STextArea("Select which mods to load", 50);
@@ -53,10 +53,10 @@ public class NewGameFrame extends SFrame implements Runnable {
         SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
         sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
         this.game = game;
-        xSizeSelector = new SDropDown(this.game, 100, 60, 1, "100", "200", "500", "1000");
+        xSizeSelector = new SDropDown(this.game.gui(), 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
         sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
-        ySizeSelector = new SDropDown(this.game, 100, 60, 1, "100", "200", "500", "1000");
+        ySizeSelector = new SDropDown(this.game.gui(), 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
         mainPanel.add(sizeSelection, mpos.add(0, 1));
 
@@ -89,10 +89,10 @@ public class NewGameFrame extends SFrame implements Runnable {
         }
 
         if (!generatorNames.isEmpty()) {
-            generatorSelector = new SDropDown(this.game, generatorNames);
+            generatorSelector = new SDropDown(this.game.gui(), generatorNames);
             mainPanel.add(generatorSelector, mpos.add(0, 1));
         } else {
-            generatorSelector = new SDropDown(game, 0, "Default Implementation");
+            generatorSelector = new SDropDown(game.gui(), 0, "Default Implementation");
         }
 
         // generate button
@@ -108,6 +108,8 @@ public class NewGameFrame extends SFrame implements Runnable {
     }
 
     public void run() {
+        notice.setText("Generating new terrain...");
+
         // get and install map generator
         MapGeneratorMod generatorMod;
         int selected = generatorSelector.getSelectedIndex();
@@ -153,5 +155,6 @@ public class NewGameFrame extends SFrame implements Runnable {
         // start
         modLoader.startGame();
         this.setVisible(false);
+
     }
 }

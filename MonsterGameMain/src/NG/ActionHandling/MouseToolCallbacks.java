@@ -132,7 +132,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
         taskScheduler.submit(() -> {
             try {
                 action.run();
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 Logger.ERROR.print(ex);
             }
         });

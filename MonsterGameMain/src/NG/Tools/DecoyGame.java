@@ -157,16 +157,16 @@ public class DecoyGame implements Game {
 
     @Override
     public void writeStateToFile(DataOutput out) throws IOException {
-        Storable.writeToFile(out, gameMap);
-        Storable.writeToFile(out, gameState);
-        Storable.writeToFile(out, gameLights);
+        Storable.write(out, gameMap);
+        Storable.write(out, gameState);
+        Storable.write(out, gameLights);
     }
 
     @Override
     public void readStateFromFile(DataInput in) throws Exception {
-        GameMap newMap = Storable.readFromFile(in, GameMap.class);
-        GameState newState = Storable.readFromFile(in, GameState.class);
-        GameLights newLights = Storable.readFromFile(in, GameLights.class);
+        GameMap newMap = Storable.read(in, GameMap.class);
+        GameState newState = Storable.read(in, GameState.class);
+        GameLights newLights = Storable.read(in, GameLights.class);
 
         newState.init(this);
         newMap.init(this);
@@ -188,7 +188,7 @@ public class DecoyGame implements Game {
         FileInputStream fs = new FileInputStream(map);
         DataInput input = new DataInputStream(fs);
 
-        GameMap newMap = Storable.readFromFile(input, GameMap.class);
+        GameMap newMap = Storable.read(input, GameMap.class);
 
         newMap.init(this);
         this.gameMap.cleanup();

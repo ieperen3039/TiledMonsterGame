@@ -2,7 +2,6 @@ package NG.MonsterSoul;
 
 import NG.DataStructures.Generic.PairList;
 import NG.Engine.Game;
-import NG.Entities.CubeMonster;
 import NG.Entities.MonsterEntity;
 import NG.GameEvent.Actions.ActionFinishListener;
 import NG.GameEvent.Actions.ActionIdle;
@@ -26,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public class MonsterSoul implements Living, Storable, ActionFinishListener {
+public abstract class MonsterSoul implements Living, Storable, ActionFinishListener {
     private static final Iterator<EntityAction> NO_ACTIONS = Collections.emptyIterator();
     private static final float MINIMUM_NOTICE_MAGNITUDE = 1e-3f;
 
@@ -102,7 +101,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
 
             }
         } catch (Exception ex) {
-            String message = lineNr == -1 ? "Error while loading file" : "Error while reading line " + lineNr;
+            String message = (lineNr == -1) ? "Error while loading file" : "Error on line " + lineNr;
             throw new IOException(message, ex);
         }
 
@@ -115,8 +114,11 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
         if (entity != null) {
             entity.dispose();
         }
-        return entity = new CubeMonster(game, coordinate, direction, this);
+
+        return entity = getNewEntity(game, coordinate, direction);
     }
+
+    protected abstract MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction);
 
     @Override
     public void onActionFinish(EntityAction previous) {
@@ -181,8 +183,9 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
     public void accept(Stimulus stimulus) {
         update();
 
+        float gametime = game.timer().getGametime();
         Type sType = stimulus.getType();
-        float realMagnitude = stimulus.getMagnitude(entity.getPosition());
+        float realMagnitude = stimulus.getMagnitude(entity.getPosition(gametime));
 
         Logger.DEBUG.print(stimulus, realMagnitude);
         if (realMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;
@@ -229,7 +232,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
         if (best == null) return;
 
         // otherwise, execute action
-        Command command = best.generateNew(entity, stimulus);
+        Command command = best.generateNew(entity, stimulus, gametime);
         acceptCommand(command);
     }
 
@@ -312,10 +315,10 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
-        emotions.writeToFile(out);
-        associationStimuli.writeToFile(out);
-        actionAssociator.writeToFile(out);
+    public void writeToDataStream(DataOutput out) throws IOException {
+        emotions.writeToDataStream(out);
+        associationStimuli.writeToDataStream(out);
+        actionAssociator.writeToDataStream(out);
     }
 
     public MonsterSoul(DataInput in) throws IOException, ClassNotFoundException {
@@ -327,7 +330,7 @@ public class MonsterSoul implements Living, Storable, ActionFinishListener {
 
         emotions = new Emotion.Collection(in);
         associationStimuli = new Associator<>(in, Type.class);
-        actionAssociator = new Associator<>(in, Command.CType.class);
+        actionAssociator = new Associator<>(in, CType.class);
     }
 
     private void readStimulusValues(Scanner reader) {

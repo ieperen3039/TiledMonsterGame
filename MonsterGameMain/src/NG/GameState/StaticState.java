@@ -69,7 +69,7 @@ public class StaticState implements GameState {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         List<Storable> box = new ArrayList<>(entities.size());
 
         for (Entity e : entities) {

@@ -1,10 +1,14 @@
 package NG.GameEvent.Actions;
 
 import NG.Animations.Animation;
-import NG.Animations.BodyModel;
+import NG.Animations.AnimationBone;
 import NG.Engine.Game;
-import org.joml.Vector2ic;
-import org.joml.Vector3fc;
+import org.joml.*;
+
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Stand still and do nothing at all. Can be interrupted any time.
@@ -14,6 +18,7 @@ public class ActionIdle implements EntityAction {
     private final float duration;
     private final Vector3fc position;
     private final Vector2ic coordinate;
+    private final Animation animation;
 
     /**
      * idle for a given duration after executing the given task
@@ -53,11 +58,12 @@ public class ActionIdle implements EntityAction {
         this.position = position;
         this.coordinate = coordinate;
         this.duration = duration;
+        animation = idleAnimation(duration);
     }
 
     @Override
-    public Vector3fc getPositionAfter(float timeSinceStart) {
-        return position;
+    public Vector3f getPositionAfter(float timeSinceStart) {
+        return new Vector3f(position);
     }
 
     @Override
@@ -86,7 +92,31 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
-    public Animation getAnimation(BodyModel model) {
-        return null; // TODO map animations
+    public Animation getAnimation() {
+        return animation;
     }
+
+    public static Animation idleAnimation(final float duration) {
+        return new Animation() { // TODO make this into a real animation
+            @Override
+            public Matrix4fc transformationOf(AnimationBone bone, float timeSinceStart) {
+                return new Matrix4f();
+            }
+
+            @Override
+            public float duration() {
+                return duration;
+            }
+
+            @Override
+            public Set<AnimationBone> getDomain() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public void writeToDataStream(DataOutput out) throws IOException {
+            }
+        };
+    }
+
 }

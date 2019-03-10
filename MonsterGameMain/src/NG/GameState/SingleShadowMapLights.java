@@ -159,7 +159,7 @@ public class SingleShadowMapLights implements GameLights {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         pointLightReadLock.lock();
         try {
             out.writeInt(lights.size());

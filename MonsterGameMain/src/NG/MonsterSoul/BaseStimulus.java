@@ -26,7 +26,7 @@ public enum BaseStimulus implements Type {
     UNKNOWN;
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
 
     }
 }

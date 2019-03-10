@@ -1,7 +1,7 @@
 package NG.ScreenOverlay.Frames.Components;
 
 import NG.ActionHandling.MouseRelativeClickListener;
-import NG.Engine.Game;
+import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
 import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2i;
@@ -9,6 +9,7 @@ import org.joml.Vector2ic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_CLOSED;
 import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_OPEN;
@@ -20,8 +21,8 @@ import static NG.ScreenOverlay.Frames.SFrameLookAndFeel.UIComponent.DROP_DOWN_HE
 public class SDropDown extends SComponent implements MouseRelativeClickListener {
     private final String[] values;
     private final DropDownOptions optionPane;
-    private final Game game;
-    private List<Runnable> stateChangeListeners = new ArrayList<>();
+    private final GUIManager gui;
+    private List<Consumer<Integer>> stateChangeListeners = new ArrayList<>();
 
     private int current;
     private boolean isOpened = false;
@@ -32,63 +33,62 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
     /**
      * create a dropdown menu with the given possible values, with a minimum width of 150 and height of 50
-     * @param game    the game instance
+     * @param gui     a reference to the gui in which this is displayed
      * @param initial the initial selected item, such that {@code values[initial]} is shown
      * @param values  a list of possible values for this dropdown menu
      */
-    public SDropDown(Game game, int initial, String... values) {
-        this(game, 150, 50, initial, values);
+    public SDropDown(GUIManager gui, int initial, String... values) {
+        this(gui, 150, 50, initial, values);
     }
 
     /**
      * create a dropdown menu with the given possible values
-     * @param game      the game instance
+     * @param gui       a reference to the gui in which this is displayed
      * @param minWidth  the minimum width of the selection bar
      * @param minHeight the minimum height of the selection bar
      * @param initial   the initial selected item, such that {@code values[initial]} is shown
      * @param values    a list of possible values for this dropdown menu
      */
-    public SDropDown(Game game, int minWidth, int minHeight, int initial, String... values) {
-        this.game = game;
+    public SDropDown(GUIManager gui, int minWidth, int minHeight, int initial, String... values) {
         this.values = values;
         this.current = initial;
         this.minHeight = minHeight;
         this.minWidth = minWidth;
         this.optionPane = new DropDownOptions(values);
+        this.gui = gui;
     }
 
     /**
      * create a dropdown menu with the given possible values, with a minimum width of 150 and height of 50. Initially
      * the first option is selected.
-     * @param game   the game instance
+     * @param gui    a reference to the gui in which this is displayed
      * @param values a list of possible values for this dropdown menu
      */
-    public SDropDown(Game game, List<String> values) {
-        this(game, 150, 50, values);
+    public SDropDown(GUIManager gui, List<String> values) {
+        this(gui, 150, 50, values);
     }
 
     /**
      * create a dropdown menu with the given possible values
-     * @param game      the game instance
+     * @param gui       a reference to the gui in which this is displayed
      * @param minWidth  the minimum width of the selection bar
      * @param minHeight the minimum height of the selection bar
      * @param values    a list of possible values for this dropdown menu
      */
-    public SDropDown(Game game, int minWidth, int minHeight, List<String> values) {
-        this(game, minWidth, minHeight, 0, values.toArray(new String[0]));
+    public SDropDown(GUIManager gui, int minWidth, int minHeight, List<String> values) {
+        this(gui, minWidth, minHeight, 0, values.toArray(new String[0]));
     }
 
     /**
      * create a dropdown menu with the string representation of the given object array as values. To obtain the selected
      * values, one must retrieve the selected index with {@link #getSelectedIndex()} and access the original array.
-     * @param game      the game instance
+     * @param gui       a reference to the gui in which this is displayed
      * @param minHeight the minimum height of the selection bar
      * @param minWidth  the minimum width of the selection bar
      * @param initial   the initial selected item, such that {@code values[initial]} is shown
      * @param values    a list of possible values for this dropdown menu
      */
-    public SDropDown(Game game, int minHeight, int minWidth, int initial, Object[] values) {
-        this.game = game;
+    public SDropDown(GUIManager gui, int minHeight, int minWidth, int initial, Object[] values) {
         this.minHeight = minHeight;
         this.minWidth = minWidth;
         this.current = initial;
@@ -100,6 +100,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
         this.values = arr;
         this.optionPane = new DropDownOptions(arr);
+        this.gui = gui;
     }
 
     /** @return the index of the currently selected item in the original array */
@@ -123,7 +124,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         this.dropOptionHeight = dropOptionHeight;
     }
 
-    public void addStateChangeListener(Runnable action) {
+    public void addStateChangeListener(Consumer<Integer> action) {
         stateChangeListeners.add(action);
     }
 
@@ -145,7 +146,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
     @Override
     public boolean wantHorizontalGrow() {
-        return false;
+        return true;
     }
 
     @Override
@@ -170,13 +171,13 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
             optionPane.setPosition(position.x, position.y + dimensions.y);
             optionPane.setSize(dimensions.x, 0);
             optionPane.setVisible(true);
-            game.gui().setModalListener(optionPane);
+            gui.setModalListener(optionPane);
         }
     }
 
     public void setCurrent(int index) {
         current = index;
-        stateChangeListeners.forEach(Runnable::run);
+        stateChangeListeners.forEach(c -> c.accept(current));
     }
 
     private void close() {

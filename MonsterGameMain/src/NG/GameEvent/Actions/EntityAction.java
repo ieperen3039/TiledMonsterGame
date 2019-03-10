@@ -1,7 +1,6 @@
 package NG.GameEvent.Actions;
 
 import NG.Animations.Animation;
-import NG.Animations.BodyModel;
 import NG.GameEvent.Event;
 import NG.MonsterSoul.Stimulus;
 import NG.Tools.Vectors;
@@ -21,23 +20,27 @@ public interface EntityAction extends Stimulus {
      * @param timeSinceStart the time since the start of this animation in seconds
      * @return the position at the given moment in time as described by this action.
      */
-    Vector3fc getPositionAfter(float timeSinceStart);
+    Vector3f getPositionAfter(float timeSinceStart);
 
     Vector2ic getStartCoordinate();
 
     Vector2ic getEndCoordinate();
-
-    Animation getAnimation(BodyModel model);
 
     /**
      * @return the duration of the action in seconds.
      */
     float duration();
 
+
     @Override
     default float getMagnitude(Vector3fc position) {
         return 1;
     }
+
+    /**
+     * @return the animation that is played when executing this action
+     */
+    Animation getAnimation();
 
     /**
      * checks whether this action may follow the given action

@@ -129,7 +129,7 @@ public class Associator<T extends Storable> implements Storable {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         // create mapping of stimuli
         Map<Type, Integer> idMap = new HashMap<>(memory.size());
 
@@ -147,7 +147,7 @@ public class Associator<T extends Storable> implements Storable {
 
         out.writeInt(idMap.size());
         for (Type s : idMap.keySet()) {
-            Storable.writeToFile(out, s);
+            Storable.write(out, s);
         }
 
         // output data
@@ -160,7 +160,7 @@ public class Associator<T extends Storable> implements Storable {
             out.writeInt(associations.size());
             for (int i = 0; i < associations.size(); i++) {
                 Storable elt = associations.left(i);
-                Storable.writeToFile(out, elt);
+                Storable.write(out, elt);
                 out.writeFloat(associations.right(i));
             }
         }
@@ -172,7 +172,7 @@ public class Associator<T extends Storable> implements Storable {
         List<Type> idMap = new ArrayList<>(nrOfStimuli);
 
         for (int i = 0; i < nrOfStimuli; i++) {
-            Type stimulus = Storable.readFromFile(in, Type.class);
+            Type stimulus = Storable.read(in, Type.class);
             idMap.add(stimulus); // each stimulus occurs only once
         }
 
@@ -191,7 +191,7 @@ public class Associator<T extends Storable> implements Storable {
             float[] relevances = new float[nrOfAssoc];
 
             for (int j = 0; j < nrOfAssoc; j++) {
-                stimuli[j] = Storable.readFromFile(in, expected);
+                stimuli[j] = Storable.read(in, expected);
                 relevances[j] = in.readFloat();
             }
 

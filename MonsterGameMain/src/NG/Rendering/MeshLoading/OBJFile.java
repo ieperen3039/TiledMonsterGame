@@ -31,7 +31,7 @@ public class OBJFile implements MeshFile {
      * @param path   the path to the object
      * @param name   debug name of the shape
      */
-    public OBJFile(Vector3fc offSet, float scale, Path path, String name) throws IOException {
+    public OBJFile(Vector3fc offSet, Vector3fc scale, Path path, String name) throws IOException {
         this.name = name;
         vertices = new ArrayList<>();
         normals = new ArrayList<>();

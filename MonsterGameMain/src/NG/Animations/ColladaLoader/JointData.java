@@ -12,14 +12,12 @@ import java.util.List;
  */
 public class JointData {
 
-    public final int index;
     public final String name;
     public final Matrix4f bindLocalTransform;
 
     public final List<JointData> children = new ArrayList<JointData>();
 
-    public JointData(int index, String name, Matrix4f bindLocalTransform) {
-        this.index = index;
+    public JointData(String name, Matrix4f bindLocalTransform) {
         this.name = name;
         this.bindLocalTransform = bindLocalTransform;
     }

@@ -1,10 +1,6 @@
 package NG.Animations.ColladaLoader;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
+import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,11 +20,11 @@ public class XmlParser {
     /**
      * Reads an XML file and stores all the data in {@link XmlNode} objects, allowing for easy access to the data
      * contained in the XML file.
-     * @param path - the path to the XML file
      * @return The root node of the XML structure.
+     * @param file
      */
-    public static XmlNode loadXmlFile(Path path) throws IOException {
-        FileInputStream fileIn = new FileInputStream(path.toFile());
+    public static XmlNode loadXmlFile(File file) throws IOException {
+        FileInputStream fileIn = new FileInputStream(file);
         BufferedReader reader = new BufferedReader(new InputStreamReader(fileIn));
         reader.readLine();
         XmlNode node = loadNode(reader);

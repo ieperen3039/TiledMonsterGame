@@ -1,22 +1,23 @@
 package NG.MonsterSoul.Commands;
 
 import NG.Animations.Animation;
-import NG.Animations.BodyModel;
+import NG.Animations.CompoundAnimation;
 import NG.GameEvent.Actions.EntityAction;
 import org.joml.Quaternionf;
 import org.joml.Vector2ic;
-import org.joml.Vector3fc;
+import org.joml.Vector3f;
 
 import java.util.Arrays;
 
 /**
- * Several {@link EntityAction}s combined into one action.
+ * Several {@link EntityAction EntityActions} combined into one action.
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public class CompoundAction implements EntityAction {
     private final EntityAction[] actions;
     private final EntityAction lastAction;
     private final float totalDuration;
+    private final CompoundAnimation animations;
 
     /**
      * combines a set of actions
@@ -28,6 +29,7 @@ public class CompoundAction implements EntityAction {
 
         EntityAction prevAction = actionArray[0];
         float duration = prevAction.duration();
+        Animation[] actionAnimations = new Animation[nrOfActions];
 
         for (int i = 1; i < actionArray.length; i++) {
             EntityAction action = actionArray[i];
@@ -39,19 +41,19 @@ public class CompoundAction implements EntityAction {
                 throw new IllegalArgumentException(String.format("action %d/%d: %s does not follow %s", i + 1, actionArray.length, action, prevAction));
             }
 
+            actionAnimations[i] = action.getAnimation();
             prevAction = action;
             duration += action.duration();
         }
 
-        actions = new EntityAction[nrOfActions];
-        System.arraycopy(actionArray, 0, actions, 0, nrOfActions);
-
+        actions = actionArray;
+        animations = new CompoundAnimation(actionAnimations);
         this.lastAction = prevAction;
         this.totalDuration = duration;
     }
 
     @Override
-    public Vector3fc getPositionAfter(float timeSinceStart) {
+    public Vector3f getPositionAfter(float timeSinceStart) {
         if (timeSinceStart <= 0) {
             return actions[0].getPositionAfter(0);
 
@@ -102,11 +104,6 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
-    public Animation getAnimation(BodyModel model) {
-        return null;
-    }
-
-    @Override
     public Vector2ic getStartCoordinate() {
         return actions[0].getStartCoordinate();
     }
@@ -117,9 +114,12 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
+    public Animation getAnimation() {
+        return animations;
+    }
+
+    @Override
     public String toString() {
         return Arrays.toString(actions);
     }
-
-
 }

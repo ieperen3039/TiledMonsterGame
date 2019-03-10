@@ -206,7 +206,7 @@ public class TileMap implements GameMap {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         List<MapTile> tileTypes = MapTile.values();
 
         // number of tile types
@@ -235,7 +235,7 @@ public class TileMap implements GameMap {
 
     /**
      * Constructs an instance from a data stream. Must be executed on the render thread for loading tile models.
-     * @param in the data stream synchonized to the call to {@link #writeToFile(DataOutput)}
+     * @param in the data stream synchonized to the call to {@link #writeToDataStream(DataOutput)}
      * @throws IOException if the data produces unexpected values
      */
     public TileMap(DataInput in) throws IOException {

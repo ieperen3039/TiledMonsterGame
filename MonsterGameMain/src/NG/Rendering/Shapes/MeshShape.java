@@ -3,7 +3,6 @@ package NG.Rendering.Shapes;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
-import NG.Rendering.MeshLoading.TexturedMesh;
 import NG.Rendering.Shapes.Primitives.Plane;
 import org.joml.Vector3fc;
 
@@ -23,12 +22,7 @@ public class MeshShape implements Mesh, Shape {
         MeshFile pars = MeshFile.loadFile(path);
 
         shape = new BasicShape(pars);
-
-        if (pars.isTextured()) {
-            mesh = new TexturedMesh(pars);
-        } else {
-            mesh = new FlatMesh(pars.getVertices(), pars.getNormals(), pars.getFaces());
-        }
+        mesh = pars.getMesh();
     }
 
     @Override

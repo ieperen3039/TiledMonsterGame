@@ -185,7 +185,7 @@ public class MapEditor {
                         new FileOutputStream(nameWithExtension)
                 ) {
                     DataOutput output = new DataOutputStream(fileOut);
-                    Storable.writeToFile(output, game.map());
+                    Storable.write(output, game.map());
 
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
@@ -255,10 +255,10 @@ public class MapEditor {
         // size selection
         SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
         sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
-        SDropDown xSizeSelector = new SDropDown(game, 100, 60, 1, "16", "32", "64", "128");
+        SDropDown xSizeSelector = new SDropDown(game.gui(), 100, 60, 1, "16", "32", "64", "128");
         sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
         sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
-        SDropDown ySizeSelector = new SDropDown(game, 100, 60, 1, "16", "32", "64", "128");
+        SDropDown ySizeSelector = new SDropDown(game.gui(), 100, 60, 1, "16", "32", "64", "128");
         sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
         mainPanel.add(sizeSelection, mpos.add(0, 1));
 

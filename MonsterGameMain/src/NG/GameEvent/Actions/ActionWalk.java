@@ -1,10 +1,11 @@
 package NG.GameEvent.Actions;
 
+import NG.Animations.Animation;
+import NG.Animations.BodyAnimation;
 import NG.Engine.Game;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
 import static NG.Settings.Settings.TILE_SIZE;
 
@@ -14,6 +15,8 @@ import static NG.Settings.Settings.TILE_SIZE;
  */
 public class ActionWalk extends ActionMovement {
 
+    private final Animation animation;
+
     /**
      * @param game      the current game instance
      * @param start     coordinate where the move origins
@@ -22,16 +25,23 @@ public class ActionWalk extends ActionMovement {
      */
     public ActionWalk(Game game, Vector2ic start, Vector2ic end, float walkSpeed) {
         super(game, start, end, walkSpeed / TILE_SIZE);
+
+        animation = BodyAnimation.WALK_START;
     }
 
     @Override
-    public Vector3fc getPositionAfter(float timeSinceStart) {
-        if (timeSinceStart < 0) return start;
-        if (timeSinceStart > duration) return end;
+    public Vector3f getPositionAfter(float timeSinceStart) {
+        if (timeSinceStart < 0) return new Vector3f(start);
+        if (timeSinceStart > duration) return new Vector3f(end);
 
         // TODO more precise movement, taking animation into account (maybe)
         float fraction = timeSinceStart / duration;
         return new Vector3f(start).lerp(end, fraction);
+    }
+
+    @Override
+    public Animation getAnimation() {
+        return animation;
     }
 
     @Override

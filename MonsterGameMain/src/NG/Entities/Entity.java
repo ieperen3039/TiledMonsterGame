@@ -1,13 +1,9 @@
 package NG.Entities;
 
-import NG.Animations.AnimationBone;
-import NG.Animations.BoneElement;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.AABBf;
-import org.joml.Vector3fc;
-
-import java.util.Map;
+import org.joml.Vector3f;
 
 /**
  * An entity is anything that is in the world, excluding the ground itself. Particles and other visual elements are not
@@ -26,9 +22,10 @@ public interface Entity {
     void draw(SGL gl);
 
     /**
-     * @return the real position of this entity at the current game time
+     * @return the real position of this entity at the given time
+     * @param currentTime
      */
-    Vector3fc getPosition();
+    Vector3f getPosition(float currentTime);
 
     /**
      * Executes when the user clicks on this entity. When {@code button == GLFW_LEFT_MOUSE_BUTTON} is clicked, an {@link
@@ -52,6 +49,4 @@ public interface Entity {
      * @return the hitbox that encircles this entity
      */
     AABBf hitbox();
-
-    Map<AnimationBone, BoneElement> getBoneMapping();
 }

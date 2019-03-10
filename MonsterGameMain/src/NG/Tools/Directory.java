@@ -3,8 +3,6 @@ package NG.Tools;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,7 +20,9 @@ public enum Directory {
     mapTileModels(true, "res", "mapTiles"),
     savedMaps(false, "Saved maps"),
     souls(true, "res", "soul_jar"),
-    skeletons(true, "res", "skeletons");
+    colladaFiles(true, "res", "colladaFiles"),
+    skeletons(true, "res", "skeletons"),
+    animations(true, "res", "animations");
 
     private static final String TARGET_WORKING_DIRECTORY = "MonsterGame";
     private static Path WORKING_DIRECTORY = null;
@@ -56,11 +56,11 @@ public enum Directory {
         String first = path[0];
         String[] second = Arrays.copyOfRange(path, 1, path.length);
         Path other = Paths.get(first, second);
-        return workDirectory().resolve(directory).resolve(other).toAbsolutePath();
+        return directory.resolve(other).toAbsolutePath();
     }
 
     public Path getPath() {
-        return directory; // immutable
+        return directory.toAbsolutePath(); // immutable
     }
 
     public File[] getFiles() {
@@ -71,21 +71,10 @@ public enum Directory {
         if (WORKING_DIRECTORY == null) {
             WORKING_DIRECTORY = Paths.get("");
 
-            // more checks
+            // checks
 //            assert WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY);
         }
         return WORKING_DIRECTORY;
-    }
-
-    public static Path getSystemPath() {
-        try {
-            URI uri;
-            uri = ClassLoader.getSystemResource("").toURI();
-            return Paths.get(uri);
-
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public URL toURL() {

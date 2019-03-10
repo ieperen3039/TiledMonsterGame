@@ -7,11 +7,11 @@ import java.util.List;
 
 public class AnimationLoader {
     private XmlNode animationData;
-    private XmlNode jointHierarchy;
+    private String rootJointName;
 
-    public AnimationLoader(XmlNode animationData, XmlNode jointHierarchy) {
+    public AnimationLoader(XmlNode animationData, String rootJointName) {
         this.animationData = animationData;
-        this.jointHierarchy = jointHierarchy;
+        this.rootJointName = rootJointName;
     }
 
     public AnimationData extractAnimation() {
@@ -19,10 +19,9 @@ public class AnimationLoader {
         float duration = times[times.length - 1];
         KeyFrameData[] keyFrames = initKeyFrames(times);
 
-        String rootNode = findRootJointName();
         List<XmlNode> animationNodes = animationData.getChildren("animation");
         for (XmlNode jointNode : animationNodes) {
-            loadJointTransforms(keyFrames, jointNode, rootNode);
+            loadJointTransforms(keyFrames, jointNode, rootJointName);
         }
 
         return new AnimationData(duration, keyFrames);
@@ -62,13 +61,12 @@ public class AnimationLoader {
     private String getJointName(XmlNode jointData) {
         XmlNode channelNode = jointData.getChild("channel");
         String data = channelNode.getAttribute("target");
-        return data.split("/")[0];
+        return data.split("/")[0].replaceAll("Armature_", "");
     }
 
     private void processTransforms(String jointName, String[] rawData, KeyFrameData[] keyFrames, boolean root) {
         for (KeyFrameData keyFrame : keyFrames) {
-            Matrix4f transform = ColladaLoader.parseMatrix(rawData);
-            transform.transpose();
+            Matrix4f transform = ColladaLoader.parseFloatMatrix(rawData);
 
             if (root) {
                 transform.rotateXYZ(0, 0, (float) Math.toRadians(-90));
@@ -77,11 +75,4 @@ public class AnimationLoader {
             keyFrame.jointTransforms.put(jointName, transform);
         }
     }
-
-    private String findRootJointName() {
-        XmlNode skeleton = jointHierarchy.getChild("visual_scene").getChildWithAttribute("node", "id", "Armature");
-        return skeleton.getChild("node").getAttribute("id");
-    }
-
-
 }

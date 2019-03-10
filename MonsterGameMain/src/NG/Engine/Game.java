@@ -102,7 +102,7 @@ public interface Game {
 
     /**
      * reads a binary GameMap instance from the provided file. This file must have been generated with a {@link
-     * java.io.FileOutputStream} where {@link NG.Storable#writeToFile(DataOutput, Storable)} has been called on a
+     * java.io.FileOutputStream} where {@link NG.Storable#write(DataOutput, Storable)} has been called on a
      * gameMap instance.
      * @param map the file of
      * @throws java.io.FileNotFoundException if the file does not point to a valid file

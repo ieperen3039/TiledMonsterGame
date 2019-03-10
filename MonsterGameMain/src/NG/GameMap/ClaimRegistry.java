@@ -110,7 +110,7 @@ public class ClaimRegistry implements GameAspect, Storable {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         claimLock.lock();
         try {
             out.writeInt(claimRegistry.size());
@@ -124,7 +124,7 @@ public class ClaimRegistry implements GameAspect, Storable {
                     out.writeInt(vec.y());
 
                     Storable box = (Storable) entity;
-                    Storable.writeToFile(out, box);
+                    Storable.write(out, box);
                 }
             }
 
@@ -138,7 +138,7 @@ public class ClaimRegistry implements GameAspect, Storable {
 
         int x = in.readInt();
         int y = in.readInt();
-        Entity entity = Storable.readFromFile(in, Entity.class);
+        Entity entity = Storable.read(in, Entity.class);
         Vector2i pos = new Vector2i(x, y);
         claimRegistry.put(pos, entity);
     }

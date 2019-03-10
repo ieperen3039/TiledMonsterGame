@@ -58,7 +58,7 @@ public class Version implements Comparable<Version>, Storable {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         out.writeChar('v');
         out.writeInt(major);
         out.writeInt(minor);

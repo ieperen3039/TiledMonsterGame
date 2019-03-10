@@ -49,7 +49,8 @@ public class SFrame extends SContainer {
             upperBar = makeUpperBar(title);
         } else {
             titleComponent = new STextArea(title, FRAME_TITLE_BAR_SIZE);
-            upperBar = SContainer.singleton(titleComponent);
+            upperBar = new SPanel(new SingleElementLayout(), true);
+            upperBar.add(titleComponent, null);
         }
         upperBar.setParent(this);
 
@@ -88,10 +89,12 @@ public class SFrame extends SContainer {
      * sets the area below the title bar to contain the given component. The size of this component is determined by
      * this frame.
      * @param comp the new middle component
+     * @return this
      */
-    public void setMainPanel(SContainer comp) {
+    public SFrame setMainPanel(SContainer comp) {
         super.add(comp, null); // single element layout
         comp.setPosition(0, upperBar.getHeight());
+        return this;
     }
 
     /**

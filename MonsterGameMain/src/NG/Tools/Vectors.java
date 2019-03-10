@@ -296,6 +296,20 @@ public class Vectors {
         return new Vector2i(coordinate.x(), coordinate.y());
     }
 
+    public static Matrix4f toMatrix4f(float[] f) {
+        assert f.length == 16;
+        return new Matrix4f(
+                f[0], f[1], f[2], f[3],
+                f[4], f[5], f[6], f[7],
+                f[8], f[9], f[10], f[11],
+                f[12], f[13], f[14], f[15]
+        );
+    }
+
+    public static Vector3f sizeOf(AABBf box) {
+        return new Vector3f(box.maxX - box.minX, box.maxY - box.minY, box.maxZ - box.minZ);
+    }
+
     public static class Scaling {
         public static final Vector3fc UNIFORM = new Vector3f(1, 1, 1);
         /** scaling that mirrors in the X direction */

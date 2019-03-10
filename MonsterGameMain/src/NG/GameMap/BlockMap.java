@@ -193,7 +193,7 @@ public class BlockMap implements GameMap {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutput out) throws IOException {
         out.writeInt(xSize);
         out.writeInt(ySize);
 

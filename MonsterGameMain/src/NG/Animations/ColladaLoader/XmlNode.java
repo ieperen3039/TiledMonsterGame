@@ -122,11 +122,7 @@ public class XmlNode {
         if (childNodes == null) {
             childNodes = new HashMap<String, List<XmlNode>>();
         }
-        List<XmlNode> list = childNodes.get(child.name);
-        if (list == null) {
-            list = new ArrayList<XmlNode>();
-            childNodes.put(child.name, list);
-        }
+        List<XmlNode> list = childNodes.computeIfAbsent(child.name, k -> new ArrayList<>());
         list.add(child);
     }
 

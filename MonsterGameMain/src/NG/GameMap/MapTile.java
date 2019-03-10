@@ -3,9 +3,9 @@ package NG.GameMap;
 import NG.DataStructures.Direction;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
+import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shaders.TextureShader;
-import NG.Rendering.Shapes.MeshShape;
 import NG.Rendering.Textures.FileTexture;
 import NG.Rendering.Textures.Texture;
 import NG.Tools.Directory;
@@ -335,7 +335,7 @@ public class MapTile {
 
         private void loadMesh(MapTile type) {
             try {
-                type.mesh = new MeshShape(type.meshPath);
+                type.mesh = MeshFile.loadFile(type.meshPath).getMesh();
 
                 if (type.texturePath != null) {
                     type.texture = FileTexture.get(type.texturePath);

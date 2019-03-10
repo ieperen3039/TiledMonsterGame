@@ -77,18 +77,18 @@ public abstract class Command implements Stimulus {
         }
 
         @Override
-        public void writeToFile(DataOutput out) throws IOException {
+        public void writeToDataStream(DataOutput out) throws IOException {
             out.writeBoolean(isTarget);
         }
 
-        public Command generateNew(MonsterEntity entity, Stimulus cause) {
+        public Command generateNew(MonsterEntity entity, Stimulus cause, float gametime) {
             if (cause instanceof Command && cause.getType().equals(this)) {
                 return (Command) cause;
 
             } else if (cause instanceof EnvironmentalStimulus) {
                 EnvironmentalStimulus positional = (EnvironmentalStimulus) cause;
                 // run away
-                Vector3f direction = new Vector3f(entity.getPosition());
+                Vector3f direction = entity.getPosition(gametime);
                 direction.sub(positional.getPosition());
                 Vector2ic target = Direction.get(direction.x, direction.y).toVector();
 

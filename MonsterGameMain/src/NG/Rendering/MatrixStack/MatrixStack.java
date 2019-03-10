@@ -104,7 +104,7 @@ public interface MatrixStack {
      * Applies an affine transformation.
      * @param postTransformation some affine matrix
      */
-    void multiplyAffine(Matrix4f postTransformation);
+    void multiplyAffine(Matrix4fc postTransformation);
 
     /**
      * @param x the rotation around the x-axis

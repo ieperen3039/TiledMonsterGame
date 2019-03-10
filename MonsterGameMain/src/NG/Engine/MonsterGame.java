@@ -166,7 +166,7 @@ public class MonsterGame implements ModLoader {
 
         // show main menu
         mainMenu.setVisible(true);
-        mainMenu.testWorld(); // immediately start test world, for debugging purposes
+//        mainMenu.testWorld(); // immediately start test world, for debugging purposes
         window.open();
         renderer.run();
 
@@ -357,7 +357,7 @@ public class MonsterGame implements ModLoader {
 
         @Override
         public void writeStateToFile(DataOutput out) throws IOException {
-            GAME_VERSION.writeToFile(out);
+            GAME_VERSION.writeToDataStream(out);
 
             // store timestamp
             out.writeFloat(gameTimer.getGametime());
@@ -368,14 +368,14 @@ public class MonsterGame implements ModLoader {
 
             for (Mod mod : listOfMods) {
                 out.writeUTF(mod.getModName());
-                mod.getVersionNumber().writeToFile(out);
+                mod.getVersionNumber().writeToDataStream(out);
             }
 
-            Storable.writeToFile(out, thisLoop);
-            Storable.writeToFile(out, thisState);
-            Storable.writeToFile(out, thisMap);
-            Storable.writeToFile(out, thisLights);
-            Storable.writeToFile(out, thisClaims);
+            Storable.write(out, thisLoop);
+            Storable.write(out, thisState);
+            Storable.write(out, thisMap);
+            Storable.write(out, thisLights);
+            Storable.write(out, thisClaims);
         }
 
         @Override
@@ -398,11 +398,11 @@ public class MonsterGame implements ModLoader {
                 logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
             }
 
-            EventLoop newLoop = Storable.readFromFile(in, EventLoop.class);
-            GameState newState = Storable.readFromFile(in, GameState.class);
-            GameMap newMap = Storable.readFromFile(in, GameMap.class);
-            GameLights newLights = Storable.readFromFile(in, GameLights.class);
-            ClaimRegistry newClaims = Storable.readFromFile(in, ClaimRegistry.class);
+            EventLoop newLoop = Storable.read(in, EventLoop.class);
+            GameState newState = Storable.read(in, GameState.class);
+            GameMap newMap = Storable.read(in, GameMap.class);
+            GameLights newLights = Storable.read(in, GameLights.class);
+            ClaimRegistry newClaims = Storable.read(in, ClaimRegistry.class);
 
             newLights.init(this);
             newState.init(this);
@@ -433,7 +433,7 @@ public class MonsterGame implements ModLoader {
         public void loadMap(File map) throws Exception {
             FileInputStream fs = new FileInputStream(map);
             DataInput input = new DataInputStream(fs);
-            GameMap newMap = Storable.readFromFile(input, GameMap.class);
+            GameMap newMap = Storable.read(input, GameMap.class);
 
             newMap.init(this);
             this.thisMap.cleanup();

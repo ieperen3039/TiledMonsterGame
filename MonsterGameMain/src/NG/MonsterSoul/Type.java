@@ -26,7 +26,7 @@ public interface Type extends Storable {
         }
 
         @Override
-        public void writeToFile(DataOutput out) throws IOException {
+        public void writeToDataStream(DataOutput out) throws IOException {
             Storable.writeClass(out, id);
         }
 

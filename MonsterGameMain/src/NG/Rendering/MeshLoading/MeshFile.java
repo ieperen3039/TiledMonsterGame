@@ -1,6 +1,7 @@
 package NG.Rendering.MeshLoading;
 
 import NG.DataStructures.Generic.Color4f;
+import NG.Rendering.Shapes.FlatMesh;
 import NG.Tools.Vectors;
 import org.joml.Vector2fc;
 import org.joml.Vector3fc;
@@ -33,10 +34,10 @@ public interface MeshFile {
     List<Mesh.Face> getFaces();
 
     static MeshFile loadFile(Path file) throws IOException {
-        return loadFile(file, Vectors.O, 1f);
+        return loadFile(file, Vectors.O, Vectors.Scaling.UNIFORM);
     }
 
-    static MeshFile loadFile(Path file, Vector3fc offset, float scaling) throws IOException {
+    static MeshFile loadFile(Path file, Vector3fc offset, Vector3fc scaling) throws IOException {
         String fileName = file.getFileName().toString();
 
         assert fileName.contains(".");
@@ -49,6 +50,14 @@ public interface MeshFile {
                 return new PLYFile(offset, scaling, file, fileName);
             default:
                 throw new UnsupportedMeshFileException(fileName);
+        }
+    }
+
+    default Mesh getMesh() {
+        if (isTextured()) {
+            return new TexturedMesh(this);
+        } else {
+            return new FlatMesh(getVertices(), getNormals(), getFaces());
         }
     }
 

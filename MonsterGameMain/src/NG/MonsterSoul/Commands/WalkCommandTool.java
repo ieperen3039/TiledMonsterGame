@@ -1,9 +1,8 @@
-package NG.Entities;
+package NG.MonsterSoul.Commands;
 
 import NG.ActionHandling.MouseTools.DefaultMouseTool;
 import NG.Engine.Game;
-import NG.MonsterSoul.Commands.Command;
-import NG.MonsterSoul.Commands.CommandWalk;
+import NG.Entities.MonsterEntity;
 import NG.MonsterSoul.MonsterSoul;
 import NG.MonsterSoul.Player;
 import org.joml.Vector2i;

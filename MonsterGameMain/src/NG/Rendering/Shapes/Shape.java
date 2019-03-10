@@ -65,7 +65,7 @@ public interface Shape {
      * @param path          path to the .obj file without extension
      * @return a list of shapes, each being roughly containersize in size
      */
-    static List<Shape> loadSplit(float containerSize, float scale, Path path)
+    static List<Shape> loadSplit(float containerSize, Vector3fc scale, Path path)
             throws IOException {
         MeshFile file = MeshFile.loadFile(path, Vectors.O, scale);
         HashMap<Vector3i, CustomShape> world = new HashMap<>();

@@ -4,7 +4,7 @@ import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.MonsterSoul.Commands.CompoundAction;
 import org.joml.Vector2ic;
-import org.joml.Vector3fc;
+import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
@@ -47,7 +47,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * @param currentTime the moment to query
      * @return the position described by this action queue.
      */
-    public Vector3fc getPositionAt(float currentTime) {
+    public Vector3f getPositionAt(float currentTime) {
         Pair<EntityAction, Float> pair = getActionAt(currentTime);
         return pair.left.getPositionAfter(pair.right);
     }

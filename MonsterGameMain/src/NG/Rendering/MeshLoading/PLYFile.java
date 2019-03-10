@@ -71,7 +71,7 @@ public class PLYFile implements MeshFile {
      * @throws IOException if file not found
      * @throws IOException if file format not supported
      */
-    public PLYFile(Vector3fc offSet, float scale, Path path, String name) throws IOException {
+    public PLYFile(Vector3fc offSet, Vector3fc scale, Path path, String name) throws IOException {
         this.name = name;
         vertices = new ArrayList<>();
         normals = new ArrayList<>();

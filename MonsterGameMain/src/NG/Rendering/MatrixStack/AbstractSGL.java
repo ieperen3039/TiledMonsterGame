@@ -1,9 +1,6 @@
 package NG.Rendering.MatrixStack;
 
-import org.joml.Matrix4f;
-import org.joml.Quaternionfc;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
+import org.joml.*;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -83,7 +80,7 @@ public abstract class AbstractSGL implements SGL {
     }
 
     @Override
-    public void multiplyAffine(Matrix4f postTransformation) {
+    public void multiplyAffine(Matrix4fc postTransformation) {
         modelMatrix.mulAffine(postTransformation);
     }
 

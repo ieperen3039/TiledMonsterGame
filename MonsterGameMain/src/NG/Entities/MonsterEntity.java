@@ -1,25 +1,26 @@
 package NG.Entities;
 
+import NG.Animations.Animation;
 import NG.Animations.AnimationBone;
+import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.GameEvent.Actions.ActionQueue;
 import NG.GameEvent.Actions.EntityAction;
+import NG.MonsterSoul.Commands.WalkCommandTool;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import NG.ScreenOverlay.Frames.Components.SFrame;
 import NG.ScreenOverlay.Frames.Components.SPanel;
 import NG.ScreenOverlay.Frames.Components.SToggleButton;
 import NG.ScreenOverlay.Menu.MainMenu;
-import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -30,7 +31,7 @@ import java.util.Map;
 public abstract class MonsterEntity implements Entity {
     protected final Game game;
     private final MonsterSoul controller;
-    /** the current action that is executed */
+    /** the current actions that are executed */
     public ActionQueue currentActions;
 
     private boolean isDisposed;
@@ -58,43 +59,42 @@ public abstract class MonsterEntity implements Entity {
 
         float now = game.timer().getRendertime();
         currentActions.removeUntil(now);
-        Pair<EntityAction, Float> action = currentActions.getActionAt(now);
-        EntityAction theAction = action.left;
+
+        Pair<EntityAction, Float> actionPair = currentActions.getActionAt(now);
+        EntityAction action = actionPair.left;
+        Float timeSinceStart = actionPair.right;
 
         gl.pushMatrix();
         {
-            Vector3fc pos = theAction.getPositionAfter(action.right);
-            gl.translate(pos);
+            gl.translate(action.getPositionAfter(timeSinceStart));
+            gl.rotate(action.getRotation(timeSinceStart));
+            Animation animation = action.getAnimation();
 
-            gl.translate(0, 0, 2);
-            Toolbox.draw3DPointer(gl); // sims
-            gl.translate(0, 0, -2);
-
-            float progress = action.right / theAction.duration();
-            drawDetail(gl, theAction, progress);
+            bodyModel().draw(gl, this, getBoneMapping(), animation, timeSinceStart);
         }
-        gl.popMatrix();
     }
 
     /**
-     * draw the entity,
-     * @param gl             the sgl object to render with
-     * @param action         the action being executed
-     * @param actionProgress the progress of this action as a fraction in [0, 1]
+     * @return the root bone of this entity's skeleton
      */
-    protected abstract void drawDetail(SGL gl, EntityAction action, float actionProgress);
+    protected abstract BodyModel bodyModel();
 
+    /**
+     * @return a mapping of bones from the bones of {@link #bodyModel()} to implementations.
+     */
+    protected abstract Map<AnimationBone, BoneElement> getBoneMapping();
+
+    /**
+     * @return the {@link NG.MonsterSoul.Living} that controls this entity.
+     */
     public MonsterSoul getController() {
         return controller;
     }
 
     @Override
-    public Vector3fc getPosition() {
-        float currentTime = game.timer().getGametime();
+    public Vector3f getPosition(float currentTime) {
         return currentActions.getPositionAt(currentTime);
     }
-
-    protected abstract void setTargetRotation(Vector3fc direction);
 
     @Override
     public void onClick(int button) {
@@ -123,11 +123,6 @@ public abstract class MonsterEntity implements Entity {
     @Override
     public boolean isDisposed() {
         return isDisposed;
-    }
-
-    @Override
-    public Map<AnimationBone, BoneElement> getBoneMapping() {
-        return Collections.emptyMap();
     }
 
     public EntityAction getLastAction() {

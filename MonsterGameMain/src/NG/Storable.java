@@ -1,16 +1,14 @@
 package NG;
 
+import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.*;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * An Object of this type can be written to file using a {@link DataOutput} and read from that file using a {@link
@@ -25,28 +23,30 @@ public interface Storable {
      * @param out any stream that reliably transfers data
      * @throws IOException if an I/O error occurs while writing data to the stream.
      * @implNote The data must be written in exactly the same order as the specified constructor reads.
-     * @see #writeToFile(DataOutput, Storable)
-     * @see #readFromFile(DataInput, Class)
+     * @see #write(DataOutput, Storable)
+     * @see #read(DataInput, Class)
      */
-    void writeToFile(DataOutput out) throws IOException;
+    void writeToDataStream(DataOutput out) throws IOException;
 
     /**
      * Writes the given object to the given data stream. The object must have a constructor that accepts exactly a
-     * {@link DataInput} as only parameter. The object can be restored with a call to {@link #readFromFile(DataInput,
-     * Class)}
+     * {@link DataInput} as only parameter. The object can be restored with a call to {@link #read(DataInput, Class)}
      * @param out    the data stream where to put the data to
      * @param object the object to store
      * @throws IOException if an I/O error occurs while writing data to the stream.
      */
-    static void writeToFile(DataOutput out, Storable object) throws IOException {
+    static void write(DataOutput out, Storable object) throws IOException {
         if (object instanceof Enum) {
-            Enum asEnum = (Enum) object;
-            out.writeUTF(asEnum.toString());
+            writeEnum(out, (Enum) object);
             return;
         }
 
         writeClass(out, object.getClass());
-        object.writeToFile(out);
+        object.writeToDataStream(out);
+    }
+
+    static void writeEnum(DataOutput out, Enum object) throws IOException {
+        out.writeUTF(object.toString());
     }
 
     /**
@@ -54,16 +54,16 @@ public interface Storable {
      * only argument.
      * @param in       a stream where this object has been written to.
      * @param expected the class that is expected to be read from the stream.
-     * @throws IOException if something goes wrong with reading the data from the input stream.
+     * @throws IOException        if something goes wrong with reading the data from the input stream.
      * @throws ClassCastException if the read class instance can't be cast to T
-     * @implNote An object written to a stream using {@link #writeToFile(DataOutput)} should be {@link
+     * @implNote An object written to a stream using {@link #writeToDataStream(DataOutput)} should be {@link
      * Object#equals(Object) equal} to the object returned by this method.
-     * @see #writeToFile(DataOutput, Storable)
+     * @see #write(DataOutput, Storable)
      */
-    static <T> T readFromFile(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
+    static <T> T read(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
         if (expected.isEnum()) {
-            String enumName = in.readUTF();
-            return Toolbox.findClosest(enumName, expected.getEnumConstants());
+            //noinspection unchecked
+            return (T) readEnum(in, (Class<? extends Enum>) expected);
         }
 
         Class<? extends T> foundClass = null;
@@ -87,6 +87,11 @@ public interface Storable {
             throw new IOException(foundClass + " has no constructor that accepts as argument a DataInput class", ex);
 
         }
+    }
+
+    static <T extends Enum> T readEnum(DataInput in, Class<T> expected) throws IOException {
+        String enumName = in.readUTF();
+        return Toolbox.findClosest(enumName, expected.getEnumConstants());
     }
 
     /**
@@ -170,29 +175,114 @@ public interface Storable {
         );
     }
 
-    static void writeCollection(DataOutput out, Collection<Storable> box) throws IOException {
+    static void writeCollection(DataOutput out, Collection<? extends Storable> box) throws IOException {
         out.writeInt(box.size());
         for (Storable s : box) {
-            Storable.writeToFile(out, s);
+            Storable.write(out, s);
         }
     }
 
     /**
-     * reads a collection from the stream, and stores it in a {@link List}
+     * reads a collection from the stream, and stores it in an {@link ArrayList}
      * @param in       the data input stream
      * @param expected the class of the elements
      * @param <T>      the actual type of the elements
      * @return an {@link ArrayList} with the values read from the input stream
      * @throws IOException            if an exception occurs while reading the stream
-     * @throws ClassNotFoundException if any of the elements can not be cast to T
+     * @throws ClassNotFoundException if any element of the map has an unknown or not-loaded class
+     * @throws ClassCastException     if any of the elements can not be cast to T
+     * @see #writeCollection(DataOutput, Collection)
      */
     static <T> List<T> readCollection(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
         int size = in.readInt();
         ArrayList<T> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            T entity = Storable.readFromFile(in, expected);
+            T entity = Storable.read(in, expected);
             list.add(entity);
         }
         return list;
     }
+
+    static void writeMatrix4f(DataOutput out, Matrix4fc mat) throws IOException {
+        byte[] bytes = new byte[Float.BYTES * 16];
+
+        float[] array = new float[16];
+        ByteBuffer.wrap(bytes).asFloatBuffer().put(mat.get(array));
+
+        out.write(bytes);
+    }
+
+    static Matrix4f readMatrix4f(DataInput in) throws IOException {
+        byte[] bytes = new byte[Float.BYTES * 16];
+        in.readFully(bytes);
+
+        float[] array = new float[16];
+        ByteBuffer.wrap(bytes).asFloatBuffer().get(array);
+
+        Matrix4f mat = new Matrix4f();
+        mat.set(array).determineProperties();
+
+        return mat;
+    }
+
+    static <K extends Storable, V extends Storable> void writeMap(DataOutput out, Map<K, V> map) throws IOException {
+        out.writeInt(map.size());
+        Set<K> keySet = map.keySet();
+
+        for (K key : keySet) {
+            Storable.write(out, key);
+            Storable.write(out, map.get(key));
+        }
+    }
+
+    /**
+     * reads a map from the stream and stores it in a {@link HashMap}. If the keyClass is an {@link Enum}, an {@link
+     * EnumMap} is returned instead.
+     * @param in         the data input stream
+     * @param keyClass   the class of the keys of the map
+     * @param valueClass the class of the values in the map
+     * @param <K>        the type of the keys
+     * @param <V>        the type of the values
+     * @return a {@link HashMap} or {@link EnumMap} with the values read from the stream
+     * @throws IOException            if an exception occurs while reading the stream
+     * @throws ClassNotFoundException if any element of the map has an unknown or not-loaded class
+     * @throws ClassCastException     if any of the keys can not be cast to K, or any of the values can not be cast to
+     *                                V
+     * @see #writeMap(DataOutput, Map)
+     */
+    static <K, V> Map<K, V> readMap(DataInput in, Class<K> keyClass, Class<V> valueClass)
+            throws IOException, ClassNotFoundException {
+
+        int size = in.readInt();
+        Map<K, V> map = new HashMap<>(size);
+
+
+        for (int i = 0; i < size; i++) {
+            K key = Storable.read(in, keyClass);
+            V value = Storable.read(in, valueClass);
+            map.put(key, value);
+        }
+
+        if (keyClass.isEnum()) {
+            //noinspection unchecked
+            Map<? extends Enum, V> enumMap = (Map<? extends Enum, V>) map;
+            //noinspection unchecked
+            return new EnumMap<>(enumMap);
+
+        } else {
+            return map;
+        }
+    }
+
+    default void writeToFile(File file) {
+        try (OutputStream fileStream = new FileOutputStream(file)) {
+            DataOutput out = new DataOutputStream(fileStream);
+            Logger.DEBUG.print("Writing " + file, this);
+            write(out, this);
+
+        } catch (IOException ex) {
+            Logger.ERROR.print(ex);
+        }
+    }
+
 }

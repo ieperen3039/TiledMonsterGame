@@ -1,25 +1,21 @@
 package NG.Camera;
 
-import NG.Animations.AnimationBone;
-import NG.Animations.BoneElement;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Tools.Toolbox;
 import org.joml.AABBf;
-import org.joml.Vector3fc;
+import org.joml.Vector3f;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
  * @author Geert van Ieperen created on 5-2-2019.
  */
 public class Cursor implements Entity {
-    private final Supplier<Vector3fc> positionSupplier;
+    private final Supplier<Vector3f> positionSupplier;
     private boolean isDisposed = false;
 
-    public Cursor(Supplier<Vector3fc> positionSupplier) {
+    public Cursor(Supplier<Vector3f> positionSupplier) {
         this.positionSupplier = positionSupplier;
     }
 
@@ -36,7 +32,7 @@ public class Cursor implements Entity {
     }
 
     @Override
-    public Vector3fc getPosition() {
+    public Vector3f getPosition(float currentTime) {
         return positionSupplier.get();
     }
 
@@ -58,10 +54,5 @@ public class Cursor implements Entity {
     @Override
     public AABBf hitbox() {
         return new AABBf();
-    }
-
-    @Override
-    public Map<AnimationBone, BoneElement> getBoneMapping() {
-        return Collections.emptyMap();
     }
 }

@@ -1,7 +1,5 @@
 package NG.GameEvent.Actions;
 
-import NG.Animations.Animation;
-import NG.Animations.BodyModel;
 import NG.Engine.Game;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
@@ -39,8 +37,4 @@ public abstract class ActionMovement implements EntityAction {
         return duration;
     }
 
-    @Override
-    public Animation getAnimation(BodyModel model) {
-        return null; // TODO map animations
-    }
 }

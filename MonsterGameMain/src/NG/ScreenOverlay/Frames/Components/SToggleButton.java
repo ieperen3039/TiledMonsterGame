@@ -27,17 +27,17 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
 
     /**
      * Create a button with the given properties
-     * @param text      the displayed text
-     * @param minWidth  the minimal width of this button, which {@link NG.ScreenOverlay.Frames.LayoutManagers.SLayoutManager}s
-     *                  should respect
-     * @param minHeight the minimal height of this button.
-     * @param initial   the initial state of the button. Iff true, the button will be enabled
+     * @param text         the displayed text
+     * @param minWidth     the minimal width of this button, which {@link NG.ScreenOverlay.Frames.LayoutManagers.SLayoutManager}s
+     *                     should respect
+     * @param minHeight    the minimal height of this button.
+     * @param initialState the initial state of the button. If true, the button will be enabled
      */
-    public SToggleButton(String text, int minWidth, int minHeight, boolean initial) {
+    public SToggleButton(String text, int minWidth, int minHeight, boolean initialState) {
         this.minHeight = minHeight;
         this.minWidth = minWidth;
         this.text = text;
-        this.state = initial;
+        this.state = initialState;
     }
 
     /**
