@@ -160,11 +160,16 @@ public class SFrameManager implements GUIManager {
             return true;
         }
 
+        if (modalSection != null && modalSection.contains(xSc, ySc)) {
+            return true;
+        }
+
         for (SFrame frame : frames) {
             if (frame.isVisible() && frame.contains(xSc, ySc)) {
                 return true;
             }
         }
+
         return false;
     }
 

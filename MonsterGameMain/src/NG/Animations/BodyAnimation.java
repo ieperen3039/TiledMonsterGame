@@ -5,7 +5,8 @@ import NG.Storable;
 import NG.Tools.Directory;
 import org.joml.Matrix4fc;
 
-import java.io.*;
+import java.io.DataOutput;
+import java.io.File;
 import java.util.Set;
 
 /**
@@ -23,19 +24,7 @@ public enum BodyAnimation implements Animation {
 
     BodyAnimation(String... filePath) {
         File file = Directory.animations.getFile(filePath);
-
-        if (!file.exists() || file.isDirectory()) {
-            throw new RuntimeException("File " + file + " is missing");
-        }
-
-        // load from binary
-        try (InputStream fileStream = new FileInputStream(file)) {
-            DataInput in = new DataInputStream(fileStream);
-            animation = Storable.read(in, Animation.class);
-
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("Exception when loading file", e);
-        }
+        animation = Storable.readFromFileRequired(file, Animation.class);
     }
 
     BodyAnimation(Animation baked) {

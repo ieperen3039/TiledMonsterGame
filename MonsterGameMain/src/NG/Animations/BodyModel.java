@@ -7,11 +7,12 @@ import NG.Storable;
 import NG.Tools.Directory;
 import NG.Tools.Vectors;
 
-import java.io.*;
+import java.io.File;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Geert van Ieperen created on 28-2-2019.
@@ -23,7 +24,7 @@ public enum BodyModel {
     ;
 
     private final AnimationBone root;
-    private final List<AnimationBone> parts;
+    private final Map<String, AnimationBone> parts;
 
     BodyModel(String... filePath) {
         Path path = Directory.skeletons.getPath(filePath);
@@ -34,20 +35,14 @@ public enum BodyModel {
         }
 
         // load skelly from binary
-        try (InputStream fileStream = new FileInputStream(file)) {
-            DataInput in = new DataInputStream(fileStream);
-            root = Storable.read(in, AnimationBone.class);
+        root = Storable.readFromFileRequired(file, AnimationBone.class);
 
-        } catch (IOException | ClassNotFoundException e) {
-//                Logger.ERROR.print(e);
-            throw new RuntimeException(e);
-        }
-
-        parts = root.stream().collect(Collectors.toUnmodifiableList());
+        parts = new HashMap<>();
+        root.stream().forEach(b -> parts.put(b.getName(), b));
     }
 
-    List<AnimationBone> getElements() {
-        return parts;
+    Collection<AnimationBone> getElements() {
+        return Collections.unmodifiableCollection(parts.values());
     }
 
     public int size() {
@@ -61,4 +56,21 @@ public enum BodyModel {
         root.draw(gl, entity, map, animation, timeSinceStart, Vectors.Scaling.UNIFORM);
     }
 
+    public AnimationBone getBone(String boneName) {
+        return parts.get(boneName);
+    }
+
+    /**
+     * @param rootBone the name of the root bone of this body
+     * @return the body model with the exact same bones as the given root bone
+     */
+    public static BodyModel getByRoot(AnimationBone rootBone) {
+        for (BodyModel model : values()) {
+            if (model.root.equals(rootBone)) {
+                return model;
+            }
+        }
+
+        return null;
+    }
 }

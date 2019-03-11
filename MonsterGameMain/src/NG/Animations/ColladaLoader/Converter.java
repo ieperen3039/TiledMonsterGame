@@ -13,17 +13,20 @@ import java.nio.file.Path;
  */
 public class Converter {
 
-    /** reloads all partial animations */
+    /** reloads all animations and skeletons */
     public static void main(String[] args) {
         rewriteSkeleton("anthro.skelbi");
-        BodyModel.values();
+
         rewriteAnimation("walkStart.anibi", "walk1.anibi");
         rewriteAnimation("walkCycle.anibi", "walk2.anibi");
         rewriteAnimation("walkStop.anibi", "walk3.anibi");
     }
 
 
-    public static void colladaToBinary(File source, File skeletonFile, File animationFile) {
+    public static void rewriteSkeleton(String target) {
+        String colladaFile = target.replace(".skelbi", ".dae");
+        File source = Directory.colladaFiles.getFile(colladaFile);
+        File skeletonFile = Directory.skeletons.getFile(target);
         if (!source.exists()) throw new IllegalArgumentException(source.getPath());
         Logger.INFO.print("Converting " + source);
 
@@ -32,22 +35,11 @@ public class Converter {
             ColladaLoader loader = new ColladaLoader(source);
 
             AnimationBone root = loader.loadSkeleton();
-            KeyFrameAnimation anim = loader.loadAnimation(root);
-
-            // store binary
             if (skeletonFile != null) root.writeToFile(skeletonFile);
-            if (animationFile != null) anim.writeToFile(animationFile);
 
         } catch (IOException e) {
             Logger.ERROR.print(e);
         }
-    }
-
-    public static void rewriteSkeleton(String target) {
-        String colladaFile = target.replace(".skelbi", ".dae");
-        File source = Directory.colladaFiles.getFile(colladaFile);
-        File skeletonFile = Directory.skeletons.getFile(target);
-        colladaToBinary(source, skeletonFile, null);
     }
 
     public static void rewriteAnimation(String target, String... sources) {
@@ -55,11 +47,22 @@ public class Converter {
 
         for (int i = 0; i < sources.length; i++) {
             Path path = paths[i] = Directory.animations.getPath(sources[i]);
+            BodyModel bodyModel = BodyModel.ANTHRO;
 
-            File file = path.toFile();
-            String source = file.getName().replace(".anibi", ".dae");
-            File colladaFile = Directory.colladaFiles.getFile(source);
-            colladaToBinary(colladaFile, null, file);
+            try {
+                File file = path.toFile();
+                String source = file.getName().replace(".anibi", ".dae");
+                File colladaFile = Directory.colladaFiles.getFile(source);
+                if (!colladaFile.exists()) throw new IllegalArgumentException(colladaFile.getPath());
+
+                // extract from collada file
+                ColladaLoader loader = new ColladaLoader(colladaFile);
+                KeyFrameAnimation anim = loader.loadAnimation(bodyModel);
+                anim.writeToFile(file);
+
+            } catch (IOException e) {
+                Logger.ERROR.print(e);
+            }
         }
 
         Animation animation = new AnimationCombiner(paths);
@@ -141,47 +144,15 @@ public class Converter {
         );
     }
 
-    public static void createIfAbsent(File file) {
-        String fileName = file.getName();
-
-        if (!file.exists()) {
-            File colladaFile;
-            File animationFile;
-            File skeletonFile;
-
-            if (fileName.endsWith(".skelbi")) {
-                String source = fileName.replace(".skelbi", ".dae");
-                String anim = fileName.replace(".skelbi", ".anibi");
-
-                colladaFile = Directory.colladaFiles.getFile(source);
-                animationFile = Directory.animations.getFile(anim);
-                skeletonFile = file;
-
-            } else if (fileName.endsWith(".anibi")) {
-                String source = fileName.replace(".anibi", ".dae");
-                String skel = fileName.replace(".anibi", ".skelbi");
-
-                colladaFile = Directory.colladaFiles.getFile(source);
-                animationFile = file;
-                skeletonFile = Directory.skeletons.getFile(skel);
-
-            } else {
-                throw new IllegalArgumentException(file + " is not a .skelbi nor .anibi file");
-            }
-
-            colladaToBinary(colladaFile, skeletonFile, animationFile);
-        }
-    }
-
     public static Animation loadAnimation(File file) {
         String fileName = file.getName();
 
         // create binary if absent
-        if (!file.exists()) {
-            String source = fileName.replace(".anibi", ".dae");
-            File colladaFile = Directory.colladaFiles.getFile(source);
+        if (!file.exists()) { // TODO read description file
+//            String source = fileName.replace(".anibi", ".dae");
+//            File colladaFile = Directory.colladaFiles.getFile(source);
 
-            colladaToBinary(colladaFile, null, file);
+            throw new RuntimeException("animation not found: " + fileName);
         }
 
         // load from binary

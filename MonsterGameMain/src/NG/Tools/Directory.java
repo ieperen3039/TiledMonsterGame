@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 /**
  * @author Geert van Ieperen. Created on 13-9-2018.
@@ -32,20 +31,21 @@ public enum Directory {
         this.directory = directory;
     }
 
-    Directory(boolean isResource, String first, String... directory) {
-        this.directory = Paths.get(first, directory);
+    Directory(boolean isResource, String first, String... other) {
+        directory = Paths.get(first, other);
 
-        if (isResource && !this.directory.toFile().exists()) {
-            throw new RuntimeException("Directory " + this.directory + " is missing");
+        File asFile = workDirectory().resolve(directory).toFile();
+        if (isResource && !asFile.exists()) {
+            throw new RuntimeException("Directory " + directory + " is missing. Searched for " + asFile);
         }
 
         if (!isResource) {
-            getDirectory().mkdirs();
+            asFile.mkdirs();
         }
     }
 
     public File getDirectory() {
-        return directory.toFile();
+        return getPath().toFile();
     }
 
     public File getFile(String... path) {
@@ -53,14 +53,15 @@ public enum Directory {
     }
 
     public Path getPath(String... path) {
-        String first = path[0];
-        String[] second = Arrays.copyOfRange(path, 1, path.length);
-        Path other = Paths.get(first, second);
-        return directory.resolve(other).toAbsolutePath();
+        Path pathBuilder = directory;
+        for (String s : path) {
+            pathBuilder = pathBuilder.resolve(s);
+        }
+        return workDirectory().resolve(pathBuilder);
     }
 
     public Path getPath() {
-        return directory.toAbsolutePath(); // immutable
+        return workDirectory().resolve(directory);
     }
 
     public File[] getFiles() {
@@ -69,10 +70,24 @@ public enum Directory {
 
     public static Path workDirectory() {
         if (WORKING_DIRECTORY == null) {
-            WORKING_DIRECTORY = Paths.get("");
+            WORKING_DIRECTORY = Paths.get("").toAbsolutePath();
 
-            // checks
-//            assert WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY);
+            if (!WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY)) {
+                WORKING_DIRECTORY = WORKING_DIRECTORY.getParent();
+            }
+
+            if (!WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY)) {
+                URL checker = Directory.class.getClassLoader().getResource("check.png");
+                if (checker != null) {
+                    Path checkersPath = Paths.get(checker.getPath());
+                    WORKING_DIRECTORY = checkersPath.getParent().getParent();
+                }
+            }
+
+            if (!WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY)) {
+                throw new RuntimeException("Working directory can not be determined from " + Paths.get("")
+                        .toAbsolutePath());
+            }
         }
         return WORKING_DIRECTORY;
     }

@@ -70,7 +70,7 @@ public class MonsterGame implements ModLoader {
                 "\n\tSystem OS:             " + System.getProperty("os.name") +
                 "\n\tJava VM:               " + System.getProperty("java.runtime.version") +
                 "\n\tGame version:          " + GAME_VERSION +
-                "\n\tWorking directory:     " + Directory.workDirectory().toAbsolutePath() +
+                "\n\tMain directory         " + Directory.workDirectory() +
                 "\n\tMods directory:        " + Directory.mods.getPath()
         );
 

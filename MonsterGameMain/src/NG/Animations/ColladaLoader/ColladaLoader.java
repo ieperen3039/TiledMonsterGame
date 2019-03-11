@@ -1,6 +1,7 @@
 package NG.Animations.ColladaLoader;
 
 import NG.Animations.AnimationBone;
+import NG.Animations.BodyModel;
 import NG.Animations.KeyFrameAnimation;
 import NG.Tools.Vectors;
 import org.joml.Matrix4f;
@@ -21,22 +22,22 @@ public class ColladaLoader {
         assert animNode != null && jointsNode != null;
     }
 
-    protected AnimationBone loadSkeleton() {
+    public AnimationBone loadSkeleton() {
         SkeletonLoader jointsLoader = new SkeletonLoader(jointsNode);
         JointData skeletonData = jointsLoader.extractBoneData();
         return new AnimationBone(skeletonData);
     }
 
-    protected KeyFrameAnimation loadAnimation(AnimationBone root) {
-        AnimationLoader loader = new AnimationLoader(animNode, root.getName());
-        AnimationData animationData = loader.extractAnimation();
-        return new KeyFrameAnimation(animationData);
+    public KeyFrameAnimation loadAnimation(BodyModel bodyModel) {
+        AnimationLoader loader = new AnimationLoader(animNode, bodyModel);
+        return new KeyFrameAnimation(loader.boneMapping(), loader.duration(), bodyModel);
     }
 
-    static Matrix4f parseFloatMatrix(String[] rawData) {
+    static Matrix4f parseFloatMatrix(String[] rawData, int startIndex) {
         float[] matrixData = new float[16];
-        for (int i = 0; i < matrixData.length; i++) {
-            matrixData[i] = Float.parseFloat(rawData[i]);
+        for (int i = 0; i < 16; i++) {
+            String elt = rawData[startIndex + i];
+            matrixData[i] = Float.parseFloat(elt);
         }
 
         return Vectors.toMatrix4f(matrixData).transpose();

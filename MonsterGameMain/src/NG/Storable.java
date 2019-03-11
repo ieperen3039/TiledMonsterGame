@@ -45,10 +45,6 @@ public interface Storable {
         object.writeToDataStream(out);
     }
 
-    static void writeEnum(DataOutput out, Enum object) throws IOException {
-        out.writeUTF(object.toString());
-    }
-
     /**
      * reads an object from the input stream, constructs it using a constructor that takes a {@link DataInput} object as
      * only argument.
@@ -89,9 +85,15 @@ public interface Storable {
         }
     }
 
+    static void writeEnum(DataOutput out, Enum object) throws IOException {
+        out.writeUTF(object.toString());
+    }
+
     static <T extends Enum> T readEnum(DataInput in, Class<T> expected) throws IOException {
         String enumName = in.readUTF();
-        return Toolbox.findClosest(enumName, expected.getEnumConstants());
+        T[] constants = expected.getEnumConstants();
+        if (constants == null) throw new IllegalArgumentException(expected + " is not an Enum class");
+        return Toolbox.findClosest(enumName, constants);
     }
 
     /**
@@ -274,6 +276,11 @@ public interface Storable {
         }
     }
 
+    /**
+     * Writes this object to a file, which can be recovered with either {@link #readFromFile(File, Class)} or {@link
+     * #read(DataInput, Class)}.
+     * @param file the file to write to, existing or not.
+     */
     default void writeToFile(File file) {
         try (OutputStream fileStream = new FileOutputStream(file)) {
             DataOutput out = new DataOutputStream(fileStream);
@@ -285,4 +292,29 @@ public interface Storable {
         }
     }
 
+    /**
+     * reads an object from file, returning null if any exception occurs.
+     * @param file     the file to read
+     * @param expected the class that is expected to be in the file
+     * @param <T>      the type of the returned object
+     * @return the object from the file, cast to T
+     * @throws IOException if anything goes wrong while reading the file
+     * @see #readFromFileRequired(File, Class)
+     */
+    static <T> T readFromFile(File file, Class<T> expected) throws IOException, ClassNotFoundException {
+        try (InputStream fileStream = new FileInputStream(file)) {
+            DataInput in = new DataInputStream(fileStream);
+            return read(in, expected);
+        }
+    }
+
+    /** the version of {@link #readFromFile(File, Class)} that throws an Runtime exception when an error occurs */
+    static <T> T readFromFileRequired(File file, Class<T> expected) {
+        try {
+            return readFromFile(file, expected);
+
+        } catch (IOException | ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 }

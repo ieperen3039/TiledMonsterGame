@@ -19,8 +19,6 @@ import java.util.stream.Stream;
  * and additional rotation angles. Objects of this type are immutable
  */
 public class AnimationBone implements Storable {
-    private static final HashMap<String, AnimationBone> knownBones = new HashMap<>();
-
     private final String name;
     private final Vector3fc offset;
     private final Quaternionfc rotation;
@@ -43,11 +41,6 @@ public class AnimationBone implements Storable {
         this.rotation = rotation;
         this.scaling = scaling;
         this.subElements = childs;
-
-        if (knownBones.containsKey(name)) {
-            throw new IllegalArgumentException("Bone " + name + " already exists");
-        }
-        knownBones.put(name, this);
     }
 
     /**
@@ -77,10 +70,10 @@ public class AnimationBone implements Storable {
 
         offset = transform.getTranslation(new Vector3f());
         rotation = transform.getNormalizedRotation(new Quaternionf());
-        scaling = transform.getScale(new Vector3f()); // TODO test assumption of scaling = Scaling.UNIFORM
+        scaling = transform.getScale(new Vector3f());
+        // TODO test assumption of scaling = Scaling.UNIFORM
 
         subElements = new ArrayList<>();
-        knownBones.put(name, this);
 
         for (JointData child : skeletonData.children) {
             subElements.add(new AnimationBone(child)); // recursively add children
@@ -226,17 +219,6 @@ public class AnimationBone implements Storable {
         for (int i = 0; i < nOfElts; i++) {
             subElements.add(new AnimationBone(in));
         }
-
-        knownBones.put(name, this);
-    }
-
-    /**
-     * looks for the loaded bones and returns the bone with matching name if one exists
-     * @param name the name of the bone
-     * @return a bone with the specified name, or null if no such bone exists or if it isn't loaded yet.
-     */
-    public static AnimationBone getByName(String name) {
-        return knownBones.get(name);
     }
 
     /**
@@ -244,10 +226,10 @@ public class AnimationBone implements Storable {
      */
     public static class BodyBuilder {
         private final Map<AnimationBone, BoneElement> body;
-        private final Set<AnimationBone> model;
+        private final BodyModel model;
 
         public BodyBuilder(BodyModel model) {
-            this.model = new HashSet<>(model.getElements());
+            this.model = model;
             body = new HashMap<>();
         }
 
@@ -266,13 +248,11 @@ public class AnimationBone implements Storable {
          * @return this
          */
         public BodyBuilder add(String name, BodyMesh mesh, float xSize, float ySize, float zSize) {
-            AnimationBone bone = getByName(name);
+            AnimationBone bone = model.getBone(name);
 
             // checks
             assert bone != null : "Unknown bone " + name;
             assert !body.containsKey(bone) : bone + " was already part of the builder";
-            boolean inModel = model.remove(bone);
-            assert inModel : bone + " is not part of the model";
 
             Vector3f scaling = new Vector3f(xSize, ySize, zSize);
             scaling.div(mesh.getSize()).div(bone.scaling);
@@ -295,18 +275,20 @@ public class AnimationBone implements Storable {
         /**
          * Executes the handler for each bone in the model not yet assigned.
          * @param handler a handler than accepts all bones not yet assigned
-         * @return the result of {@link #flex()}
+         * @return the result of {@link #get()}
          */
         public Map<AnimationBone, BoneElement> forEachRemaining(Consumer<AnimationBone> handler) {
-            model.forEach(handler);
-            return flex();
+            Set<AnimationBone> bonesLeft = new HashSet<>(model.getElements());
+            bonesLeft.removeAll(body.keySet());
+            bonesLeft.forEach(handler);
+            return get();
         }
 
         /**
          * returns the built mapping. Future calls to add will write through to the retrieved map.
-         * @return the result
+         * @return the resulting map
          */
-        public Map<AnimationBone, BoneElement> flex() {
+        public Map<AnimationBone, BoneElement> get() {
             return body;
         }
     }

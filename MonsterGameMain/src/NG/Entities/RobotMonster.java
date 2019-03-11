@@ -40,6 +40,8 @@ public class RobotMonster extends MonsterSoul {
                 .add("Anthro_LowerArm_R", RobotMeshes.ROBOT_LOWER_ARM, 0.1f)
                 .add("Anthro_UpperLeg_R", RobotMeshes.ROBOT_UPPER_ARM, 0.1f)
                 .add("Anthro_LowerLeg_R", RobotMeshes.ROBOT_LOWER_ARM, 0.1f)
+                .add("Anthro_Foot_L", RobotMeshes.ROBOT_FOOT, 0.1f)
+                .add("Anthro_Foot_R", RobotMeshes.ROBOT_FOOT, 0.1f)
                 .add("Anthro_Head", RobotMeshes.ROBOT_HEAD, 0.1f)
 //                .add("Anthro_Ear_L", RobotMeshes.ROBOT_EAR, 0.1f)
 //                .add("Anthro_Ear_R", RobotMeshes.ROBOT_EAR, 0.1f)

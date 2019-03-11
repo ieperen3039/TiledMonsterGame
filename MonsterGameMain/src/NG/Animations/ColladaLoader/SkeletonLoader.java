@@ -35,7 +35,7 @@ public class SkeletonLoader {
 
         } else {
             String[] matrixData = transform.getData().split(" ");
-            matrix = ColladaLoader.parseFloatMatrix(matrixData);
+            matrix = ColladaLoader.parseFloatMatrix(matrixData, 0);
 
             if (isRoot) {
                 matrix.rotateXYZ(0, 0, (float) Math.toRadians(-90));

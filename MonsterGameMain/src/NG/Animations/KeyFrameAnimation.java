@@ -1,7 +1,6 @@
 package NG.Animations;
 
-import NG.Animations.ColladaLoader.AnimationData;
-import NG.Animations.ColladaLoader.KeyFrameData;
+import NG.Animations.ColladaLoader.AnimationLoader;
 import NG.Storable;
 import NG.Tools.Logger;
 import org.joml.Matrix4f;
@@ -10,68 +9,34 @@ import org.joml.Matrix4fc;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
+ * An animation for a single body model, using keyframes as animation source.
  * @author Geert van Ieperen created on 28-2-2019.
  */
 public class KeyFrameAnimation implements Animation {
+    protected final BodyModel model;
     /** maps the bone to the index in data */
-    private final Map<AnimationBone, ArrayFrame> transformations;
+    private final Map<AnimationBone, TransformArray> transformations;
     /** total duration of the animation */
     private float duration;
 
-    public KeyFrameAnimation(AnimationData data) {
-        this();
-        addData(data);
-    }
+    public KeyFrameAnimation(
+            Map<String, AnimationLoader.TransformList> mapping, float lengthSeconds, BodyModel model
+    ) {
+        this.model = model;
+        this.duration = lengthSeconds;
+        this.transformations = new HashMap<>();
 
-    public KeyFrameAnimation() {
-        transformations = new HashMap<>();
-        duration = 0;
-    }
+        for (String boneName : mapping.keySet()) {
+            AnimationLoader.TransformList frame = mapping.get(boneName);
+            AnimationBone bone = model.getBone(boneName);
 
-    private void addData(AnimationData data) {
-        Map<AnimationBone, ListFrame> mapping = new HashMap<>();
-
-        for (KeyFrameData keyFrame : data.keyFrames) {
-            Map<String, Matrix4f> transforms = keyFrame.jointTransforms;
-
-            for (String boneName : transforms.keySet()) {
-                AnimationBone bone = AnimationBone.getByName(boneName);
-                if (bone == null) {
-                    Logger.WARN.print("Unknown bone: " + boneName);
-                    continue;
-                }
-
-                ListFrame frame;
-                if (mapping.containsKey(bone)) {
-                    frame = mapping.get(bone);
-
-                } else if (transformations.containsKey(bone)) {
-                    frame = new ListFrame(transformations.get(bone)); // #1
-
-                } else {
-                    frame = new ListFrame();
-                }
-
-                Matrix4f mat = transforms.get(boneName);
-                // check for affine transformation.
-                assert (mat.determineProperties().properties() & Matrix4fc.PROPERTY_AFFINE) != 0 : "\n" + mat;
-
-                frame.add(keyFrame.time, mat);
-                mapping.put(bone, frame);
-            }
-        }
-
-        for (AnimationBone bone : mapping.keySet()) {
-            ListFrame frame = mapping.get(bone);
-            // if this overrides, then it used the source at #1
-            transformations.put(bone, frame.toArrayFrame());
-        }
-
-        if (data.lengthSeconds > duration) {
-            duration = data.lengthSeconds;
+            transformations.put(bone, new TransformArray(frame));
         }
     }
 
@@ -81,7 +46,7 @@ public class KeyFrameAnimation implements Animation {
             Logger.WARN.print("Time was " + timeSinceStart + " but duration is " + duration);
         }
 
-        ArrayFrame frame = transformations.get(bone);
+        TransformArray frame = transformations.get(bone);
         if (frame == null) throw new IllegalArgumentException(bone + " is not a target of this animation");
 
         return frame.interpolate(timeSinceStart);
@@ -99,12 +64,13 @@ public class KeyFrameAnimation implements Animation {
 
     @Override
     public void writeToDataStream(DataOutput out) throws IOException {
+        Storable.writeEnum(out, model);
         out.writeInt(transformations.size());
         out.writeFloat(duration);
 
         for (AnimationBone key : transformations.keySet()) {
             out.writeUTF(key.getName());
-            ArrayFrame frame = transformations.get(key);
+            TransformArray frame = transformations.get(key);
             frame.writeToDataStream(out);
         }
     }
@@ -115,22 +81,27 @@ public class KeyFrameAnimation implements Animation {
      * @throws IOException if anything goes wrong
      */
     public KeyFrameAnimation(DataInput in) throws IOException {
+        model = Storable.readEnum(in, BodyModel.class);
+
         int size = in.readInt();
         transformations = new HashMap<>(size);
         duration = in.readFloat();
 
         for (int i = 0; i < size; i++) {
             String boneName = in.readUTF();
-            AnimationBone bone = AnimationBone.getByName(boneName);
+            AnimationBone bone = model.getBone(boneName);
 
-            ArrayFrame frame = new ArrayFrame(in);
+            TransformArray frame = new TransformArray(in);
 
             transformations.put(bone, frame);
         }
-
     }
 
-    private class ArrayFrame implements Storable {
+    public String framesOf(AnimationBone bone) {
+        return transformations.get(bone).toString();
+    }
+
+    private static class TransformArray implements Storable {
         // sorted arrays
         private final int size;
         private final float[] timeStamps;
@@ -140,7 +111,7 @@ public class KeyFrameAnimation implements Animation {
          * @param timestamps sorted arrays of timestamps
          * @param frames     matrices, of the same length
          */
-        public ArrayFrame(float[] timestamps, Matrix4fc[] frames) {
+        public TransformArray(float[] timestamps, Matrix4fc[] frames) {
             if (timestamps.length != frames.length) {
                 throw new IllegalArgumentException("Arrays are of unequal length");
             }
@@ -150,7 +121,14 @@ public class KeyFrameAnimation implements Animation {
             this.size = timestamps.length;
         }
 
-        public ArrayFrame(DataInput in) throws IOException {
+        public TransformArray(AnimationLoader.TransformList transformList) {
+            this(
+                    transformList.getTimestamps(),
+                    transformList.getFrames()
+            );
+        }
+
+        public TransformArray(DataInput in) throws IOException {
             size = in.readInt();
             timeStamps = new float[size];
             frames = new Matrix4fc[size];
@@ -192,53 +170,17 @@ public class KeyFrameAnimation implements Animation {
             Matrix4fc higherPosition = frames[lowerPoint + 1];
             return new Matrix4f(lowerPosition).lerp(higherPosition, fraction);
         }
+
+        public String toString() {
+            StringBuilder chunk = new StringBuilder();
+            for (int i = 0; i < size; i++) {
+                chunk.append(timeStamps[i]);
+                chunk.append('\n');
+                chunk.append(frames[i]);
+                chunk.append('\n');
+            }
+            return chunk.toString();
+        }
     }
 
-    private class ListFrame {
-        // these lists are always sorted
-        private final ArrayList<Float> timestamps;
-        private final ArrayList<Matrix4fc> frames;
-
-        private ListFrame() {
-            frames = new ArrayList<>();
-            timestamps = new ArrayList<>();
-        }
-
-        private ListFrame(ArrayFrame source) {
-            this();
-            for (int i = 0; i < source.timeStamps.length; i++) {
-                add(source.timeStamps[i], source.frames[i]);
-            }
-        }
-
-        public void add(float time, Matrix4fc frame) {
-            int index = Collections.binarySearch(timestamps, time);
-
-            if (index < 0) {
-                // index = -(insertion point) - 1  <=>  insertion point = -index - 1
-                index = -index - 1;
-            }
-
-            timestamps.add(index, time);
-            frames.add(index, frame);
-        }
-
-        public ArrayFrame toArrayFrame() {
-            float[] timestamps = getTimestamps();
-            Matrix4fc[] matrices = frames.toArray(new Matrix4fc[0]);
-
-            return new ArrayFrame(
-                    timestamps, matrices
-            );
-        }
-
-        private float[] getTimestamps() {
-            float[] floats = new float[timestamps.size()];
-            for (int i = 0; i < timestamps.size(); i++) {
-                floats[i] = timestamps.get(i);
-            }
-            return floats;
-        }
-
-    }
 }

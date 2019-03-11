@@ -1,61 +1,58 @@
 package NG.Animations.ColladaLoader;
 
 
+import NG.Animations.BodyModel;
+import NG.Tools.Toolbox;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 
-import java.util.List;
+import java.util.*;
 
 public class AnimationLoader {
     private XmlNode animationData;
-    private String rootJointName;
+    private BodyModel model;
+    private float maxFrameTime = 0;
 
-    public AnimationLoader(XmlNode animationData, String rootJointName) {
+    public AnimationLoader(XmlNode animationData, BodyModel model) {
         this.animationData = animationData;
-        this.rootJointName = rootJointName;
+        this.model = model;
     }
 
-    public AnimationData extractAnimation() {
-        float[] times = getKeyTimes();
-        float duration = times[times.length - 1];
-        KeyFrameData[] keyFrames = initKeyFrames(times);
+    public Map<String, TransformList> boneMapping() {
+        Map<String, TransformList> mapping = new HashMap<>();
 
         List<XmlNode> animationNodes = animationData.getChildren("animation");
-        for (XmlNode jointNode : animationNodes) {
-            loadJointTransforms(keyFrames, jointNode, rootJointName);
+        for (XmlNode node : animationNodes) {
+            mapping.put(getJointName(node), getJoint(node));
         }
 
-        return new AnimationData(duration, keyFrames);
+        return mapping;
     }
 
-    private float[] getKeyTimes() {
-        XmlNode timeData = animationData.getChild("animation").getChild("source").getChild("float_array");
-        String[] rawTimes = timeData.getData().split(" ");
-        float[] times = new float[rawTimes.length];
-        for (int i = 0; i < times.length; i++) {
-            times[i] = Float.parseFloat(rawTimes[i]);
+    private TransformList getJoint(XmlNode jointData) {
+        XmlNode timeNode = getSampler(Sampler.INPUT, jointData);
+        String timeData = timeNode.getChild("float_array").getData();
+        String[] rawTimes = Toolbox.WHITESPACE_PATTERN.split(timeData);
+        int nrOfFrames = rawTimes.length;
+
+        XmlNode frameNode = getSampler(Sampler.OUTPUT, jointData);
+        String frameData = frameNode.getChild("float_array").getData();
+        String[] rawFrames = Toolbox.WHITESPACE_PATTERN.split(frameData);
+        assert rawFrames.length == (nrOfFrames * 16);
+
+        TransformList joint = new TransformList();
+
+        for (int i = 0; i < nrOfFrames; i++) {
+            float time = Float.parseFloat(rawTimes[i]);
+            Matrix4fc frame = ColladaLoader.parseFloatMatrix(rawFrames, 16 * i);
+            joint.add(time, frame);
+
+            if (time > maxFrameTime) {
+                maxFrameTime = time;
+            }
         }
-        return times;
-    }
 
-    private KeyFrameData[] initKeyFrames(float[] times) {
-        KeyFrameData[] frames = new KeyFrameData[times.length];
-        for (int i = 0; i < frames.length; i++) {
-            frames[i] = new KeyFrameData(times[i]);
-        }
-        return frames;
-    }
-
-    private void loadJointTransforms(KeyFrameData[] frames, XmlNode jointData, String rootNodeId) {
-        String jointNameId = getJointName(jointData);
-        String dataId = getDataId(jointData);
-        XmlNode transformData = jointData.getChildWithAttribute("source", "id", dataId);
-        String[] rawData = transformData.getChild("float_array").getData().split(" ");
-        processTransforms(jointNameId, rawData, frames, jointNameId.equals(rootNodeId));
-    }
-
-    private String getDataId(XmlNode jointData) {
-        XmlNode node = jointData.getChild("sampler").getChildWithAttribute("input", "semantic", "OUTPUT");
-        return node.getAttribute("source").substring(1);
+        return joint;
     }
 
     private String getJointName(XmlNode jointData) {
@@ -64,15 +61,52 @@ public class AnimationLoader {
         return data.split("/")[0].replaceAll("Armature_", "");
     }
 
-    private void processTransforms(String jointName, String[] rawData, KeyFrameData[] keyFrames, boolean root) {
-        for (KeyFrameData keyFrame : keyFrames) {
-            Matrix4f transform = ColladaLoader.parseFloatMatrix(rawData);
+    private XmlNode getSampler(Sampler sampler, XmlNode jointData) {
+        XmlNode node = jointData.getChild("sampler").getChildWithAttribute("input", "semantic", sampler.toString());
+        String samplerName = node.getAttribute("source").substring(1);
+        return jointData.getChildWithAttribute("source", "id", samplerName);
+    }
 
-            if (root) {
-                transform.rotateXYZ(0, 0, (float) Math.toRadians(-90));
+    enum Sampler {
+        INPUT, OUTPUT, INTERPOLATION
+    }
+
+    public float duration() {
+        return maxFrameTime;
+    }
+
+    public static class TransformList {
+        // these lists are always sorted
+        private final ArrayList<Float> timestamps;
+        private final ArrayList<Matrix4fc> frames;
+
+        private TransformList() {
+            frames = new ArrayList<>();
+            timestamps = new ArrayList<>();
+        }
+
+        public void add(float time, Matrix4fc frame) {
+            int index = Collections.binarySearch(timestamps, time);
+
+            if (index < 0) {
+                // index = -(insertion point) - 1  <=>  insertion point = -index - 1
+                index = -index - 1;
             }
 
-            keyFrame.jointTransforms.put(jointName, transform);
+            timestamps.add(index, time);
+            frames.add(index, new Matrix4f(frame));
+        }
+
+        public float[] getTimestamps() {
+            float[] floats = new float[timestamps.size()];
+            for (int i = 0; i < timestamps.size(); i++) {
+                floats[i] = timestamps.get(i);
+            }
+            return floats;
+        }
+
+        public Matrix4fc[] getFrames() {
+            return frames.toArray(new Matrix4fc[0]);
         }
     }
 }

@@ -30,7 +30,7 @@ public class CubeMonster extends MonsterSoul {
     public CubeMonster(File description) throws IOException {
         super(description);
         boneMap = Collections.singletonMap(
-                AnimationBone.getByName("cube_root"),
+                BODY_MODEL.getBone("cube_root"),
                 new BoneElement(GenericShapes.CUBE, new Vector3f(SIZE))
         );
     }
