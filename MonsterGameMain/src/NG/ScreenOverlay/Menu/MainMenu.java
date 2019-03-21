@@ -158,11 +158,13 @@ public class MainMenu extends SFrame {
         BodyModel[] models = BodyModel.values();
         BodyAnimation[] animations = BodyAnimation.values();
 
+        BodyAnimation baseAni = BodyAnimation.WALK_CYCLE;
+        BodyModel baseMode = BodyModel.ANTHRO;
+
         GUIManager targetGUI = overworld.gui();
-        SDropDown animationSelection = new SDropDown(targetGUI, 0, Toolbox.toStringArray(animations));
-        SDropDown modelSelection = new SDropDown(targetGUI, 0, Toolbox.toStringArray(models));
-        Animation.Demonstrator demonstrator = new Animation.Demonstrator(BodyAnimation.WALK_CYCLE, BodyModel.ANTHRO, overworld
-                .timer());
+        SDropDown animationSelection = new SDropDown(targetGUI, baseAni.ordinal(), Toolbox.toStringArray(animations));
+        SDropDown modelSelection = new SDropDown(targetGUI, baseMode.ordinal(), Toolbox.toStringArray(models));
+        Animation.Demonstrator demonstrator = new Animation.Demonstrator(baseAni, baseMode, overworld.timer());
 
         targetGUI.addFrame(new SFrame("Animations", BUTTON_MIN_WIDTH, 0)
                 .setMainPanel(SPanel.column(

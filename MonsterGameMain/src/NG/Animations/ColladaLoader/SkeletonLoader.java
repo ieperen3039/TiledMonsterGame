@@ -3,15 +3,14 @@ package NG.Animations.ColladaLoader;
 import org.joml.Matrix4f;
 
 public class SkeletonLoader {
-
-    private XmlNode armatureData;
+    private JointData jointData;
 
     public SkeletonLoader(XmlNode armature) {
-        this.armatureData = armature;
+        jointData = loadJointData(armature, true);
     }
 
     public JointData extractBoneData() {
-        return loadJointData(armatureData, true);
+        return jointData;
     }
 
     private JointData loadJointData(XmlNode jointNode, boolean isRoot) {
@@ -36,11 +35,8 @@ public class SkeletonLoader {
         } else {
             String[] matrixData = transform.getData().split(" ");
             matrix = ColladaLoader.parseFloatMatrix(matrixData, 0);
-
-            if (isRoot) {
-                matrix.rotateXYZ(0, 0, (float) Math.toRadians(-90));
-            }
         }
+
 
         return new JointData(name, matrix);
     }

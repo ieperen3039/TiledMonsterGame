@@ -14,7 +14,6 @@ import static NG.Settings.Settings.TILE_SIZE;
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public class ActionWalk extends ActionMovement {
-
     private final Animation animation;
 
     /**
@@ -26,7 +25,7 @@ public class ActionWalk extends ActionMovement {
     public ActionWalk(Game game, Vector2ic start, Vector2ic end, float walkSpeed) {
         super(game, start, end, walkSpeed / TILE_SIZE);
 
-        animation = BodyAnimation.WALK_START;
+        animation = BodyAnimation.WALK_CYCLE;
     }
 
     @Override

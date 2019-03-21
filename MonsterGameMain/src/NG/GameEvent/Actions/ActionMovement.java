@@ -14,11 +14,11 @@ public abstract class ActionMovement implements EntityAction {
     protected final Vector2ic startCoord;
     protected final Vector2ic endCoord;
 
-    public ActionMovement(Game game, Vector2ic start, Vector2ic end, float duration) {
-        this.start = game.map().getPosition(start);
-        this.end = game.map().getPosition(end);
-        this.startCoord = start;
-        this.endCoord = end;
+    public ActionMovement(Game game, Vector2ic startCoord, Vector2ic endCoord, float duration) {
+        this.start = game.map().getPosition(startCoord);
+        this.end = game.map().getPosition(endCoord);
+        this.startCoord = startCoord;
+        this.endCoord = endCoord;
         this.duration = duration;
     }
 

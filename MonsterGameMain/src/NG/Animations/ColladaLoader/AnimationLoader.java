@@ -1,7 +1,6 @@
 package NG.Animations.ColladaLoader;
 
 
-import NG.Animations.BodyModel;
 import NG.Tools.Toolbox;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -9,24 +8,14 @@ import org.joml.Matrix4fc;
 import java.util.*;
 
 public class AnimationLoader {
-    private XmlNode animationData;
-    private BodyModel model;
+    private Map<String, TransformList> mapping = new HashMap<>();
     private float maxFrameTime = 0;
 
-    public AnimationLoader(XmlNode animationData, BodyModel model) {
-        this.animationData = animationData;
-        this.model = model;
-    }
-
-    public Map<String, TransformList> boneMapping() {
-        Map<String, TransformList> mapping = new HashMap<>();
-
+    public AnimationLoader(XmlNode animationData) {
         List<XmlNode> animationNodes = animationData.getChildren("animation");
         for (XmlNode node : animationNodes) {
             mapping.put(getJointName(node), getJoint(node));
         }
-
-        return mapping;
     }
 
     private TransformList getJoint(XmlNode jointData) {
@@ -44,7 +33,8 @@ public class AnimationLoader {
 
         for (int i = 0; i < nrOfFrames; i++) {
             float time = Float.parseFloat(rawTimes[i]);
-            Matrix4fc frame = ColladaLoader.parseFloatMatrix(rawFrames, 16 * i);
+            Matrix4f frame = ColladaLoader.parseFloatMatrix(rawFrames, 16 * i);
+
             joint.add(time, frame);
 
             if (time > maxFrameTime) {
@@ -73,6 +63,10 @@ public class AnimationLoader {
 
     public float duration() {
         return maxFrameTime;
+    }
+
+    public Map<String, TransformList> boneMapping() {
+        return mapping;
     }
 
     public static class TransformList {

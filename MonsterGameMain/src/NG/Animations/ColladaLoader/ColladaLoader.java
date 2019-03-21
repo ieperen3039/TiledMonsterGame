@@ -29,7 +29,7 @@ public class ColladaLoader {
     }
 
     public KeyFrameAnimation loadAnimation(BodyModel bodyModel) {
-        AnimationLoader loader = new AnimationLoader(animNode, bodyModel);
+        AnimationLoader loader = new AnimationLoader(animNode);
         return new KeyFrameAnimation(loader.boneMapping(), loader.duration(), bodyModel);
     }
 
