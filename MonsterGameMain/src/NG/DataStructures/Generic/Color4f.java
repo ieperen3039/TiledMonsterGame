@@ -239,7 +239,11 @@ public class Color4f {
     }
 
     public FloatBuffer toFloatBuffer() {
-        return FloatBuffer.wrap(new float[]{red, green, blue, alpha});
+        return FloatBuffer.wrap(toArray());
+    }
+
+    public float[] toArray() {
+        return new float[]{red, green, blue, alpha};
     }
 
     public Color4f interpolateTo(Color4f other, float value) {

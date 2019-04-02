@@ -1,12 +1,12 @@
 package NG.Engine;
 
-import NG.InputHandling.KeyMouseCallbacks;
 import NG.Camera.Camera;
 import NG.GameEvent.Event;
 import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
+import NG.InputHandling.KeyMouseCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.Settings.Settings;

@@ -6,16 +6,11 @@ import NG.Tools.Toolbox;
 import org.joml.*;
 import org.lwjgl.system.MemoryStack;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.FloatBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL20.*;
@@ -54,18 +49,18 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
         }
 
         if (vertexPath != null) {
-            final String shaderCode = loadText(vertexPath);
-            vertexShaderID = createShader(programId, GL_VERTEX_SHADER, shaderCode);
+            final String shaderCode = ShaderProgram.loadText(vertexPath);
+            vertexShaderID = ShaderProgram.createShader(programId, GL_VERTEX_SHADER, shaderCode);
         }
 
         if (geometryPath != null) {
-            final String shaderCode = loadText(geometryPath);
-            geometryShaderID = createShader(programId, GL_GEOMETRY_SHADER, shaderCode);
+            final String shaderCode = ShaderProgram.loadText(geometryPath);
+            geometryShaderID = ShaderProgram.createShader(programId, GL_GEOMETRY_SHADER, shaderCode);
         }
 
         if (fragmentPath != null) {
-            final String shaderCode = loadText(fragmentPath);
-            fragmentShaderID = createShader(programId, GL_FRAGMENT_SHADER, shaderCode);
+            final String shaderCode = ShaderProgram.loadText(fragmentPath);
+            fragmentShaderID = ShaderProgram.createShader(programId, GL_FRAGMENT_SHADER, shaderCode);
         }
 
         glLinkProgram(programId);
@@ -263,52 +258,6 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
                 }
             }
         }
-    }
-
-    /**
-     * Create a new shader and return the id of the newly created shader.
-     * @param programId
-     * @param shaderType The type of shader, e.g. GL_VERTEX_SHADER.
-     * @param shaderCode The shaderCode as a String.
-     * @return The id of the newly created shader.
-     * @throws ShaderException If an error occurs during the creation of a shader.
-     */
-    public static int createShader(int programId, int shaderType, String shaderCode) throws ShaderException {
-        int shaderId = glCreateShader(shaderType);
-        if (shaderId == 0) {
-            throw new ShaderException("Error creating shader. Type: " + shaderType);
-        }
-
-        glShaderSource(shaderId, shaderCode);
-        glCompileShader(shaderId);
-
-        if (glGetShaderi(shaderId, GL_COMPILE_STATUS) == 0) {
-            throw new ShaderException("Error compiling Shader code:\n" + glGetShaderInfoLog(shaderId, 1024));
-        }
-
-        glAttachShader(programId, shaderId);
-
-        return shaderId;
-    }
-
-    /**
-     * loads a textfile and returns the text as a string
-     * @param path a path to an UTF-8 text file.
-     * @return a string representation of the requested resource
-     * @throws IOException if the path does not point to a valid, readable file
-     */
-    public static String loadText(Path path) throws IOException {
-        String result;
-        try (
-                InputStream in = new FileInputStream(path.toFile());
-                Scanner scanner = new Scanner(in, StandardCharsets.UTF_8)
-        ) {
-            result = scanner.useDelimiter("\\A").next();
-
-        } catch (FileNotFoundException e) {
-            throw new IOException("Resource not found: " + path);
-        }
-        return result;
     }
 
 }

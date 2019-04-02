@@ -59,6 +59,22 @@ public class Vectors {
     }
 
     /**
+     * @return a vector with length < 1 that is universally distributed. Would form a solid sphere when created points
+     */
+    public static Vector3f randomOrb() {
+        float phi = Toolbox.random.nextFloat() * 6.2832f;
+        float costheta = (Toolbox.random.nextFloat() * 2) - 1;
+
+        float theta = (float) Math.acos(costheta);
+        float r = (float) java.lang.Math.cbrt(Toolbox.random.nextFloat());
+
+        float x = (r * sin(theta) * cos(phi));
+        float y = (r * sin(theta) * sin(phi));
+        float z = (r * cos(theta));
+        return new Vector3f(x, y, z);
+    }
+
+    /**
      * Rotates a two-dimensional vector on the z-axis in clockwise direction //TODO not counterclock?
      * @param target the vector to rotate
      * @param angle  the angle of rotation

@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static NG.Rendering.Shaders.SceneShader.createShader;
-import static NG.Rendering.Shaders.SceneShader.loadText;
+import static NG.Rendering.Shaders.ShaderProgram.createShader;
+import static NG.Rendering.Shaders.ShaderProgram.loadText;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
 

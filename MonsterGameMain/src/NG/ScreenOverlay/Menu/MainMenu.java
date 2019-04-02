@@ -1,6 +1,5 @@
 package NG.ScreenOverlay.Menu;
 
-import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;
@@ -15,6 +14,7 @@ import NG.Entities.MonsterEntity;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
+import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.MonsterSoul.Commands.Command;
 import NG.MonsterSoul.Commands.CommandWalk;
 import NG.MonsterSoul.MonsterSoul;
@@ -58,11 +58,20 @@ public class MainMenu extends SFrame {
                         new SButton("Start new game", this::showNewGamePanel, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                         new SButton("Start Testworld", this::testWorld, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                         new SButton("Animation Tester", this::animationDisplay, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Particle Tester", this::particles, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                         new SFiller(),
                         new SButton("Exit game", exitGameAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
                 ),
                 new SFiller()
         ));
+    }
+
+    private void particles() {
+        overworld.gui().addFrame(new SFrame("EXPLOSIONS")
+                        .setMainPanel(SPanel.column(
+//                    new SButton("BOOM", () -> overworld, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                        ))
+        );
     }
 
     public void testWorld() {
