@@ -61,7 +61,7 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
-    public Vector3f getPositionAfter(float timeSinceStart) {
+    public Vector3f getPositionAt(float timeSinceStart) {
         return new Vector3f(position);
     }
 

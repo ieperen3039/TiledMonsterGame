@@ -20,7 +20,7 @@ public interface EntityAction extends Stimulus {
      * @param timeSinceStart the time since the start of this animation in seconds
      * @return the position at the given moment in time as described by this action.
      */
-    Vector3f getPositionAfter(float timeSinceStart);
+    Vector3f getPositionAt(float timeSinceStart);
 
     Vector2ic getStartCoordinate();
 
@@ -62,9 +62,9 @@ public interface EntityAction extends Stimulus {
         return new Event.Anonymous(startTime + duration(), () -> listener.onActionFinish(this));
     }
 
-    default Quaternionf getRotation(float timeSinceStart) {
-        Vector3fc startPosition = getPositionAfter(0);
-        Vector3fc endPosition = getPositionAfter(duration());
+    default Quaternionf getRotationAt(float timeSinceStart) {
+        Vector3fc startPosition = getPositionAt(0);
+        Vector3fc endPosition = getPositionAt(duration());
         Vector3f relativeMovement = new Vector3f(startPosition).sub(endPosition);
         return Vectors.getPitchYawRotation(relativeMovement);
     }

@@ -53,13 +53,13 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
-    public Vector3f getPositionAfter(float timeSinceStart) {
+    public Vector3f getPositionAt(float timeSinceStart) {
         if (timeSinceStart <= 0) {
-            return actions[0].getPositionAfter(0);
+            return actions[0].getPositionAt(0);
 
         } else if (timeSinceStart >= totalDuration) {
             float end = lastAction.duration();
-            return lastAction.getPositionAfter(end);
+            return lastAction.getPositionAt(end);
         }
 
         for (EntityAction action : actions) {
@@ -68,7 +68,7 @@ public class CompoundAction implements EntityAction {
                 timeSinceStart -= duration;
 
             } else {
-                return action.getPositionAfter(timeSinceStart);
+                return action.getPositionAt(timeSinceStart);
             }
         }
 
@@ -76,13 +76,13 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
-    public Quaternionf getRotation(float timeSinceStart) {
+    public Quaternionf getRotationAt(float timeSinceStart) {
         if (timeSinceStart <= 0) {
-            return actions[0].getRotation(0);
+            return actions[0].getRotationAt(0);
 
         } else if (timeSinceStart >= totalDuration) {
             float end = lastAction.duration();
-            return lastAction.getRotation(end);
+            return lastAction.getRotationAt(end);
         }
 
         for (EntityAction action : actions) {
@@ -91,7 +91,7 @@ public class CompoundAction implements EntityAction {
                 timeSinceStart -= duration;
 
             } else {
-                return action.getRotation(timeSinceStart);
+                return action.getRotationAt(timeSinceStart);
             }
         }
 

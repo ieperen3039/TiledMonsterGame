@@ -49,7 +49,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      */
     public Vector3f getPositionAt(float currentTime) {
         Pair<EntityAction, Float> pair = getActionAt(currentTime);
-        return pair.left.getPositionAfter(pair.right);
+        return pair.left.getPositionAt(pair.right);
     }
 
     /**
@@ -245,7 +245,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
         assert duration >= 0;
         EntityAction last = peekLast();
         float end = last.duration();
-        addLast(new ActionIdle(last.getEndCoordinate(), last.getPositionAfter(end), duration));
+        addLast(new ActionIdle(last.getEndCoordinate(), last.getPositionAt(end), duration));
     }
 
     /**

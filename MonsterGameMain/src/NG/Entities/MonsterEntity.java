@@ -66,8 +66,8 @@ public abstract class MonsterEntity implements Entity {
 
         gl.pushMatrix();
         {
-            gl.translate(action.getPositionAfter(timeSinceStart));
-            gl.rotate(action.getRotation(timeSinceStart));
+            gl.translate(action.getPositionAt(timeSinceStart));
+            gl.rotate(action.getRotationAt(timeSinceStart));
 
             bodyModel().draw(gl, this, getBoneMapping(), timeSinceStart, action, previousAction);
         }

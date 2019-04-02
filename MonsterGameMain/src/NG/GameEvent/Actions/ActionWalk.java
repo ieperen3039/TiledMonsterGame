@@ -29,7 +29,7 @@ public class ActionWalk extends ActionMovement {
     }
 
     @Override
-    public Vector3f getPositionAfter(float timeSinceStart) {
+    public Vector3f getPositionAt(float timeSinceStart) {
         if (timeSinceStart < 0) return new Vector3f(start);
         if (timeSinceStart > duration) return new Vector3f(end);
 
