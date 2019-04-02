@@ -1,6 +1,5 @@
 package NG.Entities;
 
-import NG.Animations.Animation;
 import NG.Animations.AnimationBone;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
@@ -37,6 +36,7 @@ public abstract class MonsterEntity implements Entity {
     private boolean isDisposed;
     private SFrame frame;
     private final WalkCommandTool walkTool;
+    private EntityAction previousAction; // only in rendering
 
     public MonsterEntity(
             Game game, Vector2i initialPosition, MonsterSoul controller
@@ -68,10 +68,12 @@ public abstract class MonsterEntity implements Entity {
         {
             gl.translate(action.getPositionAfter(timeSinceStart));
             gl.rotate(action.getRotation(timeSinceStart));
-            Animation animation = action.getAnimation();
 
-            bodyModel().draw(gl, this, getBoneMapping(), animation, timeSinceStart);
+            bodyModel().draw(gl, this, getBoneMapping(), timeSinceStart, action, previousAction);
         }
+        gl.popMatrix();
+
+        if (action != previousAction) previousAction = action;
     }
 
     /**

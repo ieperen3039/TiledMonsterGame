@@ -1,12 +1,12 @@
 package NG.GameEvent.Actions;
 
-import NG.Animations.Animation;
-import NG.Animations.BodyAnimation;
+import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
+import static NG.Animations.BodyAnimation.WALK_CYCLE;
 import static NG.Settings.Settings.TILE_SIZE;
 
 /**
@@ -14,7 +14,7 @@ import static NG.Settings.Settings.TILE_SIZE;
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public class ActionWalk extends ActionMovement {
-    private final Animation animation;
+    private final UniversalAnimation animation;
 
     /**
      * @param game      the current game instance
@@ -25,7 +25,7 @@ public class ActionWalk extends ActionMovement {
     public ActionWalk(Game game, Vector2ic start, Vector2ic end, float walkSpeed) {
         super(game, start, end, walkSpeed / TILE_SIZE);
 
-        animation = BodyAnimation.WALK_CYCLE;
+        animation = WALK_CYCLE;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class ActionWalk extends ActionMovement {
     }
 
     @Override
-    public Animation getAnimation() {
+    public UniversalAnimation getAnimation() {
         return animation;
     }
 

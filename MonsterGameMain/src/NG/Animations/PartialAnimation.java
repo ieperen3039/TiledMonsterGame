@@ -14,18 +14,18 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An animation that maps {@link AnimationBone} instances to rotations over time.
- * As animation bones of different skeletons do not overlap, one animation can be used for all different body models.
- * An animation is stateless.
+ * An animation that maps {@link AnimationBone} instances to rotations over time. As animation bones of different
+ * skeletons do not overlap, one animation can be used for all different body models. An animation is stateless.
  * @author Geert van Ieperen created on 1-3-2019.
  */
-public interface Animation extends Storable {
+public interface PartialAnimation extends Storable {
     /**
      * @param bone           a bone considered by this animation
      * @param timeSinceStart the time since the start of this animation
-     * @return the transformation of the joint that controls this specific bone, with on each axis the angles that is
-     * rotated around that axis. If {@code timeSinceStart} is more than {@link #duration()}, the result is undefined.
+     * @return the transformation of the joint that controls the given bone. If {@code timeSinceStart} is more than
+     * {@link #duration()}, the result is undefined.
      * @throws IllegalArgumentException if the given bone is not part of this animation
+     * @see #getDomain()
      */
     Matrix4fc transformationOf(AnimationBone bone, float timeSinceStart);
 
@@ -35,19 +35,23 @@ public interface Animation extends Storable {
      */
     float duration();
 
+    /**
+     * @return an immutable set of bones which are accepted by {@link #transformationOf(AnimationBone, float)}
+     */
     Set<AnimationBone> getDomain();
 
+    /** an entity that plays a given animation using a robot mesh */
     class Demonstrator implements Entity {
         private static final Map<AnimationBone, BoneElement> ROBOT_MESH_MAP = RobotMonster.getRobotMeshMap();
         private final GameTimer timer;
 
         private Vector3f position = new Vector3f();
-        private Animation ani;
+        private UniversalAnimation ani;
         private BodyModel model;
         private float startTime = 0;
         private boolean isDisposed;
 
-        public Demonstrator(Animation ani, BodyModel model, GameTimer timer) {
+        public Demonstrator(UniversalAnimation ani, BodyModel model, GameTimer timer) {
             isDisposed = false;
             this.timer = timer;
 
@@ -89,7 +93,7 @@ public interface Animation extends Storable {
             return null;
         }
 
-        public void setAnimation(Animation ani) {
+        public void setAnimation(UniversalAnimation ani) {
             this.ani = ani;
         }
 

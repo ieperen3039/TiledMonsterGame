@@ -118,7 +118,7 @@ public class AnimationBone implements Storable {
      * @param parentScaling scaling of the parent bone in (x, y, z) direction. This scaling is NOT propagated
      */
     public void draw(
-            SGL gl, Entity entity, Map<AnimationBone, BoneElement> elements, Animation animation,
+            SGL gl, Entity entity, Map<AnimationBone, BoneElement> elements, UniversalAnimation animation,
             float animationTime, Vector3fc parentScaling
     ) {
         gl.pushMatrix();

@@ -1,9 +1,9 @@
 package NG.ScreenOverlay.Menu;
 
 import NG.ActionHandling.MouseTools.DefaultMouseTool;
-import NG.Animations.Animation;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
+import NG.Animations.PartialAnimation;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
@@ -164,7 +164,7 @@ public class MainMenu extends SFrame {
         GUIManager targetGUI = overworld.gui();
         SDropDown animationSelection = new SDropDown(targetGUI, baseAni.ordinal(), Toolbox.toStringArray(animations));
         SDropDown modelSelection = new SDropDown(targetGUI, baseMode.ordinal(), Toolbox.toStringArray(models));
-        Animation.Demonstrator demonstrator = new Animation.Demonstrator(baseAni, baseMode, overworld.timer());
+        PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.timer());
 
         targetGUI.addFrame(new SFrame("Animations", BUTTON_MIN_WIDTH, 0)
                 .setMainPanel(SPanel.column(

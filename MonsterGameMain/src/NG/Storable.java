@@ -314,7 +314,7 @@ public interface Storable {
             return readFromFile(file, expected);
 
         } catch (IOException | ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Could not load required file", ex);
         }
     }
 }

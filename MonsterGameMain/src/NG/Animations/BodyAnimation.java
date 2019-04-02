@@ -5,14 +5,12 @@ import NG.Storable;
 import NG.Tools.Directory;
 import org.joml.Matrix4fc;
 
-import java.io.DataOutput;
 import java.io.File;
-import java.util.Set;
 
 /**
  * @author Geert van Ieperen created on 6-3-2019.
  */
-public enum BodyAnimation implements Animation {
+public enum BodyAnimation implements UniversalAnimation {
     WALK_START("walkStart.anibi"),
     WALK_CYCLE("walkCycle.anibi"),
     WALK_END("walkStop.anibi"),
@@ -20,14 +18,19 @@ public enum BodyAnimation implements Animation {
 
     ;
 
-    private final Animation animation;
+    static {
+        AnimationTransfer.add(WALK_CYCLE, IDLE, WALK_END, 0.5f);
+        AnimationTransfer.add(IDLE, WALK_CYCLE, WALK_START, 0.5f);
+    }
+
+    private final PartialAnimation animation;
 
     BodyAnimation(String... filePath) {
         File file = Directory.animations.getFile(filePath);
-        animation = Storable.readFromFileRequired(file, Animation.class);
+        animation = Storable.readFromFileRequired(file, PartialAnimation.class);
     }
 
-    BodyAnimation(Animation baked) {
+    BodyAnimation(PartialAnimation baked) {
         animation = baked;
     }
 
@@ -39,15 +42,5 @@ public enum BodyAnimation implements Animation {
     @Override
     public float duration() {
         return animation.duration();
-    }
-
-    @Override
-    public Set<AnimationBone> getDomain() {
-        return animation.getDomain();
-    }
-
-    @Override
-    public void writeToDataStream(DataOutput out) {
-        // Storable#write() will not call this method as this is an Enum.
     }
 }

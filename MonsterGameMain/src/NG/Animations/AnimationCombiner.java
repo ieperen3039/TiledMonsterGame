@@ -9,13 +9,15 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Geert van Ieperen created on 6-3-2019.
  */
-public class AnimationCombiner implements Animation {
-    private final Map<AnimationBone, Animation> mux;
+public class AnimationCombiner implements UniversalAnimation, PartialAnimation {
+    private final Map<AnimationBone, PartialAnimation> mux;
     private final float duration;
 
     public AnimationCombiner(Path... binaries) {
@@ -23,7 +25,7 @@ public class AnimationCombiner implements Animation {
         float duration = 0;
 
         for (Path path : binaries) {
-            Animation part = Converter.loadAnimation(path.toFile());
+            PartialAnimation part = Converter.loadAnimation(path.toFile());
             duration = part.duration();
             add(part);
         }
@@ -31,17 +33,17 @@ public class AnimationCombiner implements Animation {
         this.duration = duration;
     }
 
-    public AnimationCombiner(Animation... parts) {
+    public AnimationCombiner(PartialAnimation... parts) {
         mux = new HashMap<>();
         duration = parts[0].duration();
 
-        for (Animation part : parts) {
+        for (PartialAnimation part : parts) {
             assert part.duration() == duration;
             add(part);
         }
     }
 
-    public void add(Animation part) {
+    public void add(PartialAnimation part) {
         for (AnimationBone bone : part.getDomain()) {
             mux.put(bone, part);
         }
@@ -49,7 +51,7 @@ public class AnimationCombiner implements Animation {
 
     @Override
     public Matrix4fc transformationOf(AnimationBone bone, float timeSinceStart) {
-        Animation animation = mux.get(bone);
+        PartialAnimation animation = mux.get(bone);
         if (animation == null) {
             return new Matrix4f();
         }
@@ -68,8 +70,7 @@ public class AnimationCombiner implements Animation {
 
     @Override
     public void writeToDataStream(DataOutput out) throws IOException {
-        Collection<Animation> values = mux.values();
-        Storable.writeCollection(out, new HashSet<>(values));
+        Storable.writeCollection(out, mux.values());
     }
 
     public AnimationCombiner(DataInput in) throws IOException, ClassNotFoundException {
@@ -78,7 +79,7 @@ public class AnimationCombiner implements Animation {
         float duration = 0;
 
         for (int i = 0; i < size; i++) {
-            Animation ani = Storable.read(in, Animation.class);
+            PartialAnimation ani = Storable.read(in, PartialAnimation.class);
             duration = ani.duration();
             add(ani);
         }

@@ -2,6 +2,7 @@ package NG.Animations;
 
 import NG.Animations.ColladaLoader.Converter;
 import NG.Entities.Entity;
+import NG.GameEvent.Actions.EntityAction;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Directory;
@@ -49,15 +50,34 @@ public enum BodyModel {
         return root.nrOfChildren() + 1;
     }
 
-    /** draws this model using the given parameters */
-    public void draw(
-            SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, Animation animation, float timeSinceStart
-    ) {
-        root.draw(gl, entity, map, animation, timeSinceStart, Vectors.Scaling.UNIFORM);
-    }
-
     public AnimationBone getBone(String boneName) {
         return parts.get(boneName);
+    }
+
+    /**
+     * draws the given action as played by the given entity
+     * @param gl             the sgl object
+     * @param entity         the entity executing this animation, or null if not applicable
+     * @param map            a mapping from the bones of the entity to the elements of the body
+     * @param timeSinceStart game time since the start of the action
+     * @param action         the action being executed by the entity on the given time
+     * @param previous       the action previously executed
+     */
+    public void draw(
+            SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, float timeSinceStart, EntityAction action,
+            EntityAction previous
+    ) {
+        AnimationTransfer transfer = AnimationTransfer.get(action, previous);
+        UniversalAnimation animation = (transfer == null) ? action.getAnimation() : transfer;
+        float animationTime = (timeSinceStart / action.duration()) * animation.duration();
+
+        draw(gl, entity, map, animation, animationTime);
+    }
+
+    public void draw(
+            SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, UniversalAnimation ani, float aniTime
+    ) {
+        root.draw(gl, entity, map, ani, aniTime, Vectors.Scaling.UNIFORM);
     }
 
     /**

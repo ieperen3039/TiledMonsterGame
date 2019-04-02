@@ -65,7 +65,7 @@ public class Converter {
             }
         }
 
-        Animation animation = new AnimationCombiner(paths);
+        PartialAnimation animation = new AnimationCombiner(paths);
 
         File targetFile = Directory.animations.getFile(target);
         animation.writeToFile(targetFile);
@@ -144,7 +144,7 @@ public class Converter {
         );
     }
 
-    public static Animation loadAnimation(File file) {
+    public static PartialAnimation loadAnimation(File file) {
         String fileName = file.getName();
 
         // create binary if absent
@@ -156,10 +156,10 @@ public class Converter {
         }
 
         // load from binary
-        Animation animation;
+        PartialAnimation animation;
         try (InputStream fileStream = new FileInputStream(file)) {
             DataInput in = new DataInputStream(fileStream);
-            animation = Storable.read(in, Animation.class);
+            animation = Storable.read(in, PartialAnimation.class);
 
         } catch (IOException | ClassNotFoundException e) {
 //                Logger.ERROR.print(e);

@@ -18,7 +18,7 @@ import java.util.Set;
  * An animation for a single body model, using keyframes as animation source.
  * @author Geert van Ieperen created on 28-2-2019.
  */
-public class KeyFrameAnimation implements Animation {
+public class KeyFrameAnimation implements PartialAnimation {
     protected final BodyModel model;
     /** maps the bone to the index in data */
     private final Map<AnimationBone, TransformArray> transformations;

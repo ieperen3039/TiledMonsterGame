@@ -1,7 +1,7 @@
 package NG.MonsterSoul.Commands;
 
-import NG.Animations.Animation;
 import NG.Animations.CompoundAnimation;
+import NG.Animations.UniversalAnimation;
 import NG.GameEvent.Actions.EntityAction;
 import org.joml.Quaternionf;
 import org.joml.Vector2ic;
@@ -29,7 +29,7 @@ public class CompoundAction implements EntityAction {
 
         EntityAction prevAction = actionArray[0];
         float duration = prevAction.duration();
-        Animation[] actionAnimations = new Animation[nrOfActions];
+        UniversalAnimation[] actionAnimations = new UniversalAnimation[nrOfActions];
 
         for (int i = 1; i < actionArray.length; i++) {
             EntityAction action = actionArray[i];
@@ -114,7 +114,7 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
-    public Animation getAnimation() {
+    public UniversalAnimation getAnimation() {
         return animations;
     }
 

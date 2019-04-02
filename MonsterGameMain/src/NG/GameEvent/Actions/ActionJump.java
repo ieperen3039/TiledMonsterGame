@@ -1,7 +1,7 @@
 package NG.GameEvent.Actions;
 
-import NG.Animations.Animation;
 import NG.Animations.BodyAnimation;
+import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -41,7 +41,7 @@ public class ActionJump extends ActionMovement {
     }
 
     @Override
-    public Animation getAnimation() {
+    public UniversalAnimation getAnimation() {
         return BodyAnimation.IDLE;
     }
 

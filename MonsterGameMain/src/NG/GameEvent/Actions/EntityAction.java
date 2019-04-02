@@ -1,6 +1,6 @@
 package NG.GameEvent.Actions;
 
-import NG.Animations.Animation;
+import NG.Animations.UniversalAnimation;
 import NG.GameEvent.Event;
 import NG.MonsterSoul.Stimulus;
 import NG.Tools.Vectors;
@@ -40,7 +40,7 @@ public interface EntityAction extends Stimulus {
     /**
      * @return the animation that is played when executing this action
      */
-    Animation getAnimation();
+    UniversalAnimation getAnimation();
 
     /**
      * checks whether this action may follow the given action
