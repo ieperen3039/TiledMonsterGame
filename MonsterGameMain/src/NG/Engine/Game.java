@@ -1,6 +1,6 @@
 package NG.Engine;
 
-import NG.ActionHandling.KeyMouseCallbacks;
+import NG.InputHandling.KeyMouseCallbacks;
 import NG.Camera.Camera;
 import NG.GameEvent.Event;
 import NG.GameMap.ClaimRegistry;

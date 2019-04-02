@@ -2,7 +2,6 @@ package NG.Entities;
 
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
-import org.joml.AABBf;
 import org.joml.Vector3f;
 
 /**
@@ -48,11 +47,6 @@ public class Cube implements Entity {
     @Override
     public boolean isDisposed() {
         return isDisposed;
-    }
-
-    @Override
-    public AABBf hitbox() {
-        return new AABBf(-1, -1, -1, 1, 1, 1);
     }
 
     @Override

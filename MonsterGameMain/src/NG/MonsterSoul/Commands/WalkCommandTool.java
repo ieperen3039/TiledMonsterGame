@@ -1,6 +1,6 @@
 package NG.MonsterSoul.Commands;
 
-import NG.ActionHandling.MouseTools.DefaultMouseTool;
+import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
 import NG.MonsterSoul.MonsterSoul;

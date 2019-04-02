@@ -2,7 +2,7 @@ package NG.MonsterSoul.Commands;
 
 import NG.Animations.CompoundAnimation;
 import NG.Animations.UniversalAnimation;
-import NG.GameEvent.Actions.EntityAction;
+import NG.Actions.EntityAction;
 import org.joml.Quaternionf;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;

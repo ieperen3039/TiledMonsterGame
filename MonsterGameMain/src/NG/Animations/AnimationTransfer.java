@@ -1,6 +1,6 @@
 package NG.Animations;
 
-import NG.GameEvent.Actions.EntityAction;
+import NG.Actions.EntityAction;
 import org.joml.Matrix4fc;
 
 import java.util.HashMap;

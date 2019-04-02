@@ -1,6 +1,6 @@
 package NG.GameState;
 
-import NG.ActionHandling.MouseTools.MouseToolListener;
+import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Engine.GameAspect;
 import NG.Engine.MonsterGame;
 import NG.Entities.Entity;

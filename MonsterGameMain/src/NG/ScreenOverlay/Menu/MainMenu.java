@@ -1,6 +1,6 @@
 package NG.ScreenOverlay.Menu;
 
-import NG.ActionHandling.MouseTools.DefaultMouseTool;
+import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;

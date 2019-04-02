@@ -111,11 +111,6 @@ public class CubeMonster extends MonsterSoul {
         }
 
         @Override
-        public AABBf hitbox() {
-            return hitbox;
-        }
-
-        @Override
         public String toString() {
             return "CubeMonster";
         }

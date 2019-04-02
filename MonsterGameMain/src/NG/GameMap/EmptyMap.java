@@ -1,6 +1,6 @@
 package NG.GameMap;
 
-import NG.ActionHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.*;

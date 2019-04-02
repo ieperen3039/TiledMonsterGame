@@ -1,4 +1,4 @@
-package NG.ActionHandling;
+package NG.InputHandling;
 
 /**
  * @author Geert van Ieperen. Created on 18-11-2018.

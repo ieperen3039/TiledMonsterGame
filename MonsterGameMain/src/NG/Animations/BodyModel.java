@@ -2,7 +2,7 @@ package NG.Animations;
 
 import NG.Animations.ColladaLoader.Converter;
 import NG.Entities.Entity;
-import NG.GameEvent.Actions.EntityAction;
+import NG.Actions.EntityAction;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Directory;

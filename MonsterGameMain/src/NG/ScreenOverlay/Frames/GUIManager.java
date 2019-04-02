@@ -1,6 +1,6 @@
 package NG.ScreenOverlay.Frames;
 
-import NG.ActionHandling.MouseTools.MouseToolListener;
+import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Engine.GameAspect;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.ScreenOverlay.Frames.Components.SFrame;

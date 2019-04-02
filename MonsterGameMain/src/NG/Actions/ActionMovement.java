@@ -1,6 +1,7 @@
-package NG.GameEvent.Actions;
+package NG.Actions;
 
 import NG.Engine.Game;
+import NG.GameMap.GameMap;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
@@ -15,8 +16,9 @@ public abstract class ActionMovement implements EntityAction {
     protected final Vector2ic endCoord;
 
     public ActionMovement(Game game, Vector2ic startCoord, Vector2ic endCoord, float duration) {
-        this.start = game.map().getPosition(startCoord);
-        this.end = game.map().getPosition(endCoord);
+        GameMap map = game.map();
+        this.start = map.getPosition(startCoord);
+        this.end = map.getPosition(endCoord);
         this.startCoord = startCoord;
         this.endCoord = endCoord;
         this.duration = duration;

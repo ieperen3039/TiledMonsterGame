@@ -1,6 +1,6 @@
-package NG.ActionHandling;
+package NG.InputHandling;
 
-import NG.ActionHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.MouseTool;
 
 /**
  * A class that allows binding callbacks of key and mouse listeners.

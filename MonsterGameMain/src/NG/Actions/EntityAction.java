@@ -1,4 +1,4 @@
-package NG.GameEvent.Actions;
+package NG.Actions;
 
 import NG.Animations.UniversalAnimation;
 import NG.GameEvent.Event;
@@ -10,7 +10,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**
- * An immutable action with a fixed start position, end position and duration.
+ * An immutable action with a fixed start position, end position, animation and duration.
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public interface EntityAction extends Stimulus {

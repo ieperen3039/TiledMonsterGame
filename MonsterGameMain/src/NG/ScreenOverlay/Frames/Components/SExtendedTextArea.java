@@ -1,8 +1,8 @@
 package NG.ScreenOverlay.Frames.Components;
 
-import NG.ActionHandling.MouseMoveListener;
-import NG.ActionHandling.MouseRelativeClickListener;
-import NG.ActionHandling.MouseReleaseListener;
+import NG.InputHandling.MouseMoveListener;
+import NG.InputHandling.MouseRelativeClickListener;
+import NG.InputHandling.MouseReleaseListener;
 import NG.ScreenOverlay.NGFonts;
 
 /**

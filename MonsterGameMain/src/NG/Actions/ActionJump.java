@@ -1,4 +1,4 @@
-package NG.GameEvent.Actions;
+package NG.Actions;
 
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;

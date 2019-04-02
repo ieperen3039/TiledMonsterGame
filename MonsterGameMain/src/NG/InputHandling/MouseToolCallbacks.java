@@ -1,7 +1,7 @@
-package NG.ActionHandling;
+package NG.InputHandling;
 
-import NG.ActionHandling.MouseTools.DefaultMouseTool;
-import NG.ActionHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.DefaultMouseTool;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.DataStructures.Tracked.TrackedFloat;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;

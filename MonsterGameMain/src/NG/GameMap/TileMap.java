@@ -1,6 +1,6 @@
 package NG.GameMap;
 
-import NG.ActionHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.DataStructures.Direction;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;

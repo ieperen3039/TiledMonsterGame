@@ -1,6 +1,6 @@
 package NG.Engine;
 
-import NG.ActionHandling.MouseToolCallbacks;
+import NG.InputHandling.MouseToolCallbacks;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
 import NG.DataStructures.Generic.Color4f;

@@ -3,7 +3,6 @@ package NG.Camera;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Tools.Toolbox;
-import org.joml.AABBf;
 import org.joml.Vector3f;
 
 import java.util.function.Supplier;
@@ -51,8 +50,4 @@ public class Cursor implements Entity {
         return isDisposed;
     }
 
-    @Override
-    public AABBf hitbox() {
-        return new AABBf();
-    }
 }

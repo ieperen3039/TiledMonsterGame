@@ -1,4 +1,4 @@
-package NG.ActionHandling.MouseTools;
+package NG.InputHandling.MouseTools;
 
 import NG.Engine.Game;
 import NG.ScreenOverlay.Frames.Components.SComponent;

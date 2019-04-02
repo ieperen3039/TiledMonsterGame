@@ -5,7 +5,6 @@ import NG.Entities.Entity;
 import NG.Entities.RobotMonster;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
-import org.joml.AABBf;
 import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -86,11 +85,6 @@ public interface PartialAnimation extends Storable {
         @Override
         public boolean isDisposed() {
             return isDisposed;
-        }
-
-        @Override
-        public AABBf hitbox() {
-            return null;
         }
 
         public void setAnimation(UniversalAnimation ani) {

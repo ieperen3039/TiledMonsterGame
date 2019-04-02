@@ -1,4 +1,4 @@
-package NG.ActionHandling;
+package NG.InputHandling;
 
 import NG.Engine.Game;
 import NG.Entities.Entity;

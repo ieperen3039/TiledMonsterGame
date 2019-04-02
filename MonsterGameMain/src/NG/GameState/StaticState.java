@@ -1,6 +1,6 @@
 package NG.GameState;
 
-import NG.ActionHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.GameMap.GameMap;

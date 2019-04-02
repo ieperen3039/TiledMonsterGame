@@ -1,7 +1,7 @@
 package NG.ScreenOverlay.Frames.Components;
 
-import NG.ActionHandling.KeyPressListener;
-import NG.ActionHandling.MouseRelativeClickListener;
+import NG.InputHandling.KeyPressListener;
+import NG.InputHandling.MouseRelativeClickListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
 import org.joml.Vector2ic;
 

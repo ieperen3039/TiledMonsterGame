@@ -1,7 +1,7 @@
 package NG.ScreenOverlay;
 
-import NG.ActionHandling.MouseRelativeClickListener;
-import NG.ActionHandling.MouseReleaseListener;
+import NG.InputHandling.MouseRelativeClickListener;
+import NG.InputHandling.MouseReleaseListener;
 import NG.Engine.Game;
 import NG.ScreenOverlay.Frames.Components.SButton;
 import NG.ScreenOverlay.Frames.Components.SComponent;

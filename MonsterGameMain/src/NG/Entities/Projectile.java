@@ -1,9 +1,8 @@
 package NG.Entities;
 
+import NG.Actions.EntityAction;
 import NG.Engine.Game;
-import NG.GameEvent.Actions.EntityAction;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.MeshLoading.Mesh;
 import org.joml.Vector3f;
 
 /**
@@ -12,12 +11,12 @@ import org.joml.Vector3f;
 public abstract class Projectile implements Entity {
     protected Game game;
 
-    private EntityAction movement;
     private boolean isDisposed = false;
+    private float scaling;
 
-    public Projectile(EntityAction movement, Game game) {
-        this.movement = movement;
+    public Projectile(Game game, float scaling) {
         this.game = game;
+        this.scaling = scaling;
     }
 
     @Override
@@ -26,19 +25,22 @@ public abstract class Projectile implements Entity {
 
         gl.pushMatrix();
         {
-            gl.translate(movement.getPositionAt(now));
-            gl.rotate(movement.getRotationAt(now));
+            gl.translate(getPosition(now));
+            gl.rotate(getMovement().getRotationAt(now));
+            gl.scale(scaling);
 
-            gl.render(getModel(), this);
+            drawProjectile(gl);
         }
         gl.popMatrix();
     }
 
-    abstract Mesh getModel();
+    protected abstract void drawProjectile(SGL gl);
+
+    protected abstract EntityAction getMovement();
 
     @Override
     public Vector3f getPosition(float currentTime) {
-        return movement.getPositionAt(currentTime);
+        return getMovement().getPositionAt(currentTime);
     }
 
     @Override

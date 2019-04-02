@@ -1,8 +1,8 @@
-package NG.ActionHandling.MouseTools;
+package NG.InputHandling.MouseTools;
 
-import NG.ActionHandling.MouseMoveListener;
-import NG.ActionHandling.MouseRelativeClickListener;
-import NG.ActionHandling.MouseReleaseListener;
+import NG.InputHandling.MouseMoveListener;
+import NG.InputHandling.MouseRelativeClickListener;
+import NG.InputHandling.MouseReleaseListener;
 import NG.Entities.Entity;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Tools.Logger;

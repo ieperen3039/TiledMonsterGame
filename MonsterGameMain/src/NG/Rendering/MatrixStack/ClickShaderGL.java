@@ -1,6 +1,6 @@
 package NG.Rendering.MatrixStack;
 
-import NG.ActionHandling.ClickShader;
+import NG.InputHandling.ClickShader;
 import NG.Camera.Camera;
 import NG.Entities.Entity;
 import NG.Rendering.MeshLoading.Mesh;

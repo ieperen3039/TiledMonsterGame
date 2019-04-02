@@ -1,9 +1,9 @@
 package NG.Camera;
 
-import NG.ActionHandling.KeyMouseCallbacks;
-import NG.ActionHandling.KeyPressListener;
-import NG.ActionHandling.KeyReleaseListener;
-import NG.ActionHandling.MousePositionListener;
+import NG.InputHandling.KeyMouseCallbacks;
+import NG.InputHandling.KeyPressListener;
+import NG.InputHandling.KeyReleaseListener;
+import NG.InputHandling.MousePositionListener;
 import NG.DataStructures.Tracked.ExponentialSmoothFloat;
 import NG.Engine.Game;
 import NG.Settings.KeyBinding;

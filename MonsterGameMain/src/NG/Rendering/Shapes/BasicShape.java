@@ -34,6 +34,7 @@ public class BasicShape implements Shape {
     ) {
         this.vertices = Collections.unmodifiableList(vertices);
         this.triangles = faces.stream()
+                .parallel()
                 .map(f -> f.toPlanes(vertices, normals))
                 .collect(Collectors.toList());
     }

@@ -6,6 +6,7 @@ import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shapes.Primitives.Plane;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
+import org.joml.AABBf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -29,6 +30,7 @@ public enum GenericShapes implements Mesh, Shape {
 
     private final Mesh mesh;
     private final Shape shape;
+    private final AABBf hitBox;
 
     GenericShapes(String... path) {
         Path asPath = Directory.meshes.getPath(path);
@@ -41,16 +43,19 @@ public enum GenericShapes implements Mesh, Shape {
             Logger.ERROR.print(ex);
             shape = null;
             mesh = null;
+            hitBox = null;
             return;
         }
 
         shape = new BasicShape(pars);
         mesh = pars.getMesh();
+        hitBox = getPointStream().collect(AABBf::new, AABBf::union, AABBf::union);
     }
 
     GenericShapes(CustomShape frame) {
         mesh = frame.asFlatMesh();
         shape = frame.wrapToShape();
+        hitBox = getPointStream().collect(AABBf::new, AABBf::union, AABBf::union);
     }
 
     @Override
@@ -93,5 +98,9 @@ public enum GenericShapes implements Mesh, Shape {
                 new Vector3f(0, 0, 1)
         );
         return frame;
+    }
+
+    public AABBf getHitbox() {
+        return hitBox;
     }
 }

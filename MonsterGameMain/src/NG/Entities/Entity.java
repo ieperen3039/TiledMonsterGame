@@ -2,7 +2,6 @@ package NG.Entities;
 
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
-import org.joml.AABBf;
 import org.joml.Vector3f;
 
 /**
@@ -31,7 +30,7 @@ public interface Entity {
      * Executes when the user clicks on this entity. When {@code button == GLFW_LEFT_MOUSE_BUTTON} is clicked, an {@link
      * NG.ScreenOverlay.Frames.Components.SFrame} with information or settings of this Entity is usually opened, and
      * when {@code button == GLFW_RIGHT_MOUSE_BUTTON} is clicked, the 'active' state of this entity may toggle.
-     * @param button the button that is clicked as defined in {@link NG.ActionHandling.MouseRelativeClickListener}
+     * @param button the button that is clicked as defined in {@link NG.InputHandling.MouseRelativeClickListener}
      */
     void onClick(int button);
 
@@ -45,8 +44,4 @@ public interface Entity {
      */
     boolean isDisposed();
 
-    /**
-     * @return the hitbox that encircles this entity
-     */
-    AABBf hitbox();
 }

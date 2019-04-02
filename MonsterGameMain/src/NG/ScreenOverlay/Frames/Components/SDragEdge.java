@@ -1,6 +1,6 @@
 package NG.ScreenOverlay.Frames.Components;
 
-import NG.ActionHandling.MouseMoveListener;
+import NG.InputHandling.MouseMoveListener;
 import NG.ScreenOverlay.Frames.SFrameLookAndFeel;
 import NG.ScreenOverlay.NGFonts;
 import org.joml.Vector2ic;

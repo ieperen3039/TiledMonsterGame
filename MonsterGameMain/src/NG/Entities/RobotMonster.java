@@ -7,7 +7,6 @@ import NG.Animations.RobotMeshes;
 import NG.Engine.Game;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Tools.Logger;
-import org.joml.AABBf;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;
 
@@ -77,9 +76,5 @@ public class RobotMonster extends MonsterSoul {
 
         }
 
-        @Override
-        public AABBf hitbox() {
-            return null;
-        }
     }
 }

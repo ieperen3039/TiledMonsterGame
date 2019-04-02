@@ -1,6 +1,6 @@
 package NG.Animations;
 
-import NG.GameEvent.Actions.ActionIdle;
+import NG.Actions.ActionIdle;
 import NG.Storable;
 import NG.Tools.Directory;
 import org.joml.Matrix4fc;

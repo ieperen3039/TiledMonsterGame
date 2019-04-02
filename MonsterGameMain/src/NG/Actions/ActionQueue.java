@@ -1,4 +1,4 @@
-package NG.GameEvent.Actions;
+package NG.Actions;
 
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
