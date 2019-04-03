@@ -4,6 +4,7 @@ import NG.Camera.Camera;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Rendering.GLFWWindow;
+import NG.Settings.Settings;
 import org.joml.Math;
 import org.joml.*;
 
@@ -278,9 +279,9 @@ public class Vectors {
      * @param direction the direction of the ray, not normalized.
      */
     public static void windowCoordToRay(Game game, int xSc, int ySc, Vector3f origin, Vector3f direction) {
-        GLFWWindow window = game.window();
-        Camera camera = game.camera();
-        boolean isometric = game.settings().ISOMETRIC_VIEW;
+        GLFWWindow window = game.get(GLFWWindow.class);
+        Camera camera = game.get(Camera.class);
+        boolean isometric = game.get(Settings.class).ISOMETRIC_VIEW;
 
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();

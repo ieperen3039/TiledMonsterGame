@@ -1,9 +1,12 @@
 package NG.Rendering.Shaders;
 
+import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.GameMap.GameMap;
 import NG.Rendering.DirectionalLight;
 import NG.Rendering.Textures.Texture;
+import NG.Settings.Settings;
 import NG.Tools.Directory;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -68,11 +71,11 @@ public class WorldBPShader extends SceneShader implements TextureShader {
     @Override
     public void initialize(Game game) {
         // Base variables
-        Vector3fc eye = game.camera().getEye();
-        setUniform("ambientLight", game.settings().AMBIENT_LIGHT.toVector3f());
+        Vector3fc eye = game.get(Camera.class).getEye();
+        setUniform("ambientLight", game.get(Settings.class).AMBIENT_LIGHT.toVector3f());
         setUniform("cameraPosition", eye);
         setUniform("specularPower", SPECULAR_POWER);
-        setUniform("directionalLight.shadowEnable", game.settings().STATIC_SHADOW_RESOLUTION > 0);
+        setUniform("directionalLight.shadowEnable", game.get(Settings.class).STATIC_SHADOW_RESOLUTION > 0);
 
         setUniform("hasTexture", false);
         setUniform("hasColor", false);
@@ -83,9 +86,9 @@ public class WorldBPShader extends SceneShader implements TextureShader {
         setUniform("dynamicShadowMap", 2);
 
         // origin gives middle of first tile
-        Vector3f origin = game.map().getPosition(0, 0);
+        Vector3f origin = game.get(GameMap.class).getPosition(0, 0);
         // second gives middle of second tile
-        Vector3f second = game.map().getPosition(1, 1);
+        Vector3f second = game.get(GameMap.class).getPosition(1, 1);
         Vector2f tileSize = new Vector2f(second.x - origin.x, second.y - origin.y);
         Vector2f zero = new Vector2f(origin.x - (tileSize.x / 2), origin.y - (tileSize.y / 2));
 

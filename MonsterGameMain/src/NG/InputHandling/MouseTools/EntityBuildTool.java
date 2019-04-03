@@ -1,6 +1,7 @@
 package NG.InputHandling.MouseTools;
 
 import NG.Engine.Game;
+import NG.InputHandling.KeyMouseCallbacks;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.ScreenOverlay.Frames.Components.SToggleButton;
 import org.lwjgl.glfw.GLFW;
@@ -17,7 +18,7 @@ public abstract class EntityBuildTool implements MouseTool {
     public EntityBuildTool(Game game, SToggleButton sourceButton) {
         this.game = game;
         this.sourceButton = sourceButton;
-        defaultMouseTool = game.inputHandling().getDefaultMouseTool();
+        defaultMouseTool = game.get(KeyMouseCallbacks.class).getDefaultMouseTool();
     }
 
     @Override
@@ -37,7 +38,7 @@ public abstract class EntityBuildTool implements MouseTool {
 
     /** disposes this mouse tool, resetting the global tool to default */
     protected void close() {
-        game.inputHandling().setMouseTool(null);
+        game.get(KeyMouseCallbacks.class).setMouseTool(null);
         sourceButton.setState(false);
     }
 

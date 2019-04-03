@@ -1,8 +1,10 @@
 package NG.Rendering.Shaders;
 
+import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.Rendering.DirectionalLight;
+import NG.Settings.Settings;
 import NG.Tools.Directory;
 import org.joml.Vector3fc;
 import org.joml.Vector4f;
@@ -38,9 +40,9 @@ public class PhongShader extends SceneShader {
 
     @Override
     public void initialize(Game game) {
-        Vector3fc eye = game.camera().getEye();
+        Vector3fc eye = game.get(Camera.class).getEye();
 
-        setUniform("ambientLight", game.settings().AMBIENT_LIGHT.toVector3f());
+        setUniform("ambientLight", game.get(Settings.class).AMBIENT_LIGHT.toVector3f());
         setUniform("cameraPosition", eye);
 
         nextLightIndex = 0;

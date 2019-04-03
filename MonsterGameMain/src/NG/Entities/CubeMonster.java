@@ -5,6 +5,7 @@ import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
+import NG.Engine.GameTimer;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.AABBf;
@@ -72,7 +73,7 @@ public class CubeMonster extends MonsterSoul {
             super(game, initialCoordinate, controller);
             this.boneMap = boneMap;
 
-            float gametime = game.timer().getGametime();
+            float gametime = game.get(GameTimer.class).getGametime();
             Vector3f eyeDir = new Vector3f(faceDirection);
 
             float sq2 = (float) Math.sqrt(2);
@@ -104,7 +105,7 @@ public class CubeMonster extends MonsterSoul {
 
         @Override
         public void lookAt(Vector3fc position) {
-            float gametime = game.timer().getGametime();
+            float gametime = game.get(GameTimer.class).getGametime();
             Vector3f dir = getPosition(gametime);
             position.sub(dir, dir);
             setTargetRotation(dir);
@@ -126,7 +127,7 @@ public class CubeMonster extends MonsterSoul {
         }
 
         protected void setTargetRotation(Vector3fc direction) {
-            float gametime = game.timer().getGametime();
+            float gametime = game.get(GameTimer.class).getGametime();
             Vector3fc curDir = getFaceRotation(gametime);
             float angle = curDir.angle(direction);
 

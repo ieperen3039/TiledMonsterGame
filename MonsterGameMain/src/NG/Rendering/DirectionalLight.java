@@ -10,6 +10,7 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.Rendering.Shaders.ShaderException;
 import NG.Rendering.Shaders.ShadowMap;
+import NG.Settings.Settings;
 import NG.Tools.Vectors;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -46,8 +47,9 @@ public class DirectionalLight {
      * @throws ShaderException when the shader can't be initialized correctly
      */
     public void init(Game game) throws ShaderException {
-        int stRes = game.settings().STATIC_SHADOW_RESOLUTION;
-        int dyRes = game.settings().DYNAMIC_SHADOW_RESOLUTION;
+        Settings settings = game.get(Settings.class);
+        int stRes = settings.STATIC_SHADOW_RESOLUTION;
+        int dyRes = settings.DYNAMIC_SHADOW_RESOLUTION;
 
         game.executeOnRenderThread(() -> {
             if (stRes > 0) {

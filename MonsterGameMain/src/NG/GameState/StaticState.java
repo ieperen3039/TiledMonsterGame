@@ -1,9 +1,10 @@
 package NG.GameState;
 
-import NG.InputHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Entities.Entity;
+import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.Primitives.Collision;
 import NG.Storable;
@@ -58,10 +59,10 @@ public class StaticState implements GameState {
         Vector3f direction = new Vector3f();
         Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
 
-        GameMap map = game.map();
+        GameMap map = game.get(GameMap.class);
         Vector3f position = map.intersectWithRay(origin, direction);
         Vector3i asCoord = map.getCoordinate(position);
-        Entity claimant = game.claims().getClaim(new Vector2i(asCoord.x, asCoord.y));
+        Entity claimant = game.get(ClaimRegistry.class).getClaim(new Vector2i(asCoord.x, asCoord.y));
         if (claimant == null) return false;
 
         tool.apply(claimant, xSc, ySc);

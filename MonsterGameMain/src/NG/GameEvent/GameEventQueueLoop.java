@@ -39,7 +39,7 @@ public class GameEventQueueLoop extends EventLoop {
 
     @Override
     protected void update(float deltaTime) throws Exception {
-        GameTimer timer = game.timer();
+        GameTimer timer = game.get(GameTimer.class);
         timer.updateGameTime();
         float gametime = timer.getGametime();
 

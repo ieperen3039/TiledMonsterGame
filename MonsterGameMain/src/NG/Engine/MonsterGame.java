@@ -1,13 +1,10 @@
 package NG.Engine;
 
-import NG.InputHandling.MouseToolCallbacks;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
 import NG.DataStructures.Generic.Color4f;
-import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventQueueLoop;
-import NG.GameMap.ClaimRegistry;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
@@ -15,6 +12,7 @@ import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.GameState.SingleShadowMapLights;
 import NG.GameState.StaticState;
+import NG.InputHandling.MouseToolCallbacks;
 import NG.Mods.InitialisationMod;
 import NG.Mods.Mod;
 import NG.Rendering.GLFWWindow;
@@ -29,11 +27,10 @@ import NG.Tools.Logger;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * <p>
@@ -42,18 +39,16 @@ import java.util.List;
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public class MonsterGame implements ModLoader {
-    private static final Version GAME_VERSION = new Version(0, 2);
-    private final String MAIN_THREAD;
+    private static final Version GAME_VERSION = new Version(0, 3);
 
     private final RenderLoop renderer;
-    private final Settings settings;
     private final GLFWWindow window;
     private final MouseToolCallbacks inputHandler;
     private final GUIManager frameManager;
     private MainMenu mainMenu;
 
-    private SubGame pocketGame;
-    private SubGame worldGame;
+    private Game pocketGame;
+    private Game worldGame;
     private Game.Multiplexer combinedGame;
     private boolean currentIsPocket;
 
@@ -63,7 +58,7 @@ public class MonsterGame implements ModLoader {
 
     public MonsterGame() throws IOException {
         Logger.INFO.print("Starting up the game engine...");
-        MAIN_THREAD = Thread.currentThread().getName();
+        String mainThreadName = Thread.currentThread().getName();
 
         Logger.DEBUG.print("General debug information: " +
                 // manual aligning will do the trick
@@ -75,7 +70,7 @@ public class MonsterGame implements ModLoader {
         );
 
         // these are not GameAspects, and thus the init() rule does not apply.
-        settings = new Settings();
+        Settings settings = new Settings();
         window = new GLFWWindow(Settings.GAME_NAME, settings, true);
 
         renderer = new RenderLoop(settings.TARGET_FPS);
@@ -87,16 +82,22 @@ public class MonsterGame implements ModLoader {
         GameState pocketGameState = new StaticState();
         GameLights pocketLights = new SingleShadowMapLights();
         GameMap pocketMap = new EmptyMap();
-        pocketGame = new SubGame(pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView);
+        pocketGame = new GameService(GAME_VERSION, mainThreadName,
+                pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView,
+                settings, window, renderer, inputHandler, frameManager
+        );
 
         Camera worldView = new TycoonFixedCamera(new Vector3f(), 10, 10);
         EventLoop worldGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
         GameState worldGameState = new StaticState();
         GameLights worldLights = new SingleShadowMapLights();
         GameMap worldMap = new TileMap(settings.CHUNK_SIZE);
-        worldGame = new SubGame(worldGameLoop, worldGameState, worldMap, worldLights, worldView);
+        worldGame = new GameService(GAME_VERSION, mainThreadName,
+                worldGameLoop, worldGameState, worldMap, worldLights, worldView,
+                settings, window, renderer, inputHandler, frameManager
+        );
 
-        combinedGame = new Game.Multiplexer(0, worldGame, pocketGame);
+        combinedGame = new Game.Multiplexer(1, worldGame, pocketGame);
         currentIsPocket = true;
 
         // load mods
@@ -134,8 +135,8 @@ public class MonsterGame implements ModLoader {
             }
         });
 
-        pocketGame.thisLights.addDirectionalLight(new Vector3f(1, 1, 2), Color4f.rgb(255, 241, 224), 0.8f);
-        worldGame.thisLights.addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
+        pocketGame.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1, 2), Color4f.rgb(255, 241, 224), 0.8f);
+        worldGame.get(GameLights.class).addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         Logger.INFO.print("Finished initialisation");
     }
@@ -188,16 +189,16 @@ public class MonsterGame implements ModLoader {
         mainMenu.setVisible(false);
         frameManager.setToolBar(mainMenu.getToolBar(combinedGame));
 
-        pocketGame.start();
-        worldGame.start();
+        pocketGame.get(GameTimer.class).unPause();
+        worldGame.get(GameTimer.class).unPause();
     }
 
     private void stopGame() {
         Logger.INFO.print(); // new line
         Logger.INFO.print("Stopping game...");
 
-        pocketGame.stop();
-        worldGame.stop();
+        pocketGame.get(GameTimer.class).pause();
+        worldGame.get(GameTimer.class).pause();
 
         frameManager.setToolBar(null);
         cleanMods();
@@ -238,219 +239,90 @@ public class MonsterGame implements ModLoader {
         inputHandler.cleanup();
     }
 
-    private class SubGame implements Game {
-        private final GameTimer gameTimer;
-        private Camera thisCamera;
+    /**
+     * writes all relevant parts that represent the state of this Game object to the output stream. This can be reverted
+     * using {@link #readStateFromFile(DataInput)}.
+     * @param out an output stream
+     */
+    public void writeStateToFile(DataOutput out) throws IOException {
+        GAME_VERSION.writeToDataStream(out);
 
-        private EventLoop thisLoop;
-        private GameState thisState;
-        private GameMap thisMap;
-        private GameLights thisLights;
-        private ClaimRegistry thisClaims;
+        // store timestamp
+        out.writeFloat(combinedGame.get(GameTimer.class).getGametime());
 
-        private SubGame(
-                EventLoop gameLoop, GameState gameState, GameMap gameMap, GameLights gameLights,
-                Camera thisCamera
-        ) {
-            this.thisLoop = gameLoop;
-            this.thisState = gameState;
-            this.thisMap = gameMap;
-            this.thisLights = gameLights;
-            this.thisCamera = thisCamera;
-            this.gameTimer = new GameTimer(settings.RENDER_DELAY);
-            this.thisClaims = new ClaimRegistry();
-            gameTimer.pause();
+        // write mods
+        Collection<Mod> listOfMods = allMods();
+        out.writeInt(listOfMods.size());
+
+        for (Mod mod : listOfMods) {
+            out.writeUTF(mod.getModName());
+            mod.getVersionNumber().writeToDataStream(out);
         }
 
-        public void init() throws Exception {
-            thisLoop.init(this);
-            thisState.init(this);
-            thisMap.init(this);
-            thisLights.init(this);
-            thisClaims.init(this);
-            thisCamera.init(combinedGame);
+        filterAndStore(out, pocketGame);
+        filterAndStore(out, worldGame);
+    }
 
-            thisLoop.start();
-        }
+    private static void filterAndStore(DataOutput out, Game game) throws IOException {
+        List<Storable> box = new ArrayList<>();
 
-        public void start() {
-            thisLoop.unPause();
-            gameTimer.unPause();
-        }
-
-        public void stop() {
-            thisLoop.pause();
-            gameTimer.pause();
-        }
-
-        @Override
-        public GameTimer timer() {
-            return gameTimer;
-        }
-
-        @Override
-        public Camera camera() {
-            return thisCamera;
-        }
-
-        @Override
-        public GameState entities() {
-            return thisState;
-        }
-
-        @Override
-        public GameMap map() {
-            return thisMap;
-        }
-
-        @Override
-        public Settings settings() {
-            return settings;
-        }
-
-        @Override
-        public GLFWWindow window() {
-            return window;
-        }
-
-        @Override
-        public GUIManager gui() {
-            return frameManager;
-        }
-
-        @Override
-        public MouseToolCallbacks inputHandling() {
-            return inputHandler;
-        }
-
-        @Override
-        public Version getVersion() {
-            return GAME_VERSION;
-        }
-
-        @Override
-        public GameLights lights() {
-            return thisLights;
-        }
-
-        @Override
-        public ClaimRegistry claims() {
-            return thisClaims;
-        }
-
-        @Override
-        public void addEvent(Event e) {
-            thisLoop.addEvent(e);
-        }
-
-        @Override
-        public void executeOnRenderThread(Runnable action) {
-            boolean thisIsMainThread = Thread.currentThread().getName().equals(MAIN_THREAD);
-
-            if (thisIsMainThread) {
-                action.run();
-
-            } else {
-                renderer.defer(action);
+        for (Object elt : game) {
+            if (elt instanceof Storable) {
+                box.add((Storable) elt);
             }
         }
 
-        @Override
-        public void writeStateToFile(DataOutput out) throws IOException {
-            GAME_VERSION.writeToDataStream(out);
+        Storable.writeCollection(out, box);
+    }
 
-            // store timestamp
-            out.writeFloat(gameTimer.getGametime());
+    /**
+     * reads and restores a state previously written by {@link #writeStateToFile(DataOutput)}. After this method
+     * returns, the elements that represent the state of this object are set to the streamed state.
+     * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(DataOutput)}
+     */
+    public void readStateFromFile(DataInput in) throws Exception {
+        Version fileVersion = new Version(in);
+        Logger.INFO.print("Reading state of version " + fileVersion);
 
-            // write mods
-            Collection<Mod> listOfMods = allMods();
-            out.writeInt(listOfMods.size());
+        float restoredTime = in.readFloat();
 
-            for (Mod mod : listOfMods) {
-                out.writeUTF(mod.getModName());
-                mod.getVersionNumber().writeToDataStream(out);
+        int nOfMods = in.readInt();
+        if (nOfMods > 0) Logger.INFO.print("Required mods:");
+
+        for (int i = 0; i < nOfMods; i++) {
+            String modName = in.readUTF();
+            Mod targetMod = getModByName(modName);
+            Version version = new Version(in);
+
+            boolean hasMod = targetMod != null;
+            Logger logger = hasMod ? Logger.INFO : Logger.WARN;
+            logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
+        }
+
+        List<Storable> pocketElts = Storable.readCollection(in, Storable.class);
+        cleanBeforeRead(pocketGame);
+        pocketElts.forEach(pocketGame::add);
+        pocketGame.init();
+
+        List<Storable> worldElts = Storable.readCollection(in, Storable.class);
+        cleanBeforeRead(worldGame);
+        worldElts.forEach(worldGame::add);
+        worldGame.init();
+
+        combinedGame.get(GameTimer.class).set(restoredTime);
+    }
+
+    public void cleanBeforeRead(Game game) {
+        Iterator<Object> iterator = game.iterator();
+        while (iterator.hasNext()) {
+            Object elt = iterator.next();
+            if (elt instanceof Storable) {
+                if (elt instanceof GameAspect) {
+                    ((GameAspect) elt).cleanup();
+                }
+
+                iterator.remove();
             }
-
-            Storable.write(out, thisLoop);
-            Storable.write(out, thisState);
-            Storable.write(out, thisMap);
-            Storable.write(out, thisLights);
-            Storable.write(out, thisClaims);
-        }
-
-        @Override
-        public void readStateFromFile(DataInput in) throws Exception {
-            Version fileVersion = new Version(in);
-            Logger.INFO.print("Reading state of version " + fileVersion);
-
-            float restoredTime = in.readFloat();
-
-            int nOfMods = in.readInt();
-            if (nOfMods > 0) Logger.INFO.print("Required mods:");
-
-            for (int i = 0; i < nOfMods; i++) {
-                String modName = in.readUTF();
-                Mod targetMod = getModByName(modName);
-                Version version = new Version(in);
-
-                boolean hasMod = targetMod != null;
-                Logger logger = hasMod ? Logger.INFO : Logger.WARN;
-                logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
-            }
-
-            EventLoop newLoop = Storable.read(in, EventLoop.class);
-            GameState newState = Storable.read(in, GameState.class);
-            GameMap newMap = Storable.read(in, GameMap.class);
-            GameLights newLights = Storable.read(in, GameLights.class);
-            ClaimRegistry newClaims = Storable.read(in, ClaimRegistry.class);
-
-            newLights.init(this);
-            newState.init(this);
-            newMap.init(this);
-            newLights.init(this);
-
-            // replace at end of gameloop
-            thisLoop.defer(() -> {
-                // clean up all the replaced stuff
-                this.thisLoop.stopLoop();
-                this.thisState.cleanup();
-                this.thisMap.cleanup();
-                this.thisLights.cleanup();
-                this.thisClaims.cleanup();
-
-                // set new state
-                this.thisLoop = newLoop;
-                this.thisState = newState;
-                this.thisMap = newMap;
-                this.thisLights = newLights;
-                this.thisClaims = newClaims;
-
-                gameTimer.set(restoredTime);
-            });
-        }
-
-        @Override
-        public void loadMap(File map) throws Exception {
-            FileInputStream fs = new FileInputStream(map);
-            DataInput input = new DataInputStream(fs);
-            GameMap newMap = Storable.read(input, GameMap.class);
-
-            newMap.init(this);
-            this.thisMap.cleanup();
-            this.thisMap = newMap;
-        }
-
-        public void cleanup() {
-            thisLoop.stopLoop();
-            thisState.cleanup();
-            thisMap.cleanup();
-            thisLights.cleanup();
-            thisCamera.cleanup();
-        }
-
-        @Override
-        public String toString() {
-            return getClass().getSimpleName();
         }
     }
 }

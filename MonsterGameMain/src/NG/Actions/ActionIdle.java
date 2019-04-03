@@ -5,6 +5,7 @@ import NG.Animations.BodyAnimation;
 import NG.Animations.PartialAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
+import NG.GameMap.GameMap;
 import org.joml.*;
 
 import java.io.DataOutput;
@@ -44,7 +45,7 @@ public class ActionIdle implements EntityAction {
      * @param duration how long to stay idle
      */
     public ActionIdle(Game game, Vector2ic coordinate, float duration) {
-        this(coordinate, game.map().getPosition(coordinate), duration);
+        this(coordinate, game.get(GameMap.class).getPosition(coordinate), duration);
     }
 
     /**

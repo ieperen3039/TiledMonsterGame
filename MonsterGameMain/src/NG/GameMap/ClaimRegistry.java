@@ -48,7 +48,7 @@ public class ClaimRegistry implements GameAspect, Storable {
 
         int xc = coordinate.x();
         int yc = coordinate.y();
-        Vector2ic size = game.map().getSize();
+        Vector2ic size = game.get(GameMap.class).getSize();
         if (xc >= size.x() || xc < 0 || yc >= size.y() || yc < 0) {
             return false;
         }

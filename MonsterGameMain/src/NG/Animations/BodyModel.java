@@ -1,8 +1,8 @@
 package NG.Animations;
 
+import NG.Actions.EntityAction;
 import NG.Animations.ColladaLoader.Converter;
 import NG.Entities.Entity;
-import NG.Actions.EntityAction;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Directory;
@@ -67,7 +67,7 @@ public enum BodyModel {
             SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, float timeSinceStart, EntityAction action,
             EntityAction previous
     ) {
-        AnimationTransfer transfer = AnimationTransfer.get(action, previous);
+        AnimationTransfer transfer = AnimationTransfer.get(previous, action);
         UniversalAnimation animation = (transfer == null) ? action.getAnimation() : transfer;
         float animationTime = (timeSinceStart / action.duration()) * animation.duration();
 

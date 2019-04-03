@@ -1,13 +1,16 @@
 package NG.ScreenOverlay.Menu;
 
+import NG.Camera.Camera;
 import NG.DataStructures.Generic.PairList;
 import NG.Engine.Game;
 import NG.Engine.ModLoader;
+import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.Mods.Mod;
 import NG.ScreenOverlay.Frames.Components.*;
+import NG.ScreenOverlay.Frames.GUIManager;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector2f;
@@ -53,10 +56,10 @@ public class NewGameFrame extends SFrame implements Runnable {
         SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
         sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
         this.game = game;
-        xSizeSelector = new SDropDown(this.game.gui(), 100, 60, 1, "100", "200", "500", "1000");
+        xSizeSelector = new SDropDown(this.game.get(GUIManager.class), 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
         sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
-        ySizeSelector = new SDropDown(this.game.gui(), 100, 60, 1, "100", "200", "500", "1000");
+        ySizeSelector = new SDropDown(this.game.get(GUIManager.class), 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
         mainPanel.add(sizeSelection, mpos.add(0, 1));
 
@@ -89,10 +92,10 @@ public class NewGameFrame extends SFrame implements Runnable {
         }
 
         if (!generatorNames.isEmpty()) {
-            generatorSelector = new SDropDown(this.game.gui(), generatorNames);
+            generatorSelector = new SDropDown(this.game.get(GUIManager.class), generatorNames);
             mainPanel.add(generatorSelector, mpos.add(0, 1));
         } else {
-            generatorSelector = new SDropDown(game.gui(), 0, "Default Implementation");
+            generatorSelector = new SDropDown(game.get(GUIManager.class), 0, "Default Implementation");
         }
 
         // generate button
@@ -144,13 +147,13 @@ public class NewGameFrame extends SFrame implements Runnable {
 
         modLoader.initMods(targets);
         TileThemeSet.PLAIN.load();
-        game.map().generateNew(generatorMod);
+        game.get(GameMap.class).generateNew(generatorMod);
 
         // set camera to middle of map
-        Vector3f cameraFocus = game.map().getPosition(new Vector2f(xSize / 2f, ySize / 2f));
+        Vector3f cameraFocus = game.get(GameMap.class).getPosition(new Vector2f(xSize / 2f, ySize / 2f));
         float initialZoom = (xSize + ySize) * 0.1f;
         Vector3f cameraEye = new Vector3f(cameraFocus).add(initialZoom, initialZoom, initialZoom);
-        game.camera().set(cameraFocus, cameraEye);
+        game.get(Camera.class).set(cameraFocus, cameraEye);
 
         // start
         modLoader.startGame();

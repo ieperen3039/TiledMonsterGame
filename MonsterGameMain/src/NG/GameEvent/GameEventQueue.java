@@ -2,6 +2,7 @@ package NG.GameEvent;
 
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
+import NG.Engine.GameTimer;
 import NG.Tools.Logger;
 
 import java.util.PriorityQueue;
@@ -37,8 +38,9 @@ public class GameEventQueue extends Thread implements GameAspect {
                 Event nextEvent = eventQueue.remove();
                 lockNewEvent.unlock();
 
-                game.timer().updateGameTime();
-                float gametime = game.timer().getGametime();
+                GameTimer timer = game.get(GameTimer.class);
+                timer.updateGameTime();
+                float gametime = timer.getGametime();
                 float remainingSeconds = nextEvent.getTime() - gametime;
                 long millis = (long) (remainingSeconds * 1000);
                 Thread.sleep(millis);

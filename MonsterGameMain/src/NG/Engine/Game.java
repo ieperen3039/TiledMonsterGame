@@ -1,22 +1,15 @@
 package NG.Engine;
 
-import NG.Camera.Camera;
-import NG.GameEvent.Event;
-import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
-import NG.GameState.GameLights;
-import NG.GameState.GameState;
-import NG.InputHandling.KeyMouseCallbacks;
-import NG.Rendering.GLFWWindow;
-import NG.ScreenOverlay.Frames.GUIManager;
-import NG.Settings.Settings;
 import NG.Storable;
 import NG.Tools.Logger;
 
 import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -25,35 +18,40 @@ import java.util.concurrent.FutureTask;
  * A collection of references to any major element of the game.
  * @author Geert van Ieperen. Created on 16-9-2018.
  */
-public interface Game {
-
-    GameTimer timer();
-
-    Camera camera();
-
-    GameState entities();
-
-    GameMap map();
-
-    Settings settings();
-
-    GLFWWindow window();
-
-    KeyMouseCallbacks inputHandling();
-
-    GUIManager gui();
-
-    Version getVersion();
-
-    GameLights lights();
-
-    ClaimRegistry claims();
+public interface Game extends Iterable<Object> {
 
     /**
-     * schedules an event on the game loop
-     * @param e the event to execute
+     * returns an element of the given class. If there are multiple elements, the first element is returned.
+     * @param target the class that is sought
+     * @param <T>    the type of this class
+     * @return an element of the given target class, or null if no such element is found
      */
-    void addEvent(Event e);
+    <T> T get(Class<T> target);
+
+    /**
+     * returns all elements of the given class.
+     * @param target the class that is sought
+     * @param <T>    the type of this class
+     * @return a list of all elements of the given target class, or an empty list if no such element is found.
+     */
+    <T> List<T> getAll(Class<T> target);
+
+    /**
+     * adds an element to this server. Added elements can be retrieved using {@link #get(Class)}
+     * @param newElement the new element
+     */
+    void add(Object newElement);
+
+    /**
+     * @param original the object to remove
+     * @return true iff the element was found and removed
+     */
+    boolean remove(Object original);
+
+    /**
+     * @return the version of the game engine
+     */
+    Version getVersion();
 
     /**
      * Schedules the specified action to be executed in the OpenGL context. The action is guaranteed to be executed
@@ -84,131 +82,113 @@ public interface Game {
         return task;
     }
 
-    ;
-
     /**
-     * writes all relevant parts that represent the state of this Game object to the output stream. This can be reverted
-     * using {@link #readStateFromFile(DataInput)}.
-     * @param out an output stream
+     * empty all elements, call the cleanup method of all gameAspect elements
      */
-    void writeStateToFile(DataOutput out) throws IOException;
+    void cleanup();
 
-    /**
-     * reads and restores a state previously written by {@link #writeStateToFile(DataOutput)}. After this method
-     * returns, the elements that represent the state of this object are set to the streamed state.
-     * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(DataOutput)}
-     */
-    void readStateFromFile(DataInput in) throws Exception;
+    default void loadMap(File map) throws Exception {
+        FileInputStream fs = new FileInputStream(map);
+        DataInput input = new DataInputStream(fs);
+        GameMap newMap = Storable.read(input, GameMap.class);
+        GameMap oldMap = get(GameMap.class);
 
-    /**
-     * reads a binary GameMap instance from the provided file. This file must have been generated with a {@link
-     * java.io.FileOutputStream} where {@link NG.Storable#write(DataOutput, Storable)} has been called on a
-     * gameMap instance.
-     * @param map the file of
-     * @throws java.io.FileNotFoundException if the file does not point to a valid file
-     * @throws Exception                     if an exception happens when reading the file
-     */
-    void loadMap(File map) throws Exception;
+        newMap.init(this);
+        add(newMap);
+
+        remove(oldMap);
+        oldMap.cleanup();
+    }
+
+    default void init() throws Exception {
+        for (Object elt : this) {
+            if (elt instanceof GameAspect) {
+                GameAspect aspect = (GameAspect) elt;
+                aspect.init(this);
+            }
+        }
+    }
 
     /**
      * a class that allows run-time switching between game instances
      */
     class Multiplexer implements Game {
         private final Game[] instances;
-        private int current;
+        private Game current;
 
         protected Multiplexer(int initial, Game... instances) {
             this.instances = instances;
-            this.current = initial;
+            current = instances[initial];
         }
 
-        public void select(int instance) {
-            current = instance;
+        void select(int target) {
+            current = instances[target];
         }
 
-        @Override
-        public GameTimer timer() {
-            return instances[current].timer();
+        /**
+         * returns an element of the given class. If there are multiple elements, the first element is returned.
+         * @param target the class that is sought
+         * @param <T>    the type of this class
+         * @return an element of the given target class, or null if no such element is found
+         */
+        public <T> T get(Class<T> target) {
+            return current.get(target);
         }
 
-        @Override
-        public Camera camera() {
-            return instances[current].camera();
+        /**
+         * returns all elements of the given class.
+         * @param target the class that is sought
+         * @param <T>    the type of this class
+         * @return a list of all elements of the given target class, or an empty list if no such element is found.
+         */
+        public <T> List<T> getAll(Class<T> target) {
+            return current.getAll(target);
         }
 
-        @Override
-        public GameState entities() {
-            return instances[current].entities();
+        /**
+         * adds an element to this server. Added elements can be retrieved using {@link #get(Class)}
+         * @param newElement the new element
+         */
+        public void add(Object newElement) {
+            current.add(newElement);
         }
 
-        @Override
-        public GameMap map() {
-            return instances[current].map();
-        }
-
-        @Override
-        public Settings settings() {
-            return instances[current].settings();
-        }
-
-        @Override
-        public GLFWWindow window() {
-            return instances[current].window();
-        }
-
-        @Override
-        public KeyMouseCallbacks inputHandling() {
-            return instances[current].inputHandling();
-        }
-
-        @Override
-        public GUIManager gui() {
-            return instances[current].gui();
+        /**
+         * @param original the object to remove
+         * @return true iff the element was found and removed
+         */
+        public boolean remove(Object original) {
+            return current.remove(original);
         }
 
         @Override
         public Version getVersion() {
-            return instances[current].getVersion();
-        }
-
-        @Override
-        public GameLights lights() {
-            return instances[current].lights();
-        }
-
-        @Override
-        public ClaimRegistry claims() {
-            return instances[current].claims();
-        }
-
-        @Override
-        public void addEvent(Event e) {
-            instances[current].addEvent(e);
+            return current.getVersion();
         }
 
         @Override
         public void executeOnRenderThread(Runnable action) {
-            instances[current].executeOnRenderThread(action);
+            current.executeOnRenderThread(action);
         }
 
         @Override
-        public void writeStateToFile(DataOutput out) throws IOException {
-            instances[current].writeStateToFile(out);
-        }
-
-        @Override
-        public void readStateFromFile(DataInput in) throws Exception {
-            instances[current].readStateFromFile(in);
+        public void cleanup() {
+            current.cleanup();
         }
 
         @Override
         public void loadMap(File map) throws Exception {
-            instances[current].loadMap(map);
+            current.loadMap(map);
         }
 
         @Override
         public <V> Future<V> computeOnRenderThread(Callable<V> action) {
-            return instances[current].computeOnRenderThread(action);
+            return current.computeOnRenderThread(action);
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return current.iterator();
         }
     }
 }

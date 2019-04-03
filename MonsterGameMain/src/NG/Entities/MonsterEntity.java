@@ -1,18 +1,24 @@
 package NG.Entities;
 
+import NG.Actions.ActionIdle;
+import NG.Actions.ActionQueue;
+import NG.Actions.EntityAction;
 import NG.Animations.AnimationBone;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
-import NG.Actions.ActionQueue;
-import NG.Actions.EntityAction;
+import NG.Engine.GameTimer;
+import NG.GameMap.ClaimRegistry;
+import NG.GameMap.GameMap;
+import NG.InputHandling.KeyMouseCallbacks;
 import NG.MonsterSoul.Commands.WalkCommandTool;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import NG.ScreenOverlay.Frames.Components.SFrame;
 import NG.ScreenOverlay.Frames.Components.SPanel;
 import NG.ScreenOverlay.Frames.Components.SToggleButton;
+import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.Menu.MainMenu;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -45,19 +51,20 @@ public abstract class MonsterEntity implements Entity {
         this.controller = controller;
         this.currentActions = new ActionQueue(game, initialPosition);
 
-        boolean hasClaim = game.claims().createClaim(initialPosition, this);
+        boolean hasClaim = game.get(ClaimRegistry.class).createClaim(initialPosition, this);
 
         if (!hasClaim) {
             throw new IllegalPositionException("given coordinate " + Vectors.toString(initialPosition) + " is not free");
         }
         walkTool = new WalkCommandTool(game, this);
+        previousAction = new ActionIdle(game, initialPosition);
     }
 
     @Override
     public void draw(SGL gl) {
         if (isDisposed) return;
 
-        float now = game.timer().getRendertime();
+        float now = game.get(GameTimer.class).getRendertime();
         currentActions.removeUntil(now);
 
         Pair<EntityAction, Float> actionPair = currentActions.getActionAt(now);
@@ -107,11 +114,11 @@ public abstract class MonsterEntity implements Entity {
         frame.setMainPanel(SPanel.column(
                 controller.getStatisticsPanel(buttonHeight),
                 SPanel.column(
-                        new SToggleButton("Walk to...", 400, buttonHeight, (s) -> game.inputHandling()
+                        new SToggleButton("Walk to...", 400, buttonHeight, (s) -> game.get(KeyMouseCallbacks.class)
                                 .setMouseTool(s ? walkTool : null))
                 )
         ));
-        game.gui().addFrame(frame);
+        game.get(GUIManager.class).addFrame(frame);
     }
 
     protected abstract void lookAt(Vector3fc position);
@@ -134,7 +141,7 @@ public abstract class MonsterEntity implements Entity {
     public void addAction(EntityAction action, float gameTime) {
         currentActions.addAfter(gameTime, action);
         Vector2ic coord = action.getEndCoordinate();
-        Vector3f position = game.map().getPosition(coord);
+        Vector3f position = game.get(GameMap.class).getPosition(coord);
         lookAt(position);
     }
 

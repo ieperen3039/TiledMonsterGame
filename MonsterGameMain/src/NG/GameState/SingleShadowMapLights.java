@@ -3,6 +3,7 @@ package NG.GameState;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.GameMap.GameMap;
 import NG.Rendering.DirectionalLight;
 import NG.Rendering.FixedPointLight;
 import NG.Rendering.MatrixStack.SGL;
@@ -61,7 +62,7 @@ public class SingleShadowMapLights implements GameLights {
         Future<DepthShader> shader = game.computeOnRenderThread(DepthShader::new);
 
         this.sunLight.init(game);
-        game.map().addChangeListener(() -> staticMapIsDirty = true);
+        game.get(GameMap.class).addChangeListener(() -> staticMapIsDirty = true);
 
         this.shadowShader = shader.get();
     }
@@ -85,7 +86,7 @@ public class SingleShadowMapLights implements GameLights {
 
     @Override
     public void renderShadowMaps() {
-        Camera camera = game.camera();
+        Camera camera = game.get(Camera.class);
         Vector3fc playerFocus = camera.getFocus();
         float viewDist = camera.vectorToFocus().length();
         Vector3fc lightFocus = sunLight.getLightFocus();
@@ -112,7 +113,7 @@ public class SingleShadowMapLights implements GameLights {
                 if (staticMapIsDirty && sunLight.doStaticShadows()) {
                     DepthShader.DepthGL gl = shadowShader.getGL(false);
                     shadowShader.setDirectionalLight(sunLight);
-                    game.map().draw(gl);
+                    game.get(GameMap.class).draw(gl);
 
                     gl.cleanup();
                 }
@@ -121,7 +122,7 @@ public class SingleShadowMapLights implements GameLights {
                     glCullFace(GL_FRONT);
                     DepthShader.DepthGL gl = shadowShader.getGL(true);
                     shadowShader.setDirectionalLight(sunLight);
-                    game.entities().draw(gl);
+                    game.get(GameState.class).draw(gl);
                     glCullFace(GL_BACK);
 
                     gl.cleanup();

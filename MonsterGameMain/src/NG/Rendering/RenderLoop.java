@@ -6,8 +6,12 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
+import NG.Engine.GameTimer;
+import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
+import NG.GameState.GameState;
+import NG.InputHandling.KeyMouseCallbacks;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
 import NG.Rendering.Shaders.*;
@@ -53,7 +57,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     public void init(Game game) throws IOException {
         this.game = game;
-        Settings settings = game.settings();
+        Settings settings = game.get(Settings.class);
 
         overlay.init(settings.ANTIALIAS_LEVEL);
         overlay.addHudItem((hud) -> {
@@ -66,18 +70,18 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         worldShader = new WorldBPShader();
 
         pointer = new Pointer(new Vector3f());
-        game.inputHandling().addMousePositionListener(this::updateArrow);
+        game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updateArrow);
     }
 
     private void updateArrow(int xPos, int yPos) {
-        if (game.inputHandling().mouseIsOnMap()) {
+        if (game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
             Vector3f origin = new Vector3f();
             Vector3f direction = new Vector3f();
 
-            int correctedY = game.window().getHeight() - yPos;
+            int correctedY = game.get(GLFWWindow.class).getHeight() - yPos;
             Vectors.windowCoordToRay(game, xPos, correctedY, origin, direction);
 
-            GameMap map = game.map();
+            GameMap map = game.get(GameMap.class);
             Vector3f position = map.intersectWithRay(origin, direction);
             Vector3i coordinate = map.getCoordinate(position);
             position.set(map.getPosition(coordinate.x, coordinate.y));
@@ -85,13 +89,13 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             pointer.setPosition(position);
 
             if (cursorIsVisible) {
-                game.window().hideCursor(false);
+                game.get(GLFWWindow.class).hideCursor(false);
                 cursorIsVisible = false;
             }
 
         } else {
             if (!cursorIsVisible) {
-                game.window().showCursor();
+                game.get(GLFWWindow.class).showCursor();
                 cursorIsVisible = true;
             }
         }
@@ -100,15 +104,15 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     @Override
     protected void update(float deltaTime) {
         // current time
-        game.timer().updateRenderTime();
+        game.get(GameTimer.class).updateRenderTime();
 
         // camera
-        game.camera().updatePosition(deltaTime); // real-time deltatime
+        game.get(Camera.class).updatePosition(deltaTime); // real-time deltatime
 
-        GameMap world = game.map();
-        GameLights lights = game.lights();
+        GameMap world = game.get(GameMap.class);
+        GameLights lights = game.get(GameLights.class);
 
-        GLFWWindow window = game.window();
+        GLFWWindow window = game.get(GLFWWindow.class);
 
         lights.renderShadowMaps();
 
@@ -117,8 +121,8 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         renderWith(sceneShader, this::drawEntities, lights, window);
         renderWith(worldShader, world::draw, lights, window);
 
-        if (game.settings().RENDER_CLAIMED_TILES) {
-            Collection<Vector2ic> claims = game.claims().getClaimedTiles();
+        if (game.get(Settings.class).RENDER_CLAIMED_TILES) {
+            Collection<Vector2ic> claims = game.get(ClaimRegistry.class).getClaimedTiles();
 
             renderWith(sceneShader,
                     (gl) -> claims.forEach(c -> {
@@ -147,7 +151,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     }
 
     private void drawEntities(SGL gl) {
-        game.entities().draw(gl);
+        game.get(GameState.class).draw(gl);
         pointer.draw(gl);
     }
 
@@ -155,7 +159,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             SceneShader sceneShader, Consumer<SGL> draw, GameLights lights,
             GLFWWindow window
     ) {
-        boolean doIsometric = game.settings().ISOMETRIC_VIEW;
+        boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
 
@@ -164,7 +168,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             sceneShader.initialize(game);
 
             // GL object
-            SGL gl = new SceneShaderGL(sceneShader, windowWidth, windowHeight, game.camera(), doIsometric);
+            SGL gl = new SceneShaderGL(sceneShader, windowWidth, windowHeight, game.get(Camera.class), doIsometric);
 
             // order is important
             lights.draw(gl);
@@ -185,7 +189,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     private void dumpTexture(Texture texture, String fileName) {
         assert (sceneShader instanceof TextureShader);
-        GLFWWindow window = game.window();
+        GLFWWindow window = game.get(GLFWWindow.class);
 
         sceneShader.bind();
         {

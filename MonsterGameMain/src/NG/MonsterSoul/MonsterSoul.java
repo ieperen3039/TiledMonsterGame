@@ -1,12 +1,15 @@
 package NG.MonsterSoul;
 
-import NG.DataStructures.Generic.PairList;
-import NG.Engine.Game;
-import NG.Entities.MonsterEntity;
 import NG.Actions.ActionFinishListener;
 import NG.Actions.ActionIdle;
 import NG.Actions.EntityAction;
+import NG.DataStructures.Generic.PairList;
+import NG.Engine.Game;
+import NG.Engine.GameTimer;
+import NG.Entities.MonsterEntity;
 import NG.GameEvent.Event;
+import NG.GameEvent.EventLoop;
+import NG.GameMap.ClaimRegistry;
 import NG.MonsterSoul.Commands.Command;
 import NG.MonsterSoul.Commands.Command.CType;
 import NG.ScreenOverlay.Frames.Components.SNamedValue;
@@ -126,7 +129,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
             Logger.DEBUG.print("Completed " + previous);
         }
 
-        game.claims().dropClaim(previous.getStartCoordinate(), entity);
+        game.get(ClaimRegistry.class).dropClaim(previous.getStartCoordinate(), entity);
         actionEventLock.release();
 
         while (!executionSequence.hasNext()) {// iterate to next plan.
@@ -140,9 +143,9 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
             executionSequence = executionTarget.toActions(game, previous).iterator();
         }
 
-        float now = game.timer().getGametime();
+        float now = game.get(GameTimer.class).getGametime();
         EntityAction next = executionSequence.next();
-        boolean hasClaim = game.claims().createClaim(next.getEndCoordinate(), entity);
+        boolean hasClaim = game.get(ClaimRegistry.class).createClaim(next.getEndCoordinate(), entity);
 
         if (hasClaim) {
             boolean success = schedule(next, now);
@@ -167,7 +170,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         Event event = action.getFinishEvent(gameTime, this);
 
         if (actionEventLock.tryAcquire()) {
-            game.addEvent(event);
+            game.get(EventLoop.class).addEvent(event);
             entity.addAction(action, gameTime);
             return true;
         }
@@ -175,7 +178,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     }
 
     public void update() {
-        float gametime = game.timer().getGametime();
+        float gametime = game.get(GameTimer.class).getGametime();
         emotions.process(gametime);
     }
 
@@ -183,7 +186,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     public void accept(Stimulus stimulus) {
         update();
 
-        float gametime = game.timer().getGametime();
+        float gametime = game.get(GameTimer.class).getGametime();
         Type sType = stimulus.getType();
         float realMagnitude = stimulus.getMagnitude(entity.getPosition(gametime));
 

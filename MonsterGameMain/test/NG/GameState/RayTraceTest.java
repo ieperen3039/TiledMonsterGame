@@ -1,13 +1,18 @@
 package NG.GameState;
 
-import NG.InputHandling.MouseTools.MouseTool;
+import NG.Camera.Camera;
+import NG.Camera.TycoonFixedCamera;
 import NG.Engine.Game;
+import NG.Engine.GameService;
+import NG.Engine.Version;
 import NG.Entities.Entity;
+import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
-import NG.Rendering.RenderLoop;
+import NG.InputHandling.MouseToolCallbacks;
+import NG.InputHandling.MouseTools.MouseTool;
+import NG.Rendering.GLFWWindow;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Settings.Settings;
-import NG.Tools.DecoyGame;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Matrix4f;
@@ -28,19 +33,26 @@ public class RayTraceTest {
 
     @Before
     public void setUp() throws Exception {
-        game = new DecoyGame("Test", new RenderLoop(60), new Settings());
-        game.window();
-        game.camera().init(game);
-        instance = game.map();
+        Settings settings = new Settings();
+        GLFWWindow window = new GLFWWindow(Settings.GAME_NAME, settings, true);
+        MouseToolCallbacks inputHandler = new MouseToolCallbacks();
+
+        Camera cam = new TycoonFixedCamera(new Vector3f(), 10, 10);
+        GameMap map = new EmptyMap();
+        game = new GameService(new Version(0, 0), "", map, cam, window, inputHandler);
+
+        game.get(GLFWWindow.class);
+        game.get(Camera.class).init(game);
+        instance = game.get(GameMap.class);
         instance.init(game);
-        game.camera().set(new Vector3f(0, 0, 0), new Vector3f(-10, -10, 10));
+        game.get(Camera.class).set(new Vector3f(0, 0, 0), new Vector3f(-10, -10, 10));
     }
 
     @Test
     public void screenTestIso() {
-        game.settings().ISOMETRIC_VIEW = true;
-        int width = game.window().getWidth();
-        int height = game.window().getHeight();
+        game.get(Settings.class).ISOMETRIC_VIEW = true;
+        int width = game.get(GLFWWindow.class).getWidth();
+        int height = game.get(GLFWWindow.class).getHeight();
 
         // middle of screen must be focus
         instance.checkMouseClick(new TestTool() {
@@ -54,9 +66,9 @@ public class RayTraceTest {
 
     @Test
     public void screenTestPerspec() {
-        game.settings().ISOMETRIC_VIEW = false;
-        int width = game.window().getWidth();
-        int height = game.window().getHeight();
+        game.get(Settings.class).ISOMETRIC_VIEW = false;
+        int width = game.get(GLFWWindow.class).getWidth();
+        int height = game.get(GLFWWindow.class).getHeight();
 
         // middle of screen must be focus
         instance.checkMouseClick(new TestTool() {
@@ -100,12 +112,12 @@ public class RayTraceTest {
 
     /** tests whether the given coordinate on the given isometric setting can be transformed one way and back */
     private void testCoord(final Vector3fc original, boolean isometricView) {
-        game.settings().ISOMETRIC_VIEW = isometricView;
+        game.get(Settings.class).ISOMETRIC_VIEW = isometricView;
 
-        int width = game.window().getWidth();
-        int height = game.window().getHeight();
+        int width = game.get(GLFWWindow.class).getWidth();
+        int height = game.get(GLFWWindow.class).getHeight();
 
-        Matrix4f proj = game.camera().getViewProjection(width, height, isometricView);
+        Matrix4f proj = game.get(Camera.class).getViewProjection(width, height, isometricView);
 
         int[] viewport = {0, 0, width, height};
         Vector3f screen = proj.project(original, viewport, new Vector3f());

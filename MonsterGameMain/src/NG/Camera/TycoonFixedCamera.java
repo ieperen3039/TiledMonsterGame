@@ -1,11 +1,13 @@
 package NG.Camera;
 
+import NG.DataStructures.Tracked.ExponentialSmoothFloat;
+import NG.Engine.Game;
+import NG.GameMap.GameMap;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.KeyPressListener;
 import NG.InputHandling.KeyReleaseListener;
 import NG.InputHandling.MousePositionListener;
-import NG.DataStructures.Tracked.ExponentialSmoothFloat;
-import NG.Engine.Game;
+import NG.Rendering.GLFWWindow;
 import NG.Settings.KeyBinding;
 import NG.Settings.Settings;
 import NG.Tools.Vectors;
@@ -49,7 +51,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     @Override
     public void init(Game game) {
         this.game = game;
-        KeyMouseCallbacks callbacks = game.inputHandling();
+        KeyMouseCallbacks callbacks = game.get(KeyMouseCallbacks.class);
         callbacks.addMousePositionListener(this);
         callbacks.addKeyPressListener(this);
         callbacks.addKeyReleaseListener(this);
@@ -63,7 +65,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     @Override
     public void updatePosition(float deltaTime) {
         // prevent overshooting when camera is not updated.
-        if (deltaTime > 1f || !game.inputHandling().mouseIsOnMap()) {
+        if (deltaTime > 1f || !game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
             return;
         }
 
@@ -75,7 +77,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
             focus.add(eyeDir.x, eyeDir.y, 0);
 
         } else {
-            int xInv = game.window().getWidth() - mouseXPos;
+            int xInv = game.get(GLFWWindow.class).getWidth() - mouseXPos;
             if (xInv < SCREEN_MOVE_MINIMUM_PIXELS) {
                 float value = positionToMovement(xInv) * deltaTime;
                 eyeDir.normalize(value).cross(getUpVector());
@@ -91,7 +93,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
             focus.sub(eyeDir.x, eyeDir.y, 0);
 
         } else {
-            int yInv = game.window().getHeight() - mouseYPos;
+            int yInv = game.get(GLFWWindow.class).getHeight() - mouseYPos;
             if (yInv < SCREEN_MOVE_MINIMUM_PIXELS) {
                 float value = positionToMovement(yInv) * deltaTime;
                 eyeDir.normalize(value);
@@ -99,7 +101,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
             }
         }
 
-        float tgtHeight = game.map().getHeightAt(focus.x, focus.y);
+        float tgtHeight = game.get(GameMap.class).getHeightAt(focus.x, focus.y);
         height.updateFluent(tgtHeight, deltaTime);
         focus.z = height.current();
 
@@ -135,7 +137,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
 
     @Override
     public void onScroll(float value) {
-        Settings s = game.settings();
+        Settings s = game.get(Settings.class);
         float zoomSpeed = s.CAMERA_ZOOM_SPEED;
         int maxZoom = s.MAX_CAMERA_DIST;
 
@@ -152,7 +154,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
 
     @Override
     public void cleanup() {
-        game.inputHandling().removeListener(this);
+        game.get(KeyMouseCallbacks.class).removeListener(this);
     }
 
     @Override

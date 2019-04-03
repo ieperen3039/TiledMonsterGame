@@ -16,7 +16,7 @@ public abstract class ActionMovement implements EntityAction {
     protected final Vector2ic endCoord;
 
     public ActionMovement(Game game, Vector2ic startCoord, Vector2ic endCoord, float duration) {
-        GameMap map = game.map();
+        GameMap map = game.get(GameMap.class);
         this.start = map.getPosition(startCoord);
         this.end = map.getPosition(endCoord);
         this.startCoord = startCoord;

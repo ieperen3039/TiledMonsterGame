@@ -22,7 +22,7 @@ public class ActionFly implements EntityAction {
     protected final Vector2ic endCoord;
 
     public ActionFly(Game game, Vector2ic startCoord, Vector2ic endCoord, float speed, float height) {
-        GameMap map = game.map();
+        GameMap map = game.get(GameMap.class);
         this.start = map.getPosition(startCoord).add(0, 0, height);
         this.end = map.getPosition(endCoord).add(0, 0, height);
         this.startCoord = startCoord;

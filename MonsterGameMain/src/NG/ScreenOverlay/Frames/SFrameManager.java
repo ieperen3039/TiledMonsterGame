@@ -1,8 +1,9 @@
 package NG.ScreenOverlay.Frames;
 
-import NG.InputHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
 import NG.Engine.Version;
+import NG.InputHandling.KeyMouseCallbacks;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.ScreenOverlay.BaseLF;
 import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.ScreenOverlay.Frames.Components.SFrame;
@@ -149,7 +150,7 @@ public class SFrameManager implements GUIManager {
 
     @Override
     public void cleanup() {
-        game.inputHandling().removeListener(this);
+        game.get(KeyMouseCallbacks.class).removeListener(this);
         frames.forEach(SFrame::dispose);
         frames.clear();
     }

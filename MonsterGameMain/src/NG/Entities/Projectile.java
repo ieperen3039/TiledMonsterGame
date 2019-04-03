@@ -2,6 +2,7 @@ package NG.Entities;
 
 import NG.Actions.EntityAction;
 import NG.Engine.Game;
+import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3f;
 
@@ -21,7 +22,7 @@ public abstract class Projectile implements Entity {
 
     @Override
     public void draw(SGL gl) {
-        float now = game.timer().getRendertime();
+        float now = game.get(GameTimer.class).getRendertime();
 
         gl.pushMatrix();
         {

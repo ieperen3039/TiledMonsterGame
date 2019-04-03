@@ -1,9 +1,12 @@
 package NG;
 
-import NG.InputHandling.MouseTools.DefaultMouseTool;
+import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Version;
 import NG.GameMap.*;
+import NG.GameState.GameLights;
+import NG.InputHandling.MouseToolCallbacks;
+import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
 import NG.ScreenOverlay.Frames.Components.*;
@@ -54,7 +57,7 @@ public class MapEditor {
 
         game = new DecoyGame("MonsterGame Map designer", renderloop, settings);
         blockMap = new BlockMap();
-        game.gameMap = blockMap;
+        game.setGameMap(blockMap);
 
         loadMapDialog = new JFileChooser(Directory.savedMaps.getDirectory());
         loadMapDialog.setDialogTitle("Load map");
@@ -76,14 +79,13 @@ public class MapEditor {
     public void init() throws Exception {
         game.init();
 
-        GLFWWindow window = game.window();
-        GUIManager gui = game.gui();
+        GLFWWindow window = game.get(GLFWWindow.class);
+        GUIManager gui = game.get(GUIManager.class);
         SToolBar files = getFileToolbar(window);
         gui.setToolBar(files);
 
-        game.inputHandling().setMouseTool(blockModificationTool);
-
-        game.lights().addDirectionalLight(new Vector3f(1, 1.5f, 4f), Color4f.WHITE, 0.4f);
+        game.get(MouseToolCallbacks.class).setMouseTool(blockModificationTool);
+        game.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 4f), Color4f.WHITE, 0.4f);
     }
 
     private SToolBar getFileToolbar(GLFWWindow window) {
@@ -106,27 +108,26 @@ public class MapEditor {
 
         SButton generate = new SButton("Generate Tilemap", () -> {
             TileThemeSet.PLAIN.load();
-            int chunkSize = game.settings().CHUNK_SIZE;
+            int chunkSize = game.get(Settings.class).CHUNK_SIZE;
             GameMap newMap = new TileMap(chunkSize);
             try {
                 newMap.init(game);
                 newMap.generateNew(new CopyGenerator(blockMap));
-                game.gameMap = newMap;
+                game.setGameMap(newMap);
 
                 blockModificationTool.dispose();
-                game.inputHandling().setMouseTool(tileCycleTool);
+                game.get(MouseToolCallbacks.class).setMouseTool(tileCycleTool);
 
             } catch (Exception ex) {
                 Toolbox.display(ex);
-                game.gameMap = blockMap;
             }
         }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
         generate.setGrowthPolicy(true, false);
 
         SButton back = new SButton("Back to Blockmap", () -> {
-            game.gameMap = blockMap;
+            game.setGameMap(blockMap);
             tileCycleTool.dispose();
-            game.inputHandling().setMouseTool(blockModificationTool);
+            game.get(MouseToolCallbacks.class).setMouseTool(blockModificationTool);
 
         }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
         back.setGrowthPolicy(true, false);
@@ -137,7 +138,7 @@ public class MapEditor {
         ));
 
         transformDialog.pack();
-        game.gui().addFrame(transformDialog);
+        game.get(GUIManager.class).addFrame(transformDialog);
     }
 
     private void loadTiles() {
@@ -185,7 +186,7 @@ public class MapEditor {
                         new FileOutputStream(nameWithExtension)
                 ) {
                     DataOutput output = new DataOutputStream(fileOut);
-                    Storable.write(output, game.map());
+                    Storable.write(output, game.get(GameMap.class));
 
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
@@ -211,7 +212,7 @@ public class MapEditor {
             try {
                 game.loadMap(selectedFile);
 
-                GameMap newMap = game.map();
+                GameMap newMap = game.get(GameMap.class);
 
                 if (newMap instanceof BlockMap) {
                     blockMap = (BlockMap) newMap;
@@ -230,13 +231,14 @@ public class MapEditor {
     }
 
     private int showDialog(JFileChooser dialog) {
-        game.window().setMinimized(true);
+        GLFWWindow window = game.get(GLFWWindow.class);
+        window.setMinimized(true);
         renderloop.pause();
 
         int result = dialog.showDialog(null, null);
 
         renderloop.unPause();
-        game.window().setMinimized(false);
+        window.setMinimized(false);
         return result;
     }
 
@@ -247,6 +249,7 @@ public class MapEditor {
         final int ROWS = 10;
         final int COLS = 3;
         Vector2i mpos = new Vector2i(1, 0);
+        GUIManager gui = game.get(GUIManager.class);
 
         SPanel mainPanel = new SPanel(COLS, ROWS);
         mainPanel.add(new SFiller(10, 10), new Vector2i(0, 0));
@@ -255,10 +258,10 @@ public class MapEditor {
         // size selection
         SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
         sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
-        SDropDown xSizeSelector = new SDropDown(game.gui(), 100, 60, 1, "16", "32", "64", "128");
+        SDropDown xSizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
         sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
         sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
-        SDropDown ySizeSelector = new SDropDown(game.gui(), 100, 60, 1, "16", "32", "64", "128");
+        SDropDown ySizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
         sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
         mainPanel.add(sizeSelection, mpos.add(0, 1));
 
@@ -290,7 +293,7 @@ public class MapEditor {
 
             TileThemeSet.PLAIN.load();
 
-            game.map().generateNew(generator);
+            game.get(GameMap.class).generateNew(generator);
 
             setCameraToMiddle(xSize, ySize);
             Logger.removeOnlinePrint(processDisplay);
@@ -299,22 +302,22 @@ public class MapEditor {
         });
 
         newMapFrame.setMainPanel(mainPanel);
-        game.gui().addFrame(newMapFrame);
+        gui.addFrame(newMapFrame);
     }
 
     private void setCameraToMiddle(int xSize, int ySize) {
-        Vector3f cameraFocus = game.map().getPosition(new Vector2f(xSize / 2f, ySize / 2f));
+        Vector3f cameraFocus = game.get(GameMap.class).getPosition(new Vector2f(xSize / 2f, ySize / 2f));
         // set camera to middle of map
         float initialZoom = (xSize + ySize);
         Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom * 0.8f, initialZoom);
-        game.camera().set(cameraFocus, cameraEye);
+        game.get(Camera.class).set(cameraFocus, cameraEye);
     }
 
     public void start() {
-        game.window().open();
+        game.get(GLFWWindow.class).open();
         renderloop.run();
-        game.window().close();
-        game.inputHandling().cleanup();
+        game.get(GLFWWindow.class).close();
+        game.get(MouseToolCallbacks.class).cleanup();
     }
 
     public static void main(String[] args) {
@@ -374,9 +377,9 @@ public class MapEditor {
 
             if (!recycle) {
                 if (wPos == null) {
-                    game.gui().addFrame(window);
+                    game.get(GUIManager.class).addFrame(window);
                 } else {
-                    game.gui().addFrame(window, wPos.x(), wPos.y());
+                    game.get(GUIManager.class).addFrame(window, wPos.x(), wPos.y());
                 }
             }
         }
@@ -425,7 +428,7 @@ public class MapEditor {
 
         @Override
         public void apply(Vector3fc position) {
-            GameMap map = game.map();
+            GameMap map = game.get(GameMap.class);
             assert (map instanceof TileMap);
 
             Vector3i coordinate = map.getCoordinate(position);
@@ -457,7 +460,7 @@ public class MapEditor {
             window.setMainPanel(elements);
 
             window.pack();
-            game.gui().addFrame(window);
+            game.get(GUIManager.class).addFrame(window);
         }
 
         public void dispose() {

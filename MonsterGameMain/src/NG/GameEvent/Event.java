@@ -1,6 +1,7 @@
 package NG.GameEvent;
 
 import NG.Engine.Game;
+import NG.Engine.GameTimer;
 import NG.MonsterSoul.Stimulus;
 import NG.MonsterSoul.Type;
 import NG.Tools.Logger;
@@ -90,12 +91,12 @@ public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
 
         @Override
         public void run() {
-            Logger.DEBUG.print(this + " triggered at " + game.timer().getGametime());
+            Logger.DEBUG.print(this + " triggered at " + game.get(GameTimer.class).getGametime());
             if (recurrence < 0) return;
 
             float next = Toolbox.randomBetween(getTime() + recurrence, getTime() + recurrence + 1);
             DebugEvent nextEvent = new DebugEvent(game, next, recurrence);
-            game.addEvent(nextEvent);
+            game.get(EventLoop.class).addEvent(nextEvent);
         }
 
         @Override

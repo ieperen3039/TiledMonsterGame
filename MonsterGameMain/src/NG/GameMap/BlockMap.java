@@ -1,8 +1,9 @@
 package NG.GameMap;
 
-import NG.InputHandling.MouseTools.MouseTool;
+import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
@@ -157,7 +158,7 @@ public class BlockMap implements GameMap {
     public Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction) {
         Vector3f temp = new Vector3f();
 
-        Vector3fc point = game.camera().getFocus();
+        Vector3fc point = game.get(Camera.class).getFocus();
         float t = Intersectionf.intersectRayPlane(origin, direction, point, Vectors.Z, 1E-6f);
 
         return origin.add(direction.mul(t, temp), temp);

@@ -6,14 +6,16 @@ import NG.Animations.PartialAnimation;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.Engine.GameTimer;
 import NG.Engine.ModLoader;
 import NG.Entities.Cube;
 import NG.Entities.CubeMonster;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
-import NG.GameMap.MapGeneratorMod;
-import NG.GameMap.SimpleMapGenerator;
-import NG.GameMap.TileThemeSet;
+import NG.GameMap.*;
+import NG.GameState.GameLights;
+import NG.GameState.GameState;
+import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.MonsterSoul.Commands.Command;
 import NG.MonsterSoul.Commands.CommandWalk;
@@ -22,6 +24,7 @@ import NG.MonsterSoul.Player;
 import NG.ScreenOverlay.Frames.Components.*;
 import NG.ScreenOverlay.Frames.GUIManager;
 import NG.ScreenOverlay.SToolBar;
+import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
@@ -67,7 +70,7 @@ public class MainMenu extends SFrame {
     }
 
     private void particles() {
-        overworld.gui().addFrame(new SFrame("EXPLOSIONS")
+        overworld.get(GUIManager.class).addFrame(new SFrame("EXPLOSIONS")
                         .setMainPanel(SPanel.column(
 //                    new SButton("BOOM", () -> overworld, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
                         ))
@@ -77,9 +80,9 @@ public class MainMenu extends SFrame {
     public void testWorld() {
         Logger.DEBUG.printFrom(2, "Start test-world");
         try {
-            int xSize = overworld.settings().CHUNK_SIZE;
-            int ySize = overworld.settings().CHUNK_SIZE;
-            overworld.claims().cleanup();
+            int xSize = overworld.get(Settings.class).CHUNK_SIZE;
+            int ySize = overworld.get(Settings.class).CHUNK_SIZE;
+            overworld.get(ClaimRegistry.class).cleanup();
 
             TileThemeSet.PLAIN.load();
 
@@ -87,7 +90,7 @@ public class MainMenu extends SFrame {
             int seed = Math.abs(Toolbox.random.nextInt());
             MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
             mapGenerator.setSize(xSize + 1, ySize + 1);
-            overworld.map().generateNew(mapGenerator);
+            overworld.get(GameMap.class).generateNew(mapGenerator);
 
             pocketworld.loadMap(Directory.savedMaps.getFile("pocketDefault.mgm"));
             centerCamera(pocketworld);
@@ -100,10 +103,10 @@ public class MainMenu extends SFrame {
             /* --- DEBUG SECTION --- */
 
             // add a default entity
-            Vector3i position = overworld.map().getCoordinate(cameraFocus);
+            Vector3i position = overworld.get(GameMap.class).getCoordinate(cameraFocus);
             MonsterSoul monsterSoul = new CubeMonster(Directory.souls.getFile("soul1.txt"));
             MonsterEntity cow = monsterSoul.getAsEntity(overworld, new Vector2i(position.x, position.y), Vectors.X);
-            overworld.entities().addEntity(cow);
+            overworld.get(GameState.class).addEntity(cow);
 
             // give it some command
             Command command = new CommandWalk(new Player(), monsterSoul, new Vector2i(position.x + 2, position.y + 2));
@@ -112,7 +115,7 @@ public class MainMenu extends SFrame {
             /* --- END SECTION --- */
 
             // add lights
-            overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 1f), Color4f.WHITE, 0.2f);
+            overworld.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 1f), Color4f.WHITE, 0.2f);
 
             // start
             start();
@@ -128,9 +131,9 @@ public class MainMenu extends SFrame {
     }
 
     private Vector3f centerCamera(Game game) {
-        Vector2ic edge = game.map().getSize();
-        Vector3f cameraFocus = game.map().getPosition(edge.x() / 2, edge.y() / 2);
-        Camera cam = game.camera();
+        Vector2ic edge = game.get(GameMap.class).getSize();
+        Vector3f cameraFocus = game.get(GameMap.class).getPosition(edge.x() / 2, edge.y() / 2);
+        Camera cam = game.get(Camera.class);
         int initialZoom = (int) edge.length();
         Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
         cam.set(cameraFocus, cameraEye);
@@ -148,17 +151,17 @@ public class MainMenu extends SFrame {
                 for (int z = 0; z < cbrtc; z++) {
                     Vector3f pos = new Vector3f(x, y, z).mul(spacing);
                     Entity cube = new Cube(pos);
-                    overworld.entities().addEntity(cube);
+                    overworld.get(GameState.class).addEntity(cube);
                     if (--i == 0) break cubing;
                 }
             }
         }
 
-        Camera cam = overworld.camera();
+        Camera cam = overworld.get(Camera.class);
         Vector3f cameraEye = new Vector3f(cbrtc, cbrtc, cbrtc).mul(spacing).add(10, 10, 10);
         cam.set(Vectors.O, cameraEye);
 
-        overworld.lights().addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
+        overworld.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         start();
     }
@@ -170,10 +173,10 @@ public class MainMenu extends SFrame {
         BodyAnimation baseAni = BodyAnimation.WALK_CYCLE;
         BodyModel baseMode = BodyModel.ANTHRO;
 
-        GUIManager targetGUI = overworld.gui();
+        GUIManager targetGUI = overworld.get(GUIManager.class);
         SDropDown animationSelection = new SDropDown(targetGUI, baseAni.ordinal(), Toolbox.toStringArray(animations));
         SDropDown modelSelection = new SDropDown(targetGUI, baseMode.ordinal(), Toolbox.toStringArray(models));
-        PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.timer());
+        PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.get(GameTimer.class));
 
         targetGUI.addFrame(new SFrame("Animations", BUTTON_MIN_WIDTH, 0)
                 .setMainPanel(SPanel.column(
@@ -185,25 +188,26 @@ public class MainMenu extends SFrame {
         animationSelection.addStateChangeListener((i) -> demonstrator.setAnimation(animations[i]));
         modelSelection.addStateChangeListener(i -> demonstrator.setModel(models[i]));
 
-        overworld.entities().addEntity(demonstrator);
+        overworld.get(GameState.class).addEntity(demonstrator);
 
         start();
     }
 
     private void showNewGamePanel() {
         newGameFrame.setVisible(true);
-        overworld.gui().addFrame(newGameFrame);
+        overworld.get(GUIManager.class).addFrame(newGameFrame);
     }
 
     public SToolBar getToolBar(Game game) {
         SToolBar toolBar = new SToolBar(game, true);
 
         toolBar.addButton("Stop", () -> {
-            game.gui().setToolBar(null);
+            game.get(GUIManager.class).setToolBar(null);
             setVisible(true);
         }, 100);
 
-        toolBar.addButton("A* tester", () -> game.inputHandling().setMouseTool(new AStartTestMouseTool(game)), 200);
+        toolBar.addButton("A* tester", () -> game.get(KeyMouseCallbacks.class)
+                .setMouseTool(new AStartTestMouseTool(game)), 200);
 
         return toolBar;
     }
@@ -218,16 +222,16 @@ public class MainMenu extends SFrame {
 
         @Override
         public void apply(Vector3fc position) {
-            Vector3i temp = game.map().getCoordinate(position);
+            Vector3i temp = game.get(GameMap.class).getCoordinate(position);
             Vector2i second = new Vector2i(temp.x, temp.y);
 
             if (first == null) {
                 this.first = second;
-                game.map().setHighlights(first);
+                game.get(GameMap.class).setHighlights(first);
 
             } else {
-                List<Vector2i> path = game.map().findPath(first, second, 1, 0.1f);
-                game.map().setHighlights(path.toArray(new Vector2ic[0]));
+                List<Vector2i> path = game.get(GameMap.class).findPath(first, second, 1, 0.1f);
+                game.get(GameMap.class).setHighlights(path.toArray(new Vector2ic[0]));
                 first = null;
             }
         }

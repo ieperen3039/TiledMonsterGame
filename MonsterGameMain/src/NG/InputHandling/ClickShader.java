@@ -1,12 +1,15 @@
 package NG.InputHandling;
 
+import NG.Camera.Camera;
 import NG.Engine.Game;
 import NG.Entities.Entity;
+import NG.GameState.GameState;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.MatrixStack.ClickShaderGL;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.ShaderException;
 import NG.Rendering.Shaders.ShaderProgram;
+import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import org.joml.Matrix4f;
@@ -246,15 +249,15 @@ public class ClickShader implements ShaderProgram {
         shader.initialize(game);
         shader.bind();
 
-        GLFWWindow window = game.window();
-        boolean doIsometric = game.settings().ISOMETRIC_VIEW;
+        GLFWWindow window = game.get(GLFWWindow.class);
+        boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;
         SGL flatColorRender =
-                new ClickShaderGL(shader, window.getWidth(), window.getHeight(), game.camera(), doIsometric);
+                new ClickShaderGL(shader, window.getWidth(), window.getHeight(), game.get(Camera.class), doIsometric);
 
-        game.entities().draw(flatColorRender);
+        game.get(GameState.class).draw(flatColorRender);
         shader.unbind();
 
-        if (game.settings().DEBUG) {
+        if (game.get(Settings.class).DEBUG) {
             window.printScreen(Directory.screenshots, "click", GL11.GL_BACK);
         }
 
