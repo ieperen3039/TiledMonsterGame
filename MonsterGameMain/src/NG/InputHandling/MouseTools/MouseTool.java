@@ -1,9 +1,9 @@
 package NG.InputHandling.MouseTools;
 
+import NG.Entities.Entity;
+import NG.GUIMenu.Frames.Components.SComponent;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseReleaseListener;
-import NG.Entities.Entity;
-import NG.ScreenOverlay.Frames.Components.SComponent;
 import org.joml.Vector3fc;
 
 /**

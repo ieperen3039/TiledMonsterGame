@@ -28,7 +28,7 @@ public interface Entity {
 
     /**
      * Executes when the user clicks on this entity. When {@code button == GLFW_LEFT_MOUSE_BUTTON} is clicked, an {@link
-     * NG.ScreenOverlay.Frames.Components.SFrame} with information or settings of this Entity is usually opened, and
+     * NG.GUIMenu.Frames.Components.SFrame} with information or settings of this Entity is usually opened, and
      * when {@code button == GLFW_RIGHT_MOUSE_BUTTON} is clicked, the 'active' state of this entity may toggle.
      * @param button the button that is clicked as defined in {@link NG.InputHandling.MouseRelativeClickListener}
      */

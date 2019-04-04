@@ -5,8 +5,9 @@ import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.GameState.GameState;
 import NG.Rendering.GLFWWindow;
-import NG.Rendering.MatrixStack.ClickShaderGL;
+import NG.Rendering.MatrixStack.AbstractSGL;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.Shaders.ShaderException;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Settings.Settings;
@@ -83,6 +84,17 @@ public class ClickShader implements ShaderProgram {
     @Override
     public void initialize(Game game) {
         mapping.clear();
+    }
+
+    @Override
+    public SGL getGL(Game game) {
+        GLFWWindow window = game.get(GLFWWindow.class);
+        Camera camera = game.get(Camera.class);
+        boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;
+        int windowWidth = window.getWidth();
+        int windowHeight = window.getHeight();
+
+        return new ClickShaderGL(this, windowWidth, windowHeight, camera, doIsometric);
     }
 
     public void setEntity(Entity entity) {
@@ -250,9 +262,7 @@ public class ClickShader implements ShaderProgram {
         shader.bind();
 
         GLFWWindow window = game.get(GLFWWindow.class);
-        boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;
-        SGL flatColorRender =
-                new ClickShaderGL(shader, window.getWidth(), window.getHeight(), game.get(Camera.class), doIsometric);
+        SGL flatColorRender = shader.getGL(game);
 
         game.get(GameState.class).draw(flatColorRender);
         shader.unbind();
@@ -270,4 +280,32 @@ public class ClickShader implements ShaderProgram {
         return shader.mapping.get(i - 1);
     }
 
+    /**
+     * @author Geert van Ieperen created on 30-1-2019.
+     */
+    public static class ClickShaderGL extends AbstractSGL {
+        private final ClickShader shader;
+        private final Matrix4f viewProjectionMatrix;
+
+        public ClickShaderGL(
+                ClickShader shader, int windowWidth, int windowHeight, Camera viewpoint, boolean isometric
+        ) {
+            this.shader = shader;
+            viewProjectionMatrix = viewpoint.getViewProjection(windowWidth, windowHeight, isometric);
+
+        }
+
+        @Override
+        public void render(Mesh object, Entity sourceEntity) {
+            shader.setEntity(sourceEntity);
+            shader.setProjectionMatrix(viewProjectionMatrix);
+            shader.setModelMatrix(getModelMatrix());
+            object.render(LOCK);
+            shader.unsetEntity();
+        }
+
+        public ShaderProgram getShader() {
+            return shader;
+        }
+    }
 }

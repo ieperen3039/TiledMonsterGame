@@ -5,6 +5,7 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Engine.GameService;
 import NG.Engine.GameTimer;
 import NG.Engine.Version;
+import NG.GUIMenu.Frames.SFrameManager;
 import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
@@ -14,7 +15,6 @@ import NG.GameState.StaticState;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
-import NG.ScreenOverlay.Frames.SFrameManager;
 import NG.Settings.Settings;
 import org.joml.Vector3f;
 

@@ -6,12 +6,12 @@ import NG.Engine.Game;
 import NG.Engine.GameService;
 import NG.Engine.Version;
 import NG.Entities.Entity;
+import NG.GUIMenu.Frames.Components.SComponent;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
-import NG.ScreenOverlay.Frames.Components.SComponent;
 import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
@@ -39,13 +39,12 @@ public class RayTraceTest {
 
         Camera cam = new TycoonFixedCamera(new Vector3f(), 10, 10);
         GameMap map = new EmptyMap();
-        game = new GameService(new Version(0, 0), "", map, cam, window, inputHandler);
+        game = new GameService(new Version(0, 0), "", map, cam, window, inputHandler, new Settings());
 
-        game.get(GLFWWindow.class);
-        game.get(Camera.class).init(game);
+        cam.init(game);
         instance = game.get(GameMap.class);
         instance.init(game);
-        game.get(Camera.class).set(new Vector3f(0, 0, 0), new Vector3f(-10, -10, 10));
+        cam.set(new Vector3f(0, 0, 0), new Vector3f(-10, -10, 10));
     }
 
     @Test

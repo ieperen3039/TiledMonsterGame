@@ -1,6 +1,12 @@
 package NG.Rendering.Shaders;
 
+import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
+import NG.Engine.Game;
+import NG.Rendering.GLFWWindow;
+import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.MatrixStack.SceneShaderGL;
+import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.*;
@@ -260,4 +266,13 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
         }
     }
 
+    @Override
+    public SGL getGL(Game game) {
+        GLFWWindow window = game.get(GLFWWindow.class);
+        Camera camera = game.get(Camera.class);
+        boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;
+        int windowWidth = window.getWidth();
+        int windowHeight = window.getHeight();
+        return new SceneShaderGL(this, windowWidth, windowHeight, camera, doIsometric);
+    }
 }

@@ -1,6 +1,7 @@
 package NG.Rendering.Shaders;
 
 import NG.Engine.Game;
+import NG.Rendering.MatrixStack.SGL;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,6 +44,8 @@ public interface ShaderProgram {
      * @param game the source of information
      */
     void initialize(Game game);
+
+    SGL getGL(Game game);
 
     /**
      * Create a new shader and return the id of the newly created shader.

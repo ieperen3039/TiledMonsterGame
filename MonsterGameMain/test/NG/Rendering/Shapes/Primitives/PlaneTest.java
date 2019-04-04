@@ -2,6 +2,7 @@ package NG.Rendering.Shapes.Primitives;
 
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.junit.Before;
 
 /**
@@ -28,11 +29,12 @@ public class PlaneTest {
 
         Collision box = instance.getCollisionWith(first, dir, second);
 
-        Vector3f result = new Vector3f();
+        Vector3fc result = null;
 
         if (box != null) {
             // get position of the new vector
-            System.out.println("Hitpoint: " + box.hitPosition());
+            result = box.hitPosition();
+            System.out.println("Hitpoint: " + result);
         }
 
         if (expected == null) {

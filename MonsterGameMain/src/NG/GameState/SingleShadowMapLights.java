@@ -111,7 +111,8 @@ public class SingleShadowMapLights implements GameLights {
                 shadowShader.initialize(game);
 
                 if (staticMapIsDirty && sunLight.doStaticShadows()) {
-                    DepthShader.DepthGL gl = shadowShader.getGL(false);
+                    shadowShader.setDynamic(false);
+                    DepthShader.DepthGL gl = shadowShader.getGL(game);
                     shadowShader.setDirectionalLight(sunLight);
                     game.get(GameMap.class).draw(gl);
 
@@ -120,7 +121,8 @@ public class SingleShadowMapLights implements GameLights {
 
                 if (sunLight.doDynamicShadows()) {
                     glCullFace(GL_FRONT);
-                    DepthShader.DepthGL gl = shadowShader.getGL(true);
+                    shadowShader.setDynamic(true);
+                    DepthShader.DepthGL gl = shadowShader.getGL(game);
                     shadowShader.setDirectionalLight(sunLight);
                     game.get(GameState.class).draw(gl);
                     glCullFace(GL_BACK);

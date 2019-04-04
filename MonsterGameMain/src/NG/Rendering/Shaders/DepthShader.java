@@ -136,6 +136,14 @@ public class DepthShader implements ShaderProgram, LightShader {
         // ignore
     }
 
+    /**
+     * @param dynamic if true, the dynamic map of the light will be used. If false, the static map of the light will be
+     *                used
+     */
+    public void setDynamic(boolean dynamic) {
+        isDynamic = dynamic;
+    }
+
     @Override
     public void setDirectionalLight(DirectionalLight light) {
         directionalLight = light;
@@ -145,12 +153,9 @@ public class DepthShader implements ShaderProgram, LightShader {
 
     /**
      * create a GL object that allows rendering the depth map of a scene
-     * @param dynamicMapping if true, the dynamic map of the light will be used. If false, the static map of the light
-     *                       will be used
      * @return a GL object that renders a depth map in the frame buffer of the first light that is rendered.
      */
-    public DepthGL getGL(boolean dynamicMapping) {
-        isDynamic = dynamicMapping;
+    public DepthGL getGL(Game game) {
         return new DepthGL();
     }
 

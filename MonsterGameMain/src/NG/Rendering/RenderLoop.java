@@ -7,17 +7,19 @@ import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
 import NG.Engine.GameTimer;
+import NG.GUIMenu.ScreenOverlay;
 import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.InputHandling.KeyMouseCallbacks;
+import NG.Particles.GameParticles;
+import NG.Particles.ParticleShader;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
 import NG.Rendering.Shaders.*;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Rendering.Textures.Texture;
-import NG.ScreenOverlay.ScreenOverlay;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -43,6 +45,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private Game game;
     private SceneShader sceneShader;
     private SceneShader worldShader;
+    private ParticleShader particleShader;
     private Pointer pointer;
     private boolean cursorIsVisible = false;
 
@@ -68,6 +71,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
         sceneShader = new BlinnPhongShader();
         worldShader = new WorldBPShader();
+        particleShader = new ParticleShader();
 
         pointer = new Pointer(new Vector3f());
         game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updateArrow);
@@ -111,32 +115,21 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
         GameMap world = game.get(GameMap.class);
         GameLights lights = game.get(GameLights.class);
-
+        GameParticles particles = game.get(GameParticles.class);
         GLFWWindow window = game.get(GLFWWindow.class);
 
         lights.renderShadowMaps();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderWith(sceneShader, this::drawEntities, lights, window);
-        renderWith(worldShader, world::draw, lights, window);
+        renderWith(worldShader, world::draw, true);
+        renderWith(sceneShader, this::drawEntities, true);
 
         if (game.get(Settings.class).RENDER_CLAIMED_TILES) {
-            Collection<Vector2ic> claims = game.get(ClaimRegistry.class).getClaimedTiles();
-
-            renderWith(sceneShader,
-                    (gl) -> claims.forEach(c -> {
-                        Vector3f tr = world.getPosition(c);
-                        tr.add(0, 0, 0.01f);
-
-                        gl.translate(tr);
-                        gl.render(GenericShapes.QUAD, null);
-                        gl.translate(tr.negate());
-                    }),
-                    lights,
-                    window
-            );
+            renderWith(sceneShader, gl -> drawClaimedTiles(gl, world), false);
         }
+
+        renderWith(particleShader, particles::draw, false);
 
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
@@ -150,31 +143,39 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         if (window.shouldClose()) stopLoop();
     }
 
+    private void drawClaimedTiles(SGL gl, GameMap world) {
+        Collection<Vector2ic> claims = game.get(ClaimRegistry.class).getClaimedTiles();
+
+        for (Vector2ic c : claims) {
+            Vector3f tr = world.getPosition(c);
+            tr.add(0, 0, 0.01f);
+
+            gl.translate(tr);
+            gl.render(GenericShapes.QUAD, null);
+            gl.translate(tr.negate());
+        }
+    }
+
     private void drawEntities(SGL gl) {
         game.get(GameState.class).draw(gl);
         pointer.draw(gl);
     }
 
-    private void renderWith(
-            SceneShader sceneShader, Consumer<SGL> draw, GameLights lights,
-            GLFWWindow window
-    ) {
-        boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;
-        int windowWidth = window.getWidth();
-        int windowHeight = window.getHeight();
-
-        sceneShader.bind();
+    private void renderWith(ShaderProgram shader, Consumer<SGL> draw, boolean addLights) {
+        shader.bind();
         {
-            sceneShader.initialize(game);
+            shader.initialize(game);
 
             // GL object
-            SGL gl = new SceneShaderGL(sceneShader, windowWidth, windowHeight, game.get(Camera.class), doIsometric);
+            SGL gl = shader.getGL(game);
 
-            // order is important
-            lights.draw(gl);
+            if (addLights) {
+                game.get(GameLights.class).draw(gl);
+            }
+
             draw.accept(gl);
         }
-        sceneShader.unbind();
+        shader.unbind();
     }
 
     public void addHudItem(Consumer<ScreenOverlay.Painter> draw) {

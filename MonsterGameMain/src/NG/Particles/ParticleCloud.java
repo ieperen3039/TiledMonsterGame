@@ -4,8 +4,6 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Tools.Toolbox;
-import NG.Tools.Vectors;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.lwjgl.system.MemoryUtil;
 
@@ -37,39 +35,22 @@ public class ParticleCloud implements Mesh {
     private ArrayList<Particle> bulk = new ArrayList<>();
     private float maxTTL = 0;
     private float minTTL = Float.MAX_VALUE;
-    private int vertexCount;
-
-    /**
-     * @param position     position of the middle of the particle
-     * @param direction    the direction where this particle moves to
-     * @param jitter       the random speed at which this particle actual direction is offset to direction. If direction
-     *                     is the zero vector, the actual speed will be random linear distributed between this and 0
-     * @param maxTTL       maximum time to live. Actual time will be random quadratic distributed between this and 0
-     * @param color        color of this particle
-     * @param particleSize maximum size of the particle, as half the resulting maximum diameter
-     * @throws NullPointerException if {@link #writeToGL(float)} has been called before this method
-     */
-    public void addParticle(
-            Vector3fc position, Vector3fc direction, float jitter, float maxTTL, Color4f color, float particleSize
-    ) {
-        final float randFloat = Toolbox.random.nextFloat();
-        final Vector3f random = Vectors.randomOrb();
-
-        final float rotationSpeed = 2 + (2 / randFloat);
-        random.mul(randFloat * jitter).add(direction);
-    }
+    private int nrOfParticles;
 
     /**
      * @param position     position of the middle of the particle
      * @param color        color of this particle
      * @param movement     movement of this particle in one second
-     * @param timeToLive   duration of this particle
-     * @param particleSize maximum size of the particle, as half the resulting maximum diameter
+     * @param maxTTL   maximum duration of this particle
      */
     public void addParticle(
-            Vector3fc position, Vector3fc movement, Color4f color, float timeToLive, float particleSize
+            Vector3fc position, Vector3fc movement, Color4f color, float maxTTL
     ) {
-        addParticle(new Particle(position, movement, color, timeToLive, particleSize));
+
+        final float randFloat = Toolbox.random.nextFloat();
+        float timeToLive = randFloat * randFloat * maxTTL;
+
+        addParticle(new Particle(position, movement, color, timeToLive));
     }
 
     private void addParticle(Particle p) {
@@ -94,19 +75,20 @@ public class ParticleCloud implements Mesh {
             return;
         }
 
-        int bulkSize = bulk.size();
+        int numElts = bulk.size();
         maxTTL += currentTime;
         minTTL += currentTime;
 
-        vertexCount = 3 * bulkSize;
-        FloatBuffer positionBuffer = MemoryUtil.memAllocFloat(3 * bulkSize);
-        FloatBuffer moveBuffer = MemoryUtil.memAllocFloat(3 * bulkSize);
-        FloatBuffer colorBuffer = MemoryUtil.memAllocFloat(4 * bulkSize);
-        FloatBuffer ttlBuffer = MemoryUtil.memAllocFloat(2 * bulkSize);
+        nrOfParticles = numElts;
 
-        IntBuffer randomBuffer = MemoryUtil.memAllocInt(bulkSize);
+        FloatBuffer positionBuffer = MemoryUtil.memAllocFloat(3 * numElts);
+        FloatBuffer moveBuffer = MemoryUtil.memAllocFloat(3 * numElts);
+        FloatBuffer colorBuffer = MemoryUtil.memAllocFloat(4 * numElts);
+        FloatBuffer ttlBuffer = MemoryUtil.memAllocFloat(2 * numElts);
+
+        IntBuffer randomBuffer = MemoryUtil.memAllocInt(numElts);
         randomBuffer.put(new Random(Toolbox.random.nextInt())
-                .ints(bulkSize)
+                .ints(numElts)
                 .toArray());
 
         for (int i = 0; i < bulk.size(); i++) {
@@ -114,10 +96,14 @@ public class ParticleCloud implements Mesh {
 
             p.position.get(i * 3, positionBuffer);
             p.movement.get(i * 3, moveBuffer);
-            colorBuffer.put(p.color.toArray(), i * 4, 4);
+            p.color.put(colorBuffer);
             ttlBuffer.put(currentTime);
             ttlBuffer.put(currentTime + p.timeToLive);
         }
+
+        colorBuffer.flip();
+        ttlBuffer.flip();
+        randomBuffer.flip();
 
         try {
             vaoId = glGenVertexArrays();
@@ -132,7 +118,6 @@ public class ParticleCloud implements Mesh {
             glBindBuffer(GL_ARRAY_BUFFER, randVboID);
             glBufferData(GL_ARRAY_BUFFER, randomBuffer, GL_STATIC_DRAW);
             glVertexAttribPointer(4, 1, GL_INT, false, 0, 0);
-
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
@@ -149,7 +134,7 @@ public class ParticleCloud implements Mesh {
         bulk = null;
     }
 
-    /** a rough estimate of the number of visible particles, assuming a quadratic despawn rate */
+    /** a rough estimate of the number of visible particles */
     public int estParticlesAt(float currentTime) {
         if (bulk != null) return 0;
 
@@ -157,14 +142,14 @@ public class ParticleCloud implements Mesh {
         if (fraction < 0) return 0;
         if (fraction > 1) fraction = 1;
 
-        return (int) ((vertexCount / 3f) * fraction * fraction); // assuming quadratic despawn
+        return (int) (nrOfParticles * fraction * fraction); // assuming quadratic despawn
     }
 
     /**
      * splits off all particles with timeToLive more than the given TTL. The new particles are written to GL
      * @param newTTL the new maximum ttl of these particles
      */
-    private ParticleCloud splitOff(float newTTL) {
+    public ParticleCloud splitOff(float newTTL) {
         ParticleCloud newCloud = new ParticleCloud();
         ArrayList<Particle> newBulk = new ArrayList<>();
 
@@ -183,7 +168,6 @@ public class ParticleCloud implements Mesh {
     }
 
     private static int loadToGL(FloatBuffer buffer, int index, int itemSize) {
-        buffer.flip();
         int vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
@@ -203,7 +187,7 @@ public class ParticleCloud implements Mesh {
         glEnableVertexAttribArray(3); // TTL VBO
         glEnableVertexAttribArray(4); // Rand VBO
 
-        glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        glDrawArrays(GL_POINTS, 0, nrOfParticles);
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
@@ -269,14 +253,12 @@ public class ParticleCloud implements Mesh {
         public final Vector3fc movement;
         public final Color4f color;
         public final float timeToLive;
-        public final float particleSize;
 
-        public Particle(Vector3fc position, Vector3fc movement, Color4f color, float timeToLive, float particleSize) {
+        public Particle(Vector3fc position, Vector3fc movement, Color4f color, float timeToLive) {
             this.position = position;
             this.movement = movement;
             this.color = color;
             this.timeToLive = timeToLive;
-            this.particleSize = particleSize;
         }
     }
 }

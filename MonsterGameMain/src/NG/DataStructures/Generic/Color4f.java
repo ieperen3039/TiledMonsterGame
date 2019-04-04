@@ -253,4 +253,15 @@ public class Color4f {
                 blue + ((other.blue - blue) * value)
         );
     }
+
+    /**
+     * puts this color on the buffer and increase the position by 4
+     * @param colorBuffer the buffer to write to
+     */
+    public void put(FloatBuffer colorBuffer) {
+        colorBuffer.put(red);
+        colorBuffer.put(green);
+        colorBuffer.put(blue);
+        colorBuffer.put(alpha);
+    }
 }

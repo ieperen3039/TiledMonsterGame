@@ -3,8 +3,12 @@ package NG.Engine;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
 import NG.DataStructures.Generic.Color4f;
+import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Frames.SFrameManager;
+import NG.GUIMenu.Menu.MainMenu;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventQueueLoop;
+import NG.GameMap.ClaimRegistry;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
@@ -15,11 +19,9 @@ import NG.GameState.StaticState;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Mods.InitialisationMod;
 import NG.Mods.Mod;
+import NG.Particles.GameParticles;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
-import NG.ScreenOverlay.Frames.GUIManager;
-import NG.ScreenOverlay.Frames.SFrameManager;
-import NG.ScreenOverlay.Menu.MainMenu;
 import NG.Settings.Settings;
 import NG.Storable;
 import NG.Tools.Directory;
@@ -34,8 +36,7 @@ import java.util.*;
 
 /**
  * <p>
- * This class initializes all gameAspects, allow for starting a game, loading mods and cleaning up afterwards. It
- * provides all aspects of the game engine through the {@link Game} interface.
+ * This class initializes all gameAspects, allow for starting a game, loading mods and cleaning up afterwards.
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public class MonsterGame implements ModLoader {
@@ -77,31 +78,35 @@ public class MonsterGame implements ModLoader {
         inputHandler = new MouseToolCallbacks();
         frameManager = new SFrameManager();
 
-        Camera pocketView = new TycoonFixedCamera(new Vector3f(), 10, 10);
-        EventLoop pocketGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
-        GameState pocketGameState = new StaticState();
-        GameLights pocketLights = new SingleShadowMapLights();
         GameMap pocketMap = new EmptyMap();
-        pocketGame = new GameService(GAME_VERSION, mainThreadName,
-                pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView,
-                settings, window, renderer, inputHandler, frameManager
-        );
+        GameService pocketGame = createWorld(mainThreadName, settings, pocketMap);
+        this.pocketGame = pocketGame;
 
-        Camera worldView = new TycoonFixedCamera(new Vector3f(), 10, 10);
-        EventLoop worldGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
-        GameState worldGameState = new StaticState();
-        GameLights worldLights = new SingleShadowMapLights();
         GameMap worldMap = new TileMap(settings.CHUNK_SIZE);
-        worldGame = new GameService(GAME_VERSION, mainThreadName,
-                worldGameLoop, worldGameState, worldMap, worldLights, worldView,
-                settings, window, renderer, inputHandler, frameManager
-        );
+        GameService worldGame = createWorld(mainThreadName, settings, worldMap);
+        this.worldGame = worldGame;
 
         combinedGame = new Game.Multiplexer(1, worldGame, pocketGame);
         currentIsPocket = true;
 
         // load mods
         allMods = JarModReader.loadMods(Directory.mods);
+    }
+
+    private GameService createWorld(String mainThreadName, Settings settings, GameMap pocketMap) {
+        Camera pocketView = new TycoonFixedCamera(new Vector3f(), 10, 10);
+        EventLoop pocketGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
+        GameState pocketGameState = new StaticState();
+        GameLights pocketLights = new SingleShadowMapLights();
+        GameParticles pocketParticles = new GameParticles();
+        GameTimer pocketTimer = new GameTimer(settings.RENDER_DELAY);
+        ClaimRegistry pocketClaims = new ClaimRegistry();
+
+        return new GameService(GAME_VERSION, mainThreadName,
+                pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView, pocketParticles, pocketTimer,
+                pocketClaims,
+                settings, window, renderer, inputHandler, frameManager
+        );
     }
 
     /**

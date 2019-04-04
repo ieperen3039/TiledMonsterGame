@@ -26,7 +26,7 @@ public final class Particles {
     private static final float FIRE_PARTICLE_SIZE = 1f;
 
     /**
-     * creates an explosion of particles from the given position, using a blend of the two colors
+     * creates an explosion of particles from the given position, mixing the given color with white
      * @param position  source position where all particles come from
      * @param direction movement of the average position of the cloud
      * @param color2    second color extreme. Each particle has a color where each color primitive is individually
@@ -36,7 +36,7 @@ public final class Particles {
      */
     public static ParticleCloud explosion(Vector3fc position, Vector3fc direction, Color4f color2, float power) {
         return explosion(
-                position, direction, Color4f.WHITE, color2, power,
+                position, direction, Color4f.WHITE, color2,
                 (int) (EXPLOSION_BASE_DENSITY * PARTICLE_MODIFIER),
                 FIRE_LINGER_TIME, FIRE_PARTICLE_SIZE
         );
@@ -48,7 +48,6 @@ public final class Particles {
      * @param direction    movement of the average position of the cloud
      * @param color1       first color extreme
      * @param color2       second color extreme. Each particle has a color between color1 and color2
-     * @param power        the speed of the fastest particle relative to the middle of the cloud
      * @param density      the number of particles generated
      * @param lingerTime   the maximal lifetime of the particles. Actual duration is exponentially distributed.
      * @param particleSize roughly the actual size of the particle
@@ -56,17 +55,20 @@ public final class Particles {
      */
     public static ParticleCloud explosion(
             Vector3fc position, Vector3fc direction, Color4f color1, Color4f color2,
-            float power, int density, float lingerTime, float particleSize
+            int density, float lingerTime, float particleSize
     ) {
         ParticleCloud result = new ParticleCloud();
 
         for (int i = 0; i < (density); i++) {
             Vector3f movement = Vectors.randomOrb();
             movement.add(direction);
+
             float rand = Toolbox.random.nextFloat();
             Color4f interColor = color1.interpolateTo(color2, rand);
-            result.addParticle(position, movement, power, lingerTime, interColor, particleSize);
+
+            result.addParticle(position, movement, interColor, lingerTime);
         }
+
         return result;
     }
 
@@ -87,7 +89,7 @@ public final class Particles {
             Vector3f avg = p[0].add(p[1]).add(p[2]).div(3f);
 
             particles.addParticle(
-                    avg, movement, particleColor, randFloat * randFloat * deprecationTime, 0.2f
+                    avg, movement, particleColor, deprecationTime
             );
         }
         return particles;
