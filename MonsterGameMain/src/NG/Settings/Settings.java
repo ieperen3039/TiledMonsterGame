@@ -37,6 +37,7 @@ public class Settings {
     public int STATIC_SHADOW_RESOLUTION = 2048;
     public int DYNAMIC_SHADOW_RESOLUTION = 0;
     public float PARTICLE_SIZE = 0.2f;
+    public float PARTICLE_MODIFIER = 10f;
 
     // UI settings
     public static int TOOL_BAR_HEIGHT = 70;

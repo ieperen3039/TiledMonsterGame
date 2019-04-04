@@ -49,8 +49,11 @@ public class GameParticles implements GameAspect {
 
         newLock.lock();
         try {
-            newParticles.forEach(cloud -> cloud.writeToGL(now));
-            particles.addAll(newParticles);
+            newParticles.stream()
+                    .flatMap(ParticleCloud::granulate)
+                    .peek(c -> c.writeToGL(now))
+                    .forEach(particles::add);
+
             newParticles.clear();
         } finally {
             newLock.unlock();

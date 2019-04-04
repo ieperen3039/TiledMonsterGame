@@ -11,6 +11,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -36,6 +37,7 @@ public class ParticleCloud implements Mesh {
     private float maxTTL = 0;
     private float minTTL = Float.MAX_VALUE;
     private int nrOfParticles;
+    private float startTime = -1;
 
     /**
      * @param position     position of the middle of the particle
@@ -63,23 +65,12 @@ public class ParticleCloud implements Mesh {
      * @param currentTime initial time in seconds
      */
     public void writeToGL(float currentTime) {
-        float despawnPeriod = maxTTL - minTTL;
-
-        if ((despawnPeriod > PARTICLECLOUD_MIN_TIME) && (bulk.size() > PARTICLECLOUD_SPLIT_SIZE)) {
-            float mid = minTTL + (despawnPeriod / 2);
-
-            ParticleCloud newCloud = splitOff(mid);
-            newCloud.writeToGL(currentTime);
-
-            writeToGL(currentTime); // tail recursion
-            return;
-        }
-
         int numElts = bulk.size();
         maxTTL += currentTime;
         minTTL += currentTime;
 
         nrOfParticles = numElts;
+        startTime = currentTime;
 
         FloatBuffer positionBuffer = MemoryUtil.memAllocFloat(3 * numElts);
         FloatBuffer moveBuffer = MemoryUtil.memAllocFloat(3 * numElts);
@@ -138,11 +129,24 @@ public class ParticleCloud implements Mesh {
     public int estParticlesAt(float currentTime) {
         if (bulk != null) return 0;
 
-        float fraction = 1 - ((currentTime - minTTL) / (maxTTL - minTTL));
+        float fraction = 1 - ((currentTime - startTime) / (maxTTL - minTTL));
         if (fraction < 0) return 0;
         if (fraction > 1) fraction = 1;
 
         return (int) (nrOfParticles * fraction * fraction); // assuming quadratic despawn
+    }
+
+    public Stream<ParticleCloud> granulate() {
+        float despawnPeriod = maxTTL - minTTL;
+
+        if ((despawnPeriod > PARTICLECLOUD_MIN_TIME) && (bulk.size() > PARTICLECLOUD_SPLIT_SIZE)) {
+            float mid = minTTL + (despawnPeriod / 2);
+
+            ParticleCloud newCloud = splitOff(mid);
+            return Stream.concat(this.granulate(), newCloud.granulate());
+        }
+
+        return Stream.of(this);
     }
 
     /**
@@ -198,7 +202,7 @@ public class ParticleCloud implements Mesh {
     }
 
     public boolean hasFaded(float currentTime) {
-        return currentTime > maxTTL;
+        return currentTime > startTime + maxTTL;
     }
 
     public boolean disposeIfFaded(float currentTime) {

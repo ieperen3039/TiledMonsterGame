@@ -20,25 +20,20 @@ import java.util.stream.Stream;
  * @author Geert van Ieperen created on 12-1-2018.
  */
 public final class Particles {
-    public static final float FIRE_LINGER_TIME = 10f;
+    public static final float FIRE_LINGER_TIME = 5f;
     public static final int EXPLOSION_BASE_DENSITY = 1000;
-    private static final float PARTICLE_MODIFIER = 1f;
-    private static final float FIRE_PARTICLE_SIZE = 1f;
 
     /**
      * creates an explosion of particles from the given position, mixing the given color with white
      * @param position  source position where all particles come from
-     * @param direction movement of the average position of the cloud
-     * @param color2    second color extreme. Each particle has a color where each color primitive is individually
-     *                  randomized.
+     * @param color    a color. Each particle has a slightly randomized variation
      * @param power     the speed of the fastest particle relative to the middle of the cloud
      * @return a new explosion, not written to the GPU yet.
      */
-    public static ParticleCloud explosion(Vector3fc position, Vector3fc direction, Color4f color2, float power) {
+    public static ParticleCloud explosion(Vector3fc position, Color4f color, float power) {
         return explosion(
-                position, direction, Color4f.WHITE, color2,
-                (int) (EXPLOSION_BASE_DENSITY * PARTICLE_MODIFIER),
-                FIRE_LINGER_TIME, FIRE_PARTICLE_SIZE
+                position, Vectors.O, new Color4f(color, 1).darken(0.2f), new Color4f(color, 1).intensify(0.2f),
+                EXPLOSION_BASE_DENSITY, FIRE_LINGER_TIME, power
         );
     }
 
@@ -50,18 +45,17 @@ public final class Particles {
      * @param color2       second color extreme. Each particle has a color between color1 and color2
      * @param density      the number of particles generated
      * @param lingerTime   the maximal lifetime of the particles. Actual duration is exponentially distributed.
-     * @param particleSize roughly the actual size of the particle
      * @return a new explosion, not written to the GPU yet.
      */
     public static ParticleCloud explosion(
             Vector3fc position, Vector3fc direction, Color4f color1, Color4f color2,
-            int density, float lingerTime, float particleSize
+            int density, float lingerTime, float power
     ) {
         ParticleCloud result = new ParticleCloud();
 
         for (int i = 0; i < (density); i++) {
             Vector3f movement = Vectors.randomOrb();
-            movement.add(direction);
+            movement.mul(power).add(direction);
 
             float rand = Toolbox.random.nextFloat();
             Color4f interColor = color1.interpolateTo(color2, rand);

@@ -47,9 +47,9 @@ void generateVertex(vec3 rel, vec3 rot, float angle){
     float nx = (w2 + x2 - z2 - y2) * x + (-zw + xy - zw + xy) * y + (yw + xz + xz + yw) * z;
     float ny = (xy + zw + zw + xy) * x + (y2 - z2 + w2 - x2) * y + (yz + yz - xw - xw) * z;
     float nz = (xz - yw + xz - yw) * x + (yz + yz + xw + xw) * y + (z2 - y2 - x2 + w2) * z;
-    rel = vec3(nx, ny, nz);
+    rel = vec3(nx, ny, nz) * particleSize;
 
-    gl_Position = viewProjectionMatrix * vec4(geoMiddle[0] + rel, 1.0) * particleSize;
+    gl_Position = viewProjectionMatrix * vec4(geoMiddle[0] + rel, 1.0);
     EmitVertex();
 }
 
@@ -58,10 +58,10 @@ void main() {
 
     float t = currentTime - geoBeginEndTime[0].x;
     vec3 rot = normalize(vec3(rand() - 0.5, rand() - 0.5, rand() - 0.5));// chance on 0 vector is simply too small
-    float angle = t * rand() + rand() * 6.28;
+    float angle = 8 * t * rand() + rand() * 6.28;
 
     // only draw if still visible
-    if (currentTime < geoBeginEndTime[0].y) {
+    if (t > 0 && currentTime < geoBeginEndTime[0].y) {
 
         generateVertex(A, rot, angle);
         generateVertex(B, rot, angle);

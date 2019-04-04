@@ -73,24 +73,27 @@ public class MainMenu extends SFrame {
     }
 
     private void particles() {
-        overworld.get(GUIManager.class).addFrame(new SFrame("EXPLOSIONS")
-                .setMainPanel(SPanel.column(
-                        new STextArea("MR. TORGUE APPROVES", BUTTON_MIN_HEIGHT),
-                        new SButton("BOOM", () -> {
-                            ParticleCloud cloud = Particles.explosion(Vectors.O, Vectors.O, Color4f.RED, 1000);
-                            overworld.get(GameParticles.class).add(cloud);
-                        }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
-                ))
-        );
-        overworld.get(Camera.class).set(Vectors.O, new Vector3f(10, 10, 10));
+        GUIManager targetGUI = overworld.get(GUIManager.class);
+
+        targetGUI.addFrame(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
+                new STextArea("MR. TORGUE APPROVES", BUTTON_MIN_HEIGHT),
+                new SButton("BOOM", () -> {
+                    ParticleCloud cloud = Particles.explosion(
+                            Vectors.O, Vectors.O, Color4f.RED, Color4f.ORANGE,
+                            (int) (overworld.get(Settings.class).PARTICLE_MODIFIER * 1000),
+                            5f, 10f
+                    );
+                    overworld.get(GameParticles.class).add(cloud);
+                }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+        )));
+        dispose();
     }
 
     public void testWorld() {
         Logger.DEBUG.printFrom(2, "Start test-world");
         try {
-            Settings settings = overworld.get(Settings.class);
-            int xSize = settings.CHUNK_SIZE;
-            int ySize = settings.CHUNK_SIZE;
+            int xSize = Settings.CHUNK_SIZE;
+            int ySize = Settings.CHUNK_SIZE;
             overworld.get(ClaimRegistry.class).cleanup();
 
             TileThemeSet.PLAIN.load();

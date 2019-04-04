@@ -26,7 +26,6 @@ public abstract class AStar implements Callable<List<Vector2i>> {
         this.xMax = xMax;
         this.yMax = yMax;
         srcNode = new ANode(source);
-        found.add(srcNode);
 
         HashMap<Integer, ANode> sourceSet = new HashMap<>();
         sourceSet.put(srcNode.y, srcNode);
@@ -37,11 +36,7 @@ public abstract class AStar implements Callable<List<Vector2i>> {
     public List<Vector2i> call() {
         ANode node = srcNode;
 
-        while (!found.isEmpty()) {
-            // take one from the found queue and
-            node = found.remove();
-            if (node.x == target.x && node.y == target.y) break;
-
+        do {
             int x = node.x;
             int y = node.y;
             // add to closed set
@@ -55,9 +50,14 @@ public abstract class AStar implements Callable<List<Vector2i>> {
             checkNode(node, x - 1, y);
             // negative y
             checkNode(node, x, y - 1);
-        }
 
-        if (found.isEmpty()) return new ArrayList<>(); // TODO return null;
+            // no node left
+            if (found.isEmpty()) return new ArrayList<>();
+
+            // take one from the found queue
+            node = found.remove();
+        } while (!node.is(target));
+
 
         List<Vector2i> path = new ArrayList<>();
 
@@ -178,6 +178,10 @@ public abstract class AStar implements Callable<List<Vector2i>> {
         @Override
         public int hashCode() {
             return Float.hashCode(getDist());
+        }
+
+        public boolean is(Vector2i target) {
+            return x == target.x && y == target.y;
         }
     }
 }
