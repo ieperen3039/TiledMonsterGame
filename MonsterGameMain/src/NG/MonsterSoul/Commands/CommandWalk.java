@@ -9,7 +9,6 @@ import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,12 +23,12 @@ public class CommandWalk extends Command {
     }
 
     @Override
-    public List<EntityAction> toActions(Game game, EntityAction preceding) {
+    public List<EntityAction> toActions(Game game, EntityAction preceding, float startTime) {
         Vector2ic beginPosition = preceding.getEndCoordinate();
 
         if (beginPosition.equals(target)) {
             // already there, return an empty list of actions
-            return Collections.emptyList();
+            return null;
         }
 
         List<Vector2i> path = game.get(GameMap.class)
@@ -40,7 +39,7 @@ public class CommandWalk extends Command {
 
         float walkSpeed = 1;//entity.stat(WALK_SPEED);
         for (Vector2i pos : path) {
-            actions.add(new ActionWalk(game, lastPos, pos, walkSpeed));
+            actions.add(new ActionWalk(game, lastPos, pos, walkSpeed, startTime));
             lastPos = pos;
         }
 

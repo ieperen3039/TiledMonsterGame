@@ -20,32 +20,36 @@ public class ActionIdle implements EntityAction {
     private final float duration;
     private final Vector3fc position;
     private final Vector2ic coordinate;
+    private float startTime;
 
     /**
      * idle for a given duration after executing the given task
      * @param game
      * @param preceding the action that happens just before this idling
      * @param duration  the duration of staying idle.
+     * @param startTime the timestamp when the action starts
      */
-    public ActionIdle(Game game, EntityAction preceding, float duration) {
-        this(game, preceding.getEndCoordinate(), duration);
+    public ActionIdle(Game game, EntityAction preceding, float duration, float startTime) {
+        this(game, preceding.getEndCoordinate(), duration, startTime);
     }
 
     /**
      * idle for an undetermined duration
      * @param position the position to idle
+     * @param startTime
      */
-    public ActionIdle(Game game, Vector2ic position) {
-        this(game, position, 0);
+    public ActionIdle(Game game, Vector2ic position, float startTime) {
+        this(game, position, 0, startTime);
     }
 
     /**
      * idle for a given duration.
      * @param coordinate the position to idle
      * @param duration how long to stay idle
+     * @param startTime the timestamp when the action starts
      */
-    public ActionIdle(Game game, Vector2ic coordinate, float duration) {
-        this(coordinate, game.get(GameMap.class).getPosition(coordinate), duration);
+    public ActionIdle(Game game, Vector2ic coordinate, float duration, float startTime) {
+        this(coordinate, game.get(GameMap.class).getPosition(coordinate), duration, startTime);
     }
 
     /**
@@ -53,16 +57,18 @@ public class ActionIdle implements EntityAction {
      * @param coordinate the position to idle
      * @param position the position mapped to the 3d space
      * @param duration how long to stay idle
+     * @param startTime the timestamp when the action starts
      */
-    public ActionIdle(Vector2ic coordinate, Vector3fc position, float duration) {
+    public ActionIdle(Vector2ic coordinate, Vector3fc position, float duration, float startTime) {
         if (duration < 0) throw new IllegalArgumentException("Idle duration must be greater than zero");
         this.position = position;
         this.coordinate = coordinate;
         this.duration = duration;
+        this.startTime = startTime;
     }
 
     @Override
-    public Vector3f getPositionAt(float timeSinceStart) {
+    public Vector3f getPositionAt(float currentTime) {
         return new Vector3f(position);
     }
 
@@ -77,8 +83,8 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
-    public float duration() {
-        return duration;
+    public float startTime() {
+        return startTime;
     }
 
     @Override
@@ -94,6 +100,11 @@ public class ActionIdle implements EntityAction {
     @Override
     public UniversalAnimation getAnimation() {
         return BodyAnimation.IDLE;
+    }
+
+    @Override
+    public float endTime() {
+        return startTime + duration;
     }
 
     public static PartialAnimation idleAnimation(final float duration) {

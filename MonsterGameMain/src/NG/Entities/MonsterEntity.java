@@ -6,7 +6,6 @@ import NG.Actions.EntityAction;
 import NG.Animations.AnimationBone;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
-import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.GUIMenu.Frames.Components.SFrame;
@@ -15,14 +14,12 @@ import NG.GUIMenu.Frames.Components.SToggleButton;
 import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.ClaimRegistry;
-import NG.GameMap.GameMap;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.MonsterSoul.Commands.WalkCommandTool;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
-import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -57,7 +54,7 @@ public abstract class MonsterEntity implements Entity {
             throw new IllegalPositionException("given coordinate " + Vectors.toString(initialPosition) + " is not free");
         }
         walkTool = new WalkCommandTool(game, this);
-        previousAction = new ActionIdle(game, initialPosition);
+        previousAction = new ActionIdle(game, initialPosition, 0);
     }
 
     @Override
@@ -67,16 +64,14 @@ public abstract class MonsterEntity implements Entity {
         float now = game.get(GameTimer.class).getRendertime();
         currentActions.removeUntil(now);
 
-        Pair<EntityAction, Float> actionPair = currentActions.getActionAt(now);
-        EntityAction action = actionPair.left;
-        Float timeSinceStart = actionPair.right;
+        EntityAction action = currentActions.getActionAt(now);
 
         gl.pushMatrix();
         {
-            gl.translate(action.getPositionAt(timeSinceStart));
-            gl.rotate(action.getRotationAt(timeSinceStart));
+            gl.translate(action.getPositionAt(now));
+            gl.rotate(action.getRotationAt(now));
 
-            bodyModel().draw(gl, this, getBoneMapping(), timeSinceStart, action, previousAction);
+            bodyModel().draw(gl, this, getBoneMapping(), now, action, previousAction);
         }
         gl.popMatrix();
 
@@ -136,13 +131,6 @@ public abstract class MonsterEntity implements Entity {
 
     public EntityAction getLastAction() {
         return currentActions.peekLast();
-    }
-
-    public void addAction(EntityAction action, float gameTime) {
-        currentActions.addAfter(gameTime, action);
-        Vector2ic coord = action.getEndCoordinate();
-        Vector3f position = game.get(GameMap.class).getPosition(coord);
-        lookAt(position);
     }
 
     private class IllegalPositionException extends IllegalArgumentException {

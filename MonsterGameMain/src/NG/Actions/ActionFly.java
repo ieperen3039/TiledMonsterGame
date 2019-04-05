@@ -20,8 +20,10 @@ public class ActionFly implements EntityAction {
     protected final float duration;
     protected final Vector2ic startCoord;
     protected final Vector2ic endCoord;
+    private final float startTime;
 
-    public ActionFly(Game game, Vector2ic startCoord, Vector2ic endCoord, float speed, float height) {
+    public ActionFly(Game game, Vector2ic startCoord, Vector2ic endCoord, float startTime, float speed, float height) {
+        this.startTime = startTime;
         GameMap map = game.get(GameMap.class);
         this.start = map.getPosition(startCoord).add(0, 0, height);
         this.end = map.getPosition(endCoord).add(0, 0, height);
@@ -31,12 +33,12 @@ public class ActionFly implements EntityAction {
     }
 
     @Override
-    public Vector3f getPositionAt(float timeSinceStart) {
-        if (timeSinceStart < 0) return new Vector3f(start);
-        if (timeSinceStart > duration) return new Vector3f(end);
+    public Vector3f getPositionAt(float currentTime) {
+        if (currentTime < 0) return new Vector3f(start);
+        if (currentTime > duration) return new Vector3f(end);
 
         // TODO more precise movement, taking animation into account (maybe)
-        float fraction = timeSinceStart / duration;
+        float fraction = currentTime / duration;
         return new Vector3f(start).lerp(end, fraction);
     }
 
@@ -61,7 +63,12 @@ public class ActionFly implements EntityAction {
     }
 
     @Override
-    public float duration() {
-        return duration;
+    public float startTime() {
+        return startTime;
+    }
+
+    @Override
+    public float endTime() {
+        return startTime + duration;
     }
 }

@@ -20,21 +20,22 @@ public class ActionWalk extends ActionMovement {
      * @param game      the current game instance
      * @param start     coordinate where the move origins
      * @param end       coordinate where the move ends, adjacent to start
-     * @param walkSpeed the time when this action ends in seconds.
+     * @param walkSpeed the speed of the movement in m/s
+     * @param startTime the time the action starts
      */
-    public ActionWalk(Game game, Vector2ic start, Vector2ic end, float walkSpeed) {
-        super(game, start, end, walkSpeed / TILE_SIZE);
+    public ActionWalk(Game game, Vector2ic start, Vector2ic end, float walkSpeed, float startTime) {
+        super(game, start, end, startTime, walkSpeed / TILE_SIZE);
 
         animation = WALK_CYCLE;
     }
 
     @Override
-    public Vector3f getPositionAt(float timeSinceStart) {
+    public Vector3f getPositionAt(float currentTime) {
+        float timeSinceStart = currentTime - startTime;
         if (timeSinceStart < 0) return new Vector3f(start);
-        if (timeSinceStart > duration) return new Vector3f(end);
+        if (currentTime > endTime) return new Vector3f(end);
 
-        // TODO more precise movement, taking animation into account (maybe)
-        float fraction = timeSinceStart / duration;
+        float fraction = timeSinceStart / duration();
         return new Vector3f(start).lerp(end, fraction);
     }
 

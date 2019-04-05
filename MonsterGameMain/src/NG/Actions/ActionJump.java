@@ -15,23 +15,24 @@ public class ActionJump extends ActionMovement {
 
     public static final float GRAVITY_CONSTANT = 9.81f;
 
-    public ActionJump(Game game, Vector2ic startCoord, Vector2ic endCoord, float duration) {
-        super(game, startCoord, endCoord, duration);
+    public ActionJump(Game game, Vector2ic startCoord, Vector2ic endCoord, float startTime, float duration) {
+        super(game, startCoord, endCoord, startTime, duration);
     }
 
     @Override
-    public Vector3f getPositionAt(float timeSinceStart) {
+    public Vector3f getPositionAt(float currentTime) {
+        float timeSinceStart = currentTime - startTime;
         if (timeSinceStart < 0) return new Vector3f(start);
-        if (timeSinceStart > duration) return new Vector3f(end);
+        if (currentTime > endTime) return new Vector3f(end);
 
-        float fraction = cap(Toolbox.interpolate(0.1f, 0.9f, timeSinceStart / duration));
-        float x = duration * fraction; // NOT timeSinceStart
+        float fraction = timeSinceStart / duration();
+        float x = duration() * fraction; // NOT timeSinceStart
 
         return new Vector3f(
                 Toolbox.interpolate(start.x(), end.x(), fraction),
                 Toolbox.interpolate(start.y(), end.y(), fraction),
                 // z = -9.81 x^2 + a x ; a = 9.81 * duration (result of f(duration) = 0)
-                -GRAVITY_CONSTANT * x * x + GRAVITY_CONSTANT * duration * x
+                -GRAVITY_CONSTANT * x * x + GRAVITY_CONSTANT * duration() * x
         );
     }
 

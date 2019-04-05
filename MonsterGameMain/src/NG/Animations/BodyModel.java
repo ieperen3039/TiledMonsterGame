@@ -59,17 +59,17 @@ public enum BodyModel {
      * @param gl             the sgl object
      * @param entity         the entity executing this animation, or null if not applicable
      * @param map            a mapping from the bones of the entity to the elements of the body
-     * @param timeSinceStart game time since the start of the action
+     * @param currentTime current game time
      * @param action         the action being executed by the entity on the given time
      * @param previous       the action previously executed
      */
     public void draw(
-            SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, float timeSinceStart, EntityAction action,
+            SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, float currentTime, EntityAction action,
             EntityAction previous
     ) {
         AnimationTransfer transfer = AnimationTransfer.get(previous, action);
         UniversalAnimation animation = (transfer == null) ? action.getAnimation() : transfer;
-        float animationTime = (timeSinceStart / action.duration()) * animation.duration();
+        float animationTime = (action.progressAt(currentTime)) * animation.duration();
 
         draw(gl, entity, map, animation, animationTime);
     }

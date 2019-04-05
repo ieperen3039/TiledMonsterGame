@@ -10,27 +10,31 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**
- * An immutable action with a fixed start position, end position, animation and duration.
+ * An immutable action that is completely set in time and space
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public interface EntityAction extends Stimulus {
 
     /**
      * calculates the position resulting from this action, the given time after the start of this action
-     * @param timeSinceStart the time since the start of this animation in seconds
+     * @param currentTime the current time in seconds
      * @return the position at the given moment in time as described by this action.
      */
-    Vector3f getPositionAt(float timeSinceStart);
+    Vector3f getPositionAt(float currentTime);
 
     Vector2ic getStartCoordinate();
 
     Vector2ic getEndCoordinate();
 
     /**
-     * @return the duration of the action in seconds.
+     * @return the timestamp when the action starts
      */
-    float duration();
+    float startTime();
 
+    /**
+     * @return the timestamp when the action stops
+     */
+    float endTime();
 
     @Override
     default float getMagnitude(Vector3fc position) {
@@ -58,14 +62,18 @@ public interface EntityAction extends Stimulus {
         return firstEndPos.equals(getStartCoordinate());
     }
 
-    default Event getFinishEvent(float startTime, ActionFinishListener listener) {
-        return new Event.Anonymous(startTime + duration(), () -> listener.onActionFinish(this));
+    default Event getFinishEvent(ActionFinishListener listener) {
+        return new Event.Anonymous(endTime(), () -> listener.onActionFinish(this));
     }
 
-    default Quaternionf getRotationAt(float timeSinceStart) {
-        Vector3fc startPosition = getPositionAt(0);
-        Vector3fc endPosition = getPositionAt(duration());
-        Vector3f relativeMovement = new Vector3f(startPosition).sub(endPosition);
+    default Quaternionf getRotationAt(float currentTime) {
+        Vector3fc startPosition = getPositionAt(startTime());
+        Vector3fc endPosition = getPositionAt(endTime());
+        Vector3f relativeMovement = new Vector3f(endPosition).sub(startPosition);
         return Vectors.getPitchYawRotation(relativeMovement);
+    }
+
+    default float progressAt(float currentTime) {
+        return (currentTime - startTime()) / (endTime() - startTime());
     }
 }

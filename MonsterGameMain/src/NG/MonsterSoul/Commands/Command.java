@@ -1,9 +1,9 @@
 package NG.MonsterSoul.Commands;
 
+import NG.Actions.EntityAction;
 import NG.DataStructures.Direction;
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
-import NG.Actions.EntityAction;
 import NG.MonsterSoul.*;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
@@ -44,10 +44,11 @@ public abstract class Command implements Stimulus {
      * time.
      * @param game      the current game instance
      * @param preceding the last action executed
+     * @param startTime
      * @return a list {@code l} of actions, sorted on first action first, such that they corresponds exactly to this command, and it holds that {@code
      * l.get(0).}{@link EntityAction#follows(EntityAction) follows}{@code (preceding)}
      */
-    public abstract List<EntityAction> toActions(Game game, EntityAction preceding);
+    public abstract List<EntityAction> toActions(Game game, EntityAction preceding, float startTime);
 
     public Living getTarget() {
         return target;

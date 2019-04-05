@@ -21,6 +21,7 @@ public interface Entity {
     void draw(SGL gl);
 
     /**
+     * The position of this entity. If the entity does not exist on the given time, the result is undefined.
      * @return the real position of this entity at the given time
      * @param currentTime
      */

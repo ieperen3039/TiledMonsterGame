@@ -11,17 +11,29 @@ import org.joml.Vector3fc;
 public abstract class ActionMovement implements EntityAction {
     protected final Vector3fc start;
     protected final Vector3fc end;
-    protected final float duration;
+    protected final float endTime;
+    protected final float startTime;
     protected final Vector2ic startCoord;
     protected final Vector2ic endCoord;
 
-    public ActionMovement(Game game, Vector2ic startCoord, Vector2ic endCoord, float duration) {
+    public ActionMovement(Game game, Vector2ic startCoord, Vector2ic endCoord, float startTime, float duration) {
+        this.startTime = startTime;
         GameMap map = game.get(GameMap.class);
         this.start = map.getPosition(startCoord);
         this.end = map.getPosition(endCoord);
         this.startCoord = startCoord;
         this.endCoord = endCoord;
-        this.duration = duration;
+        this.endTime = startTime + duration;
+    }
+
+    @Override
+    public float startTime() {
+        return startTime;
+    }
+
+    @Override
+    public float endTime() {
+        return endTime;
     }
 
     @Override
@@ -34,9 +46,8 @@ public abstract class ActionMovement implements EntityAction {
         return endCoord;
     }
 
-    @Override
     public float duration() {
-        return duration;
+        return endTime - startTime;
     }
 
 }

@@ -1,10 +1,8 @@
 package NG.Entities;
 
-import NG.Actions.EntityAction;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
-import org.joml.Vector3f;
 
 /**
  * @author Geert van Ieperen created on 2-4-2019.
@@ -13,7 +11,7 @@ public abstract class Projectile implements Entity {
     protected Game game;
 
     private boolean isDisposed = false;
-    private float scaling;
+    private final float scaling;
 
     public Projectile(Game game, float scaling) {
         this.game = game;
@@ -23,11 +21,11 @@ public abstract class Projectile implements Entity {
     @Override
     public void draw(SGL gl) {
         float now = game.get(GameTimer.class).getRendertime();
+        if (now < getSpawnTime()) return;
 
         gl.pushMatrix();
         {
             gl.translate(getPosition(now));
-            gl.rotate(getMovement().getRotationAt(now));
             gl.scale(scaling);
 
             drawProjectile(gl);
@@ -36,13 +34,6 @@ public abstract class Projectile implements Entity {
     }
 
     protected abstract void drawProjectile(SGL gl);
-
-    protected abstract EntityAction getMovement();
-
-    @Override
-    public Vector3f getPosition(float currentTime) {
-        return getMovement().getPositionAt(currentTime);
-    }
 
     @Override
     public void onClick(int button) {
@@ -58,4 +49,9 @@ public abstract class Projectile implements Entity {
     public boolean isDisposed() {
         return isDisposed;
     }
+
+    /**
+     * @return the timestamp at which this projectile comes into existence
+     */
+    public abstract float getSpawnTime();
 }

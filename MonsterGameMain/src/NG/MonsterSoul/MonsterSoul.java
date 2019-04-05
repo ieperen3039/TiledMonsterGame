@@ -129,8 +129,11 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
             Logger.DEBUG.print("Completed " + previous);
         }
 
-        game.get(ClaimRegistry.class).dropClaim(previous.getStartCoordinate(), entity);
+        ClaimRegistry claims = game.get(ClaimRegistry.class);
+
+        claims.dropClaim(previous.getStartCoordinate(), entity);
         actionEventLock.release();
+        float now = previous.endTime();
 
         while (!executionSequence.hasNext()) {// iterate to next plan.
             executionSequence = NO_ACTIONS; // free the list
@@ -140,12 +143,11 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
                 return;
             }
 
-            executionSequence = executionTarget.toActions(game, previous).iterator();
+            executionSequence = executionTarget.toActions(game, previous, now).iterator();
         }
 
-        float now = game.get(GameTimer.class).getGametime();
         EntityAction next = executionSequence.next();
-        boolean hasClaim = game.get(ClaimRegistry.class).createClaim(next.getEndCoordinate(), entity);
+        boolean hasClaim = claims.createClaim(next.getEndCoordinate(), entity);
 
         if (hasClaim) {
             boolean success = schedule(next, now);
@@ -153,9 +155,9 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         } else {
             // recollect a new execution sequence from the same target command
-            executionSequence = executionTarget.toActions(game, previous).iterator();
+            executionSequence = executionTarget.toActions(game, previous, now).iterator();
             float hesitationPeriod = 0.5f;
-            boolean success = schedule(new ActionIdle(game, previous, hesitationPeriod), now);
+            boolean success = schedule(new ActionIdle(game, previous, hesitationPeriod, now), now);
             assert success;
         }
     }
@@ -164,14 +166,14 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
      * schedules an event that the given action has been finished.
      * @param action   the action to schedule
      * @param gameTime the start time of the action
-     * @return true if the action has been scheduled, false if another action has already been scheduled.
+     * @return true if the action is scheduled successfully, false if another action has already been scheduled.
      */
     private boolean schedule(EntityAction action, float gameTime) {
-        Event event = action.getFinishEvent(gameTime, this);
+        Event event = action.getFinishEvent(this);
 
         if (actionEventLock.tryAcquire()) {
             game.get(EventLoop.class).addEvent(event);
-            entity.addAction(action, gameTime);
+            entity.currentActions.addAfter(gameTime, action);
             return true;
         }
         return false;

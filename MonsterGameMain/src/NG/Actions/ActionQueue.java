@@ -1,13 +1,11 @@
 package NG.Actions;
 
-import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.MonsterSoul.Commands.CompoundAction;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -30,7 +28,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * @param position initial position
      */
     public ActionQueue(Game game, Vector2ic position) {
-        this(new ActionIdle(game, position), 0f);
+        this(new ActionIdle(game, position, 0), 0f);
     }
 
     /**
@@ -48,8 +46,8 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * @return the position described by this action queue.
      */
     public Vector3f getPositionAt(float currentTime) {
-        Pair<EntityAction, Float> pair = getActionAt(currentTime);
-        return pair.left.getPositionAt(pair.right);
+        EntityAction action = getActionAt(currentTime);
+        return action.getPositionAt(currentTime);
     }
 
     /**
@@ -60,17 +58,17 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
         if (time < firstActionStart || size() == 1) return;
 
         if (time > lastActionEnd) { // size > 1
-            EntityAction last = peekLast();
+            EntityAction remaining = peekLast();
             clear();
-            super.addLast(last);
+            super.addLast(remaining);
             // recalculate start time of the last action
-            firstActionStart = lastActionEnd - last.duration();
+            firstActionStart = remaining.startTime();
             return;
         }
 
         while (size() > 1) {
-            float duration = peekFirst().duration();
-            if (firstActionStart + duration > time) return;
+            float firstStart = peekFirst().startTime();
+            if (firstStart > time) return;
             pollFirst();
         }
     }
@@ -83,7 +81,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
                     "New action " + action + " does not precede the first action known " + getFirst());
         }
 
-        firstActionStart -= action.duration();
+        firstActionStart = action.startTime();
         super.addFirst(action);
     }
 
@@ -95,7 +93,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
                     "New action " + action + " does not follow the last action known " + getLast());
         }
 
-        lastActionEnd += action.duration();
+        lastActionEnd = action.endTime();
         super.addLast(action);
     }
 
@@ -106,7 +104,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
 
         EntityAction firstAction = super.pollFirst();
         //noinspection ConstantConditions
-        firstActionStart += firstAction.duration();
+        firstActionStart = firstAction.startTime();
 
         return firstAction;
     }
@@ -118,7 +116,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
 
         EntityAction lastAction = super.pollLast();
         //noinspection ConstantConditions
-        lastActionEnd -= lastAction.duration();
+        lastActionEnd = lastAction.endTime();
 
         return lastAction;
     }
@@ -169,22 +167,17 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
 
         if (startTime < firstActionStart) {
             setToAction(action, startTime);
+            return;
         }
 
-        // a currently executing action...
-        float remainingTime = lastActionEnd - startTime;
-        EntityAction found;
-        float duration = 0;
+        EntityAction found = removeLast();
 
-        do {
-            // reduce the remaining time with the previous non-target action duration
-            remainingTime -= duration;
-            // get the next action
+        // remove future actions until we found the target action
+        while (found.startTime() > startTime) {
             found = removeLast();
-            duration = found.duration();
-            // until we found the target action
-        } while (remainingTime > duration);
+        }
 
+        // return the action executing on the given time
         addLast(found);
         addLast(action);
     }
@@ -195,34 +188,26 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      * Note that the eventual execution of this action on this time is not certain, as calls to {@link
      * #insert(EntityAction, float)} and {@link #removeLast()} may change this.
      * @param currentTime a moment in time
-     * @return a pair with on left the action that should be taking place under normal circumstances, and on right the
-     * fraction of execution of this action. If no action has started, return the first action, with right == 0. If all
-     * actions are finished, return the last action with right == action.duration().
+     * @return the action that should be taking place under normal circumstances.
      */
-    public Pair<EntityAction, Float> getActionAt(float currentTime) {
-        if (currentTime < firstActionStart) {
-            return new Pair<>(peekFirst(), 0f);
+    public EntityAction getActionAt(float currentTime) {
+        if (currentTime <= firstActionStart) {
+            return peekFirst();
 
-        } else if (currentTime > lastActionEnd) {
-            EntityAction last = peekLast();
-            return new Pair<>(last, last.duration());
+        } else if (currentTime >= lastActionEnd) {
+            return peekLast();
         }
 
         // a currently executing action...
-        Iterator<EntityAction> iterator = iterator();
-        float passedTime = currentTime - firstActionStart;
 
-        while (iterator.hasNext()) {
-            EntityAction action = iterator.next();
-            if (passedTime > action.duration()) {
-                passedTime -= action.duration();
-
-            } else {
-                return new Pair<>(action, passedTime);
+        for (EntityAction action : this) {
+            if (action.endTime() >= currentTime) {
+                assert action.startTime() <= currentTime;
+                return action;
             }
         }
 
-        throw new IllegalStateException("invalid values of firstActionStart and lastActionEnd, missing " + passedTime);
+        throw new AssertionError("currentTime >= lastActionEnd");
     }
 
     /**
@@ -234,7 +219,7 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
         clear();
         super.addLast(action);
         this.firstActionStart = startTime;
-        lastActionEnd = startTime + action.duration();
+        lastActionEnd = action.endTime();
     }
 
     /**
@@ -243,9 +228,6 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
      */
     public void addWait(float duration) {
         assert duration >= 0;
-        EntityAction last = peekLast();
-        float end = last.duration();
-        addLast(new ActionIdle(last.getEndCoordinate(), last.getPositionAt(end), duration));
     }
 
     /**

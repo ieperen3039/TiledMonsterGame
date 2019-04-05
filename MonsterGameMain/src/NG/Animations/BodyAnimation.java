@@ -15,7 +15,7 @@ public enum BodyAnimation implements UniversalAnimation {
     WALK_CYCLE("walkCycle.anibi"),
     WALK_END("walkStop.anibi"),
     IDLE(ActionIdle.idleAnimation(0)),
-
+    // TODO Fire, Damage
     ;
 
     static {
