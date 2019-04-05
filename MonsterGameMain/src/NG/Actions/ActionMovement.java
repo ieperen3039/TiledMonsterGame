@@ -9,12 +9,13 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 1-3-2019.
  */
 public abstract class ActionMovement implements EntityAction {
-    protected final Vector3fc start;
-    protected final Vector3fc end;
-    protected final float endTime;
-    protected final float startTime;
     protected final Vector2ic startCoord;
     protected final Vector2ic endCoord;
+    protected final Vector3fc start;
+    protected final float startTime;
+    protected Vector3fc end;
+    protected float endTime;
+    private boolean cancelled = false;
 
     public ActionMovement(Game game, Vector2ic startCoord, Vector2ic endCoord, float startTime, float duration) {
         this.startTime = startTime;
@@ -37,6 +38,17 @@ public abstract class ActionMovement implements EntityAction {
     }
 
     @Override
+    public void interrupt(float time) {
+        if (time > endTime) return;
+        if (time < startTime) {
+            cancelled = true;
+            return;
+        }
+        end = getPositionAt(time);
+        endTime = time;
+    }
+
+    @Override
     public Vector2ic getStartCoordinate() {
         return startCoord;
     }
@@ -50,4 +62,8 @@ public abstract class ActionMovement implements EntityAction {
         return endTime - startTime;
     }
 
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
 }

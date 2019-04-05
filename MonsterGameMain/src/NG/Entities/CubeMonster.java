@@ -106,7 +106,7 @@ public class CubeMonster extends MonsterSoul {
         @Override
         public void lookAt(Vector3fc position) {
             float gametime = game.get(GameTimer.class).getGametime();
-            Vector3f dir = getPosition(gametime);
+            Vector3f dir = getPositionAt(gametime);
             position.sub(dir, dir);
             setTargetRotation(dir);
         }

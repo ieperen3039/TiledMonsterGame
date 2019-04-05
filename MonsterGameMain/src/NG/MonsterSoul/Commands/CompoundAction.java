@@ -17,7 +17,7 @@ public class CompoundAction implements EntityAction {
     private final EntityAction[] actions;
     private final EntityAction lastAction;
     private final CompoundAnimation animations;
-    private final float endTime;
+    private float endTime;
 
     /**
      * combines a set of actions
@@ -87,6 +87,11 @@ public class CompoundAction implements EntityAction {
     }
 
     @Override
+    public boolean isCancelled() {
+        return actions[0].isCancelled();
+    }
+
+    @Override
     public Vector2ic getEndCoordinate() {
         return lastAction.getEndCoordinate();
     }
@@ -114,5 +119,19 @@ public class CompoundAction implements EntityAction {
     @Override
     public float endTime() {
         return endTime;
+    }
+
+    @Override
+    public void interrupt(float time) {
+        if (time < endTime) {
+            for (EntityAction action : actions) {
+                if (action.endTime() >= time) {
+                    // this action and all later actions as well
+                    action.interrupt(time);
+                }
+            }
+
+            endTime = time;
+        }
     }
 }

@@ -25,7 +25,7 @@ public interface Entity {
      * @return the real position of this entity at the given time
      * @param currentTime
      */
-    Vector3f getPosition(float currentTime);
+    Vector3f getPositionAt(float currentTime);
 
     /**
      * Executes when the user clicks on this entity. When {@code button == GLFW_LEFT_MOUSE_BUTTON} is clicked, an {@link

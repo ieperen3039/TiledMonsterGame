@@ -20,7 +20,7 @@ public class Cube implements Entity {
     }
 
     @Override
-    public Vector3f getPosition(float currentTime) {
+    public Vector3f getPositionAt(float currentTime) {
         return position;
     }
 

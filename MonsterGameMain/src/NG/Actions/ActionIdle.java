@@ -17,10 +17,11 @@ import java.util.Set;
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public class ActionIdle implements EntityAction {
-    private final float duration;
     private final Vector3fc position;
     private final Vector2ic coordinate;
     private float startTime;
+    private float duration;
+    private boolean cancelled = false;
 
     /**
      * idle for a given duration after executing the given task
@@ -73,6 +74,16 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
+    public void interrupt(float time) {
+        if (time > endTime()) return;
+        if (time < startTime) {
+            cancelled = true;
+            return;
+        }
+        duration = time - startTime;
+    }
+
+    @Override
     public Vector2ic getStartCoordinate() {
         return coordinate;
     }
@@ -89,7 +100,7 @@ public class ActionIdle implements EntityAction {
 
     @Override
     public String toString() {
-        return "Idle (" + duration + ")";
+        return "Idle (for " + duration + ")";
     }
 
     @Override
@@ -103,8 +114,17 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
     public float endTime() {
         return startTime + duration;
+    }
+
+    public float getDuration() {
+        return duration;
     }
 
     public static PartialAnimation idleAnimation(final float duration) {

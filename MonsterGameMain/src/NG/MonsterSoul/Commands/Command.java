@@ -89,7 +89,7 @@ public abstract class Command implements Stimulus {
             } else if (cause instanceof EnvironmentalStimulus) {
                 EnvironmentalStimulus positional = (EnvironmentalStimulus) cause;
                 // run away
-                Vector3f direction = entity.getPosition(gametime);
+                Vector3f direction = entity.getPositionAt(gametime);
                 direction.sub(positional.getPosition());
                 Vector2ic target = Direction.get(direction.x, direction.y).toVector();
 

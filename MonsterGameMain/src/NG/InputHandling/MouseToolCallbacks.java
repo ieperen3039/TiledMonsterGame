@@ -42,6 +42,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
 
     @Override
     public void init(Game game) {
+        if (this.game != null) return;
         this.game = game;
         GLFWWindow target = game.get(GLFWWindow.class);
         Vector2i mousePosition = target.getMousePosition();

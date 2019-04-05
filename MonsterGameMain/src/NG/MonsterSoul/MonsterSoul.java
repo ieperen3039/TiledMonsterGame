@@ -190,7 +190,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         float gametime = game.get(GameTimer.class).getGametime();
         Type sType = stimulus.getType();
-        float realMagnitude = stimulus.getMagnitude(entity.getPosition(gametime));
+        float realMagnitude = stimulus.getMagnitude(entity.getPositionAt(gametime));
 
         Logger.DEBUG.print(stimulus, realMagnitude);
         if (realMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;

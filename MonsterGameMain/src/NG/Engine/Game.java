@@ -8,6 +8,7 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -41,6 +42,12 @@ public interface Game extends Iterable<Object> {
      * @param newElement the new element
      */
     void add(Object newElement);
+
+    default void addAll(Object... elements) {
+        for (Object elt : elements) {
+            add(elt);
+        }
+    }
 
     /**
      * @param original the object to remove
@@ -189,6 +196,10 @@ public interface Game extends Iterable<Object> {
         @Override
         public Iterator<Object> iterator() {
             return current.iterator();
+        }
+
+        public int current() {
+            return Arrays.asList(instances).indexOf(current);
         }
     }
 }

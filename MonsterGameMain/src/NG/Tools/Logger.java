@@ -94,7 +94,7 @@ public enum Logger {
     }
 
     /**
-     * Text resutling from the given supplier is presented somewhere on the screen of this program, likely a
+     * Text resulting from the given supplier is presented somewhere on the screen of this program, likely a
      * debug-screen.
      * @param source a source of text, queried every frame
      */
@@ -109,10 +109,9 @@ public enum Logger {
      * Writes all the online output strings to the given consumer
      * @param accepter a method that prints the given string, on the same position as a previous call to this method
      */
-    public static void setOnlineOutput(Consumer<String> accepter) {
+    public static void putOnlinePrint(Consumer<String> accepter) {
         for (Supplier<String> source : onlinePrints) {
-            String message = source.get();
-            accepter.accept(message);
+            accepter.accept(source.get());
         }
     }
 

@@ -36,6 +36,14 @@ public interface EntityAction extends Stimulus {
      */
     float endTime();
 
+    /**
+     * stops execution of the action at the given time. If time is later than end time of the action, noting happens. If
+     * time is less than the start of this action, then this action will never happen. The end time will be updated to
+     * the time of the interrupt
+     * @param time the time of the interrupt. This will be the new end time.
+     */
+    void interrupt(float time);
+
     @Override
     default float getMagnitude(Vector3fc position) {
         return 1;
@@ -49,8 +57,7 @@ public interface EntityAction extends Stimulus {
     /**
      * checks whether this action may follow the given action
      * @param first an action that happened before this action
-     * @return if the position where first ends is the same as the position
-     * where this starts.
+     * @return if the position where first ends is the same as the position where this starts.
      * @throws IllegalArgumentException if first is null
      */
     default boolean follows(EntityAction first) {
@@ -76,4 +83,6 @@ public interface EntityAction extends Stimulus {
     default float progressAt(float currentTime) {
         return (currentTime - startTime()) / (endTime() - startTime());
     }
+
+    boolean isCancelled();
 }

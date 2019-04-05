@@ -16,7 +16,7 @@ import static NG.MonsterSoul.BaseStimulus.UNKNOWN;
  * @see Anonymous Event.Anonymous
  */
 public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
-    private final float eventTime;
+    protected final float eventTime;
 
     /**
      * @param eventTime the time of activation in seconds

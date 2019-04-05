@@ -56,24 +56,25 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     public RenderLoop(int targetFPS) {
         super("Renderloop", targetFPS);
         overlay = new ScreenOverlay();
+
+        pointer = new Pointer(new Vector3f());
     }
 
     public void init(Game game) throws IOException {
+        if (this.game != null) return;
         this.game = game;
         Settings settings = game.get(Settings.class);
 
         overlay.init(settings.ANTIALIAS_LEVEL);
         overlay.addHudItem((hud) -> {
             if (settings.DEBUG_SCREEN) {
-                Logger.setOnlineOutput(hud::printRoll);
+                Logger.putOnlinePrint(hud::printRoll);
             }
         });
 
         sceneShader = new BlinnPhongShader();
         worldShader = new WorldBPShader();
         particleShader = new ParticleShader();
-
-        pointer = new Pointer(new Vector3f());
         game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updateArrow);
     }
 

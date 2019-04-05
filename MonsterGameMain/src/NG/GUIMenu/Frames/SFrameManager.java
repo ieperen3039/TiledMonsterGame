@@ -9,6 +9,7 @@ import NG.GUIMenu.SToolBar;
 import NG.GUIMenu.ScreenOverlay;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseTools.MouseTool;
+import NG.Rendering.RenderLoop;
 import NG.Tools.Logger;
 import org.joml.Vector2ic;
 
@@ -33,13 +34,15 @@ public class SFrameManager implements GUIManager {
 
     public SFrameManager() {
         this.frames = new ArrayDeque<>();
+        lookAndFeel = new BaseLF();
     }
 
     @Override
     public void init(Game game) throws Version.MisMatchException {
+        if (this.game != null) return;
         this.game = game;
-        lookAndFeel = new BaseLF();
         lookAndFeel.init(game);
+        game.get(RenderLoop.class).addHudItem(this::draw);
     }
 
     @Override

@@ -68,4 +68,5 @@ public interface GUIManager extends GameAspect, MouseToolListener {
      * @return the SFrame covering the given coordinate
      */
     boolean covers(int xSc, int ySc);
+
 }

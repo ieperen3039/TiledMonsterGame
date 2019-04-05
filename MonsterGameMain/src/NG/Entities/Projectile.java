@@ -25,7 +25,7 @@ public abstract class Projectile implements Entity {
 
         gl.pushMatrix();
         {
-            gl.translate(getPosition(now));
+            gl.translate(getPositionAt(now));
             gl.scale(scaling);
 
             drawProjectile(gl);

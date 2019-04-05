@@ -15,6 +15,7 @@ import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.ClaimRegistry;
 import NG.InputHandling.KeyMouseCallbacks;
+import NG.MonsterSoul.Commands.AttackCommandTool;
 import NG.MonsterSoul.Commands.WalkCommandTool;
 import NG.MonsterSoul.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
@@ -38,7 +39,6 @@ public abstract class MonsterEntity implements Entity {
 
     private boolean isDisposed;
     private SFrame frame;
-    private final WalkCommandTool walkTool;
     private EntityAction previousAction; // only in rendering
 
     public MonsterEntity(
@@ -53,7 +53,6 @@ public abstract class MonsterEntity implements Entity {
         if (!hasClaim) {
             throw new IllegalPositionException("given coordinate " + Vectors.toString(initialPosition) + " is not free");
         }
-        walkTool = new WalkCommandTool(game, this);
         previousAction = new ActionIdle(game, initialPosition, 0);
     }
 
@@ -96,7 +95,7 @@ public abstract class MonsterEntity implements Entity {
     }
 
     @Override
-    public Vector3f getPosition(float currentTime) {
+    public Vector3f getPositionAt(float currentTime) {
         return currentActions.getPositionAt(currentTime);
     }
 
@@ -110,7 +109,9 @@ public abstract class MonsterEntity implements Entity {
                 controller.getStatisticsPanel(buttonHeight),
                 SPanel.column(
                         new SToggleButton("Walk to...", 400, buttonHeight, (s) -> game.get(KeyMouseCallbacks.class)
-                                .setMouseTool(s ? walkTool : null))
+                                .setMouseTool(s ? new WalkCommandTool(game, this) : null)),
+                        new SToggleButton("Attack...", 400, buttonHeight, (s) -> game.get(KeyMouseCallbacks.class)
+                                .setMouseTool(s ? new AttackCommandTool(game, this) : null))
                 )
         ));
         game.get(GUIManager.class).addFrame(frame);

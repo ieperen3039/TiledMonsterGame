@@ -1,6 +1,7 @@
 package NG;
 
 import NG.Engine.MonsterGame;
+import NG.Tools.Directory;
 import NG.Tools.Logger;
 
 import java.util.ArrayList;
@@ -24,6 +25,15 @@ public class Boot {
         } else {
             Logger.setLoggingLevel(Logger.INFO);
         }
+
+        Logger.DEBUG.print("General debug information: " +
+                // manual aligning will do the trick
+                "\n\tSystem OS:             " + System.getProperty("os.name") +
+                "\n\tJava VM:               " + System.getProperty("java.runtime.version") +
+                "\n\tGame version:          " + MonsterGame.GAME_VERSION +
+                "\n\tMain directory         " + Directory.workDirectory() +
+                "\n\tMods directory:        " + Directory.mods.getPath()
+        );
 
         new MonsterGame().root();
     }

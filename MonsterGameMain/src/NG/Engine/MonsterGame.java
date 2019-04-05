@@ -40,7 +40,7 @@ import java.util.*;
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public class MonsterGame implements ModLoader {
-    private static final Version GAME_VERSION = new Version(0, 3);
+    public static final Version GAME_VERSION = new Version(0, 3);
 
     private final RenderLoop renderer;
     private final GLFWWindow window;
@@ -51,7 +51,6 @@ public class MonsterGame implements ModLoader {
     private Game pocketGame;
     private Game worldGame;
     private Game.Multiplexer combinedGame;
-    private boolean currentIsPocket;
 
     private List<Mod> allMods;
     private List<Mod> activeMods = Collections.emptyList();
@@ -60,15 +59,6 @@ public class MonsterGame implements ModLoader {
     public MonsterGame() throws IOException {
         Logger.INFO.print("Starting up the game engine...");
         String mainThreadName = Thread.currentThread().getName();
-
-        Logger.DEBUG.print("General debug information: " +
-                // manual aligning will do the trick
-                "\n\tSystem OS:             " + System.getProperty("os.name") +
-                "\n\tJava VM:               " + System.getProperty("java.runtime.version") +
-                "\n\tGame version:          " + GAME_VERSION +
-                "\n\tMain directory         " + Directory.workDirectory() +
-                "\n\tMods directory:        " + Directory.mods.getPath()
-        );
 
         // these are not GameAspects, and thus the init() rule does not apply.
         Settings settings = new Settings();
@@ -82,12 +72,12 @@ public class MonsterGame implements ModLoader {
         GameService pocketGame = createWorld(mainThreadName, settings, pocketMap);
         this.pocketGame = pocketGame;
 
-        GameMap worldMap = new TileMap(settings.CHUNK_SIZE);
+        GameMap worldMap = new TileMap(Settings.CHUNK_SIZE);
         GameService worldGame = createWorld(mainThreadName, settings, worldMap);
         this.worldGame = worldGame;
 
-        combinedGame = new Game.Multiplexer(1, worldGame, pocketGame);
-        currentIsPocket = true;
+        combinedGame = new Game.Multiplexer(0, worldGame, pocketGame);
+        Logger.printOnline(() -> "Current view: " + (combinedGame.current() == 0 ? "World" : "Pocket"));
 
         // load mods
         allMods = JarModReader.loadMods(Directory.mods);
@@ -124,8 +114,6 @@ public class MonsterGame implements ModLoader {
 
         Logger.DEBUG.print("Initial world processing...");
 
-        renderer.addHudItem(frameManager::draw);
-
         permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
 
         mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
@@ -134,8 +122,7 @@ public class MonsterGame implements ModLoader {
         inputHandler.addKeyPressListener(k -> {
             if (k == GLFW.GLFW_KEY_SPACE) {
                 combinedGame.executeOnRenderThread(() -> {
-                    combinedGame.select(currentIsPocket ? 1 : 0);
-                    currentIsPocket = !currentIsPocket;
+                    combinedGame.select((combinedGame.current() + 1) % 2);
                 });
             }
         });

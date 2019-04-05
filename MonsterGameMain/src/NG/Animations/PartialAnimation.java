@@ -69,7 +69,7 @@ public interface PartialAnimation extends Storable {
         }
 
         @Override
-        public Vector3f getPosition(float currentTime) {
+        public Vector3f getPositionAt(float currentTime) {
             return position;
         }
 
