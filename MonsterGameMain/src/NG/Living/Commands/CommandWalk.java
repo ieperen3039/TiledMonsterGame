@@ -1,10 +1,10 @@
-package NG.MonsterSoul.Commands;
+package NG.Living.Commands;
 
 import NG.Actions.ActionWalk;
 import NG.Actions.EntityAction;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
-import NG.MonsterSoul.Living;
+import NG.Living.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -32,14 +32,16 @@ public class CommandWalk extends Command {
         }
 
         List<Vector2i> path = game.get(GameMap.class)
-                .findPath(beginPosition, target, 1f, 0.5f); // TODO entity parameters
+                .findPath(beginPosition, target, 1f, 0.1f); // TODO entity parameters
 
         Vector2ic lastPos = beginPosition;
         List<EntityAction> actions = new ArrayList<>(path.size());
 
         float walkSpeed = 1;//entity.stat(WALK_SPEED);
         for (Vector2i pos : path) {
-            actions.add(new ActionWalk(game, lastPos, pos, walkSpeed, startTime));
+            ActionWalk step = new ActionWalk(game, lastPos, pos, walkSpeed, startTime);
+            actions.add(step);
+            startTime = step.endTime();
             lastPos = pos;
         }
 

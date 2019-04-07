@@ -1,4 +1,4 @@
-package NG.MonsterSoul;
+package NG.Living;
 
 import java.util.function.Consumer;
 

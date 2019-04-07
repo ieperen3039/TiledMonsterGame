@@ -21,6 +21,7 @@ public abstract class Projectile implements Entity {
     @Override
     public void draw(SGL gl) {
         float now = game.get(GameTimer.class).getRendertime();
+        if (isDisposed) return;
         if (now < getSpawnTime()) return;
 
         gl.pushMatrix();
@@ -28,12 +29,16 @@ public abstract class Projectile implements Entity {
             gl.translate(getPositionAt(now));
             gl.scale(scaling);
 
-            drawProjectile(gl);
+            drawProjectile(gl, now);
         }
         gl.popMatrix();
     }
 
-    protected abstract void drawProjectile(SGL gl);
+    /**
+     * @param gl         draw the projectile, without additional positioning
+     * @param renderTime the current rendering time
+     */
+    protected abstract void drawProjectile(SGL gl, float renderTime);
 
     @Override
     public void onClick(int button) {

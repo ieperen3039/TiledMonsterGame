@@ -1,4 +1,4 @@
-package NG.MonsterSoul;
+package NG.Living;
 
 import NG.Actions.ActionFinishListener;
 import NG.Actions.ActionIdle;
@@ -12,12 +12,13 @@ import NG.GUIMenu.Frames.Components.SPanel;
 import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
 import NG.GameMap.ClaimRegistry;
-import NG.MonsterSoul.Commands.Command;
-import NG.MonsterSoul.Commands.Command.CType;
+import NG.Living.Commands.Command;
+import NG.Living.Commands.Command.CType;
 import NG.Storable;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector2i;
+import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
 import java.io.*;
@@ -36,6 +37,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     private static final int ASSOCIATION_SIZE = 10;
     private static final int ACTION_CONSIDERATION_SIZE = 4;
     private static final int PREDICITON_BRANCH_SIZE = 4;
+    public static final float UPDATE_DELTA = 0.1f;
 
     private final Emotion.Collection emotions;
     private final Associator<Type> associationStimuli;
@@ -131,10 +133,23 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         ClaimRegistry claims = game.get(ClaimRegistry.class);
 
-        claims.dropClaim(previous.getStartCoordinate(), entity);
-        actionEventLock.release();
-        float now = previous.endTime();
+        Vector2ic startCoord = previous.getStartCoordinate();
+        Vector2ic endCoord = previous.getEndCoordinate();
+        if (!endCoord.equals(startCoord)) {
+            claims.dropClaim(startCoord, entity);
+        }
 
+        actionEventLock.release();
+
+        scheduleNext(previous, previous.endTime());
+    }
+
+    /**
+     * queries the next action planned, and executes it at the given start time.
+     * @param previous        the previous action executed
+     * @param actionStartTime the start time of the next action
+     */
+    private void scheduleNext(EntityAction previous, float actionStartTime) {
         while (!executionSequence.hasNext()) {// iterate to next plan.
             executionSequence = NO_ACTIONS; // free the list
             executionTarget = plan.poll();
@@ -143,21 +158,26 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
                 return;
             }
 
-            executionSequence = executionTarget.toActions(game, previous, now).iterator();
+            executionSequence = executionTarget.toActions(game, previous, actionStartTime).iterator();
         }
 
         EntityAction next = executionSequence.next();
-        boolean hasClaim = claims.createClaim(next.getEndCoordinate(), entity);
+        ClaimRegistry claims = game.get(ClaimRegistry.class);
+
+        Vector2ic startCoord = next.getStartCoordinate();
+        Vector2ic endCoord = next.getEndCoordinate();
+
+        boolean hasClaim = startCoord.equals(endCoord) || claims.createClaim(endCoord, entity);
 
         if (hasClaim) {
-            boolean success = schedule(next, now);
+            boolean success = createEvent(next, actionStartTime);
             assert success; // TODO handle (maybe always throw?)
 
         } else {
             // recollect a new execution sequence from the same target command
-            executionSequence = executionTarget.toActions(game, previous, now).iterator();
+            executionSequence = executionTarget.toActions(game, previous, actionStartTime).iterator();
             float hesitationPeriod = 0.5f;
-            boolean success = schedule(new ActionIdle(game, previous, hesitationPeriod, now), now);
+            boolean success = createEvent(new ActionIdle(game, previous, hesitationPeriod, actionStartTime), actionStartTime);
             assert success;
         }
     }
@@ -165,23 +185,30 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     /**
      * schedules an event that the given action has been finished.
      * @param action   the action to schedule
-     * @param gameTime the start time of the action
+     * @param actionTime the start time of the action
      * @return true if the action is scheduled successfully, false if another action has already been scheduled.
      */
-    private boolean schedule(EntityAction action, float gameTime) {
+    private boolean createEvent(EntityAction action, float actionTime) {
         Event event = action.getFinishEvent(this);
 
         if (actionEventLock.tryAcquire()) {
             game.get(EventLoop.class).addEvent(event);
-            entity.currentActions.addAfter(gameTime, action);
+            Logger.DEBUG.print(this + " executes " + action + " at " + actionTime);
+            entity.currentActions.addAfter(actionTime, action);
             return true;
         }
         return false;
     }
 
+    /**
+     * update the time-related elements of this entity
+     */
     public void update() {
         float gametime = game.get(GameTimer.class).getGametime();
         emotions.process(gametime);
+
+        Event.Anonymous next = new Event.Anonymous(gametime + UPDATE_DELTA, this::update);
+        game.get(EventLoop.class).addEvent(next);
     }
 
     @Override
@@ -192,7 +219,6 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         Type sType = stimulus.getType();
         float realMagnitude = stimulus.getMagnitude(entity.getPositionAt(gametime));
 
-        Logger.DEBUG.print(stimulus, realMagnitude);
         if (realMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;
 
         float mainJudge = importance.computeIfAbsent(sType, s ->
@@ -228,7 +254,6 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
             actionAssociator.notice(sType, relativeMagnitude);
         }
 
-        Logger.DEBUG.print(commandFocus, relativeMagnitude);
         if (relativeMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;
 
         // calculate projected gain for a number of target actions
@@ -238,7 +263,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         // otherwise, execute action
         Command command = best.generateNew(entity, stimulus, gametime);
-        acceptCommand(command);
+        executeCommand(command);
     }
 
     /**
@@ -280,13 +305,13 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     }
 
     /**
-     * Calculate an 'emotion gain' value for the given stimulus, how 'good' it is. It uses associations to predict
+     * Calculate an 'emotional gain' value for the given stimulus, how 'good' it is. It uses associations to predict
      * future effects. Can be used to evaluate a plan, by supplying a CType object.
      * @param stimulusType the stimulus to evaluate
      * @param relevance    how relevant the stimulus is, e.g. how likely it is to appear.
      * @return a value that
      */
-    public float getGainOf(Type stimulusType, float relevance) {
+    private float getGainOf(Type stimulusType, float relevance) {
         Emotion.Translation moveEffect = stimulusEffects.get(stimulusType);
         float moveGain = moveEffect.calculateValue(emotionValue);
 
@@ -308,14 +333,15 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     /**
      * Execute the given command
-     * @param c the command considered by this unit
+     * @param c the command to be executed.
      */
-    private void acceptCommand(Command c) {
+    public void executeCommand(Command c) {
         plan.offer(c);
 
         if (executionTarget == null) {
             EntityAction preceding = entity.getLastAction();
-            onActionFinish(preceding);
+            float now = game.get(GameTimer.class).getGametime();
+            scheduleNext(preceding, now);
         }
     }
 
@@ -382,5 +408,10 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
             state.add(new SNamedValue(emotion.name(), () -> emotions.get(emotion), buttonHeight), new Vector2i(0, i++));
         }
         return state;
+    }
+
+    @Override
+    public String toString() {
+        return entity.toString();
     }
 }

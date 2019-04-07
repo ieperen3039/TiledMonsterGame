@@ -1,11 +1,11 @@
-package NG.MonsterSoul.Commands;
+package NG.Living.Commands;
 
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
-import NG.MonsterSoul.MonsterSoul;
-import NG.MonsterSoul.Player;
+import NG.Living.MonsterSoul;
+import NG.Living.Player;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;

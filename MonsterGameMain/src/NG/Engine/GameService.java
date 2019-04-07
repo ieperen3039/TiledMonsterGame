@@ -9,7 +9,7 @@ import java.util.*;
  * A Service-Oriented-Architecture for games, based on classes
  * @author Geert van Ieperen created on 2-4-2019.
  */
-public class GameService implements Game {
+public class GameService implements Game { // TODO make exception elements for renderer etc.
     private Map<Class, Object> lookAsideTable = new HashMap<>();
     private final PairList<Object, Class> elements;
     private final String mainThreadName;
@@ -100,6 +100,10 @@ public class GameService implements Game {
 
     @Override
     public void cleanup() {
+        for (AbstractGameLoop loop : getAll(AbstractGameLoop.class)) {
+            loop.stopLoop();
+        }
+
         for (GameAspect aspect : getAll(GameAspect.class)) {
             aspect.cleanup();
         }

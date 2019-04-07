@@ -10,11 +10,10 @@ import org.joml.Vector2ic;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * @author Geert van Ieperen created on 17-2-2019.
@@ -77,6 +76,18 @@ public class ClaimRegistry implements GameAspect, Storable {
      */
     public Entity getClaim(Vector2ic coordinate) {
         return claimRegistry.get(coordinate); // no lock needed
+    }
+
+    /**
+     * @param target an entity
+     * @return the coordinates claimed by this entity
+     */
+    public Collection<Vector2ic> getClaimsOf(Entity target) {
+        return claimRegistry.entrySet()
+                .stream()
+                .filter(e -> e.getValue() == target)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
     /**

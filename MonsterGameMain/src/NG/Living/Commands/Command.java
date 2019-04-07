@@ -1,10 +1,10 @@
-package NG.MonsterSoul.Commands;
+package NG.Living.Commands;
 
 import NG.Actions.EntityAction;
 import NG.DataStructures.Direction;
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
-import NG.MonsterSoul.*;
+import NG.Living.*;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
@@ -52,6 +52,11 @@ public abstract class Command implements Stimulus {
 
     public Living getTarget() {
         return target;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
     }
 
     /**

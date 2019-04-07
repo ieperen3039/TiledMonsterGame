@@ -1,7 +1,7 @@
 package NG.Actions;
 
 import NG.Engine.Game;
-import NG.MonsterSoul.Commands.CompoundAction;
+import NG.Living.Commands.CompoundAction;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
@@ -202,7 +202,6 @@ public class ActionQueue extends ArrayDeque<EntityAction> {
 
         for (EntityAction action : this) {
             if (action.endTime() >= currentTime) {
-                assert action.startTime() <= currentTime;
                 return action;
             }
         }

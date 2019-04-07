@@ -2,7 +2,7 @@ package NG.Actions;
 
 import NG.Animations.UniversalAnimation;
 import NG.GameEvent.Event;
-import NG.MonsterSoul.Stimulus;
+import NG.Living.Stimulus;
 import NG.Tools.Vectors;
 import org.joml.Quaternionf;
 import org.joml.Vector2ic;

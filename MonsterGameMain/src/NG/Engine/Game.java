@@ -108,11 +108,8 @@ public interface Game extends Iterable<Object> {
     }
 
     default void init() throws Exception {
-        for (Object elt : this) {
-            if (elt instanceof GameAspect) {
-                GameAspect aspect = (GameAspect) elt;
-                aspect.init(this);
-            }
+        for (GameAspect aspect : getAll(GameAspect.class)) {
+            aspect.init(this);
         }
     }
 

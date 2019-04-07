@@ -1,4 +1,4 @@
-package NG.MonsterSoul;
+package NG.Living;
 
 /**
  * @author Geert van Ieperen created on 4-2-2019.

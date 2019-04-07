@@ -1,4 +1,4 @@
-package NG.MonsterSoul;
+package NG.Living;
 
 import NG.Storable;
 import NG.Tools.Toolbox;

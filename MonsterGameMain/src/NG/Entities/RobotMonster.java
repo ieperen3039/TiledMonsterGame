@@ -5,7 +5,7 @@ import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.Animations.RobotMeshes;
 import NG.Engine.Game;
-import NG.MonsterSoul.MonsterSoul;
+import NG.Living.MonsterSoul;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;

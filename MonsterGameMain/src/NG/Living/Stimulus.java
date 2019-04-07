@@ -1,6 +1,6 @@
-package NG.MonsterSoul;
+package NG.Living;
 
-import NG.MonsterSoul.Commands.Command;
+import NG.Living.Commands.Command;
 import NG.Tools.Toolbox;
 import org.joml.Vector3fc;
 

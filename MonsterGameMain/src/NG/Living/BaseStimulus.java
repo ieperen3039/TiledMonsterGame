@@ -1,4 +1,4 @@
-package NG.MonsterSoul;
+package NG.Living;
 
 import java.io.DataOutput;
 import java.io.IOException;

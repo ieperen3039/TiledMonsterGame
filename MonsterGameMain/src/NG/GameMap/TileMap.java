@@ -344,10 +344,10 @@ public class TileMap implements GameMap {
                 // heights of tile sides
                 int fromHeight = fromTile.heightOf(move);
                 int toHeight = toTile.heightOf(move.inverse());
-                float hDiff = (fromHeight - toHeight) * TILE_SIZE_Z;
+                float hDiff = (toHeight - fromHeight) * TILE_SIZE_Z;
 
                 // climbing if more than 'an acceptable height'
-                if (hDiff < 0.5f) {
+                if (hDiff > 0.5f) {
                     duration += (climbSpeed * hDiff);
                 }
 

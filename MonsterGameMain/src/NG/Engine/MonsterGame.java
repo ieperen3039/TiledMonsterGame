@@ -130,6 +130,11 @@ public class MonsterGame implements ModLoader {
         pocketGame.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1, 2), Color4f.rgb(255, 241, 224), 0.8f);
         worldGame.get(GameLights.class).addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
+        Logger.DEBUG.print("Booting game loops");
+
+        pocketGame.getAll(EventLoop.class).forEach(Thread::start);
+        worldGame.getAll(EventLoop.class).forEach(Thread::start);
+
         Logger.INFO.print("Finished initialisation");
     }
 
@@ -181,16 +186,16 @@ public class MonsterGame implements ModLoader {
         mainMenu.setVisible(false);
         frameManager.setToolBar(mainMenu.getToolBar(combinedGame));
 
-        pocketGame.get(GameTimer.class).unPause();
-        worldGame.get(GameTimer.class).unPause();
+        pocketGame.getAll(EventLoop.class).forEach(AbstractGameLoop::unPause);
+        worldGame.getAll(EventLoop.class).forEach(AbstractGameLoop::unPause);
     }
 
     private void stopGame() {
         Logger.INFO.print(); // new line
         Logger.INFO.print("Stopping game...");
 
-        pocketGame.get(GameTimer.class).pause();
-        worldGame.get(GameTimer.class).pause();
+        pocketGame.getAll(EventLoop.class).forEach(AbstractGameLoop::pause);
+        worldGame.getAll(EventLoop.class).forEach(AbstractGameLoop::pause);
 
         frameManager.setToolBar(null);
         cleanMods();

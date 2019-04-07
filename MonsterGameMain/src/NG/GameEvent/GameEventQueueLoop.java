@@ -33,7 +33,6 @@ public class GameEventQueueLoop extends EventLoop {
 
     @Override
     public void init(Game game) throws Exception {
-        setName("Discrete Event Loop " + game);
         this.game = game;
     }
 

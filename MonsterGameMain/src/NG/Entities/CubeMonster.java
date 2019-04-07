@@ -6,7 +6,7 @@ import NG.Animations.BoneElement;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
-import NG.MonsterSoul.MonsterSoul;
+import NG.Living.MonsterSoul;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.AABBf;
 import org.joml.Vector2i;

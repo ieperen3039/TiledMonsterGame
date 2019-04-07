@@ -1,4 +1,4 @@
-package NG.MonsterSoul.Commands;
+package NG.Living.Commands;
 
 import NG.Actions.EntityAction;
 import NG.Animations.CompoundAnimation;

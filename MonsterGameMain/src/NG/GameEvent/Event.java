@@ -2,13 +2,13 @@ package NG.GameEvent;
 
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
-import NG.MonsterSoul.Stimulus;
-import NG.MonsterSoul.Type;
+import NG.Living.Stimulus;
+import NG.Living.Type;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector3fc;
 
-import static NG.MonsterSoul.BaseStimulus.UNKNOWN;
+import static NG.Living.BaseStimulus.UNKNOWN;
 
 /**
  * a generic event that happens on a predetermined time. Triggering of the event should result in a stimulus being

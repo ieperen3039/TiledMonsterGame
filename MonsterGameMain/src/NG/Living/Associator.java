@@ -1,4 +1,4 @@
-package NG.MonsterSoul;
+package NG.Living;
 
 import NG.DataStructures.Generic.PairList;
 import NG.DataStructures.PriorityCollection;

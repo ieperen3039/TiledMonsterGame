@@ -41,7 +41,7 @@ public interface Entity {
     void dispose();
 
     /**
-     * @return true iff this unit should be removed from the game world before the next gameloop.
+     * @return true iff this unit should be removed from the game world.
      */
     boolean isDisposed();
 

@@ -1,4 +1,4 @@
-package NG.MonsterSoul;
+package NG.Living;
 
 import org.joml.Vector3fc;
 

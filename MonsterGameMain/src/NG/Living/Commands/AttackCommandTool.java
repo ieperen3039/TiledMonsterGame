@@ -1,11 +1,11 @@
-package NG.MonsterSoul.Commands;
+package NG.Living.Commands;
 
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
-import NG.MonsterSoul.Player;
-import org.joml.Vector2i;
+import NG.Living.Player;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;
 
@@ -25,8 +25,13 @@ public class AttackCommandTool extends DefaultMouseTool {
 
     @Override
     public void apply(Vector3fc position) {
-        Vector3i coord = game.get(GameMap.class).getCoordinate(position);
-        Command command = new CommandAttack(new Player(), entity, new Vector2i(coord.x, coord.y), POWERBALL);
-        entity.getController().accept(command);
+        GameMap map = game.get(GameMap.class);
+//        float z = map.getHeightAt(position.x(), position.y());
+//        Vector3f target = new Vector3f(position.x(), position.y(), z);
+        Vector3i coord = map.getCoordinate(position);
+        Vector3f target = map.getPosition(coord.x, coord.y);
+
+        Command command = new CommandAttack(new Player(), entity, target, POWERBALL);
+        entity.getController().executeCommand(command);
     }
 }

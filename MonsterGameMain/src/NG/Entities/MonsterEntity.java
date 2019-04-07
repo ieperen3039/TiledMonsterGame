@@ -15,9 +15,9 @@ import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.ClaimRegistry;
 import NG.InputHandling.KeyMouseCallbacks;
-import NG.MonsterSoul.Commands.AttackCommandTool;
-import NG.MonsterSoul.Commands.WalkCommandTool;
-import NG.MonsterSoul.MonsterSoul;
+import NG.Living.Commands.AttackCommandTool;
+import NG.Living.Commands.WalkCommandTool;
+import NG.Living.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -88,7 +88,7 @@ public abstract class MonsterEntity implements Entity {
     protected abstract Map<AnimationBone, BoneElement> getBoneMapping();
 
     /**
-     * @return the {@link NG.MonsterSoul.Living} that controls this entity.
+     * @return the {@link NG.Living.Living} that controls this entity.
      */
     public MonsterSoul getController() {
         return controller;
@@ -106,7 +106,7 @@ public abstract class MonsterEntity implements Entity {
 
         frame = new SFrame("Entity " + this);
         frame.setMainPanel(SPanel.column(
-                controller.getStatisticsPanel(buttonHeight),
+//                controller.getStatisticsPanel(buttonHeight),
                 SPanel.column(
                         new SToggleButton("Walk to...", 400, buttonHeight, (s) -> game.get(KeyMouseCallbacks.class)
                                 .setMouseTool(s ? new WalkCommandTool(game, this) : null)),
@@ -114,6 +114,7 @@ public abstract class MonsterEntity implements Entity {
                                 .setMouseTool(s ? new AttackCommandTool(game, this) : null))
                 )
         ));
+        frame.pack();
         game.get(GUIManager.class).addFrame(frame);
     }
 
