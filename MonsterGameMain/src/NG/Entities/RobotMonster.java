@@ -6,6 +6,7 @@ import NG.Animations.BoneElement;
 import NG.Animations.RobotMeshes;
 import NG.Engine.Game;
 import NG.Living.MonsterSoul;
+import NG.Living.SoulDescription;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;
@@ -24,7 +25,28 @@ public class RobotMonster extends MonsterSoul {
     private static final Map<AnimationBone, BoneElement> boneMap = getRobotMeshMap();
 
     public RobotMonster(File description) throws IOException {
-        super(description);
+        super(new SoulDescription(description));
+    }
+
+    @Override
+    protected MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction) {
+        return new Entity(game, coordinate);
+    }
+
+    private class Entity extends MonsterEntity {
+        public Entity(Game game, Vector2i initialPosition) {
+            super(game, initialPosition, RobotMonster.this);
+        }
+
+        @Override
+        protected BodyModel bodyModel() {
+            return BodyModel.ANTHRO;
+        }
+
+        @Override
+        protected Map<AnimationBone, BoneElement> getBoneMapping() {
+            return boneMap;
+        }
     }
 
     public static Map<AnimationBone, BoneElement> getRobotMeshMap() {
@@ -49,32 +71,5 @@ public class RobotMonster extends MonsterSoul {
         Logger.WARN.print("Unassigned bones: " + remainders);
 
         return map;
-    }
-
-    @Override
-    protected MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction) {
-        return new Entity(game, coordinate);
-    }
-
-    private class Entity extends MonsterEntity {
-        public Entity(Game game, Vector2i initialPosition) {
-            super(game, initialPosition, RobotMonster.this);
-        }
-
-        @Override
-        protected BodyModel bodyModel() {
-            return BodyModel.ANTHRO;
-        }
-
-        @Override
-        protected Map<AnimationBone, BoneElement> getBoneMapping() {
-            return boneMap;
-        }
-
-        @Override
-        protected void lookAt(Vector3fc position) {
-
-        }
-
     }
 }

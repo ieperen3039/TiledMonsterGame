@@ -25,14 +25,14 @@ public class Timer {
     /**
      * @return the time at the call of updateLooptime
      */
-    public long getTime() {
-        return time.current();
+    public float getTime() {
+        return time.current() / 1000f;
     }
 
     /**
      * @return The number of milliseconds between the previous two gameticks.
      */
-    public long getElapsedTime() {
+    public long getElapsedMillis() {
         return time.difference();
     }
 
@@ -40,13 +40,13 @@ public class Timer {
      * @return The elapsed time in seconds between the previous two gameticks.
      */
     public float getElapsedSeconds() {
-        return (getElapsedTime() / 1000f);
+        return (getElapsedMillis() / 1000f);
     }
 
     /**
      * @return the number of miliseconds since the last update in the loop
      */
-    public long getTimeSinceLastUpdate() {
+    public float getMillisSinceLastUpdate() {
         return actualCurrent() - time.current();
     }
 

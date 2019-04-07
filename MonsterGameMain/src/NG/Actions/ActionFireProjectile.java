@@ -8,6 +8,7 @@ import NG.Entities.ProjectilePowerBall;
 import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
 import NG.GameState.GameState;
+import NG.Tools.Vectors;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -57,7 +58,7 @@ public class ActionFireProjectile extends ActionIdle {
         public void run() {
             if (!isCancelled() && endTime() >= eventTime) {
                 ProjectilePowerBall projectile = new ProjectilePowerBall(
-                        game, eventTime, 0.1f, 4f, spawnPosition, target
+                        game, eventTime, 0.2f, 5f, spawnPosition, target
                 );
 
                 game.get(GameState.class).addEntity(projectile);
@@ -67,6 +68,6 @@ public class ActionFireProjectile extends ActionIdle {
 
     @Override
     public String toString() {
-        return "Fire projectile (at " + getEndCoordinate() + ")";
+        return "Fire projectile (at " + Vectors.toString(getEndCoordinate()) + ")";
     }
 }

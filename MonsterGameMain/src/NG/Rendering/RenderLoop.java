@@ -57,7 +57,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         super("Renderloop", targetFPS);
         overlay = new ScreenOverlay();
 
-        pointer = new Pointer(new Vector3f());
+        pointer = new Pointer();
     }
 
     public void init(Game game) throws IOException {
@@ -89,9 +89,9 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             GameMap map = game.get(GameMap.class);
             Vector3f position = map.intersectWithRay(origin, direction);
             Vector3i coordinate = map.getCoordinate(position);
-            position.set(map.getPosition(coordinate.x, coordinate.y));
+            Vector3f midSquare = map.getPosition(coordinate.x, coordinate.y);
 
-            pointer.setPosition(position);
+            pointer.setPosition(position, midSquare);
 
             if (cursorIsVisible) {
                 game.get(GLFWWindow.class).hideCursor(false);
@@ -213,18 +213,24 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     private class Pointer {
         private static final float SIZE = 2;
-        private Vector3f position;
+        private Vector3f midSquare;
+        private Vector3f exact;
+        private Vector3f midSquareNegate;
 
-        private Pointer(Vector3f position) {
-            this.position = position;
+        private Pointer() {
+            this.midSquare = new Vector3f();
+            this.exact = new Vector3f();
+            this.midSquareNegate = new Vector3f();
         }
 
         public void draw(SGL gl) {
             gl.pushMatrix();
             {
-                gl.translate(position);
+                gl.translate(midSquare);
                 Toolbox.draw3DPointer(gl);
+                gl.translate(midSquareNegate);
 
+                gl.translate(exact);
                 gl.translate(0, 0, 4);
                 gl.scale(SIZE, SIZE, -SIZE);
 
@@ -238,8 +244,10 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             gl.popMatrix();
         }
 
-        public void setPosition(Vector3fc targetPosition) {
-            position.set(targetPosition);
+        public void setPosition(Vector3fc position, Vector3fc midSquare) {
+            this.midSquare.set(midSquare);
+            this.midSquare.negate(midSquareNegate);
+            exact.set(position.x(), position.y(), midSquare.z());
         }
     }
 }

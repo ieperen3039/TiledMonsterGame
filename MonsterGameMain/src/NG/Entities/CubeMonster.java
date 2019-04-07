@@ -7,6 +7,7 @@ import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Living.MonsterSoul;
+import NG.Living.SoulDescription;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.AABBf;
 import org.joml.Vector2i;
@@ -29,7 +30,7 @@ public class CubeMonster extends MonsterSoul {
     private final Map<AnimationBone, BoneElement> boneMap;
 
     public CubeMonster(File description) throws IOException {
-        super(description);
+        super(new SoulDescription(description));
         boneMap = Collections.singletonMap(
                 BODY_MODEL.getBone("cube_root"),
                 new BoneElement(GenericShapes.CUBE, new Vector3f(SIZE))
@@ -101,14 +102,6 @@ public class CubeMonster extends MonsterSoul {
             Vector3fc target = targetFace.left;
 
             return new Vector3f(current).lerp(target, fraction);
-        }
-
-        @Override
-        public void lookAt(Vector3fc position) {
-            float gametime = game.get(GameTimer.class).getGametime();
-            Vector3f dir = getPositionAt(gametime);
-            position.sub(dir, dir);
-            setTargetRotation(dir);
         }
 
         @Override

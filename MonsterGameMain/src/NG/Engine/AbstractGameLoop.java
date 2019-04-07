@@ -90,7 +90,7 @@ public abstract class AbstractGameLoop extends Thread {
                 if (Thread.interrupted()) break;
 
                 // number of milliseconds remaining in this loop
-                float remainingTime = targetDeltaMillis - loopTimer.getTimeSinceLastUpdate();
+                float remainingTime = targetDeltaMillis - loopTimer.getMillisSinceLastUpdate();
 
                 // sleep at least 0 milliseconds
                 long correctedTime = (long) Math.max(remainingTime, 0);
@@ -101,7 +101,7 @@ public abstract class AbstractGameLoop extends Thread {
                 deltaTime = loopTimer.getElapsedSeconds();
 
                 // update Ticks per Second
-                float realTPS = 1000f / loopTimer.getElapsedTime();
+                float realTPS = 1000f / loopTimer.getElapsedMillis();
                 avgTPS.add(realTPS);
                 avgPoss.add((targetDeltaMillis - remainingTime) / targetDeltaMillis);
 

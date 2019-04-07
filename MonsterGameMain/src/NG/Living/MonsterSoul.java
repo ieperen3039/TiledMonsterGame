@@ -6,6 +6,7 @@ import NG.Actions.EntityAction;
 import NG.DataStructures.Generic.PairList;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
+import NG.Entities.EntityStatistics;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Frames.Components.SNamedValue;
 import NG.GUIMenu.Frames.Components.SPanel;
@@ -16,15 +17,15 @@ import NG.Living.Commands.Command;
 import NG.Living.Commands.Command.CType;
 import NG.Storable;
 import NG.Tools.Logger;
-import NG.Tools.Toolbox;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Semaphore;
-import java.util.regex.Pattern;
 
 /**
  * @author Geert van Ieperen created on 4-2-2019.
@@ -37,9 +38,8 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     private static final int ASSOCIATION_SIZE = 10;
     private static final int ACTION_CONSIDERATION_SIZE = 4;
     private static final int PREDICITON_BRANCH_SIZE = 4;
-    public static final float UPDATE_DELTA = 0.1f;
 
-    private final Emotion.Collection emotions;
+    private final Emotion.ECollection emotions;
     private final Associator<Type> associationStimuli;
     private final Associator<CType> actionAssociator;
 
@@ -47,10 +47,13 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     // mapping from stimulus to the perceived importance of the stimulus, as [0 ... 1]
     private final Map<Type, Float> importance;
     private final Map<Type, Emotion.Translation> stimulusEffects;
-    private final EnumMap<Emotion, Float> emotionValue;
+    private final EnumMap<Emotion, Float> emotionValues;
 
     protected Game game;
     private MonsterEntity entity;
+
+    private int hitpoints;
+    private EntityStatistics stats;
 
     private Living commandFocus = this;
     private float focusRelevance = 0;
@@ -64,53 +67,21 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     /**
      * read a monster description from the given file
-     * @param description a file that describes a monster
-     * @throws IOException if any error occurs while reading the file
+     * @param soulDescription
      */
-    public MonsterSoul(File description) throws IOException {
+    public MonsterSoul(SoulDescription soulDescription) {
         this.plan = new ArrayDeque<>();
         this.actionEventLock = new Semaphore(1, false);
         this.associationStimuli = new Associator<>(Type.class, ATTENTION_SIZE, ASSOCIATION_SIZE);
         this.actionAssociator = new Associator<>(CType.class, ATTENTION_SIZE, 4);
 
-        this.importance = new HashMap<>();
-        this.stimulusEffects = new HashMap<>();
-        emotionValue = new EnumMap<>(Emotion.class);
-        Emotion.Collection emotions = null;
+        this.importance = soulDescription.importance;
+        this.stimulusEffects = soulDescription.stimulusEffects;
+        this.emotionValues = soulDescription.emotionValues;
+        this.emotions = soulDescription.emotions;
 
-        int lineNr = -1;
-        try (
-                Scanner reader = new Scanner(new FileInputStream(description))
-        ) {
-            while (reader.hasNext()) {
-                String line = reader.nextLine().trim();
-                lineNr++;
-                if (line.isEmpty() || line.charAt(0) == '#') continue; // ignore comments and blank lines
-
-                switch (line) {
-                    case "stimulus:":
-                        // sets importance and stimulusEffects
-                        readStimulusValues(reader);
-                        break;
-                    case "emotion:":
-                        // sets emotions
-                        emotions = new Emotion.Collection(reader);
-                        break;
-                    case "value:":
-                        // sets emotionValue
-                        readEmotionValues(reader);
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected input: " + line);
-                }
-
-            }
-        } catch (Exception ex) {
-            String message = (lineNr == -1) ? "Error while loading file" : "Error on line " + lineNr;
-            throw new IOException(message, ex);
-        }
-
-        this.emotions = emotions;
+        this.stats = new EntityStatistics(100);
+        this.hitpoints = stats.hitPoints;
     }
 
     public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
@@ -184,7 +155,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     /**
      * schedules an event that the given action has been finished.
-     * @param action   the action to schedule
+     * @param action     the action to schedule
      * @param actionTime the start time of the action
      * @return true if the action is scheduled successfully, false if another action has already been scheduled.
      */
@@ -200,21 +171,8 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         return false;
     }
 
-    /**
-     * update the time-related elements of this entity
-     */
-    public void update() {
-        float gametime = game.get(GameTimer.class).getGametime();
-        emotions.process(gametime);
-
-        Event.Anonymous next = new Event.Anonymous(gametime + UPDATE_DELTA, this::update);
-        game.get(EventLoop.class).addEvent(next);
-    }
-
     @Override
     public void accept(Stimulus stimulus) {
-        update();
-
         float gametime = game.get(GameTimer.class).getGametime();
         Type sType = stimulus.getType();
         float realMagnitude = stimulus.getMagnitude(entity.getPositionAt(gametime));
@@ -224,7 +182,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         float mainJudge = importance.computeIfAbsent(sType, s ->
                 // initial judgement of importance depends on emotional influence
                 stimulusEffects.containsKey(s) ?
-                        1 - (0.9f / (1 + Math.abs(stimulusEffects.get(s).calculateValue(emotionValue)))) :
+                        1 - (0.9f / (1 + Math.abs(stimulusEffects.get(s).calculateValue(emotionValues)))) :
                         0.1f
         );
         float relativeMagnitude = realMagnitude * realMagnitude * mainJudge;
@@ -313,7 +271,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
      */
     private float getGainOf(Type stimulusType, float relevance) {
         Emotion.Translation moveEffect = stimulusEffects.get(stimulusType);
-        float moveGain = moveEffect.calculateValue(emotionValue);
+        float moveGain = moveEffect.calculateValue(emotionValues);
 
         PairList<Type, Float> prediction =
                 associationStimuli.query(stimulusType, PREDICITON_BRANCH_SIZE).asPairList();
@@ -323,7 +281,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
             float eltRel = prediction.right(i);
             // may recurse here, on condition of relevance
             Emotion.Translation eltEffect = stimulusEffects.get(elt);
-            moveGain += eltEffect.calculateValue(emotionValue) * eltRel;
+            moveGain += eltEffect.calculateValue(emotionValues) * eltRel;
         }
 
         moveGain *= relevance;
@@ -357,57 +315,19 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         this.actionEventLock = new Semaphore(1, false);
         importance = new HashMap<>(); // TODO serialize
         stimulusEffects = new HashMap<>();
-        emotionValue = new EnumMap<>(Emotion.class);
+        emotionValues = new EnumMap<>(Emotion.class);
 
-        emotions = new Emotion.Collection(in);
+        emotions = new Emotion.ECollection(in);
         associationStimuli = new Associator<>(in, Type.class);
         actionAssociator = new Associator<>(in, CType.class);
-    }
-
-    private void readStimulusValues(Scanner reader) {
-        Pattern colonMark = Pattern.compile(":");
-        String line;
-        while (!(line = reader.nextLine()).equals("end")) {
-            if (line.isEmpty() || line.charAt(0) == '#') continue;
-            String[] elts = Toolbox.WHITESPACE_PATTERN.split(line.trim());
-
-            Type slt = Stimulus.getByName(elts[0]);
-            float value = Float.parseFloat(elts[1]);
-            importance.put(slt, value);
-
-            Emotion.Translation mapping = new Emotion.Translation();
-            for (int i = 2; i < elts.length; i++) {
-                String[] pair = colonMark.split(elts[i]);
-                Emotion emotion = Emotion.valueOf(pair[0]);
-                int change = Integer.parseInt(pair[1]);
-
-                mapping.set(emotion, change);
-            }
-
-            stimulusEffects.put(slt, mapping);
-        }
-    }
-
-    private void readEmotionValues(Scanner reader) {
-        String line;
-        while (!(line = reader.nextLine()).equals("end")) {
-            if (line.isEmpty() || line.charAt(0) == '#') continue;
-            String[] elts = Toolbox.WHITESPACE_PATTERN.split(line.trim());
-
-            Emotion emotion = Emotion.valueOf(elts[0]);
-            float value = Float.parseFloat(elts[1]);
-            emotionValue.put(emotion, value);
-        }
+        stats = new EntityStatistics(100);
     }
 
     public SPanel getStatisticsPanel(int buttonHeight) {
-        SPanel state = new SPanel(1, Emotion.count + 1);
-        state.add(new SNamedValue("General Joy", () -> emotions.calculateJoy(emotionValue), buttonHeight), new Vector2i(0, 0));
-        int i = 1;
-        for (Emotion emotion : Emotion.values()) {
-            state.add(new SNamedValue(emotion.name(), () -> emotions.get(emotion), buttonHeight), new Vector2i(0, i++));
-        }
-        return state;
+        return SPanel.column(
+                new SNamedValue("Happiness", () -> emotions.calculateJoy(emotionValues), buttonHeight),
+                new SNamedValue("Health points", () -> hitpoints, buttonHeight)
+        );
     }
 
     @Override

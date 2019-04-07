@@ -43,11 +43,11 @@ public enum Emotion {
             content.put(tgt, frac);
         }
 
-        public void addTo(Collection emotions) {
+        public void addTo(ECollection emotions) {
             content.forEach(emotions::add);
         }
 
-        public void addTo(Collection emotions, float multiplier) {
+        public void addTo(ECollection emotions, float multiplier) {
             content.forEach((target, value) -> emotions.add(target, (int) (value * multiplier)));
         }
 
@@ -66,12 +66,12 @@ public enum Emotion {
     /**
      * a collection of emotions, with a processing element such that the emotions affect each other.
      */
-    public static class Collection implements Storable {
+    public static class ECollection implements Storable {
         private final float[][] transformationMatrix; // row-major
         private final short[] values;
         private float stateTime = PROCESS_DELTA;
 
-        public Collection(Scanner reader) {
+        public ECollection(Scanner reader) {
             transformationMatrix = new float[Emotion.count][Emotion.count];
             values = new short[Emotion.count];
 
@@ -155,7 +155,7 @@ public enum Emotion {
         }
 
         // TODO add robustness in matching names
-        public Collection(DataInput in) throws IOException {
+        public ECollection(DataInput in) throws IOException {
             int nrOfEmotions = in.readInt();
             if (nrOfEmotions != Emotion.count) {
                 throw new IOException("Source emotion set is of different size as current");

@@ -22,7 +22,6 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
 import java.util.Map;
 
@@ -35,15 +34,13 @@ public abstract class MonsterEntity implements Entity {
     protected final Game game;
     private final MonsterSoul controller;
     /** the current actions that are executed */
-    public ActionQueue currentActions;
+    public final ActionQueue currentActions;
 
     private boolean isDisposed;
     private SFrame frame;
     private EntityAction previousAction; // only in rendering
 
-    public MonsterEntity(
-            Game game, Vector2i initialPosition, MonsterSoul controller
-    ) {
+    public MonsterEntity(Game game, Vector2i initialPosition, MonsterSoul controller) {
         this.game = game;
         this.controller = controller;
         this.currentActions = new ActionQueue(game, initialPosition);
@@ -106,7 +103,7 @@ public abstract class MonsterEntity implements Entity {
 
         frame = new SFrame("Entity " + this);
         frame.setMainPanel(SPanel.column(
-//                controller.getStatisticsPanel(buttonHeight),
+                controller.getStatisticsPanel(buttonHeight),
                 SPanel.column(
                         new SToggleButton("Walk to...", 400, buttonHeight, (s) -> game.get(KeyMouseCallbacks.class)
                                 .setMouseTool(s ? new WalkCommandTool(game, this) : null)),
@@ -117,8 +114,6 @@ public abstract class MonsterEntity implements Entity {
         frame.pack();
         game.get(GUIManager.class).addFrame(frame);
     }
-
-    protected abstract void lookAt(Vector3fc position);
 
     @Override
     public void dispose() {

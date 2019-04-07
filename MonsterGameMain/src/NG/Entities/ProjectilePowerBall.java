@@ -37,7 +37,7 @@ public class ProjectilePowerBall extends Projectile {
 
         Event.Anonymous explodeEvent = new Event.Anonymous(spawnTime + duration, () -> {
             ProjectilePowerBall.this.dispose();
-            ParticleCloud explosion = Particles.explosion(endPosition, Vectors.O, Color4f.RED, Color4f.ORANGE, 1000, 2, 5);
+            ParticleCloud explosion = Particles.explosion(endPosition, Vectors.O, Color4f.ORANGE, Color4f.RED, 1000, 1, 5);
             game.get(GameParticles.class).add(explosion);
         });
         game.get(EventLoop.class).addEvent(explodeEvent);
