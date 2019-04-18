@@ -26,6 +26,6 @@ public class WalkCommandTool extends DefaultMouseTool {
     public void apply(Vector3fc position) {
         Vector3i coord = game.get(GameMap.class).getCoordinate(position);
         Command command = new CommandWalk(new Player(), controller, new Vector2i(coord.x, coord.y));
-        controller.accept(command);
+        controller.executeCommand(command);
     }
 }

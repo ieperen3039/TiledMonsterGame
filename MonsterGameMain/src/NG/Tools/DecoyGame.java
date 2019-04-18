@@ -9,9 +9,9 @@ import NG.GUIMenu.Frames.SFrameManager;
 import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
+import NG.GameState.DynamicState;
 import NG.GameState.GameLights;
 import NG.GameState.SingleShadowMapLights;
-import NG.GameState.StaticState;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
@@ -33,9 +33,9 @@ public class DecoyGame extends GameService {
         add(new MouseToolCallbacks());
         add(new SingleShadowMapLights());
         add(new SFrameManager());
-        add(new TileMap(settings.CHUNK_SIZE));
+        add(new TileMap(Settings.CHUNK_SIZE));
         add(new TycoonFixedCamera(new Vector3f(), 0, 10));
-        add(new StaticState());
+        add(new DynamicState());
         add(new ClaimRegistry());
 
         renderloop.addHudItem(get(SFrameManager.class)::draw);

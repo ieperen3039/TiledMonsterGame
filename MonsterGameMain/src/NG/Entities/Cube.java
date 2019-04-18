@@ -1,5 +1,6 @@
 package NG.Entities;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector3f;
@@ -8,6 +9,7 @@ import org.joml.Vector3f;
  * @author Geert van Ieperen created on 9-1-2019.
  */
 public class Cube implements Entity {
+    private static final int SIZE = 1;
     private static int nr = 0;
     private final int id;
 
@@ -29,6 +31,7 @@ public class Cube implements Entity {
         gl.pushMatrix();
         {
             gl.translate(position);
+            gl.scale(SIZE / 2);
             gl.render(GenericShapes.CUBE, this);
         }
         gl.popMatrix();
@@ -52,5 +55,16 @@ public class Cube implements Entity {
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + " " + id;
+    }
+
+    @Override
+    public BoundingBox hitbox() {
+        int half = SIZE / 2;
+        return new BoundingBox(half, half, half, half, half, half);
+    }
+
+    @Override
+    public void collideWith(Entity other, float collisionTime) {
+
     }
 }

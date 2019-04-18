@@ -1,5 +1,6 @@
 package NG.Camera;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Tools.Toolbox;
@@ -50,4 +51,13 @@ public class Cursor implements Entity {
         return isDisposed;
     }
 
+    @Override
+    public BoundingBox hitbox() {
+        return new BoundingBox(0, 0, 0, 0, 0, 0);
+    }
+
+    @Override
+    public void collideWith(Entity other, float collisionTime) {
+
+    }
 }

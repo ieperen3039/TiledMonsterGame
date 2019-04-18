@@ -1,12 +1,12 @@
 package NG.Entities;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3f;
 
 /**
- * An entity is anything that is in the world, excluding the ground itself. Particles and other visual elements are not
- * entities.
+ * An entity is anything that is in the world, excluding the ground itself. Particles and other purely visual elements.
  * @author Geert van Ieperen. Created on 14-9-2018.
  */
 public interface Entity {
@@ -22,15 +22,15 @@ public interface Entity {
 
     /**
      * The position of this entity. If the entity does not exist on the given time, the result is undefined.
-     * @return the real position of this entity at the given time
      * @param currentTime
+     * @return the real position of this entity at the given time
      */
     Vector3f getPositionAt(float currentTime);
 
     /**
      * Executes when the user clicks on this entity. When {@code button == GLFW_LEFT_MOUSE_BUTTON} is clicked, an {@link
-     * NG.GUIMenu.Frames.Components.SFrame} with information or settings of this Entity is usually opened, and
-     * when {@code button == GLFW_RIGHT_MOUSE_BUTTON} is clicked, the 'active' state of this entity may toggle.
+     * NG.GUIMenu.Frames.Components.SFrame} with information or settings of this Entity is usually opened, and when
+     * {@code button == GLFW_RIGHT_MOUSE_BUTTON} is clicked, the 'active' state of this entity may toggle.
      * @param button the button that is clicked as defined in {@link NG.InputHandling.MouseRelativeClickListener}
      */
     void onClick(int button);
@@ -45,4 +45,16 @@ public interface Entity {
      */
     boolean isDisposed();
 
+    /**
+     * @return the relative (local-space) bounding box of this entity
+     */
+    BoundingBox hitbox();
+
+    /**
+     * process a collision with the other entity, happening at collisionTime. The other entity will be called with this
+     * same function, as {@code other.collideWith(this, collisionTime)}.
+     * @param other         another entity
+     * @param collisionTime the moment of collision
+     */
+    void collideWith(Entity other, float collisionTime);
 }

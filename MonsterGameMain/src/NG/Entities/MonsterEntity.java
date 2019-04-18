@@ -6,6 +6,7 @@ import NG.Actions.EntityAction;
 import NG.Animations.AnimationBone;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
+import NG.CollisionDetection.BoundingBox;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.GUIMenu.Frames.Components.SFrame;
@@ -118,7 +119,7 @@ public abstract class MonsterEntity implements Entity {
     @Override
     public void dispose() {
         isDisposed = true;
-        frame.dispose();
+        if (frame != null) frame.dispose();
     }
 
     @Override
@@ -128,6 +129,16 @@ public abstract class MonsterEntity implements Entity {
 
     public EntityAction getLastAction() {
         return currentActions.peekLast();
+    }
+
+    @Override
+    public BoundingBox hitbox() {
+        return new BoundingBox(0, 0, 0, 0, 0, 0);
+    }
+
+    @Override
+    public void collideWith(Entity other, float collisionTime) {
+
     }
 
     private class IllegalPositionException extends IllegalArgumentException {

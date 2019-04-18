@@ -341,26 +341,27 @@ public class TileMap implements GameMap {
                 // the total duration of this movement
                 float duration = 0;
 
-                // heights of tile sides
                 int fromHeight = fromTile.heightOf(move);
                 int toHeight = toTile.heightOf(move.inverse());
-                float hDiff = (toHeight - fromHeight) * TILE_SIZE_Z;
-
-                // climbing if more than 'an acceptable height'
-                if (hDiff > 0.5f) {
-                    duration += (climbSpeed * hDiff);
-                }
 
                 // steepness
-                float t1inc = (fromHeight - fromTile.getHeight()) * (TILE_SIZE / 2);
-                float t2inc = (toHeight - toTile.getHeight()) * (TILE_SIZE / 2);
+                float t1inc = (fromHeight - fromTile.getHeight()) / (TILE_SIZE / 2);
+                float t2inc = (toHeight - toTile.getHeight()) / (TILE_SIZE / 2);
 
                 // actual duration of walking
-                float walkSpeedT1 = lift(t1inc) * walkSpeed;
-                float walkSpeedT2 = lift(t2inc) * walkSpeed;
+                float walkSpeedT1 = (1f / hypoLength(t1inc)) * walkSpeed;
+                float walkSpeedT2 = (1f / hypoLength(t2inc)) * walkSpeed;
 
                 // duration += walkspeed(steepness_1) * dist + walkspeed(steepness_2) * dist
-                duration += (walkSpeedT1 + walkSpeedT2) * (TILE_SIZE / 2);
+                duration += (walkSpeedT1 + walkSpeedT2) * TILE_SIZE;
+
+                // height difference on the sides of the tiles
+                float cliffHeight = (toHeight - fromHeight) * TILE_SIZE_Z;
+
+                // climbing if more than 'an acceptable height'
+                if (cliffHeight > 0) {
+                    duration += (cliffHeight / climbSpeed);
+                }
 
                 return duration;
             }

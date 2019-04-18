@@ -12,10 +12,10 @@ import NG.GameMap.ClaimRegistry;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
+import NG.GameState.DynamicState;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.GameState.SingleShadowMapLights;
-import NG.GameState.StaticState;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Mods.InitialisationMod;
 import NG.Mods.Mod;
@@ -86,7 +86,7 @@ public class MonsterGame implements ModLoader {
     private GameService createWorld(String mainThreadName, Settings settings, GameMap pocketMap) {
         Camera pocketView = new TycoonFixedCamera(new Vector3f(), 10, 10);
         EventLoop pocketGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
-        GameState pocketGameState = new StaticState();
+        GameState pocketGameState = new DynamicState();
         GameLights pocketLights = new SingleShadowMapLights();
         GameParticles pocketParticles = new GameParticles();
         GameTimer pocketTimer = new GameTimer(settings.RENDER_DELAY);

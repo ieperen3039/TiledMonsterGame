@@ -128,9 +128,9 @@ public abstract class AStar implements Callable<List<Vector2i>> {
 
     /**
      * @param factor the y displacement per x displacement
-     * @return the x displacement per 1 unit distance
+     * @return the x displacement per 1 unit on the hypotenusa
      */
-    public static float lift(float factor) {
+    public static float hypoLength(float factor) {
         return (float) Math.sqrt(1f / (factor * factor + 1));
     }
 

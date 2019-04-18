@@ -1,5 +1,6 @@
 package NG.Animations;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Engine.GameTimer;
 import NG.Entities.Entity;
 import NG.Entities.RobotMonster;
@@ -94,6 +95,16 @@ public interface PartialAnimation extends Storable {
         public void setModel(BodyModel model) {
             this.model = model;
             this.startTime = timer.getRendertime();
+        }
+
+        @Override
+        public BoundingBox hitbox() {
+            return new BoundingBox(0, 0, 0, 0, 0, 0);
+        }
+
+        @Override
+        public void collideWith(Entity other, float collisionTime) {
+
         }
     }
 }

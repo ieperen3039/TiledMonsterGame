@@ -1,13 +1,10 @@
 package NG.GameState;
 
-import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Engine.GameAspect;
-import NG.Engine.MonsterGame;
 import NG.Entities.Entity;
+import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.Shapes.Primitives.Collision;
 import NG.Storable;
-import org.joml.Vector3fc;
 
 /**
  * A collection of all entities in the world, all lights present in the world. Allows querying for specific objects and
@@ -22,18 +19,10 @@ public interface GameState extends GameAspect, Storable, MouseToolListener {
     void addEntity(Entity entity);
 
     /**
-     * draws the objects on the screen, according to the state of the {@link MonsterGame#timer()} object.
+     * draws the objects on the screen, according to the state of a {@link NG.Engine.GameTimer} object.
      * @param gl the gl object to draw with
      */
     void draw(SGL gl);
-
-    /**
-     * cast a ray into the world, and returns the first entity hit by this ray
-     * @param from starting position
-     * @param to   end position, maximum how far the ray goes
-     * @return the entity that is hit, or null if no such entity exists.
-     */
-    Collision getEntityCollision(Vector3fc from, Vector3fc to);
 
     /**
      * removes the given entity from the gameState. This action does not have to be executed immediately.
@@ -44,5 +33,4 @@ public interface GameState extends GameAspect, Storable, MouseToolListener {
     default void removeEntity(Entity entity) {
         entity.dispose();
     }
-
 }

@@ -1,5 +1,6 @@
 package NG.Entities;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
@@ -59,4 +60,14 @@ public abstract class Projectile implements Entity {
      * @return the timestamp at which this projectile comes into existence
      */
     public abstract float getSpawnTime();
+
+    @Override
+    public BoundingBox hitbox() {
+        return new BoundingBox(0, 0, 0, 0, 0, 0);
+    }
+
+    @Override
+    public void collideWith(Entity other, float collisionTime) {
+
+    }
 }
