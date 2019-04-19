@@ -21,7 +21,6 @@ import org.joml.Vector3fc;
  */
 public class ProjectilePowerBall extends Projectile {
     private static final GenericShapes mesh = GenericShapes.ICOSAHEDRON;
-    private final float spawnTime;
     private final Vector3fc startPosition;
     private final Vector3fc endPosition;
     private final float duration;
@@ -29,8 +28,7 @@ public class ProjectilePowerBall extends Projectile {
     public ProjectilePowerBall(
             Game game, float spawnTime, float scaling, float speed, Vector3fc startPosition, Vector3fc endPosition
     ) {
-        super(game, scaling);
-        this.spawnTime = spawnTime;
+        super(game, size);
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.duration = startPosition.distance(endPosition) / speed;
@@ -44,8 +42,8 @@ public class ProjectilePowerBall extends Projectile {
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
-        float fraction = (currentTime - spawnTime) / duration;
+    public Vector3f getPositionAt(float timeSinceStart) {
+        float fraction = timeSinceStart / duration;
         assert fraction > 0 && fraction < 1 : "fraction = " + fraction;
         return new Vector3f(startPosition).lerp(endPosition, fraction);
     }

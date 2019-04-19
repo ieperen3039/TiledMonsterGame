@@ -5,9 +5,6 @@ import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
 import NG.Entities.ProjectilePowerBall;
-import NG.GameEvent.Event;
-import NG.GameEvent.EventLoop;
-import NG.GameState.GameState;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -28,42 +25,15 @@ public class ActionFireProjectile extends ActionIdle {
     public ActionFireProjectile(
             Game game, MonsterEntity source, Vector3fc target, Type type, float startTime, float duration
     ) {
-        super(game, source.getLastAction(), duration, startTime);
+        super(game, source.getLastAction(), duration);
         this.type = type;
 
         Vector3f spawnPosition = source.getPositionAt(startTime).add(0, 0, 1);
-
-        SpawnEvent event = new SpawnEvent(game, spawnPosition, target, startTime + duration * ActionFireProjectile.aniFireMoment);
-        game.get(EventLoop.class).addEvent(event);
     }
 
     @Override
     public UniversalAnimation getAnimation() {
         return BodyAnimation.IDLE;
-    }
-
-    private class SpawnEvent extends Event {
-        private final Game game;
-        private final Vector3f spawnPosition;
-        private final Vector3fc target;
-
-        public SpawnEvent(Game game, Vector3f spawnPosition, Vector3fc target, float eventTime) {
-            super(eventTime);
-            this.game = game;
-            this.spawnPosition = spawnPosition;
-            this.target = target;
-        }
-
-        @Override
-        public void run() {
-            if (!isCancelled() && endTime() >= eventTime) {
-                ProjectilePowerBall projectile = new ProjectilePowerBall(
-                        game, eventTime, 0.2f, 5f, spawnPosition, target
-                );
-
-                game.get(GameState.class).addEntity(projectile);
-            }
-        }
     }
 
     @Override

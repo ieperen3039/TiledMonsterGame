@@ -219,15 +219,23 @@ public class BlockMap implements GameMap {
     }
 
     @Override
-    public List<Vector2i> findPath(
+    public Collection<Vector2i> findPath(
             Vector2ic source, Vector2ic target, float walkSpeed, float climbSpeed
     ) {
         return new AStar(source, target, xSize - 1, ySize - 1) {
             @Override
             public float distanceAdjacent(int x1, int y1, int x2, int y2) {
+                int dx = x1 - x2;
+                int dy = y1 - y2;
+
+                float distDiff = (dx == 0 || dy == 0) ?
+                        (float) Math.abs(dx + dy) : // manhattan distance
+                        (float) Math.sqrt(dx * dx + dy * dy); // real distance
+
                 float heightDiff = getHeightAt(x2, y2) - getHeightAt(x1, y1);
-                float distDiff = (float) (Math.abs(x1 - x2) + Math.abs(y1 - y2));
-                return (walkSpeed * distDiff * TILE_SIZE) + (climbSpeed * heightDiff * TILE_SIZE_Z);
+                float climbTime = (heightDiff > 0) ? (climbSpeed * heightDiff * TILE_SIZE_Z) : 0;
+
+                return (walkSpeed * distDiff * TILE_SIZE) + climbTime;
             }
 
         }.call();

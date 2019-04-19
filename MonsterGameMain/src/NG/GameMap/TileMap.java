@@ -321,7 +321,7 @@ public class TileMap implements GameMap {
     }
 
     @Override
-    public List<Vector2i> findPath(
+    public Collection<Vector2i> findPath(
             Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
     ) {
         int xMax = (xSize * chunkSize) - 1;
@@ -330,37 +330,41 @@ public class TileMap implements GameMap {
         return new AStar(beginPosition, target, xMax, yMax) {
             @Override
             public float distanceAdjacent(int x1, int y1, int x2, int y2) {
-                assert x1 == x2 || y1 == y2;
-
-                MapTile.Instance fromTile = getTileData(x1, y1);
-                MapTile.Instance toTile = getTileData(x2, y2);
-                assert fromTile != null && toTile != null;
-
-                Direction move = Direction.get(x2 - x1, y2 - y1);
-
                 // the total duration of this movement
                 float duration = 0;
 
-                int fromHeight = fromTile.heightOf(move);
-                int toHeight = toTile.heightOf(move.inverse());
+                if (x1 == x2 || y1 == y2) {
+                    MapTile.Instance fromTile = getTileData(x1, y1);
+                    MapTile.Instance toTile = getTileData(x2, y2);
+                    assert fromTile != null && toTile != null;
 
-                // steepness
-                float t1inc = (fromHeight - fromTile.getHeight()) / (TILE_SIZE / 2);
-                float t2inc = (toHeight - toTile.getHeight()) / (TILE_SIZE / 2);
+                    Direction move = Direction.get(x2 - x1, y2 - y1);
 
-                // actual duration of walking
-                float walkSpeedT1 = (1f / hypoLength(t1inc)) * walkSpeed;
-                float walkSpeedT2 = (1f / hypoLength(t2inc)) * walkSpeed;
+                    int fromHeight = fromTile.heightOf(move);
+                    int toHeight = toTile.heightOf(move.inverse());
 
-                // duration += walkspeed(steepness_1) * dist + walkspeed(steepness_2) * dist
-                duration += (walkSpeedT1 + walkSpeedT2) * TILE_SIZE;
+                    // steepness
+                    float t1inc = (fromHeight - fromTile.getHeight()) / (TILE_SIZE / 2);
+                    float t2inc = (toHeight - toTile.getHeight()) / (TILE_SIZE / 2);
 
-                // height difference on the sides of the tiles
-                float cliffHeight = (toHeight - fromHeight) * TILE_SIZE_Z;
+                    // actual duration of walking
+                    float walkSpeedT1 = (1f / hypoLength(t1inc)) * walkSpeed;
+                    float walkSpeedT2 = (1f / hypoLength(t2inc)) * walkSpeed;
 
-                // climbing if more than 'an acceptable height'
-                if (cliffHeight > 0) {
-                    duration += (cliffHeight / climbSpeed);
+                    // duration += walkspeed(steepness_1) * dist + walkspeed(steepness_2) * dist
+                    duration += (walkSpeedT1 + walkSpeedT2) * TILE_SIZE;
+
+                    // height difference on the sides of the tiles
+                    float cliffHeight = (toHeight - fromHeight) * TILE_SIZE_Z;
+
+                    // climbing if more than 'an acceptable height'
+                    if (cliffHeight > 0) {
+                        duration += (cliffHeight / climbSpeed);
+                    }
+
+                } else {
+                    // TODO allow diagonal tracing
+                    assert false;
                 }
 
                 return duration;

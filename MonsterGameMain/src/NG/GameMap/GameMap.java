@@ -1,15 +1,15 @@
 package NG.GameMap;
 
-import NG.InputHandling.MouseTools.MouseTool;
-import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
+import NG.InputHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * An object that represents the world where all other entities stand on. This includes both the graphical and the
@@ -161,7 +161,7 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      * @return the shortest path from A (exclusive) to B (inclusive)
      * @see NG.Tools.AStar
      */ // TODO add shortcut for situations where the tiles are close
-    List<Vector2i> findPath(
+    Collection<Vector2i> findPath(
             Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
     );
 

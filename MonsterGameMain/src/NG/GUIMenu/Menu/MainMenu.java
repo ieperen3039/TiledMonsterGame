@@ -35,7 +35,7 @@ import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.lang.Math;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * @author Geert van Ieperen. Created on 28-9-2018.
@@ -242,7 +242,7 @@ public class MainMenu extends SFrame {
                 game.get(GameMap.class).setHighlights(first);
 
             } else {
-                List<Vector2i> path = game.get(GameMap.class).findPath(first, second, 1, 0.1f);
+                Collection<Vector2i> path = game.get(GameMap.class).findPath(first, second, 1, 0.1f);
                 game.get(GameMap.class).setHighlights(path.toArray(new Vector2ic[0]));
                 first = null;
             }

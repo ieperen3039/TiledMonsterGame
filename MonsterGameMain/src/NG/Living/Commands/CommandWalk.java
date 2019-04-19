@@ -31,11 +31,11 @@ public class CommandWalk extends Command {
             return null;
         }
 
-        List<Vector2i> path = game.get(GameMap.class)
+        Collection<Vector2i> path = game.get(GameMap.class)
                 .findPath(beginPosition, target, 1f, 0.1f); // TODO entity parameters
 
         Vector2ic lastPos = beginPosition;
-        List<EntityAction> actions = new ArrayList<>(path.size());
+        List<EntityAction> actions = new ArrayList<>();
 
         float walkSpeed = 1;//entity.stat(WALK_SPEED);
         for (Vector2i pos : path) {

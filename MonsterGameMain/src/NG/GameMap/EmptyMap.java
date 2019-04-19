@@ -1,15 +1,15 @@
 package NG.GameMap;
 
-import NG.InputHandling.MouseTools.MouseTool;
 import NG.Engine.Game;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.*;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * an empty map that does absolutely nothing at all
@@ -74,7 +74,7 @@ public class EmptyMap implements GameMap {
     }
 
     @Override
-    public List<Vector2i> findPath(
+    public Collection<Vector2i> findPath(
             Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
     ) {
         return Collections.emptyList();

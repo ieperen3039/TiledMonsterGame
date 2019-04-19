@@ -112,7 +112,8 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         actionEventLock.release();
 
-        scheduleNext(previous, previous.endTime());
+        float now = game.get(GameTimer.class).getGametime();
+        scheduleNext(previous, now);
     }
 
     /**
@@ -148,7 +149,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
             // recollect a new execution sequence from the same target command
             executionSequence = executionTarget.toActions(game, previous, actionStartTime).iterator();
             float hesitationPeriod = 0.5f;
-            boolean success = createEvent(new ActionIdle(game, previous, hesitationPeriod, actionStartTime), actionStartTime);
+            boolean success = createEvent(new ActionIdle(game, previous, hesitationPeriod), actionStartTime);
             assert success;
         }
     }

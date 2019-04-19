@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
  * to B. Must be overridden for a cost function.
  * @author Geert van Ieperen created on 19-2-2019.
  */
-public abstract class AStar implements Callable<List<Vector2i>> {
+public abstract class AStar implements Callable<Iterable<Vector2i>> {
     public final Vector2i target;
     private final int xMax;
     private final int yMax;
@@ -33,7 +33,7 @@ public abstract class AStar implements Callable<List<Vector2i>> {
     }
 
     @Override
-    public List<Vector2i> call() {
+    public Collection<Vector2i> call() {
         ANode node = srcNode;
 
         do {
@@ -51,25 +51,31 @@ public abstract class AStar implements Callable<List<Vector2i>> {
             // negative y
             checkNode(node, x, y - 1);
 
-            // no node left
-            if (found.isEmpty()) return new ArrayList<>();
+            // no node left: no solution
+            if (found.isEmpty()) return Collections.emptyList();
 
             // take one from the found queue
             node = found.remove();
         } while (!node.is(target));
 
-
-        List<Vector2i> path = new ArrayList<>();
+        List<ANode> path = new ArrayList<>();
 
         while (node != srcNode) {
-            path.add(new Vector2i(node.x, node.y));
+            path.add(node);
             node = node.source; // all nodes but srcNode have a source
         }
 
-        // make list start with source
-        Collections.reverse(path);
+        return new AbstractCollection<>() {
+            @Override
+            public Iterator<Vector2i> iterator() {
+                return new PathIterator(path);
+            }
 
-        return path;
+            @Override
+            public int size() {
+                return path.size();
+            }
+        };
     }
 
     /**
@@ -88,7 +94,7 @@ public abstract class AStar implements Callable<List<Vector2i>> {
 
         if (!inOpenSet(x, y)) {
             ANode newNode = new ANode(x, y, previous, distance);
-            openSet.computeIfAbsent(x, k -> new HashMap<>()).put(y, newNode);
+            addToOpen(x, y, newNode);
             found.add(newNode);
             return;
         }
@@ -106,12 +112,16 @@ public abstract class AStar implements Callable<List<Vector2i>> {
         // target not found
     }
 
+    private void addToOpen(int x, int y, ANode newNode) {
+        openSet.computeIfAbsent(x, k -> new HashMap<>()).put(y, newNode);
+    }
+
     public ANode getNode(int x, int y) {
         return openSet.get(x).get(y);
     }
 
     /**
-     * Calculate the cost of going from (x1, y1) to (x2, y2). These two coordinates are adjacent
+     * Calculate the cost of going from (x1, y1) to (x2, y2). These two coordinates are adjacent.
      * @param x1 x of the first coordinate
      * @param y1 y of the first coordinate
      * @param x2 x of the second coordinate
@@ -182,6 +192,34 @@ public abstract class AStar implements Callable<List<Vector2i>> {
 
         public boolean is(Vector2i target) {
             return x == target.x && y == target.y;
+        }
+    }
+
+    /** an inverse iterator, as the source-node is at the end */
+    private class PathIterator implements Iterator<Vector2i> {
+        private int i;
+        private List<ANode> path;
+
+        public PathIterator(List<ANode> path) {
+            this.path = path;
+            this.i = path.size();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return i > 0;
+        }
+
+        @Override
+        public Vector2i next() {
+            i--;
+            ANode tgt = path.get(i); // exclusive path.size() and inclusive 0
+            return new Vector2i(tgt.x, tgt.y);
+        }
+
+        @Override
+        public void remove() {
+            path.remove(i);
         }
     }
 }

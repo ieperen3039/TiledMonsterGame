@@ -27,7 +27,8 @@ public class CommandAttack extends Command {
     }
 
     @Override
-    public List<EntityAction> toActions(Game game, EntityAction preceding, float startTime) {
-        return Collections.singletonList(new ActionFireProjectile(game, entity, target, type, startTime, DURATION));
+    public List<EntityAction> toActions(Game game, EntityAction preceding) {
+//        return Collections.singletonList(new ActionFireProjectile(game, entity, target, type, DURATION));
+        return Collections.emptyList();
     }
 }

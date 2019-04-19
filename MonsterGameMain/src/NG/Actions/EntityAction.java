@@ -26,6 +26,14 @@ public interface EntityAction extends Stimulus {
 
     Vector2ic getEndCoordinate();
 
+    default Vector3fc getStartPosition() {
+        return getPositionAt(0);
+    }
+
+    default Vector3fc getEndPosition() {
+        return getPositionAt(duration());
+    }
+
     /**
      * @return the timestamp when the action starts
      */
@@ -35,14 +43,6 @@ public interface EntityAction extends Stimulus {
      * @return the timestamp when the action stops
      */
     float endTime();
-
-    /**
-     * stops execution of the action at the given time. If time is later than end time of the action, noting happens. If
-     * time is less than the start of this action, then this action will never happen. The end time will be updated to
-     * the time of the interrupt
-     * @param time the time of the interrupt. This will be the new end time.
-     */
-    void interrupt(float time);
 
     @Override
     default float getMagnitude(Vector3fc position) {

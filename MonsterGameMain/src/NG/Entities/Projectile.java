@@ -23,7 +23,7 @@ public abstract class Projectile implements Entity {
     public void draw(SGL gl) {
         float now = game.get(GameTimer.class).getRendertime();
         if (isDisposed) return;
-        if (now < getSpawnTime()) return;
+//        if (now < getSpawnTime()) return;
 
         gl.pushMatrix();
         {
@@ -55,11 +55,6 @@ public abstract class Projectile implements Entity {
     public boolean isDisposed() {
         return isDisposed;
     }
-
-    /**
-     * @return the timestamp at which this projectile comes into existence
-     */
-    public abstract float getSpawnTime();
 
     @Override
     public BoundingBox hitbox() {
