@@ -12,6 +12,8 @@ import NG.Storable;
  * @author Geert van Ieperen. Created on 21-9-2018.
  */
 public interface GameState extends GameAspect, Storable, MouseToolListener {
+    void update(float gameTime);
+
     /**
      * adds an entity to the game in a thread-safe way.
      * @param entity the new entity, with only its constructor called
@@ -27,7 +29,7 @@ public interface GameState extends GameAspect, Storable, MouseToolListener {
     /**
      * removes the given entity from the gameState. This action does not have to be executed immediately.
      * @param entity an entity to be removed
-     * @deprecated instead, put an entities {@link Entity#isDisposed()} to true
+     * @deprecated instead, call {@link Entity#dispose()}
      */
     @Deprecated
     default void removeEntity(Entity entity) {

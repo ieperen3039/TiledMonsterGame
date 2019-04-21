@@ -19,6 +19,7 @@ public class Settings {
     public static final int CHUNK_SIZE = 16; // number of tiles in a chunk
     public static final float TILE_SIZE = 2f;
     public static final float TILE_SIZE_Z = 0.5f;
+    public static final float GRAVITY_CONSTANT = 9.81f;
 
     // video settings
     public static final float FOV = (float) Math.toRadians(40);

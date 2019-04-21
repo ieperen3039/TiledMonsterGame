@@ -8,7 +8,6 @@ import NG.GUIMenu.Frames.SFrameManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventQueueLoop;
-import NG.GameMap.ClaimRegistry;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
@@ -69,11 +68,11 @@ public class MonsterGame implements ModLoader {
         frameManager = new SFrameManager();
 
         GameMap pocketMap = new EmptyMap();
-        GameService pocketGame = createWorld(mainThreadName, settings, pocketMap);
+        GameService pocketGame = createWorld("pocket", mainThreadName, settings, pocketMap);
         this.pocketGame = pocketGame;
 
         GameMap worldMap = new TileMap(Settings.CHUNK_SIZE);
-        GameService worldGame = createWorld(mainThreadName, settings, worldMap);
+        GameService worldGame = createWorld("world", mainThreadName, settings, worldMap);
         this.worldGame = worldGame;
 
         combinedGame = new Game.Multiplexer(0, worldGame, pocketGame);
@@ -83,18 +82,16 @@ public class MonsterGame implements ModLoader {
         allMods = JarModReader.loadMods(Directory.mods);
     }
 
-    private GameService createWorld(String mainThreadName, Settings settings, GameMap pocketMap) {
+    private GameService createWorld(String name, String mainThreadName, Settings settings, GameMap pocketMap) {
         Camera pocketView = new TycoonFixedCamera(new Vector3f(), 10, 10);
-        EventLoop pocketGameLoop = new GameEventQueueLoop(settings.TARGET_TPS);
+        EventLoop pocketGameLoop = new GameEventQueueLoop(name + " Loop", settings.TARGET_TPS);
         GameState pocketGameState = new DynamicState();
         GameLights pocketLights = new SingleShadowMapLights();
         GameParticles pocketParticles = new GameParticles();
         GameTimer pocketTimer = new GameTimer(settings.RENDER_DELAY);
-        ClaimRegistry pocketClaims = new ClaimRegistry();
 
         return new GameService(GAME_VERSION, mainThreadName,
                 pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView, pocketParticles, pocketTimer,
-                pocketClaims,
                 settings, window, renderer, inputHandler, frameManager
         );
     }
@@ -132,8 +129,8 @@ public class MonsterGame implements ModLoader {
 
         Logger.DEBUG.print("Booting game loops");
 
-        pocketGame.getAll(EventLoop.class).forEach(Thread::start);
-        worldGame.getAll(EventLoop.class).forEach(Thread::start);
+        pocketGame.getAll(GameEventQueueLoop.class).forEach(Thread::start);
+        worldGame.getAll(GameEventQueueLoop.class).forEach(Thread::start);
 
         Logger.INFO.print("Finished initialisation");
     }
@@ -186,16 +183,16 @@ public class MonsterGame implements ModLoader {
         mainMenu.setVisible(false);
         frameManager.setToolBar(mainMenu.getToolBar(combinedGame));
 
-        pocketGame.getAll(EventLoop.class).forEach(AbstractGameLoop::unPause);
-        worldGame.getAll(EventLoop.class).forEach(AbstractGameLoop::unPause);
+        pocketGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::unPause);
+        worldGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::unPause);
     }
 
     private void stopGame() {
-        Logger.INFO.print(); // new line
+        Logger.INFO.newLine();
         Logger.INFO.print("Stopping game...");
 
-        pocketGame.getAll(EventLoop.class).forEach(AbstractGameLoop::pause);
-        worldGame.getAll(EventLoop.class).forEach(AbstractGameLoop::pause);
+        pocketGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::pause);
+        worldGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::pause);
 
         frameManager.setToolBar(null);
         cleanMods();
@@ -297,19 +294,19 @@ public class MonsterGame implements ModLoader {
         }
 
         List<Storable> pocketElts = Storable.readCollection(in, Storable.class);
-        cleanBeforeRead(pocketGame);
+        removeStorablesFrom(pocketGame);
         pocketElts.forEach(pocketGame::add);
         pocketGame.init();
 
         List<Storable> worldElts = Storable.readCollection(in, Storable.class);
-        cleanBeforeRead(worldGame);
+        removeStorablesFrom(worldGame);
         worldElts.forEach(worldGame::add);
         worldGame.init();
 
         combinedGame.get(GameTimer.class).set(restoredTime);
     }
 
-    public void cleanBeforeRead(Game game) {
+    public void removeStorablesFrom(Game game) {
         Iterator<Object> iterator = game.iterator();
         while (iterator.hasNext()) {
             Object elt = iterator.next();

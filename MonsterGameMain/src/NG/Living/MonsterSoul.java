@@ -1,7 +1,6 @@
 package NG.Living;
 
 import NG.Actions.ActionFinishListener;
-import NG.Actions.ActionIdle;
 import NG.Actions.EntityAction;
 import NG.DataStructures.Generic.PairList;
 import NG.Engine.Game;
@@ -12,13 +11,11 @@ import NG.GUIMenu.Frames.Components.SNamedValue;
 import NG.GUIMenu.Frames.Components.SPanel;
 import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
-import NG.GameMap.ClaimRegistry;
 import NG.Living.Commands.Command;
 import NG.Living.Commands.Command.CType;
 import NG.Storable;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
-import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
 import java.io.DataInput;
@@ -60,14 +57,13 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     private ArrayDeque<Command> plan;
     private volatile Command executionTarget;
-    private Iterator<EntityAction> executionSequence = NO_ACTIONS;
 
     /** restricts the number of pending action events to 1 */
     private final Semaphore actionEventLock;
 
     /**
      * read a monster description from the given file
-     * @param soulDescription
+     * @param soulDescription a file that describes a monster
      */
     public MonsterSoul(SoulDescription soulDescription) {
         this.plan = new ArrayDeque<>();
@@ -98,59 +94,32 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     @Override
     public void onActionFinish(EntityAction previous) {
-        if (!(previous instanceof ActionIdle)) {
-            Logger.DEBUG.print("Completed " + previous);
-        }
-
-        ClaimRegistry claims = game.get(ClaimRegistry.class);
-
-        Vector2ic startCoord = previous.getStartCoordinate();
-        Vector2ic endCoord = previous.getEndCoordinate();
-        if (!endCoord.equals(startCoord)) {
-            claims.dropClaim(startCoord, entity);
-        }
-
         actionEventLock.release();
-
         float now = game.get(GameTimer.class).getGametime();
         scheduleNext(previous, now);
     }
 
     /**
      * queries the next action planned, and executes it at the given start time.
-     * @param previous        the previous action executed
-     * @param actionStartTime the start time of the next action
+     * May not be called if another action is currently being executed
+     * @param previous the previous action executed
+     * @param gameTime the start time of the next action
      */
-    private void scheduleNext(EntityAction previous, float actionStartTime) {
-        while (!executionSequence.hasNext()) {// iterate to next plan.
-            executionSequence = NO_ACTIONS; // free the list
+    private void scheduleNext(EntityAction previous, float gameTime) {
+        if (executionTarget == null) {
             executionTarget = plan.poll();
+        }
 
-            if (executionTarget == null) {
+        while (executionTarget != null) {
+            EntityAction next = executionTarget.getAction(game, previous.getPositionAt(gameTime), gameTime);
+
+            if (next != null) {
+                boolean success = createEvent(next, gameTime);
+                assert success;
                 return;
             }
 
-            executionSequence = executionTarget.toActions(game, previous, actionStartTime).iterator();
-        }
-
-        EntityAction next = executionSequence.next();
-        ClaimRegistry claims = game.get(ClaimRegistry.class);
-
-        Vector2ic startCoord = next.getStartCoordinate();
-        Vector2ic endCoord = next.getEndCoordinate();
-
-        boolean hasClaim = startCoord.equals(endCoord) || claims.createClaim(endCoord, entity);
-
-        if (hasClaim) {
-            boolean success = createEvent(next, actionStartTime);
-            assert success; // TODO handle (maybe always throw?)
-
-        } else {
-            // recollect a new execution sequence from the same target command
-            executionSequence = executionTarget.toActions(game, previous, actionStartTime).iterator();
-            float hesitationPeriod = 0.5f;
-            boolean success = createEvent(new ActionIdle(game, previous, hesitationPeriod), actionStartTime);
-            assert success;
+            executionTarget = plan.poll();
         }
     }
 
@@ -158,18 +127,23 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
      * schedules an event that the given action has been finished.
      * @param action     the action to schedule
      * @param actionTime the start time of the action
-     * @return true if the action is scheduled successfully, false if another action has already been scheduled.
+     * @return true if the action has been scheduled, false if another action has already been scheduled.
      */
     private boolean createEvent(EntityAction action, float actionTime) {
-        Event event = action.getFinishEvent(this);
+        Event event = action.getFinishEvent(actionTime, this);
 
         if (actionEventLock.tryAcquire()) {
             game.get(EventLoop.class).addEvent(event);
             Logger.DEBUG.print(this + " executes " + action + " at " + actionTime);
-            entity.currentActions.addAfter(actionTime, action);
+            entity.currentActions.add(actionTime, action);
             return true;
         }
         return false;
+    }
+
+    public void update() {
+        float gametime = game.get(GameTimer.class).getGametime();
+        emotions.process(gametime);
     }
 
     @Override
@@ -178,6 +152,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         Type sType = stimulus.getType();
         float realMagnitude = stimulus.getMagnitude(entity.getPositionAt(gametime));
 
+//        Logger.DEBUG.print(stimulus, realMagnitude);
         if (realMagnitude < MINIMUM_NOTICE_MAGNITUDE) return;
 
         float mainJudge = importance.computeIfAbsent(sType, s ->
@@ -222,7 +197,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         // otherwise, execute action
         Command command = best.generateNew(entity, stimulus, gametime);
-        executeCommand(command);
+        queueCommand(command);
     }
 
     /**
@@ -294,7 +269,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
      * Execute the given command
      * @param c the command to be executed.
      */
-    public void executeCommand(Command c) {
+    public void queueCommand(Command c) {
         plan.offer(c);
 
         if (executionTarget == null) {

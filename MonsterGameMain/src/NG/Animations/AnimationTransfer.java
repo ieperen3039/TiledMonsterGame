@@ -14,40 +14,32 @@ public class AnimationTransfer implements UniversalAnimation {
 
     private UniversalAnimation original;
     private UniversalAnimation transfer;
-    private float transScaling;
-    private final float origScaling;
+    private float connectFraction;
+    private float invScaling;
 
-    /**
-     * A transfer into another animation. The preceding animation is defined externally.
-     * @param original        the animation to transfer into
-     * @param transfer        the replacing animation
-     * @param connectFraction what fraction of the original transformation is replaced
-     */
-    private AnimationTransfer(UniversalAnimation original, UniversalAnimation transfer, float connectFraction) {
+    public AnimationTransfer(UniversalAnimation original, UniversalAnimation transfer, float connectFraction) {
         this.original = original;
         this.transfer = transfer;
 
-        // unscaled duration of the combined animation
-        float origPart = (1 - connectFraction) * original.duration();
-        float duration = transfer.duration() + origPart;
-        transScaling = original.duration() / duration;
+        float duration = transfer.duration() + ((1 - connectFraction) * original.duration());
+        invScaling = original.duration() / duration;
 
-        float remain = duration * (1 - connectFraction);
-        origScaling = origPart / remain;
+        this.connectFraction = connectFraction;
     }
 
     @Override
     public Matrix4fc transformationOf(AnimationBone bone, float timeSinceStart) {
+        float transferDuration = transfer.duration();
 
-        // time in the unscaled combination
-        float adjustedTSS = timeSinceStart * transScaling;
+        float adjustedTSS = timeSinceStart * invScaling;
 
-        if (adjustedTSS < transfer.duration()) {
+        if (adjustedTSS < transferDuration) {
             return transfer.transformationOf(bone, adjustedTSS);
 
         } else {
-            adjustedTSS = timeSinceStart * origScaling;
-            return original.transformationOf(bone, adjustedTSS);
+            float adjusted = (original.duration() * connectFraction) + ((adjustedTSS - transferDuration));
+            assert adjusted < original.duration();
+            return original.transformationOf(bone, adjusted);
         }
     }
 
@@ -60,17 +52,17 @@ public class AnimationTransfer implements UniversalAnimation {
      * adds an animation trio to the possible transfers. In general, the second animation should register the
      * transfers.
      * @param firstAni        the animation that is played by the first action
-     * @param secondAni       the animation that the replacement transfers into
-     * @param replacement     the animation that transfers first to second
+     * @param secondAni       the animation that is played by the second action
+     * @param result          the animation that transfers first to second
      * @param connectFraction what fraction of the animation of second is skipped. The {@code result} animation is
      *                        concatenated with the last {@code connectFraction} of the second animation. If 1, the
      *                        entire animation of second is skipped. The combination is scaled to match the original
      *                        duration.
      */
     public static void add(
-            UniversalAnimation firstAni, UniversalAnimation secondAni, BodyAnimation replacement, float connectFraction
+            UniversalAnimation firstAni, UniversalAnimation secondAni, BodyAnimation result, float connectFraction
     ) {
-        AnimationTransfer value = new AnimationTransfer(secondAni, replacement, connectFraction);
+        AnimationTransfer value = new AnimationTransfer(secondAni, result, connectFraction);
         transferPairs.computeIfAbsent(firstAni, (k) -> new HashMap<>()).put(secondAni, value);
     }
 

@@ -38,11 +38,19 @@ public interface Game extends Iterable<Object> {
     <T> List<T> getAll(Class<T> target);
 
     /**
+     * returns whether this Game object has at least one instance of the given class.
+     * @param target the class that is sought
+     * @return true iff {@link #get(Class)} would return a class
+     */
+    boolean has(Class<?> target);
+
+    /**
      * adds an element to this server. Added elements can be retrieved using {@link #get(Class)}
      * @param newElement the new element
      */
     void add(Object newElement);
 
+    /** @see #add(Object) */
     default void addAll(Object... elements) {
         for (Object elt : elements) {
             add(elt);
@@ -183,6 +191,11 @@ public interface Game extends Iterable<Object> {
         @Override
         public void loadMap(File map) throws Exception {
             current.loadMap(map);
+        }
+
+        @Override
+        public boolean has(Class<?> target) {
+            return current.has(target);
         }
 
         @Override

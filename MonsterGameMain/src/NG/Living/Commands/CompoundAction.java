@@ -4,7 +4,6 @@ import NG.Actions.EntityAction;
 import NG.Animations.CompoundAnimation;
 import NG.Animations.UniversalAnimation;
 import org.joml.Quaternionf;
-import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
 import java.util.Arrays;
@@ -16,8 +15,8 @@ import java.util.Arrays;
 public class CompoundAction implements EntityAction {
     private final EntityAction[] actions;
     private final EntityAction lastAction;
+    private final float totalDuration;
     private final CompoundAnimation animations;
-    private float endTime;
 
     /**
      * combines a set of actions
@@ -28,6 +27,7 @@ public class CompoundAction implements EntityAction {
         assert nrOfActions > 0;
 
         EntityAction prevAction = actionArray[0];
+        float duration = prevAction.duration();
         UniversalAnimation[] actionAnimations = new UniversalAnimation[nrOfActions];
 
         for (int i = 1; i < actionArray.length; i++) {
@@ -42,68 +42,64 @@ public class CompoundAction implements EntityAction {
 
             actionAnimations[i] = action.getAnimation();
             prevAction = action;
+            duration += action.duration();
         }
 
-        this.actions = actionArray;
-        this.animations = new CompoundAnimation(actionAnimations);
+        actions = actionArray;
+        animations = new CompoundAnimation(actionAnimations);
         this.lastAction = prevAction;
-        this.endTime = prevAction.endTime();
+        this.totalDuration = duration;
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
-        if (currentTime <= 0) {
-            return actions[0].getPositionAt(currentTime);
+    public Vector3f getPositionAt(float timeSinceStart) {
+        if (timeSinceStart <= 0) {
+            return actions[0].getPositionAt(0);
 
-        } else if (currentTime >= endTime) {
-            return lastAction.getPositionAt(currentTime);
+        } else if (timeSinceStart >= totalDuration) {
+            float end = lastAction.duration();
+            return lastAction.getPositionAt(end);
         }
 
         for (EntityAction action : actions) {
-            if (action.endTime() >= currentTime) {
-                return action.getPositionAt(currentTime);
+            float duration = action.duration();
+            if (timeSinceStart > duration) {
+                timeSinceStart -= duration;
+
+            } else {
+                return action.getPositionAt(timeSinceStart);
             }
         }
 
-        throw new AssertionError("currentTime >= endTime");
+        throw new AssertionError("invalid value of totalDuration, missing " + timeSinceStart);
     }
 
     @Override
-    public Quaternionf getRotationAt(float currentTime) {
-        if (currentTime <= 0) {
-            return actions[0].getRotationAt(currentTime);
+    public Quaternionf getRotationAt(float timeSinceStart) {
+        if (timeSinceStart <= 0) {
+            return actions[0].getRotationAt(0);
 
-        } else if (currentTime >= endTime) {
-            return lastAction.getRotationAt(currentTime);
+        } else if (timeSinceStart >= totalDuration) {
+            float end = lastAction.duration();
+            return lastAction.getRotationAt(end);
         }
 
         for (EntityAction action : actions) {
-            if (action.endTime() >= currentTime) {
-                return action.getRotationAt(currentTime);
+            float duration = action.duration();
+            if (timeSinceStart > duration) {
+                timeSinceStart -= duration;
+
+            } else {
+                return action.getRotationAt(timeSinceStart);
             }
         }
 
-        throw new AssertionError("currentTime >= endTime");
+        throw new AssertionError("invalid value of totalDuration, missing " + timeSinceStart);
     }
 
     @Override
-    public boolean isCancelled() {
-        return actions[0].isCancelled();
-    }
-
-    @Override
-    public Vector2ic getEndCoordinate() {
-        return lastAction.getEndCoordinate();
-    }
-
-    @Override
-    public float startTime() {
-        return actions[0].startTime();
-    }
-
-    @Override
-    public Vector2ic getStartCoordinate() {
-        return actions[0].getStartCoordinate();
+    public float duration() {
+        return totalDuration;
     }
 
     @Override
@@ -114,24 +110,5 @@ public class CompoundAction implements EntityAction {
     @Override
     public String toString() {
         return Arrays.toString(actions);
-    }
-
-    @Override
-    public float endTime() {
-        return endTime;
-    }
-
-    @Override
-    public void interrupt(float time) {
-        if (time < endTime) {
-            for (EntityAction action : actions) {
-                if (action.endTime() >= time) {
-                    // this action and all later actions as well
-                    action.interrupt(time);
-                }
-            }
-
-            endTime = time;
-        }
     }
 }

@@ -3,15 +3,11 @@ package NG.GameState;
 import NG.CollisionDetection.CollisionDetection;
 import NG.Engine.Game;
 import NG.Entities.Entity;
-import NG.GameMap.ClaimRegistry;
-import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Vectors;
-import org.joml.Vector2i;
 import org.joml.Vector3f;
-import org.joml.Vector3i;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -37,6 +33,11 @@ public class DynamicState implements GameState {
     }
 
     @Override
+    public void update(float gameTime) {
+        entityList.processCollisions(gameTime);
+    }
+
+    @Override
     public void addEntity(Entity entity) {
         assert !entityList.contains(entity) : "duplicate entity";
         entityList.addEntity(entity);
@@ -53,13 +54,10 @@ public class DynamicState implements GameState {
         Vector3f direction = new Vector3f();
         Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
 
-        GameMap map = game.get(GameMap.class);
-        Vector3f position = map.intersectWithRay(origin, direction);
-        Vector3i asCoord = map.getCoordinate(position);
-        Entity claimant = game.get(ClaimRegistry.class).getClaim(new Vector2i(asCoord.x, asCoord.y));
-        if (claimant == null) return false;
+        Entity e = entityList.rayTrace(origin, direction);
+        if (e == null) return false;
 
-        tool.apply(claimant, xSc, ySc);
+        tool.apply(e, xSc, ySc);
         return true;
     }
 

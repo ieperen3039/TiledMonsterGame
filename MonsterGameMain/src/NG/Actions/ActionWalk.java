@@ -2,40 +2,49 @@ package NG.Actions;
 
 import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
+import NG.GameMap.GameMap;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import static NG.Animations.BodyAnimation.WALK_CYCLE;
-import static NG.Settings.Settings.TILE_SIZE;
 
 /**
- * A linear movement from point A to point B
+ * A linear movement from point A to point B, where A and B are adjacent
  * @author Geert van Ieperen created on 12-2-2019.
  */
-public class ActionWalk extends ActionMovement {
+public class ActionWalk implements EntityAction {
+    protected final Vector3fc start;
+    protected final Vector3fc end;
+    protected final float duration;
     private final UniversalAnimation animation;
+    private final Vector2ic startCoord;
+    private final Vector2ic endCoord;
 
     /**
      * @param game      the current game instance
-     * @param start     coordinate where the move origins
-     * @param end       coordinate where the move ends, adjacent to start
-     * @param walkSpeed the speed of the movement in m/s
-     * @param startTime the time the action starts
+     * @param startCoord     start position
+     * @param endCoord  target coordinate where to walk to
+     * @param walkSpeed the time when this action ends in seconds.
      */
-    public ActionWalk(Game game, Vector2ic start, Vector2ic end, float walkSpeed, float startTime) {
-        super(game, start, end, startTime, walkSpeed / TILE_SIZE);
-
+    public ActionWalk(Game game, Vector2ic startCoord, Vector2ic endCoord, float walkSpeed) {
+        this.startCoord = startCoord;
+        this.endCoord = endCoord;
+        GameMap map = game.get(GameMap.class);
+        start = map.getPosition(startCoord);
+        end = map.getPosition(endCoord);
+        duration = walkSpeed / (start.distance(end));
         animation = WALK_CYCLE;
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
-        float timeSinceStart = currentTime - startTime;
+    public Vector3f getPositionAt(float timeSinceStart) {
         if (timeSinceStart < 0) return new Vector3f(start);
-        if (currentTime > endTime) return new Vector3f(end);
+        if (timeSinceStart > duration) return new Vector3f(end);
 
-        float fraction = timeSinceStart / duration();
+        // TODO more precise movement, taking animation into account (maybe)
+        float fraction = timeSinceStart / duration;
         return new Vector3f(start).lerp(end, fraction);
     }
 
@@ -46,6 +55,11 @@ public class ActionWalk extends ActionMovement {
 
     @Override
     public String toString() {
-        return "Walk (" + Vectors.toString(startCoord) + " to " + Vectors.toString(endCoord) + ")";
+        return "Walk (to " + Vectors.toString(end) + ")";
+    }
+
+    @Override
+    public float duration() {
+        return duration;
     }
 }

@@ -3,7 +3,7 @@ package NG.Animations;
 import org.joml.Matrix4fc;
 
 /**
- * Several {@link UniversalAnimation Animations} appended together
+ * Several {@link PartialAnimation Animations} combined into one animation.
  * @author Geert van Ieperen created on 4-3-2019.
  */
 public class CompoundAnimation implements UniversalAnimation {

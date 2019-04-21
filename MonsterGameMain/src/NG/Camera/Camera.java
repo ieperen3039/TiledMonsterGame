@@ -1,7 +1,7 @@
 package NG.Camera;
 
-import NG.InputHandling.MouseScrollListener;
 import NG.Engine.GameAspect;
+import NG.InputHandling.MouseScrollListener;
 import NG.Settings.Settings;
 import org.joml.Matrix4f;
 import org.joml.Vector3fc;
@@ -53,7 +53,7 @@ public interface Camera extends GameAspect, MouseScrollListener {
 
         if (isometric) {
             float visionSize = vectorToFocus().length() - Settings.Z_NEAR;
-            visionSize /= 4;
+            visionSize /= 2;
             vpMatrix.orthoSymmetric(aspectRatio * visionSize, visionSize, Settings.Z_NEAR, Settings.Z_FAR);
         } else {
             vpMatrix.setPerspective(Settings.FOV, aspectRatio, Settings.Z_NEAR, Settings.Z_FAR);

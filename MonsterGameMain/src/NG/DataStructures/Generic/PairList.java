@@ -208,6 +208,14 @@ public class PairList<L, R> extends AbstractList<Pair<L, R>> {
         rightList.addAll(rightNew);
     }
 
+    public L[] leftToArray(L[] a) {
+        return leftList.toArray(a);
+    }
+
+    public R[] rightToArray(R[] a) {
+        return rightList.toArray(a);
+    }
+
     /**
      * allows iteration over this pairList
      */

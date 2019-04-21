@@ -8,7 +8,6 @@ import NG.Engine.Game;
 import NG.Engine.GameAspect;
 import NG.Engine.GameTimer;
 import NG.GUIMenu.ScreenOverlay;
-import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
@@ -25,13 +24,11 @@ import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
-import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -93,16 +90,16 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             pointer.setPosition(position, midSquare);
 
-            if (cursorIsVisible) {
-                game.get(GLFWWindow.class).hideCursor(false);
-                cursorIsVisible = false;
-            }
-
-        } else {
-            if (!cursorIsVisible) {
-                game.get(GLFWWindow.class).showCursor();
-                cursorIsVisible = true;
-            }
+//            if (cursorIsVisible) {
+//                game.get(GLFWWindow.class).hideCursor(false);
+//                cursorIsVisible = false;
+//            }
+//
+//        } else {
+//            if (!cursorIsVisible) {
+//                game.get(GLFWWindow.class).showCursor();
+//                cursorIsVisible = true;
+//            }
         }
     }
 
@@ -126,10 +123,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         renderWith(worldShader, world::draw, true);
         renderWith(sceneShader, this::drawEntities, true);
 
-        if (game.get(Settings.class).RENDER_CLAIMED_TILES) {
-            renderWith(sceneShader, gl -> drawClaimedTiles(gl, world), false);
-        }
-
         renderWith(particleShader, particles::draw, false);
 
         int windowWidth = window.getWidth();
@@ -142,19 +135,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         // loop clean
         Toolbox.checkGLError();
         if (window.shouldClose()) stopLoop();
-    }
-
-    private void drawClaimedTiles(SGL gl, GameMap world) {
-        Collection<Vector2ic> claims = game.get(ClaimRegistry.class).getClaimedTiles();
-
-        for (Vector2ic c : claims) {
-            Vector3f tr = world.getPosition(c);
-            tr.add(0, 0, 0.01f);
-
-            gl.translate(tr);
-            gl.render(GenericShapes.QUAD, null);
-            gl.translate(tr.negate());
-        }
     }
 
     private void drawEntities(SGL gl) {

@@ -6,7 +6,6 @@ import NG.Engine.GameService;
 import NG.Engine.GameTimer;
 import NG.Engine.Version;
 import NG.GUIMenu.Frames.SFrameManager;
-import NG.GameMap.ClaimRegistry;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.GameState.DynamicState;
@@ -36,7 +35,6 @@ public class DecoyGame extends GameService {
         add(new TileMap(Settings.CHUNK_SIZE));
         add(new TycoonFixedCamera(new Vector3f(), 0, 10));
         add(new DynamicState());
-        add(new ClaimRegistry());
 
         renderloop.addHudItem(get(SFrameManager.class)::draw);
         get(GameLights.class).addDirectionalLight(new Vector3f(1, -1.5f, 2), Color4f.WHITE, 0.5f);

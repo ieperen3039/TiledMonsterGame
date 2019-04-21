@@ -7,9 +7,10 @@ import NG.GameMap.GameMap;
 import NG.Living.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
+import org.joml.Vector3fc;
+import org.joml.Vector3i;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
 /**
  * @author Geert van Ieperen created on 13-2-2019.
@@ -23,28 +24,19 @@ public class CommandWalk extends Command {
     }
 
     @Override
-    public List<EntityAction> toActions(Game game, EntityAction preceding, float startTime) {
-        Vector2ic beginPosition = preceding.getEndCoordinate();
+    public EntityAction getAction(Game game, Vector3fc beginPosition, float gameTime) {
+        final float walkSpeed = 1f;
+        GameMap map = game.get(GameMap.class);
 
-        if (beginPosition.equals(target)) {
-            // already there, return an empty list of actions
-            return null;
-        }
+        Vector3i beginCoord3d = map.getCoordinate(beginPosition);
+        Vector2i beginCoord = new Vector2i(beginCoord3d.x, beginCoord3d.y);
 
-        Collection<Vector2i> path = game.get(GameMap.class)
-                .findPath(beginPosition, target, 1f, 0.1f); // TODO entity parameters
+        Iterator<Vector2i> path = map
+                .findPath(beginCoord, target, walkSpeed, 0.1f)
+                .iterator();
 
-        Vector2ic lastPos = beginPosition;
-        List<EntityAction> actions = new ArrayList<>();
+        if (!path.hasNext()) return null; // already there
 
-        float walkSpeed = 1;//entity.stat(WALK_SPEED);
-        for (Vector2i pos : path) {
-            ActionWalk step = new ActionWalk(game, lastPos, pos, walkSpeed, startTime);
-            actions.add(step);
-            startTime = step.endTime();
-            lastPos = pos;
-        }
-
-        return actions;
+        return new ActionWalk(game, beginCoord, path.next(), walkSpeed);
     }
 }

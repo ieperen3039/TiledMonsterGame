@@ -16,12 +16,13 @@ import static java.lang.Float.isNaN;
  * A collection of utility functions for vectors, specifically for Vector2f
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
-public class Vectors {
+public final class Vectors {
     public static final Vector3fc X = newXVector();
     public static final Vector3fc Y = new Vector3f(0, 1, 0);
     public static final Vector3fc Z = newZVector();
     public static final Vector3fc O = newZeroVector();
     private static final float PI = (float) Math.PI;
+    private static final float VECTOR_EQUALITY_DIST_SQ = 1e-6f;
 
     public static Vector3f newZeroVector() {
         return new Vector3f(0, 0, 0);
@@ -327,7 +328,11 @@ public class Vectors {
         return new Vector3f(box.maxX - box.minX, box.maxY - box.minY, box.maxZ - box.minZ);
     }
 
-    public static class Scaling {
+    public static boolean almostEquals(Vector3fc alpha, Vector3fc beta) {
+        return alpha.distanceSquared(beta) < VECTOR_EQUALITY_DIST_SQ;
+    }
+
+    public static final class Scaling {
         public static final Vector3fc UNIFORM = new Vector3f(1, 1, 1);
         /** scaling that mirrors in the X direction */
         public static final org.joml.Vector3fc MIRROR_X = new Vector3f(-1, 1, 1);

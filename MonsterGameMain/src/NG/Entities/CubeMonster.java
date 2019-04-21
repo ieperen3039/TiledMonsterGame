@@ -3,13 +3,13 @@ package NG.Entities;
 import NG.Animations.AnimationBone;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
+import NG.CollisionDetection.BoundingBox;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Living.MonsterSoul;
 import NG.Living.SoulDescription;
 import NG.Rendering.Shapes.GenericShapes;
-import org.joml.AABBf;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -51,7 +51,7 @@ public class CubeMonster extends MonsterSoul {
      * @author Geert van Ieperen created on 4-2-2019.
      */
     public static class Entity extends MonsterEntity {
-        private AABBf hitbox;
+        private BoundingBox hitbox;
 
         /** the direction this entity is facing relative to the world */
         private Pair<Vector3fc, Float> currentFace;
@@ -78,7 +78,7 @@ public class CubeMonster extends MonsterSoul {
             Vector3f eyeDir = new Vector3f(faceDirection);
 
             float sq2 = (float) Math.sqrt(2);
-            this.hitbox = new AABBf(-sq2, -sq2, -sq2, sq2, sq2, sq2);
+            this.hitbox = new BoundingBox(-sq2, -sq2, -sq2, sq2, sq2, sq2);
             this.currentFace = new Pair<>(eyeDir, gametime);
             this.targetFace = currentFace;
         }
@@ -117,6 +117,11 @@ public class CubeMonster extends MonsterSoul {
         @Override
         protected Map<AnimationBone, BoneElement> getBoneMapping() {
             return boneMap;
+        }
+
+        @Override
+        public BoundingBox hitbox() {
+            return hitbox;
         }
 
         protected void setTargetRotation(Vector3fc direction) {

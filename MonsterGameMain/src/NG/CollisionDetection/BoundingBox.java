@@ -31,10 +31,10 @@ public class BoundingBox extends AABBf {
     }
 
     /**
-     * calculates the fraction t in the ray equation <i>p(t) = origin + t * dir</i>, bound between [0 ... 1]
+     * calculates the fraction t in the ray equation <i>p(t) = origin + t * dir</i>
      * @param origin the origin of the ray
      * @param dir    the direction of the ray
-     * @return fraction t of the nearest intersection, such that 0 <= t <= 1, and t = 1 if the ray does not hit.
+     * @return fraction t of the nearest intersection, such that 0 <= t, and t = {@link Float#MAX_VALUE} if the ray does not hit.
      */
     public float intersectMovement(Vector3fc origin, Vector3fc dir) {
         Vector2f result = new Vector2f();
@@ -47,11 +47,7 @@ public class BoundingBox extends AABBf {
         );
 
         if (result.x < 0) return 0;
-        if (!doIntersect || result.x > 1) {
-            return 1;
-        } else {
-            return result.x;
-        }
+        return doIntersect ? result.x : Float.MAX_VALUE;
     }
 
     /**
@@ -68,7 +64,7 @@ public class BoundingBox extends AABBf {
     ) {
         if (thisMove.equals(otherMove)) return 1; // when moving the same direction (or both zero) they will not hit
 
-        float min = 1;
+        float min = 1; // at most 1
         Vector3fc relativePos = new Vector3f(thisPos).sub(otherPos);
         Vector3fc relativeMove = new Vector3f(thisMove).sub(otherMove);
 

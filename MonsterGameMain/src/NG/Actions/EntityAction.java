@@ -5,26 +5,21 @@ import NG.GameEvent.Event;
 import NG.Living.Stimulus;
 import NG.Tools.Vectors;
 import org.joml.Quaternionf;
-import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**
- * An immutable action that is completely set in time and space
+ * An immutable action with a fixed start position, end position, animation and duration.
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public interface EntityAction extends Stimulus {
 
     /**
      * calculates the position resulting from this action, the given time after the start of this action
-     * @param currentTime the current time in seconds
+     * @param timeSinceStart the time since the start of this animation in seconds
      * @return the position at the given moment in time as described by this action.
      */
-    Vector3f getPositionAt(float currentTime);
-
-    Vector2ic getStartCoordinate();
-
-    Vector2ic getEndCoordinate();
+    Vector3f getPositionAt(float timeSinceStart);
 
     default Vector3fc getStartPosition() {
         return getPositionAt(0);
@@ -35,14 +30,10 @@ public interface EntityAction extends Stimulus {
     }
 
     /**
-     * @return the timestamp when the action starts
+     * @return the duration of the action in seconds.
      */
-    float startTime();
+    float duration();
 
-    /**
-     * @return the timestamp when the action stops
-     */
-    float endTime();
 
     @Override
     default float getMagnitude(Vector3fc position) {
@@ -65,24 +56,17 @@ public interface EntityAction extends Stimulus {
             throw new IllegalArgumentException("Action is compared to null");
         }
 
-        Vector2ic firstEndPos = first.getEndCoordinate();
-        return firstEndPos.equals(getStartCoordinate());
+        return Vectors.almostEquals(first.getEndPosition(), getStartPosition());
     }
 
-    default Event getFinishEvent(ActionFinishListener listener) {
-        return new Event.Anonymous(endTime(), () -> listener.onActionFinish(this));
+    default Event getFinishEvent(float startTime, ActionFinishListener listener) {
+        return new Event.Anonymous(startTime + duration(), () -> listener.onActionFinish(this));
     }
 
-    default Quaternionf getRotationAt(float currentTime) {
-        Vector3fc startPosition = getPositionAt(startTime());
-        Vector3fc endPosition = getPositionAt(endTime());
-        Vector3f relativeMovement = new Vector3f(endPosition).sub(startPosition);
+    default Quaternionf getRotationAt(float timeSinceStart) {
+        Vector3fc startPosition = getPositionAt(0);
+        Vector3fc endPosition = getPositionAt(duration());
+        Vector3f relativeMovement = new Vector3f(startPosition).sub(endPosition);
         return Vectors.getPitchYawRotation(relativeMovement);
     }
-
-    default float progressAt(float currentTime) {
-        return (currentTime - startTime()) / (endTime() - startTime());
-    }
-
-    boolean isCancelled();
 }

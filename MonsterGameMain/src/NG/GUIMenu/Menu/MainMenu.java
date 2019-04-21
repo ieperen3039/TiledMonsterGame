@@ -15,7 +15,10 @@ import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Frames.Components.*;
 import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.SToolBar;
-import NG.GameMap.*;
+import NG.GameMap.GameMap;
+import NG.GameMap.MapGeneratorMod;
+import NG.GameMap.SimpleMapGenerator;
+import NG.GameMap.TileThemeSet;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.InputHandling.KeyMouseCallbacks;
@@ -94,7 +97,10 @@ public class MainMenu extends SFrame {
         try {
             int xSize = Settings.CHUNK_SIZE;
             int ySize = Settings.CHUNK_SIZE;
-            overworld.get(ClaimRegistry.class).cleanup();
+
+            GameState state = overworld.get(GameState.class);
+            state.cleanup();
+            state.init(overworld);
 
             TileThemeSet.PLAIN.load();
 
@@ -146,7 +152,7 @@ public class MainMenu extends SFrame {
         Vector2ic edge = game.get(GameMap.class).getSize();
         Vector3f cameraFocus = game.get(GameMap.class).getPosition(edge.x() / 2, edge.y() / 2);
         Camera cam = game.get(Camera.class);
-        int initialZoom = (int) edge.length();
+        float initialZoom = (float) edge.length() / 2;
         Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
         cam.set(cameraFocus, cameraEye);
         return cameraFocus;

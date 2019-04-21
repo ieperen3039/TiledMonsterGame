@@ -48,7 +48,8 @@ public class GameService implements Game { // TODO make exception elements for r
             }
         }
 
-        return null;
+        Object[] elts = elements.stream().map(p -> p.right).map(Class::getSimpleName).toArray();
+        throw new NoSuchElementException(String.format("No element of %s :\n%s", target.toString(), Arrays.toString(elts)));
     }
 
     @Override
@@ -109,6 +110,24 @@ public class GameService implements Game { // TODO make exception elements for r
         }
 
         elements.clear();
+    }
+
+    @Override
+    public boolean has(Class<?> target) {
+        if (lookAsideTable.containsKey(target)) {
+            return true;
+        }
+
+        for (int i = 0; i < elements.size(); i++) {
+            if (target.isAssignableFrom(elements.right(i))) {
+                Object elt = elements.left(i);
+                lookAsideTable.put(target, elt);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

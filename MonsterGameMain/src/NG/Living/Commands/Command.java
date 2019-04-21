@@ -7,11 +7,11 @@ import NG.Entities.MonsterEntity;
 import NG.Living.*;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -43,12 +43,12 @@ public abstract class Command implements Stimulus {
      * transforms the command into an action that is executed by the given entity and starts on the given moment in
      * time.
      * @param game      the current game instance
-     * @param preceding the last action executed
-     * @param startTime
+     * @param startPosition the last action executed
+     * @param gameTime the current game time
      * @return a list {@code l} of actions, sorted on first action first, such that they corresponds exactly to this command, and it holds that {@code
      * l.get(0).}{@link EntityAction#follows(EntityAction) follows}{@code (preceding)}
      */
-    public abstract List<EntityAction> toActions(Game game, EntityAction preceding, float startTime);
+    public abstract EntityAction getAction(Game game, Vector3fc startPosition, float gameTime);
 
     public Living getTarget() {
         return target;
