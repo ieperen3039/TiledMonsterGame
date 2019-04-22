@@ -139,12 +139,6 @@ public abstract class MonsterEntity implements Entity {
     @Override
     public void collideWith(Entity other, float collisionTime) {
         Pair<EntityAction, Float> action = currentActions.getActionAt(collisionTime);
-        controller.onActionFinish(action.left);
-    }
-
-    private class IllegalPositionException extends IllegalArgumentException {
-        public IllegalPositionException(String s) {
-            super(s);
-        }
+        controller.onActionFinish(action.left, collisionTime);
     }
 }

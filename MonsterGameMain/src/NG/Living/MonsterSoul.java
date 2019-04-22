@@ -93,10 +93,9 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     protected abstract MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction);
 
     @Override
-    public void onActionFinish(EntityAction previous) {
+    public void onActionFinish(EntityAction previous, float finishTime) {
         actionEventLock.release();
-        float now = game.get(GameTimer.class).getGametime();
-        scheduleNext(previous, now);
+        scheduleNext(previous, finishTime);
     }
 
     /**
@@ -112,6 +111,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         while (executionTarget != null) {
             EntityAction next = executionTarget.getAction(game, previous.getPositionAt(gameTime), gameTime);
+//            Thread.dumpStack();
 
             if (next != null) {
                 boolean success = createEvent(next, gameTime);

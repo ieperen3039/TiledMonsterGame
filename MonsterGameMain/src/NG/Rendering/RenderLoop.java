@@ -81,11 +81,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     /**
      * generates a new render bundle, which allows adding rendering actions which are executed in order on the given
      * shader. There is no guarantee on execution order between shaders
-     * @param shader the shader used
+     * @param shader the shader used, or null to use a basic Phong shading
      * @return a bundle that allows adding rendering options.
      */
     public RenderBundle getRenderSequence(ShaderProgram shader) {
-        return renders.computeIfAbsent(shader, RenderBundle::new);
+        return renders.computeIfAbsent(shader == null ? uiShader : shader, RenderBundle::new);
     }
 
     private void updateArrow(int xPos, int yPos) {
@@ -125,14 +125,13 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         game.get(Camera.class).updatePosition(deltaTime); // real-time deltatime
 
         GameLights lights = game.get(GameLights.class);
-        GLFWWindow window = game.get(GLFWWindow.class);
-
         lights.renderShadowMaps();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         renders.values().forEach(RenderBundle::draw);
 
+        GLFWWindow window = game.get(GLFWWindow.class);
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
         overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);

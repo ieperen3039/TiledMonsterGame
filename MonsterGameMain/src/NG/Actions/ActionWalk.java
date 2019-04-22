@@ -19,20 +19,26 @@ public class ActionWalk implements EntityAction {
     protected final Vector3fc end;
     protected final float duration;
     private final UniversalAnimation animation;
-    private final Vector2ic startCoord;
-    private final Vector2ic endCoord;
 
     /**
-     * @param game      the current game instance
-     * @param startCoord     start position
-     * @param endCoord  target coordinate where to walk to
-     * @param walkSpeed the time when this action ends in seconds.
+     * @param game       the current game instance
+     * @param startCoord start coordinate
+     * @param endCoord   target coordinate where to walk to
+     * @param walkSpeed  the time when this action ends in seconds.
      */
     public ActionWalk(Game game, Vector2ic startCoord, Vector2ic endCoord, float walkSpeed) {
-        this.startCoord = startCoord;
-        this.endCoord = endCoord;
+        this(game, game.get(GameMap.class).getPosition(startCoord), endCoord, walkSpeed);
+    }
+
+    /**
+     * @param game          the current game instance
+     * @param startPosition the exact position where to start walking
+     * @param endCoord      target coordinate where to walk to
+     * @param walkSpeed     the time when this action ends in seconds.
+     */
+    public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord, float walkSpeed) {
         GameMap map = game.get(GameMap.class);
-        start = map.getPosition(startCoord);
+        start = new Vector3f(startPosition);
         end = map.getPosition(endCoord);
         duration = walkSpeed / (start.distance(end));
         animation = WALK_CYCLE;
@@ -40,8 +46,8 @@ public class ActionWalk implements EntityAction {
 
     @Override
     public Vector3f getPositionAt(float timeSinceStart) {
-        if (timeSinceStart < 0) return new Vector3f(start);
-        if (timeSinceStart > duration) return new Vector3f(end);
+        if (timeSinceStart <= 0) return new Vector3f(start);
+        if (timeSinceStart >= duration) return new Vector3f(end);
 
         // TODO more precise movement, taking animation into account (maybe)
         float fraction = timeSinceStart / duration;

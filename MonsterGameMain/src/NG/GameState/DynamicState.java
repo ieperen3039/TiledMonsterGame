@@ -3,6 +3,7 @@ package NG.GameState;
 import NG.CollisionDetection.CollisionDetection;
 import NG.Engine.Game;
 import NG.Entities.Entity;
+import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
@@ -49,15 +50,28 @@ public class DynamicState implements GameState {
     }
 
     @Override
+    public Collection<Entity> entities() {
+        return entityList.getEntityList();
+    }
+
+    @Override
     public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
-        Vector3f origin = new Vector3f();
-        Vector3f direction = new Vector3f();
-        Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
+        Entity entity;
 
-        Entity e = entityList.rayTrace(origin, direction);
-        if (e == null) return false;
+        if (game.has(ClickShader.class)) {
+            entity = game.get(ClickShader.class).getEntity(game, xSc, ySc);
 
-        tool.apply(e, xSc, ySc);
+        } else {
+            Vector3f origin = new Vector3f();
+            Vector3f direction = new Vector3f();
+            Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
+
+            entity = entityList.rayTrace(origin, direction);
+        }
+
+        if (entity == null) return false;
+
+        tool.apply(entity, xSc, ySc);
         return true;
     }
 

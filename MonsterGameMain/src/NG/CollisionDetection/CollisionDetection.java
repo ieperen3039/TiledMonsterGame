@@ -363,25 +363,19 @@ public class CollisionDetection {
         float fraction = Float.MAX_VALUE;
         Entity suspect = null;
 
-        for (CollisionEntity[] sortedArray : new CollisionEntity[][]{
-                xLowerSorted, yLowerSorted, zLowerSorted
-        }) {
-            for (CollisionEntity elt : sortedArray) {
-                boolean collide = sect.test(
-                        elt.xLower(), elt.yLower(), elt.zLower(),
-                        elt.xUpper(), elt.yUpper(), elt.zUpper()
-                );
-                if (!collide) continue;
+        for (CollisionEntity elt : entityArray()) {
+            boolean collide = sect.test(
+                    elt.xLower(), elt.yLower(), elt.zLower(),
+                    elt.xUpper(), elt.yUpper(), elt.zUpper()
+            );
+            if (!collide) continue;
 
-                Entity entity = elt.entity;
+            Entity entity = elt.entity;
 
-                float f = entity.hitbox().intersectMovement(origin, dir);
-                if (f < fraction) {
-                    fraction = f;
-                    suspect = entity;
-                }
-
-                break;
+            float f = entity.hitbox().intersectMovement(origin, dir);
+            if (f < fraction) {
+                fraction = f;
+                suspect = entity;
             }
         }
 

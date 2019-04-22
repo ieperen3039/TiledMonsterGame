@@ -51,15 +51,12 @@ public class MainMenu extends SFrame {
     private final Game overworld;
     private final Game pocketworld;
     private final ModLoader modLoader;
-    private final SFrame newGameFrame;
 
     public MainMenu(Game overworld, Game pocketworld, ModLoader modManager, Runnable exitGameAction) {
         super("Main Menu", 400, 500, false);
         this.overworld = overworld;
         this.pocketworld = pocketworld;
         this.modLoader = modManager;
-
-        newGameFrame = new NewGameFrame(overworld, modLoader);
 
         setMainPanel(SPanel.row(
                 new SFiller(),
@@ -136,16 +133,11 @@ public class MainMenu extends SFrame {
             overworld.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 1f), Color4f.WHITE, 0.2f);
 
             // start
-            start();
+            modLoader.startGame();
 
         } catch (Exception e) {
             Logger.ERROR.print(e);
         }
-    }
-
-    private void start() {
-        modLoader.startGame();
-        newGameFrame.setVisible(false);
     }
 
     private Vector3f centerCamera(Game game) {
@@ -181,7 +173,7 @@ public class MainMenu extends SFrame {
 
         overworld.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
-        start();
+        modLoader.startGame();
     }
 
     private void animationDisplay() {
@@ -208,10 +200,11 @@ public class MainMenu extends SFrame {
 
         overworld.get(GameState.class).addEntity(demonstrator);
 
-        start();
+        modLoader.startGame();
     }
 
     private void showNewGamePanel() {
+        SFrame newGameFrame = new NewGameFrame(overworld, modLoader);
         newGameFrame.setVisible(true);
         overworld.get(GUIManager.class).addFrame(newGameFrame);
     }

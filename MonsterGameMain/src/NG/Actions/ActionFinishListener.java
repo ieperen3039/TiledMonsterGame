@@ -4,5 +4,5 @@ package NG.Actions;
  * @author Geert van Ieperen created on 22-2-2019.
  */
 public interface ActionFinishListener {
-    void onActionFinish(EntityAction last);
+    void onActionFinish(EntityAction last, float finishTime);
 }

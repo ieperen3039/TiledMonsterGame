@@ -9,16 +9,20 @@ import org.joml.Vector3f;
  * @author Geert van Ieperen created on 9-1-2019.
  */
 public class Cube implements Entity {
-    private static final int SIZE = 1;
+    private static final float SIZE = 1;
     private static int nr = 0;
     private final int id;
 
     private boolean isDisposed = false;
     protected Vector3f position;
+    private BoundingBox boundingBox;
 
     public Cube(Vector3f position) {
         this.position = position;
         id = nr++;
+
+        float half = SIZE / 2;
+        boundingBox = new BoundingBox(half, half, half, half, half, half);
     }
 
     @Override
@@ -59,8 +63,7 @@ public class Cube implements Entity {
 
     @Override
     public BoundingBox hitbox() {
-        int half = SIZE / 2;
-        return new BoundingBox(half, half, half, half, half, half);
+        return boundingBox;
     }
 
     @Override

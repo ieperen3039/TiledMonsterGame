@@ -158,6 +158,5 @@ public class NewGameFrame extends SFrame implements Runnable {
         // start
         modLoader.startGame();
         this.setVisible(false);
-
     }
 }

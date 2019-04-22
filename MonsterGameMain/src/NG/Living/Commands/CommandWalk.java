@@ -37,6 +37,6 @@ public class CommandWalk extends Command {
 
         if (!path.hasNext()) return null; // already there
 
-        return new ActionWalk(game, beginCoord, path.next(), walkSpeed);
+        return new ActionWalk(game, beginPosition, path.next(), walkSpeed);
     }
 }

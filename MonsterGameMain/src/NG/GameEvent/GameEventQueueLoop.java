@@ -67,25 +67,27 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Storable, Ev
             if (eventTime > updateTime) {
                 state.update(eventTime);
                 updateTime = eventTime;
-            }
 
-            lockQueueRead.lock();
-            Event newEvent = eventQueue.element();
-            lockQueueRead.unlock();
-
-            if (next == newEvent) {
-                next.run();
-
-                lockQueueEdit.lock();
-                eventQueue.remove();
-                if (eventQueue.isEmpty()) break;
-
+                lockQueueRead.lock();
                 next = eventQueue.element();
-                lockQueueEdit.unlock();
-
-            } else {
-                next = newEvent;
+                lockQueueRead.unlock();
             }
+
+            /* if state had to be updated, and a new event was generated,
+             * then the state has already been updated past this new event.
+             */
+            next.run();
+
+            lockQueueEdit.lock();
+            eventQueue.remove();
+
+            if (eventQueue.isEmpty()) {
+                lockQueueEdit.unlock();
+                break;
+            }
+
+            next = eventQueue.element();
+            lockQueueEdit.unlock();
 
             eventTime = next.getTime();
         }

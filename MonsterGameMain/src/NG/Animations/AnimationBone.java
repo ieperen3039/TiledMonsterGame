@@ -2,6 +2,7 @@ package NG.Animations;
 
 import NG.Animations.ColladaLoader.JointData;
 import NG.Entities.Entity;
+import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Vectors;
@@ -257,7 +258,7 @@ public class AnimationBone implements Storable {
             Vector3f scaling = new Vector3f(xSize, ySize, zSize);
             scaling.div(mesh.getSize()).div(bone.scaling);
 
-            BoneElement element = new BoneElement(mesh, scaling);
+            BoneElement element = new BoneElement(mesh, scaling, Material.ROUGH);
             body.put(bone, element);
             return this;
         }

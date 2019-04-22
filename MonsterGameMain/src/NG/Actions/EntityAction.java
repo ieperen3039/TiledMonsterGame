@@ -60,7 +60,7 @@ public interface EntityAction extends Stimulus {
     }
 
     default Event getFinishEvent(float startTime, ActionFinishListener listener) {
-        return new Event.Anonymous(startTime + duration(), () -> listener.onActionFinish(this));
+        return new ActionFinishEvent(this, startTime, listener);
     }
 
     default Quaternionf getRotationAt(float timeSinceStart) {
@@ -68,5 +68,20 @@ public interface EntityAction extends Stimulus {
         Vector3fc endPosition = getPositionAt(duration());
         Vector3f relativeMovement = new Vector3f(startPosition).sub(endPosition);
         return Vectors.getPitchYawRotation(relativeMovement);
+    }
+
+    class ActionFinishEvent extends Event {
+        private EntityAction action;
+        private ActionFinishListener listener;
+
+        public ActionFinishEvent(EntityAction action, float startTime, ActionFinishListener listener) {
+            super(startTime + action.duration());
+            this.action = action;
+            this.listener = listener;
+        }
+
+        public void run() {
+            listener.onActionFinish(action, eventTime);
+        }
     }
 }

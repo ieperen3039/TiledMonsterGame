@@ -3,6 +3,7 @@ package NG.Engine;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
 import NG.DataStructures.Generic.Color4f;
+import NG.Entities.Entity;
 import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.Frames.SFrameManager;
 import NG.GUIMenu.Menu.MainMenu;
@@ -15,8 +16,8 @@ import NG.GameState.DynamicState;
 import NG.GameState.GameLights;
 import NG.GameState.GameState;
 import NG.GameState.SingleShadowMapLights;
+import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseToolCallbacks;
-import NG.Mods.InitialisationMod;
 import NG.Mods.Mod;
 import NG.Particles.GameParticles;
 import NG.Particles.ParticleShader;
@@ -28,6 +29,7 @@ import NG.Settings.Settings;
 import NG.Storable;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
+import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
@@ -80,9 +82,6 @@ public class MonsterGame implements ModLoader {
 
         combinedGame = new Game.Multiplexer(0, worldGame, pocketGame);
         Logger.printOnline(() -> "Current view: " + (combinedGame.current() == 0 ? "World" : "Pocket"));
-
-        // load mods
-        allMods = JarModReader.loadMods(Directory.mods);
     }
 
     private GameService createWorld(String name, String mainThreadName, Settings settings, GameMap pocketMap) {
@@ -105,12 +104,15 @@ public class MonsterGame implements ModLoader {
      */
     public void init() throws Exception {
         Logger.DEBUG.print("Initializing...");
+
         // init all fields
         renderer.init(combinedGame);
         inputHandler.init(combinedGame);
         frameManager.init(combinedGame);
         pocketGame.init();
         worldGame.init();
+
+        Logger.DEBUG.print("Installing basic elements...");
 
         // world
         renderer.getRenderSequence(new WorldBPShader())
@@ -124,10 +126,6 @@ public class MonsterGame implements ModLoader {
         renderer.getRenderSequence(new ParticleShader())
                 .add(combinedGame.get(GameParticles.class)::draw);
 
-        Logger.DEBUG.print("Initial world processing...");
-
-        permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
-
         mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
         frameManager.addFrame(mainMenu);
 
@@ -139,11 +137,40 @@ public class MonsterGame implements ModLoader {
             }
         });
 
+        Logger.DEBUG.print("Installing optional elements...");
+
+        // hitboxes
+        renderer.getRenderSequence(null)
+                .add(gl -> {
+                    if (combinedGame.get(Settings.class).RENDER_HITBOXES) return;
+
+                    Collection<Entity> entities = combinedGame.get(GameState.class).entities();
+                    Toolbox.drawHitboxes(gl, entities, combinedGame.get(GameTimer.class).getGametime());
+                });
+
+        // clickshader
+        try {
+            ClickShader shader = combinedGame.computeOnRenderThread(ClickShader::new).get();
+            combinedGame.add(shader);
+
+        } catch (Exception ex) {
+            Logger.WARN.print("Could not start ClickShader: " + ex);
+            // we have backups if it doesn't work for whatever reason
+        }
+
+        Logger.DEBUG.print("Loading mods...");
+
+        allMods = JarModReader.loadMods(Directory.mods);
+        permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
+        initMods(permanentMods);
+
+        Logger.DEBUG.print("Initial world setup...");
+
         final Color4f HALOGEN = Color4f.rgb(255, 241, 224);
         pocketGame.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1, 2), HALOGEN, 0.8f);
         worldGame.get(GameLights.class).addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
-        Logger.DEBUG.print("Booting game loops");
+        Logger.DEBUG.print("Booting game loops...");
 
         pocketGame.getAll(GameEventQueueLoop.class).forEach(Thread::start);
         worldGame.getAll(GameEventQueueLoop.class).forEach(Thread::start);
@@ -153,19 +180,14 @@ public class MonsterGame implements ModLoader {
 
     @Override
     public void initMods(List<Mod> mods) {
-        assert activeMods.isEmpty() : "Already mods loaded";
-        activeMods = new ArrayList<>(mods);
-
-        // init mods
-        for (Mod mod : activeMods) {
+        for (Iterator<Mod> it = mods.iterator(); it.hasNext(); ) {
+            Mod mod = it.next();
             try {
-                assert !(mod instanceof InitialisationMod) : "Init mods should not be loaded here";
-
                 mod.init(combinedGame);
 
             } catch (Exception ex) {
                 Logger.ERROR.print("Error while loading " + mod.getModName(), ex);
-                mods.remove(mod);
+                it.remove();
             }
         }
     }
@@ -203,7 +225,8 @@ public class MonsterGame implements ModLoader {
         worldGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::unPause);
     }
 
-    private void stopGame() {
+    @Override
+    public void stopGame() {
         Logger.INFO.newLine();
         Logger.INFO.print("Stopping game...");
 

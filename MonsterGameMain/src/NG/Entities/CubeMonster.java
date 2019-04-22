@@ -9,6 +9,7 @@ import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Living.MonsterSoul;
 import NG.Living.SoulDescription;
+import NG.Rendering.Material;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -24,7 +25,7 @@ import java.util.Map;
  * @author Geert van Ieperen created on 6-3-2019.
  */
 public class CubeMonster extends MonsterSoul {
-    private static final float SIZE = 0.4f;
+    private static final float HALF_SIZE = 0.4f;
     private static final BodyModel BODY_MODEL = BodyModel.CUBE;
 
     private final Map<AnimationBone, BoneElement> boneMap;
@@ -33,7 +34,7 @@ public class CubeMonster extends MonsterSoul {
         super(new SoulDescription(description));
         boneMap = Collections.singletonMap(
                 BODY_MODEL.getBone("cube_root"),
-                new BoneElement(GenericShapes.CUBE, new Vector3f(SIZE))
+                new BoneElement(GenericShapes.CUBE, new Vector3f(HALF_SIZE), Material.ROUGH)
         );
     }
 
@@ -77,8 +78,7 @@ public class CubeMonster extends MonsterSoul {
             float gametime = game.get(GameTimer.class).getGametime();
             Vector3f eyeDir = new Vector3f(faceDirection);
 
-            float sq2 = (float) Math.sqrt(2);
-            this.hitbox = new BoundingBox(-sq2, -sq2, -sq2, sq2, sq2, sq2);
+            this.hitbox = new BoundingBox(-HALF_SIZE, -HALF_SIZE, -HALF_SIZE, HALF_SIZE, HALF_SIZE, HALF_SIZE);
             this.currentFace = new Pair<>(eyeDir, gametime);
             this.targetFace = currentFace;
         }

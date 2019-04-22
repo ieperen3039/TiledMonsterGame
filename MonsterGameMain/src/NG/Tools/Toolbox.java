@@ -1,6 +1,8 @@
 package NG.Tools;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.DataStructures.Generic.Color4f;
+import NG.Entities.Entity;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
@@ -18,6 +20,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -117,6 +120,25 @@ public final class Toolbox {
             gl.render(GenericShapes.CUBE, null);
         }
         gl.popMatrix();
+    }
+
+    public static void drawHitboxes(SGL gl, Collection<Entity> targets, float gameTime) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        for (Entity e : targets) {
+            gl.pushMatrix();
+            {
+                Vector3f position = e.getPositionAt(gameTime);
+                gl.translate(position);
+                BoundingBox h = e.hitbox();
+                gl.scale(h.maxX - h.minX / 2, h.maxY - h.minY / 2, h.maxZ - h.minZ / 2);
+                gl.render(GenericShapes.CUBE, e);
+            }
+            gl.popMatrix();
+
+        }
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     public static void checkGLError() {

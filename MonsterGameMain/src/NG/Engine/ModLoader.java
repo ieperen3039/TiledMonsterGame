@@ -14,6 +14,11 @@ public interface ModLoader {
     void startGame();
 
     /**
+     * stops the game and unloads the mods
+     */
+    void stopGame();
+
+    /**
      * Starts the given mods. The mods must be unloaded later by {@link #cleanMods()}
      * @param mods a list of mods to be loaded, which have not been started before.
      */

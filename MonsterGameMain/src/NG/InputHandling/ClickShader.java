@@ -27,6 +27,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 import static NG.Rendering.Shaders.ShaderProgram.createShader;
 import static NG.Rendering.Shaders.ShaderProgram.loadText;
@@ -38,10 +40,9 @@ import static org.lwjgl.opengl.GL20.*;
  */
 @SuppressWarnings("Duplicates")
 public class ClickShader implements ShaderProgram {
-
     private static final Path VERTEX_PATH = Directory.shaders.getPath("Click", "click.vert");
     private static final Path FRAGMENT_PATH = Directory.shaders.getPath("Click", "click.frag");
-    private static final ClickShader shader = new ClickShader();
+    private static final ClickShader shader = null;
     private final Map<String, Integer> uniforms;
 
     private ArrayList<Entity> mapping;
@@ -50,7 +51,7 @@ public class ClickShader implements ShaderProgram {
     private int vertexShaderID;
     private int fragmentShaderID;
 
-    private ClickShader() {
+    public ClickShader() {
         this.uniforms = new HashMap<>();
 
         this.programId = glCreateProgram();
@@ -94,10 +95,10 @@ public class ClickShader implements ShaderProgram {
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
 
-        return new ClickShaderGL(this, windowWidth, windowHeight, camera, doIsometric);
+        return new ClickShaderGL(windowWidth, windowHeight, camera, doIsometric);
     }
 
-    public void setEntity(Entity entity) {
+    private void setEntity(Entity entity) {
         if (entity == null) return;
         if (!entity.equals(lastEntity)) {
             mapping.add(entity);
@@ -110,7 +111,7 @@ public class ClickShader implements ShaderProgram {
         lastEntity = entity;
     }
 
-    public void unsetEntity() {
+    private void unsetEntity() {
         setColor(new Vector3i());
     }
 
@@ -132,7 +133,7 @@ public class ClickShader implements ShaderProgram {
         }
     }
 
-    public void link() throws ShaderException {
+    private void link() throws ShaderException {
         glLinkProgram(programId);
         if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
             throw new ShaderException("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
@@ -178,11 +179,11 @@ public class ClickShader implements ShaderProgram {
         }
     }
 
-    public void setProjectionMatrix(Matrix4f viewProjectionMatrix) {
+    private void setProjectionMatrix(Matrix4f viewProjectionMatrix) {
         setUniform("viewProjectionMatrix", viewProjectionMatrix);
     }
 
-    public void setModelMatrix(Matrix4f modelMatrix) {
+    private void setModelMatrix(Matrix4f modelMatrix) {
         setUniform("modelMatrix", modelMatrix);
     }
 
@@ -251,61 +252,73 @@ public class ClickShader implements ShaderProgram {
     }
 
     /**
-     * may only be called on the current OpenGL context
+     * automatically subroutines to the openGL context
      * @param game the current game
      * @param xPos x screen coordinate
      * @param yPos y screen coordinate
      * @return the entity that is visible on the given pixel coordinate.
      */
-    public static Entity getEntity(Game game, int xPos, int yPos) {
-        shader.initialize(game);
-        shader.bind();
+    public Entity getEntity(Game game, int xPos, int yPos) {
+        Callable<Entity> task = () -> {
+            synchronized (this) {
+                initialize(game);
+                bind();
 
-        GLFWWindow window = game.get(GLFWWindow.class);
-        SGL flatColorRender = shader.getGL(game);
+                SGL flatColorRender = getGL(game);
+                game.get(GameState.class).draw(flatColorRender);
 
-        game.get(GameState.class).draw(flatColorRender);
-        shader.unbind();
+                unbind();
 
-        if (game.get(Settings.class).DEBUG) {
-            window.printScreen(Directory.screenshots, "click", GL11.GL_BACK);
+                // extract information
+
+                if (game.get(Settings.class).DEBUG) {
+                    GLFWWindow window = game.get(GLFWWindow.class);
+                    window.printScreen(Directory.screenshots, "click", GL11.GL_BACK);
+                }
+
+                Vector3i value = ClickShader.getPixelValue(xPos, yPos);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                int i = colorToNumber(value);
+
+                if (i == 0) return null;
+                return mapping.get(i - 1);
+            }
+        };
+
+        try {
+            return game.computeOnRenderThread(task).get();
+
+        } catch (ExecutionException | InterruptedException e) {
+            Logger.ERROR.print(e);
+            return null;
         }
-
-        Vector3i value = ClickShader.getPixelValue(xPos, yPos);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        int i = colorToNumber(value);
-
-        if (i == 0) return null;
-        return shader.mapping.get(i - 1);
     }
 
     /**
      * @author Geert van Ieperen created on 30-1-2019.
      */
-    public static class ClickShaderGL extends AbstractSGL {
-        private final ClickShader shader;
+    public class ClickShaderGL extends AbstractSGL {
         private final Matrix4f viewProjectionMatrix;
 
-        public ClickShaderGL(
-                ClickShader shader, int windowWidth, int windowHeight, Camera viewpoint, boolean isometric
+        ClickShaderGL(
+                int windowWidth, int windowHeight, Camera viewpoint, boolean isometric
         ) {
-            this.shader = shader;
             viewProjectionMatrix = viewpoint.getViewProjection(windowWidth, windowHeight, isometric);
 
         }
 
         @Override
         public void render(Mesh object, Entity sourceEntity) {
-            shader.setEntity(sourceEntity);
-            shader.setProjectionMatrix(viewProjectionMatrix);
-            shader.setModelMatrix(getModelMatrix());
+            setEntity(sourceEntity);
+            setProjectionMatrix(viewProjectionMatrix);
+            setModelMatrix(getModelMatrix());
             object.render(LOCK);
-            shader.unsetEntity();
+            unsetEntity();
         }
 
         public ShaderProgram getShader() {
-            return shader;
+            return ClickShader.this;
         }
     }
 }

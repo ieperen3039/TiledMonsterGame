@@ -13,7 +13,6 @@ import static NG.Living.BaseStimulus.UNKNOWN;
 /**
  * a generic event that happens on a predetermined time. Triggering of the event should result in a stimulus being
  * broadcasted.
- * @see Anonymous Event.Anonymous
  */
 public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
     protected final float eventTime;
@@ -35,34 +34,6 @@ public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
     @Override
     public int compareTo(Event other) {
         return Float.compare(eventTime, other.eventTime);
-    }
-
-    /**
-     * a class that triggers a runnable when triggered. May be cancelled, such that it no longer executes the given
-     * runnable. As stimulus, this event won't be noticed.
-     */
-    public static class Anonymous extends Event {
-        private Runnable action;
-
-        public Anonymous(float eventTime, Runnable action) {
-            super(eventTime);
-            assert action != null;
-            this.action = action;
-        }
-
-        @Override
-        public void run() {
-            if (action != null) action.run();
-        }
-
-        public void cancel() {
-            action = null;
-        }
-
-        @Override
-        public Type getType() {
-            return UNKNOWN;
-        }
     }
 
     /**

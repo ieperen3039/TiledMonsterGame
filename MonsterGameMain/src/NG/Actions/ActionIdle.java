@@ -6,6 +6,7 @@ import NG.Animations.PartialAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
+import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.io.DataOutput;
@@ -68,7 +69,7 @@ public class ActionIdle implements EntityAction {
 
     @Override
     public String toString() {
-        return "Idle (" + duration + ")";
+        return "Idle (at " + Vectors.toString(position) + ")";
     }
 
     @Override
