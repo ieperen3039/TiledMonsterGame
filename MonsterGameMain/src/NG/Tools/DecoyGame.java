@@ -21,7 +21,7 @@ import org.joml.Vector3f;
  * @author Geert van Ieperen created on 6-2-2019.
  */
 public class DecoyGame extends GameService {
-    private static final Version VERSION = new Version(1, 0);
+    private static final Version VERSION = new Version(2, 0);
 
     public DecoyGame(String title, RenderLoop renderloop, Settings settings) {
         super(VERSION, Thread.currentThread().getName(), renderloop, settings);

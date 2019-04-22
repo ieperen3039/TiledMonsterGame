@@ -10,10 +10,7 @@ import NG.Engine.GameTimer;
 import NG.GUIMenu.ScreenOverlay;
 import NG.GameMap.GameMap;
 import NG.GameState.GameLights;
-import NG.GameState.GameState;
 import NG.InputHandling.KeyMouseCallbacks;
-import NG.Particles.GameParticles;
-import NG.Particles.ParticleShader;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
 import NG.Rendering.Shaders.*;
@@ -29,6 +26,10 @@ import org.joml.Vector3fc;
 import org.joml.Vector3i;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -40,11 +41,10 @@ import static org.lwjgl.opengl.GL11.*;
 public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private final ScreenOverlay overlay;
     private Game game;
-    private SceneShader sceneShader;
-    private SceneShader worldShader;
-    private ParticleShader particleShader;
+    private Map<ShaderProgram, RenderBundle> renders;
     private Pointer pointer;
     private boolean cursorIsVisible = false;
+    private SceneShader uiShader;
 
     /**
      * creates a new, paused gameloop
@@ -53,6 +53,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     public RenderLoop(int targetFPS) {
         super("Renderloop", targetFPS);
         overlay = new ScreenOverlay();
+        renders = new HashMap<>();
 
         pointer = new Pointer();
     }
@@ -69,10 +70,22 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             }
         });
 
-        sceneShader = new BlinnPhongShader();
-        worldShader = new WorldBPShader();
-        particleShader = new ParticleShader();
+        uiShader = new PhongShader();
+        getRenderSequence(uiShader)
+                .add(game.get(GameLights.class)::draw)
+                .add(pointer::draw);
+
         game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updateArrow);
+    }
+
+    /**
+     * generates a new render bundle, which allows adding rendering actions which are executed in order on the given
+     * shader. There is no guarantee on execution order between shaders
+     * @param shader the shader used
+     * @return a bundle that allows adding rendering options.
+     */
+    public RenderBundle getRenderSequence(ShaderProgram shader) {
+        return renders.computeIfAbsent(shader, RenderBundle::new);
     }
 
     private void updateArrow(int xPos, int yPos) {
@@ -90,16 +103,16 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             pointer.setPosition(position, midSquare);
 
-//            if (cursorIsVisible) {
-//                game.get(GLFWWindow.class).hideCursor(false);
-//                cursorIsVisible = false;
-//            }
-//
-//        } else {
-//            if (!cursorIsVisible) {
-//                game.get(GLFWWindow.class).showCursor();
-//                cursorIsVisible = true;
-//            }
+            if (cursorIsVisible && game.get(Settings.class).HIDE_CURSOR_ON_MAP) {
+                game.get(GLFWWindow.class).setCursorMode(CursorMode.HIDDEN_FREE);
+                cursorIsVisible = false;
+            }
+
+        } else {
+            if (!cursorIsVisible) {
+                game.get(GLFWWindow.class).setCursorMode(CursorMode.VISIBLE);
+                cursorIsVisible = true;
+            }
         }
     }
 
@@ -111,19 +124,14 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         // camera
         game.get(Camera.class).updatePosition(deltaTime); // real-time deltatime
 
-        GameMap world = game.get(GameMap.class);
         GameLights lights = game.get(GameLights.class);
-        GameParticles particles = game.get(GameParticles.class);
         GLFWWindow window = game.get(GLFWWindow.class);
 
         lights.renderShadowMaps();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderWith(worldShader, world::draw, true);
-        renderWith(sceneShader, this::drawEntities, true);
-
-        renderWith(particleShader, particles::draw, false);
+        renders.values().forEach(RenderBundle::draw);
 
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
@@ -137,56 +145,34 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         if (window.shouldClose()) stopLoop();
     }
 
-    private void drawEntities(SGL gl) {
-        game.get(GameState.class).draw(gl);
-        pointer.draw(gl);
-    }
-
-    private void renderWith(ShaderProgram shader, Consumer<SGL> draw, boolean addLights) {
-        shader.bind();
-        {
-            shader.initialize(game);
-
-            // GL object
-            SGL gl = shader.getGL(game);
-
-            if (addLights) {
-                game.get(GameLights.class).draw(gl);
-            }
-
-            draw.accept(gl);
-        }
-        shader.unbind();
-    }
-
     public void addHudItem(Consumer<ScreenOverlay.Painter> draw) {
         overlay.addHudItem(draw);
     }
 
     @Override
     public void cleanup() {
-        sceneShader.cleanup();
+        uiShader.cleanup();
         overlay.cleanup();
     }
 
     private void dumpTexture(Texture texture, String fileName) {
-        assert (sceneShader instanceof TextureShader);
+        assert (uiShader instanceof TextureShader);
         GLFWWindow window = game.get(GLFWWindow.class);
 
-        sceneShader.bind();
+        uiShader.bind();
         {
-            sceneShader.initialize(game);
+            uiShader.initialize(game);
             Camera viewpoint = new StaticCamera(new Vector3f(0, 0, 3), Vectors.newZeroVector(), Vectors.newXVector());
 
-            SGL tgl = new SceneShaderGL(sceneShader, texture.getWidth(), texture.getHeight(), viewpoint, true);
+            SGL tgl = new SceneShaderGL(uiShader, texture.getWidth(), texture.getHeight(), viewpoint, true);
 
-            sceneShader.setPointLight(Vectors.Z, Color4f.WHITE, 0.8f);
-            ((TextureShader) sceneShader).setTexture(texture);
+            uiShader.setPointLight(Vectors.Z, Color4f.WHITE, 0.8f);
+            ((TextureShader) uiShader).setTexture(texture);
             tgl.render(GenericShapes.TEXTURED_QUAD, null);
-            ((TextureShader) sceneShader).unsetTexture();
+            ((TextureShader) uiShader).unsetTexture();
 
         }
-        sceneShader.unbind();
+        uiShader.unbind();
         window.printScreen(Directory.screenshots, fileName, GL_BACK);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
@@ -228,6 +214,43 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             this.midSquare.set(midSquare);
             this.midSquare.negate(midSquareNegate);
             exact.set(position.x(), position.y(), midSquare.z());
+        }
+    }
+
+    public class RenderBundle {
+        private ShaderProgram shader;
+        private List<Consumer<SGL>> targets;
+
+        public RenderBundle(ShaderProgram shader) {
+            this.shader = shader;
+            this.targets = new ArrayList<>();
+        }
+
+        /**
+         * appends the given consumer to the end of the render sequence
+         * @return this
+         */
+        public RenderBundle add(Consumer<SGL> drawable) {
+            targets.add(drawable);
+            return this;
+        }
+
+        /**
+         * executes the given drawables in order
+         */
+        public void draw() {
+            shader.bind();
+            {
+                shader.initialize(game);
+
+                // GL object
+                SGL gl = shader.getGL(game);
+
+                for (Consumer<SGL> tgt : targets) {
+                    tgt.accept(gl);
+                }
+            }
+            shader.unbind();
         }
     }
 }

@@ -34,6 +34,7 @@ public interface Camera extends GameAspect, MouseScrollListener {
     /** a copy of the direction of up, the length of this vector is undetermined. */
     Vector3fc getUpVector();
 
+    /** sets the camera to the given position and focus. The state of the up-vector depends on the implementation */
     void set(Vector3fc focus, Vector3fc eye);
 
     /**

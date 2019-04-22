@@ -62,6 +62,8 @@ public interface GUIManager extends GameAspect, MouseToolListener {
      */
     void setToolBar(SToolBar toolBar);
 
+    SToolBar getToolBar();
+
     /**
      * @param xSc screen x coordinate in pixels from left
      * @param ySc screen y coordinate in pixels from top

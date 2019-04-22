@@ -19,8 +19,11 @@ import NG.InputHandling.MouseToolCallbacks;
 import NG.Mods.InitialisationMod;
 import NG.Mods.Mod;
 import NG.Particles.GameParticles;
+import NG.Particles.ParticleShader;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.RenderLoop;
+import NG.Rendering.Shaders.BlinnPhongShader;
+import NG.Rendering.Shaders.WorldBPShader;
 import NG.Settings.Settings;
 import NG.Storable;
 import NG.Tools.Directory;
@@ -39,7 +42,7 @@ import java.util.*;
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public class MonsterGame implements ModLoader {
-    public static final Version GAME_VERSION = new Version(0, 3);
+    public static final Version GAME_VERSION = new Version(0, 4);
 
     private final RenderLoop renderer;
     private final GLFWWindow window;
@@ -109,6 +112,18 @@ public class MonsterGame implements ModLoader {
         pocketGame.init();
         worldGame.init();
 
+        // world
+        renderer.getRenderSequence(new WorldBPShader())
+                .add(combinedGame.get(GameLights.class)::draw)
+                .add(combinedGame.get(GameMap.class)::draw);
+        // entities
+        renderer.getRenderSequence(new BlinnPhongShader())
+                .add(combinedGame.get(GameLights.class)::draw)
+                .add(combinedGame.get(GameState.class)::draw);
+        // particles
+        renderer.getRenderSequence(new ParticleShader())
+                .add(combinedGame.get(GameParticles.class)::draw);
+
         Logger.DEBUG.print("Initial world processing...");
 
         permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
@@ -124,7 +139,8 @@ public class MonsterGame implements ModLoader {
             }
         });
 
-        pocketGame.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1, 2), Color4f.rgb(255, 241, 224), 0.8f);
+        final Color4f HALOGEN = Color4f.rgb(255, 241, 224);
+        pocketGame.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1, 2), HALOGEN, 0.8f);
         worldGame.get(GameLights.class).addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         Logger.DEBUG.print("Booting game loops");

@@ -12,7 +12,7 @@ public class Settings {
     // debug settings
     public boolean DEBUG = true;
     public boolean DEBUG_SCREEN = DEBUG;
-    public boolean RENDER_CLAIMED_TILES = DEBUG;
+    public boolean RENDER_HITBOXES = DEBUG;
 
     // game engine settings
     public int TARGET_TPS = 30;
@@ -42,6 +42,7 @@ public class Settings {
 
     // UI settings
     public static int TOOL_BAR_HEIGHT = 70;
+    public boolean HIDE_CURSOR_ON_MAP = false;
 
     // ambiance settings
     public static final Color4f AMBIENT_LIGHT = new Color4f(1, 1, 1, 0.2f);

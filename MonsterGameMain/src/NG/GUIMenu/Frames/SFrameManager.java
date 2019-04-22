@@ -76,6 +76,7 @@ public class SFrameManager implements GUIManager {
     public void addFrame(SFrame frame) {
         frame.validateLayout();
 
+        // TODO remove assumption that toolbar is on top
         int toolbarHeight = toolBar == null ? 0 : toolBar.getHeight();
         int x = 50;
         int y = 50 + toolbarHeight;
@@ -149,6 +150,11 @@ public class SFrameManager implements GUIManager {
     @Override
     public void setToolBar(SToolBar toolBar) {
         this.toolBar = toolBar;
+    }
+
+    @Override
+    public SToolBar getToolBar() {
+        return toolBar;
     }
 
     @Override

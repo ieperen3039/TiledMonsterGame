@@ -353,19 +353,19 @@ public class GLFWWindow {
         }
     }
 
-    /**
-     * sets mouse to invisible and optionally restrict movement
-     * @param capture if true, mouse is reset to middle of the screen as well
-     */
-    public void hideCursor(boolean capture) {
-        glfwSetInputMode(window, GLFW_CURSOR, capture ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_HIDDEN);
-    }
-
-    /**
-     * sets mouse to visible
-     */
-    public void showCursor() {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    /** sets the mouse pointer to the given mode */
+    public void setCursorMode(CursorMode mode) {
+        switch (mode) {
+            case VISIBLE:
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                break;
+            case HIDDEN_FREE:
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+                break;
+            case HIDDEN_CAPTURED:
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                break;
+        }
     }
 
     public void setClearColor(Color4f color4f) {
@@ -406,3 +406,4 @@ public class GLFWWindow {
     }
 }
 
+enum CursorMode {VISIBLE, HIDDEN_FREE, HIDDEN_CAPTURED}

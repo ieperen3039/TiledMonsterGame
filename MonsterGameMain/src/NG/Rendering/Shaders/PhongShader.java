@@ -42,7 +42,7 @@ public class PhongShader extends SceneShader {
     public void initialize(Game game) {
         Vector3fc eye = game.get(Camera.class).getEye();
 
-        setUniform("ambientLight", game.get(Settings.class).AMBIENT_LIGHT.toVector3f());
+        setUniform("ambientLight", Settings.AMBIENT_LIGHT.toVector3f());
         setUniform("cameraPosition", eye);
 
         nextLightIndex = 0;
