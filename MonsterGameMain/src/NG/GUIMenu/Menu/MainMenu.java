@@ -35,9 +35,11 @@ import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
-import org.joml.*;
+import org.joml.Vector2i;
+import org.joml.Vector2ic;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
-import java.lang.Math;
 import java.util.Collection;
 
 /**
@@ -118,13 +120,13 @@ public class MainMenu extends SFrame {
             /* --- DEBUG SECTION --- */
 
             // add a default entity
-            Vector3i position = overworld.get(GameMap.class).getCoordinate(cameraFocus);
+            Vector2i position = overworld.get(GameMap.class).getCoordinate(cameraFocus);
             MonsterSoul monsterSoul = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            MonsterEntity cow = monsterSoul.getAsEntity(overworld, new Vector2i(position.x, position.y), Vectors.X);
+            MonsterEntity cow = monsterSoul.getAsEntity(overworld, position, Vectors.X);
             overworld.get(GameState.class).addEntity(cow);
 
             // give it some command
-            Command command = new CommandWalk(new Player(), monsterSoul, new Vector2i(position.x + 2, position.y + 2));
+            Command command = new CommandWalk(new Player(), monsterSoul, new Vector2i(position.x + 1, position.y + 1));
             monsterSoul.accept(command);
 
             /* --- END SECTION --- */
@@ -233,8 +235,7 @@ public class MainMenu extends SFrame {
 
         @Override
         public void apply(Vector3fc position) {
-            Vector3i temp = game.get(GameMap.class).getCoordinate(position);
-            Vector2i second = new Vector2i(temp.x, temp.y);
+            Vector2i second = game.get(GameMap.class).getCoordinate(position);
 
             if (first == null) {
                 this.first = second;

@@ -1,6 +1,7 @@
 package NG.DataStructures.Generic;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -195,6 +196,12 @@ public class PairList<L, R> extends AbstractList<Pair<L, R>> {
     @Override
     public ListIterator<Pair<L, R>> listIterator(int index) {
         return new PairListIterator(index);
+    }
+
+    public void forEach(BiConsumer<L, R> action) {
+        for (int i = 0; i < size(); i++) {
+            action.accept(leftList.get(i), rightList.get(i));
+        }
     }
 
     public void addAll(List<L> leftNew, List<R> rightNew) {

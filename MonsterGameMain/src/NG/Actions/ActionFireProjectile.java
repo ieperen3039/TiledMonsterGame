@@ -25,7 +25,7 @@ public class ActionFireProjectile extends ActionIdle {
     ) {
         super(source.getPositionAt(startTime), duration);
 
-        float spawnTime = duration * aniFireMoment;
+        float spawnTime = duration * aniFireMoment + startTime;
         Vector3f spawnPosition = source.getPositionAt(spawnTime).add(0, 0, 1);
 
         // TODO replace validity check with something more robust

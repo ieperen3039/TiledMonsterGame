@@ -1,6 +1,5 @@
 package NG.GameMap;
 
-import NG.Camera.Camera;
 import NG.DataStructures.Direction;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
@@ -12,7 +11,6 @@ import NG.Rendering.Shaders.ShaderProgram;
 import NG.Settings.Settings;
 import NG.Tools.AStar;
 import NG.Tools.Logger;
-import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.io.DataInput;
@@ -31,8 +29,8 @@ public class TileMap implements GameMap {
     private final float realChunkSize;
     private final List<ChangeListener> changeListeners;
 
-    private int xSize = 0;
-    private int ySize = 0;
+    private int xChunks = 0;
+    private int yChunks = 0;
     private MapChunk[][] map;
     private Game game;
 
@@ -76,8 +74,8 @@ public class TileMap implements GameMap {
         }
 
         this.map = newMap;
-        this.xSize = xChunks;
-        this.ySize = yChunks;
+        this.xChunks = xChunks;
+        this.yChunks = yChunks;
     }
 
     @Override
@@ -85,7 +83,7 @@ public class TileMap implements GameMap {
         int cx = x / chunkSize;
         int cy = y / chunkSize;
 
-        if (cx >= xSize || cx < 0 || cy >= ySize || cy < 0) {
+        if (cx >= xChunks || cx < 0 || cy >= yChunks || cy < 0) {
             return 0;
         }
 
@@ -95,11 +93,10 @@ public class TileMap implements GameMap {
     }
 
     @Override
-    public Vector3i getCoordinate(Vector3fc position) {
-        return new Vector3i(
+    public Vector2i getCoordinate(Vector3fc position) {
+        return new Vector2i(
                 (int) (position.x() / TILE_SIZE),
-                (int) (position.y() / TILE_SIZE),
-                (int) (position.z() / TILE_SIZE_Z)
+                (int) (position.y() / TILE_SIZE)
         );
     }
 
@@ -155,16 +152,6 @@ public class TileMap implements GameMap {
     }
 
     @Override
-    public Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction) {
-        Vector3f temp = new Vector3f();
-
-        Vector3fc point = game.get(Camera.class).getFocus();
-        float t = Intersectionf.intersectRayPlane(origin, direction, point, Vectors.Z, 1E-6f);
-
-        return origin.add(direction.mul(t, temp), temp);
-    }
-
-    @Override
     public void addChangeListener(ChangeListener listener) {
         changeListeners.add(listener);
     }
@@ -178,7 +165,7 @@ public class TileMap implements GameMap {
             int cx = c.x() / chunkSize;
             int cy = c.y() / chunkSize;
 
-            if (cx >= xSize || cx < 0 || cy >= ySize || cy < 0) continue;
+            if (cx >= xChunks || cx < 0 || cy >= yChunks || cy < 0) continue;
 
             MapChunk chunk = map[cx][cy];
             highlightedChunks.add(chunk);
@@ -192,7 +179,7 @@ public class TileMap implements GameMap {
 
     @Override
     public Vector2ic getSize() {
-        return new Vector2i(xSize * chunkSize, ySize * chunkSize);
+        return new Vector2i(xChunks * chunkSize, yChunks * chunkSize);
     }
 
     @Override
@@ -223,8 +210,8 @@ public class TileMap implements GameMap {
         }
 
         out.writeInt(chunkSize);
-        out.writeInt(xSize);
-        out.writeInt(ySize);
+        out.writeInt(xChunks);
+        out.writeInt(yChunks);
 
         // now write the chunks themselves
         for (MapChunk[] mapChunks : map) {
@@ -274,15 +261,15 @@ public class TileMap implements GameMap {
 
         chunkSize = in.readInt();
         this.realChunkSize = chunkSize * Settings.TILE_SIZE;
-        this.xSize = in.readInt();
-        this.ySize = in.readInt();
+        this.xChunks = in.readInt();
+        this.yChunks = in.readInt();
 
         // now read chunks themselves
-        map = new MapChunk[xSize][];
-        for (int mx = 0; mx < xSize; mx++) {
-            MapChunk[] yStrip = new MapChunk[ySize];
+        map = new MapChunk[xChunks][];
+        for (int mx = 0; mx < xChunks; mx++) {
+            MapChunk[] yStrip = new MapChunk[yChunks];
 
-            for (int my = 0; my < ySize; my++) {
+            for (int my = 0; my < yChunks; my++) {
                 MapChunkArray chunk = new MapChunkArray(chunkSize);
                 chunk.readFromFile(in, types);
                 yStrip[my] = chunk;
@@ -297,7 +284,7 @@ public class TileMap implements GameMap {
         int cx = x / chunkSize;
         int cy = y / chunkSize;
 
-        if (cx >= xSize || cy >= ySize) return null;
+        if (cx >= xChunks || cy >= yChunks) return null;
 
         MapChunk chunk = map[cx][cy];
 
@@ -310,7 +297,7 @@ public class TileMap implements GameMap {
         int cx = x / chunkSize;
         int cy = y / chunkSize;
 
-        if (cx >= xSize || cx < 0 || cy >= ySize || cy < 0) return;
+        if (cx >= xChunks || cx < 0 || cy >= yChunks || cy < 0) return;
 
         MapChunk chunk = map[cx][cy];
 
@@ -324,8 +311,8 @@ public class TileMap implements GameMap {
     public Collection<Vector2i> findPath(
             Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
     ) {
-        int xMax = (xSize * chunkSize) - 1;
-        int yMax = (ySize * chunkSize) - 1;
+        int xMax = (xChunks * chunkSize) - 1;
+        int yMax = (yChunks * chunkSize) - 1;
 
         return new AStar(beginPosition, target, xMax, yMax) {
             @Override
@@ -364,12 +351,74 @@ public class TileMap implements GameMap {
 
                 } else {
                     // TODO allow diagonal tracing
-                    assert false;
+                    Logger.WARN.print(String.format(
+                            "Pathfinding (%s) asked for non-adjacent tiles (%d, %d) (%d, %d)",
+                            getClass(), x1, y1, x2, y2
+                    ));
+
+                    return Float.POSITIVE_INFINITY;
                 }
 
                 return duration;
             }
 
         }.call();
+    }
+
+    @Override
+    public float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum) {
+        Vector2f coordPos = new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
+        Vector2fc coordDir = new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE); // also scale this vector
+
+        float remaining = maximum;
+
+        if (coordPos.x < 0) {
+            coordPos.add(-coordPos.x, -coordPos.x * (coordDir.y() / coordDir.x()));// o = o + (-o.x/d)
+        }
+        if (coordPos.y < 0) {
+            coordPos.add(-coordPos.y, -coordPos.y * (coordDir.x() / coordDir.y()));// o = o + (-o.y/d)
+        }
+
+        do {
+            int xCoord = (int) coordPos.x;
+            int yCoord = (int) coordPos.y;
+            if (xCoord >= xChunks * chunkSize || yCoord >= yChunks * chunkSize) break;
+
+            MapTile.Instance tileData = getTileData(xCoord, yCoord);
+            assert tileData != null : String.format("%s, %s is not on the map", xCoord, yCoord);
+
+            Vector3fc virtualOrigin = new Vector3f(
+                    origin.x() - xCoord * TILE_SIZE,
+                    origin.y() - yCoord * TILE_SIZE,
+                    origin.z() - tileData.getHeight() * TILE_SIZE_Z
+            );
+
+            float secFrac = tileData.type.intersectFractionLocal(virtualOrigin, direction);
+            if (secFrac != Float.POSITIVE_INFINITY && secFrac >= 0) {
+                Logger.DEBUG.print(secFrac, xCoord, yCoord);
+                return secFrac;
+            }
+
+            // no result, find next tile
+            float scalar = scalarToNext(coordPos, coordDir);
+
+            coordPos.add(coordDir.x() * scalar, coordDir.y() * scalar);
+            remaining -= scalar;
+        } while (remaining > 0);
+
+        return maximum;
+    }
+
+    private float scalarToNext(Vector2fc coordPos, Vector2fc coordDir) {
+        float xRemain = coordDir.x() > 0 ? (coordPos.x() % 1) : 1 - (coordPos.x() % 1);
+        if (xRemain == 0) xRemain += 1;
+
+        float yRemain = coordDir.y() > 0 ? (coordPos.y() % 1) : 1 - (coordPos.y() % 1);
+        if (yRemain == 0) yRemain += 1;
+
+        float oldRC = coordDir.x() / coordDir.y();
+        float newRC = xRemain / yRemain;
+
+        return (newRC < oldRC) ? (xRemain / coordDir.x()) : (yRemain / coordDir.y());
     }
 }

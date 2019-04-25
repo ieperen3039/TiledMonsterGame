@@ -27,6 +27,7 @@ public class CollisionDetection {
 
     private AveragingQueue avgCollision;
     private float previousTime = 0f;
+    private WorldCollisionObject world;
 
     private Collection<Entity> entityList;
     private Collection<Entity> newEntities;
@@ -125,7 +126,11 @@ public class CollisionDetection {
             entity.update(currentTime);
         }
 
+
         /** -- analyse the collisions -- */
+
+        // world collisions
+        entityList.forEach(e -> world.checkCollision(e, previousTime, currentTime));
 
         /* As a single collision may result in a previously not-intersecting pair to collide,
          * we shouldn't re-use the getIntersectingPairs method nor reduce by non-collisions.
@@ -133,28 +138,20 @@ public class CollisionDetection {
          */
         PairList<Entity, Entity> pairs = getIntersectingPairs();
 
-        int remainingLoops = MAX_COLLISION_ITERATIONS / 2;
-        int unresolved;
-        do {
-            unresolved = analyseCollisions(previousTime, currentTime, pairs);
-        } while ((unresolved > 0) && (--remainingLoops > 0) && !Thread.currentThread().isInterrupted());
+        IntStream.range(0, pairs.size())
+                .parallel()
+                .forEach(n -> {
+                    int checksLeft = MAX_COLLISION_ITERATIONS;
+                    Entity left = pairs.left(n);
+                    Entity right = pairs.right(n);
+
+                    boolean didCollide;
+                    do {
+                        didCollide = checkCollisionPair(left, right, previousTime, currentTime);
+                    } while (didCollide && (--checksLeft > 0));
+                });
 
         previousTime = currentTime;
-    }
-
-    /**
-     * @param startTime first moment to consider
-     * @param endTime   last moment to consider
-     * @param pairs
-     * @return the number of unresolved collisions after this
-     */
-    private int analyseCollisions(float startTime, float endTime, PairList<Entity, Entity> pairs) {
-        return (int) IntStream.range(0, pairs.size())
-                .parallel()
-                // resolve collisions twice, to keep only the problems
-                .filter(n -> checkCollisionPair(pairs.left(n), pairs.right(n), startTime, endTime))
-                .filter(n -> checkCollisionPair(pairs.left(n), pairs.right(n), startTime, endTime))
-                .count();
     }
 
 
@@ -465,6 +462,10 @@ public class CollisionDetection {
         newEntities.clear();
     }
 
+    public void setWorld(WorldCollisionObject world) {
+        this.world = world;
+    }
+
 
     protected class CollisionEntity {
         public final Entity entity;
@@ -572,5 +573,18 @@ public class CollisionDetection {
             }
             return count;
         }
+    }
+
+    /**
+     * an interface for checking masses of entities against.
+     */
+    public interface WorldCollisionObject {
+        /**
+         * Calculates at what moment of the given interval there is a collision between the entity and this object.
+         * @param e         the entity to check
+         * @param startTime the begin of the interval, in seconds game time
+         * @param endTime   the end of the interval, in seconds game time
+         */
+        void checkCollision(Entity e, float startTime, float endTime);
     }
 }

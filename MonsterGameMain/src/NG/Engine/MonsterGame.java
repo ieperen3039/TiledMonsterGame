@@ -158,6 +158,17 @@ public class MonsterGame implements ModLoader {
             // we have backups if it doesn't work for whatever reason
         }
 
+        inputHandler.addKeyPressListener(k -> {
+            switch (k) {
+                case GLFW.GLFW_KEY_ESCAPE:
+                    renderer.stopLoop();
+                    break;
+                case GLFW.GLFW_KEY_F11:
+                    window.toggleFullScreen();
+                    break;
+            }
+        });
+
         Logger.DEBUG.print("Loading mods...");
 
         allMods = JarModReader.loadMods(Directory.mods);

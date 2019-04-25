@@ -14,21 +14,22 @@ import NG.GameEvent.EventLoop;
 import NG.Living.Commands.Command;
 import NG.Living.Commands.Command.CType;
 import NG.Storable;
-import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */
 public abstract class MonsterSoul implements Living, Storable, ActionFinishListener {
-    private static final Iterator<EntityAction> NO_ACTIONS = Collections.emptyIterator();
     private static final float MINIMUM_NOTICE_MAGNITUDE = 1e-3f;
 
     private static final int ATTENTION_SIZE = 6;
@@ -111,7 +112,6 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
         while (executionTarget != null) {
             EntityAction next = executionTarget.getAction(game, previous.getPositionAt(gameTime), gameTime);
-//            Thread.dumpStack();
 
             if (next != null) {
                 boolean success = createEvent(next, gameTime);
@@ -133,8 +133,8 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         Event event = action.getFinishEvent(actionTime, this);
 
         if (actionEventLock.tryAcquire()) {
+//            Logger.DEBUG.print(String.format("%s executes %s at %1.02f, finishing at %1.02f", this, action, actionTime, event.getTime()));
             game.get(EventLoop.class).addEvent(event);
-            Logger.DEBUG.print(this + " executes " + action + " at " + actionTime);
             entity.currentActions.add(actionTime, action);
             return true;
         }

@@ -103,7 +103,7 @@ public interface PartialAnimation extends Storable {
         }
 
         @Override
-        public void collideWith(Entity other, float collisionTime) {
+        public void collideWith(Object other, float collisionTime) {
 
         }
     }

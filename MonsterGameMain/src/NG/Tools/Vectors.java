@@ -37,26 +37,31 @@ public final class Vectors {
     }
 
     public static String toString(Vector3fc v) {
+        if (v == null) return "null";
         return String.format(Locale.US, "(%1.3f, %1.3f, %1.3f)", v.x(), v.y(), v.z());
     }
 
     public static String toString(Vector2fc v) {
+        if (v == null) return "null";
         return String.format(Locale.US, "(%1.3f, %1.3f)", v.x(), v.y());
     }
 
     public static String toString(Vector3ic v) {
+        if (v == null) return "null";
         return String.format("(%d, %d, %d)", v.x(), v.y(), v.z());
     }
 
     public static String toString(Vector2ic v) {
+        if (v == null) return "null";
         return String.format("(%d, %d)", v.x(), v.y());
     }
 
     public static String toString(Vector4fc v) {
+        if (v == null) return "null";
         return String.format(Locale.US, "(%1.3f, %1.3f, %1.3f, %1.3f)", v.x(), v.y(), v.z(), v.w());
     }
 
-    public static String stringAsVector(float x, float y) {
+    public static String asVectorString(float x, float y) {
         return String.format("(%1.3f, %1.3f)", x, y);
     }
 

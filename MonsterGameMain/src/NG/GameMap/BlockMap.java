@@ -88,11 +88,10 @@ public class BlockMap implements GameMap {
     }
 
     @Override
-    public Vector3i getCoordinate(Vector3fc position) {
-        return new Vector3i(
+    public Vector2i getCoordinate(Vector3fc position) {
+        return new Vector2i(
                 (int) (position.x() / TILE_SIZE),
-                (int) (position.y() / TILE_SIZE),
-                (int) (position.z() / TILE_SIZE_Z)
+                (int) (position.y() / TILE_SIZE)
         );
     }
 
@@ -152,16 +151,6 @@ public class BlockMap implements GameMap {
             }
         }
         gl.popMatrix();
-    }
-
-    @Override
-    public Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction) {
-        Vector3f temp = new Vector3f();
-
-        Vector3fc point = game.get(Camera.class).getFocus();
-        float t = Intersectionf.intersectRayPlane(origin, direction, point, Vectors.Z, 1E-6f);
-
-        return origin.add(direction.mul(t, temp), temp);
     }
 
     @Override
@@ -239,6 +228,12 @@ public class BlockMap implements GameMap {
             }
 
         }.call();
+    }
+
+    @Override
+    public float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum) {
+        Vector3fc point = game.get(Camera.class).getFocus();
+        return Intersectionf.intersectRayPlane(origin, direction, point, Vectors.Z, 1E-6f);
     }
 
 

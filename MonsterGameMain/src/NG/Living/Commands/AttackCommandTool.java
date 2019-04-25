@@ -6,9 +6,9 @@ import NG.Entities.ProjectilePowerBall;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Living.Player;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.joml.Vector3i;
 
 /**
  * @author Geert van Ieperen created on 5-4-2019.
@@ -31,7 +31,7 @@ public class AttackCommandTool extends DefaultMouseTool {
 //        Vector3f target = new Vector3f(position.x(), position.y(), z);
 
         // coordinate position
-        Vector3i coord = map.getCoordinate(position);
+        Vector2i coord = map.getCoordinate(position);
         Vector3f target = map.getPosition(coord.x, coord.y);
 
         ProjectilePowerBall projectile = new ProjectilePowerBall(game, target, 1f, 1f);

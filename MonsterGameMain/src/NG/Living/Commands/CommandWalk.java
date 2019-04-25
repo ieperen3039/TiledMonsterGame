@@ -8,7 +8,6 @@ import NG.Living.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
-import org.joml.Vector3i;
 
 import java.util.Iterator;
 
@@ -28,8 +27,7 @@ public class CommandWalk extends Command {
         final float walkSpeed = 1f;
         GameMap map = game.get(GameMap.class);
 
-        Vector3i beginCoord3d = map.getCoordinate(beginPosition);
-        Vector2i beginCoord = new Vector2i(beginCoord3d.x, beginCoord3d.y);
+        Vector2i beginCoord = map.getCoordinate(beginPosition);
 
         Iterator<Vector2i> path = map
                 .findPath(beginCoord, target, walkSpeed, 0.1f)

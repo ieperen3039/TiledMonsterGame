@@ -97,6 +97,7 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Storable, Ev
 
     @Override
     public void addEvent(Event e) {
+        assert e.getTime() >= updateTime;
         lockQueueEdit.lock();
         try {
             eventQueue.add(e);

@@ -57,7 +57,7 @@ public class Cursor implements Entity {
     }
 
     @Override
-    public void collideWith(Entity other, float collisionTime) {
+    public void collideWith(Object other, float collisionTime) {
 
     }
 }

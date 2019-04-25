@@ -3,6 +3,7 @@ package NG.GameState;
 import NG.CollisionDetection.CollisionDetection;
 import NG.Engine.Game;
 import NG.Entities.Entity;
+import NG.GameMap.GameMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
@@ -31,6 +32,7 @@ public class DynamicState implements GameState {
     @Override
     public void init(Game game) throws Exception {
         this.game = game;
+        entityList.setWorld(game.get(GameMap.class)::checkEntityCollision);
     }
 
     @Override

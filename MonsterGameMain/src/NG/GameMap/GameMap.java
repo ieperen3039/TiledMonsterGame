@@ -2,6 +2,7 @@ package NG.GameMap;
 
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
+import NG.Entities.Entity;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
@@ -42,12 +43,26 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     float getHeightAt(float x, float y);
 
     /**
+     * @param x an exact x position on the map
+     * @param y an exact y position on the map
+     * @return the coordinate height at position (x, y) on the map
+     */
+    int getHeightAt(int x, int y);
+
+    /**
+     * maps a real position to a coordinate
+     * @param position a position in real space
+     * @return a coordinate that is closest to the given position.
+     */
+    Vector2i getCoordinate(Vector3fc position);
+
+    /**
      * <p>{@code \result.x == mapCoord.x && result.y == mapCoord.y && result.z = getHeightAt(mapCoord)}</p>
      * @param mapCoord a coordinate on the map
      * @return a vector with xy equal to {@code mapCoord} and the z-coordinate equal to the height of the map on the
      * given coordinate.
      */
-    default Vector3i getCoordinate(Vector2ic mapCoord) {
+    default Vector3i getCoordinate3D(Vector2ic mapCoord) {
         int x = mapCoord.x();
         int y = mapCoord.y();
         return new Vector3i(x, y, getHeightAt(mapCoord));
@@ -58,7 +73,7 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      * @param y y-coordinate
      * @return the height on that coordinate
      */
-    default Vector3i getCoordinate(int x, int y) {
+    default Vector3i getCoordinate3D(int x, int y) {
         return new Vector3i(x, y, getHeightAt(x, y));
     }
 
@@ -75,20 +90,6 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
                 getHeightAt(position.x(), position.y())
         );
     }
-
-    /**
-     * @param x an exact x position on the map
-     * @param y an exact y position on the map
-     * @return the coordinate height at position (x, y) on the map
-     */
-    int getHeightAt(int x, int y);
-
-    /**
-     * maps a real position to a coordinate
-     * @param position a position in real space
-     * @return a coordinate that is closest to the given position.
-     */
-    Vector3i getCoordinate(Vector3fc position);
 
     /**
      * maps a coordinate to a real position
@@ -113,13 +114,13 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      */
     void draw(SGL gl);
 
-    /**
-     * returns a vector on the map that results from raytracing the given ray.
-     * @param origin    the origin of the ray
-     * @param direction the (un-normalized) direction of the ray
-     * @return a vector p such that {@code p = origin + t * direction} for minimal t such that p lies on the map.
-     */
-    Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction);
+    default Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction) {
+        float t = intersectFraction(origin, direction, 1);
+        if (t == 1) return null;
+
+        Vector3f temp = new Vector3f();
+        return origin.add(direction.mul(t, temp), temp);
+    }
 
     /**
      * allows objects to listen for when this map is changed, as a result of {@link #generateNew(MapGeneratorMod)} or
@@ -148,6 +149,8 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
         Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
 
         Vector3f position = intersectWithRay(origin, direction);
+        if (position == null) return false;
+
         tool.apply(position);
         return true;
     }
@@ -164,6 +167,19 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     Collection<Vector2i> findPath(
             Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
     );
+
+    float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum);
+
+    default void checkEntityCollision(Entity monster, float startTime, float endTime) {
+        Vector3fc startPos = monster.getPositionAt(startTime);
+        Vector3fc endPos = monster.getPositionAt(endTime);
+
+        float intersect = intersectFraction(startPos, new Vector3f(endPos).sub(startPos), 1);
+        if (intersect == 1) return;
+
+        float collisionTime = startTime + intersect * (endTime - startTime);
+        monster.collideWith(this, collisionTime);
+    }
 
     interface ChangeListener {
         /** is called when the map is changed */

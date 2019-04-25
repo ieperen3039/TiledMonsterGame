@@ -56,5 +56,5 @@ public interface Entity {
      * @param other         another entity
      * @param collisionTime the moment of collision
      */
-    void collideWith(Entity other, float collisionTime);
+    void collideWith(Object other, float collisionTime);
 }

@@ -22,7 +22,7 @@ public class ProjectilePowerBall extends Projectile {
     private float duration;
 
     public ProjectilePowerBall(Game game, Vector3fc endPosition, float speed, float size) {
-        super(game, size);
+        super(game, size / 2);
         this.endPosition = endPosition;
         this.speed = speed;
     }
@@ -42,7 +42,7 @@ public class ProjectilePowerBall extends Projectile {
     }
 
     @Override
-    public void collideWith(Entity other, float collisionTime) {
+    public void collideWith(Object other, float collisionTime) {
 
     }
 

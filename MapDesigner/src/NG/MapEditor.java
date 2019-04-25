@@ -351,7 +351,7 @@ public class MapEditor {
                 recycle = false;
             }
 
-            Vector3i coordinate = blockMap.getCoordinate(position);
+            Vector2i coordinate = blockMap.getCoordinate(position);
             int x = coordinate.x;
             int y = coordinate.y;
 
@@ -431,10 +431,10 @@ public class MapEditor {
             GameMap map = game.get(GameMap.class);
             assert (map instanceof TileMap);
 
-            Vector3i coordinate = map.getCoordinate(position);
+            Vector2i coordinate = map.getCoordinate(position);
             int x = coordinate.x;
             int y = coordinate.y;
-            map.setHighlights(new Vector2i(x, y));
+            map.setHighlights(coordinate);
 
             if (window != null) window.dispose();
             window = new SFrame("Tile at (" + x + ", " + y + ")");

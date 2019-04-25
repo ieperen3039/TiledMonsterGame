@@ -10,6 +10,9 @@ import NG.Rendering.Textures.FileTexture;
 import NG.Rendering.Textures.Texture;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
+import org.joml.Intersectionf;
+import org.joml.Vector2f;
+import org.joml.Vector3fc;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -96,6 +99,23 @@ public class MapTile {
     @Override
     public String toString() {
         return name;
+    }
+
+    public float intersectFractionLocal(Vector3fc origin, Vector3fc dir) {
+        Vector2f result = new Vector2f();
+
+        boolean doIntersect = Intersectionf.intersectRayAab(
+                origin.x(), origin.y(), origin.z(),
+                dir.x(), dir.y(), dir.z(),
+                -1, -1, -Float.POSITIVE_INFINITY, 1, 1, 0,
+                result
+        );
+
+        if (doIntersect && result.x >= 0) {
+            return result.x;
+        } else {
+            return Float.POSITIVE_INFINITY;
+        }
     }
 
     /**

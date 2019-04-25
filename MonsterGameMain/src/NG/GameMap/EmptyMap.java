@@ -3,7 +3,10 @@ package NG.GameMap;
 import NG.Engine.Game;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
-import org.joml.*;
+import org.joml.Vector2i;
+import org.joml.Vector2ic;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -39,8 +42,8 @@ public class EmptyMap implements GameMap {
     }
 
     @Override
-    public Vector3i getCoordinate(Vector3fc position) {
-        return new Vector3i();
+    public Vector2i getCoordinate(Vector3fc position) {
+        return new Vector2i();
     }
 
     @Override
@@ -78,6 +81,11 @@ public class EmptyMap implements GameMap {
             Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
     ) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum) {
+        return 0;
     }
 
     @Override

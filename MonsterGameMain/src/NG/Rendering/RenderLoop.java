@@ -21,9 +21,9 @@ import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.joml.Vector3i;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,28 +89,32 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     }
 
     private void updateArrow(int xPos, int yPos) {
+        GLFWWindow window = game.get(GLFWWindow.class);
+
         if (game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
             Vector3f origin = new Vector3f();
             Vector3f direction = new Vector3f();
 
-            int correctedY = game.get(GLFWWindow.class).getHeight() - yPos;
+            int correctedY = window.getHeight() - yPos;
             Vectors.windowCoordToRay(game, xPos, correctedY, origin, direction);
 
             GameMap map = game.get(GameMap.class);
             Vector3f position = map.intersectWithRay(origin, direction);
-            Vector3i coordinate = map.getCoordinate(position);
-            Vector3f midSquare = map.getPosition(coordinate.x, coordinate.y);
+            if (position == null) return;
+
+            Vector2i coordinate = map.getCoordinate(position);
+            Vector3f midSquare = map.getPosition(coordinate);
 
             pointer.setPosition(position, midSquare);
 
             if (cursorIsVisible && game.get(Settings.class).HIDE_CURSOR_ON_MAP) {
-                game.get(GLFWWindow.class).setCursorMode(CursorMode.HIDDEN_FREE);
+                window.setCursorMode(CursorMode.HIDDEN_FREE);
                 cursorIsVisible = false;
             }
 
         } else {
             if (!cursorIsVisible) {
-                game.get(GLFWWindow.class).setCursorMode(CursorMode.VISIBLE);
+                window.setCursorMode(CursorMode.VISIBLE);
                 cursorIsVisible = true;
             }
         }
