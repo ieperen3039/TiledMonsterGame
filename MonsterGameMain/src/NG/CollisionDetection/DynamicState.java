@@ -1,11 +1,11 @@
-package NG.GameState;
+package NG.CollisionDetection;
 
-import NG.CollisionDetection.CollisionDetection;
 import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.GameMap.GameMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
+import NG.Rendering.Lights.GameState;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Vectors;

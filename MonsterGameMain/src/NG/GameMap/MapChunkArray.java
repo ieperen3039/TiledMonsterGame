@@ -57,6 +57,7 @@ public class MapChunkArray implements MapChunk {
 
     @Override
     public MapTile.Instance get(int x, int y) {
+        if (outOfBounds(x, y)) return null;
         return tiles[x][y];
     }
 
@@ -69,8 +70,12 @@ public class MapChunkArray implements MapChunk {
 
     @Override
     public int getHeightAt(int x, int y) {
-        if (x < 0 || y < 0 || x >= size || y >= size) return 0;
+        if (outOfBounds(x, y)) return 0;
         return tiles[x][y].getHeight();
+    }
+
+    private boolean outOfBounds(int x, int y) {
+        return x < 0 || y < 0 || x >= size || y >= size;
     }
 
     @Override
@@ -115,6 +120,7 @@ public class MapChunkArray implements MapChunk {
 
     @Override
     public void highlight(int x, int y) {
+        if (outOfBounds(x, y)) return;
         highlights.add(tiles[x][y]);
     }
 

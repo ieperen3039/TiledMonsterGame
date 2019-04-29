@@ -3,7 +3,7 @@ package NG.GameEvent;
 import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
-import NG.GameState.GameState;
+import NG.Rendering.Lights.GameState;
 import NG.Storable;
 
 import java.io.DataOutput;

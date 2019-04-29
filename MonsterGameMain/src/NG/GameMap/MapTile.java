@@ -6,12 +6,15 @@ import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shaders.TextureShader;
+import NG.Rendering.Shapes.BasicShape;
+import NG.Rendering.Shapes.Shape;
 import NG.Rendering.Textures.FileTexture;
 import NG.Rendering.Textures.Texture;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import org.joml.Intersectionf;
-import org.joml.Vector2f;
+import org.joml.Vector2fc;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.io.IOException;
@@ -45,9 +48,10 @@ public class MapTile {
     public final TileThemeSet sourceSet;
 
     // all eight height values in rotational order
-    public final int[] heights;
+    private final int[] heights;
+    private final Shape shape;
+    private MeshFile meshFile;
 
-    private final Path meshPath;
     private Mesh mesh; // lazy initialized
     private final Path texturePath;
     private Texture texture;
@@ -80,7 +84,6 @@ public class MapTile {
     ) {
         assert heights.length == 8;
         this.name = name;
-        this.meshPath = meshPath;
         this.texturePath = texture;
         this.sourceSet = sourceSet;
         this.tileID = nextIdentity++;
@@ -90,6 +93,8 @@ public class MapTile {
         this.baseHeight = baseHeight;
 
         this.heights = heights;
+        this.meshFile = MeshFile.loadFileRequired(meshPath);
+        this.shape = new BasicShape(meshFile);
     }
 
     public int orientationBytes() {
@@ -99,23 +104,6 @@ public class MapTile {
     @Override
     public String toString() {
         return name;
-    }
-
-    public float intersectFractionLocal(Vector3fc origin, Vector3fc dir) {
-        Vector2f result = new Vector2f();
-
-        boolean doIntersect = Intersectionf.intersectRayAab(
-                origin.x(), origin.y(), origin.z(),
-                dir.x(), dir.y(), dir.z(),
-                -1, -1, -Float.POSITIVE_INFINITY, 1, 1, 0,
-                result
-        );
-
-        if (doIntersect && result.x >= 0) {
-            return result.x;
-        } else {
-            return Float.POSITIVE_INFINITY;
-        }
     }
 
     /**
@@ -143,6 +131,10 @@ public class MapTile {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
+    /**
+     * @param name
+     * @return a maptile with the {@link MapTile#name} equal to the given name
+     */
     public static MapTile getByName(String name) {
         return tileFinder.values()
                 .stream()
@@ -223,6 +215,20 @@ public class MapTile {
             int height = tgtFit.offset - tile.fit.offset;
             int rotation = (tile.fit.rotation - tgtFit.rotation) % 4;
             return new Instance(height, rotation, tile);
+        }
+    }
+
+    private void loadMesh() {
+        try {
+            mesh = meshFile.getMesh();
+            meshFile = null;
+
+            if (texturePath != null) {
+                texture = FileTexture.get(texturePath);
+            }
+
+        } catch (IOException ex) {
+            Logger.ERROR.print(ex);
         }
     }
 
@@ -339,7 +345,7 @@ public class MapTile {
                 gl.rotate(rotation * QUARTER, 0, 0, 1);
 
                 if (type.mesh == null) {
-                    loadMesh(type);
+                    type.loadMesh();
                 }
 
                 ShaderProgram shader = gl.getShader();
@@ -353,19 +359,6 @@ public class MapTile {
             gl.popMatrix();
         }
 
-        private void loadMesh(MapTile type) {
-            try {
-                type.mesh = MeshFile.loadFile(type.meshPath).getMesh();
-
-                if (type.texturePath != null) {
-                    type.texture = FileTexture.get(type.texturePath);
-                }
-
-            } catch (IOException ex) {
-                Logger.ERROR.print(ex);
-            }
-        }
-
         public Instance cycle(int offset) {
             List<MapTile> list = MapTile.tileFinder.get(type.fit.id);
             int index = (list.indexOf(type) + offset) % list.size();
@@ -377,13 +370,54 @@ public class MapTile {
         }
 
         public int heightOf(Direction direction) {
+            if (direction == Direction.NONE) return getHeight();
+
             int shift = rotation * -2;
             int index = (shift + index(direction) + 8) % 8;
-            return offset + type.heights[index];
+            return offset + type.heights[index]; // heights array replaces baseheight
         }
 
         public int getHeight() {
             return offset + type.baseHeight;
+        }
+
+
+        /**
+         * calculates the fraction t such that (origin + direction * t) lies on this tile, or Float.POSITIVE_INFINITY if
+         * it does not hit.
+         * @param tilePosition the position in the xy-plane of this tile
+         * @param origin       a local origin of a ray
+         * @param dir          the direction of the ray
+         * @return fraction t of (origin + direction * t), or Float.POSITIVE_INFINITY if it does not hit.
+         */
+        public float intersectFraction(Vector2fc tilePosition, Vector3fc origin, Vector3fc dir) {
+            // translation
+            Vector3f localOrigin = new Vector3f(
+                    origin.x() - tilePosition.x(),
+                    origin.y() - tilePosition.y(),
+                    origin.z() - offset * TILE_SIZE_Z
+            );
+
+            boolean doIntersect = Intersectionf.testRayAab(
+                    localOrigin.x(), localOrigin.y(), localOrigin.z(),
+                    dir.x(), dir.y(), dir.z(),
+                    -1, -1, Float.NEGATIVE_INFINITY, 1, 1, Float.POSITIVE_INFINITY // (or maxheight)
+            );
+
+            if (!doIntersect) {
+                return Float.POSITIVE_INFINITY;
+            }
+
+            // rotation
+            Vector3f localDirection = new Vector3f(dir);
+            for (byte i = 0; i < rotation; i++) {
+                //noinspection SuspiciousNameCombination
+                localOrigin.set(localOrigin.y, -localOrigin.x, localOrigin.z);
+                //noinspection SuspiciousNameCombination
+                localDirection.set(localDirection.y, -localDirection.x, localDirection.z);
+            }
+
+            return type.shape.getIntersectionScalar(localOrigin, localDirection);
         }
     }
 }

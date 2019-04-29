@@ -4,11 +4,12 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shapes.Primitives.Plane;
+import org.joml.AABBf;
 import org.joml.Vector3fc;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.stream.Stream;
+import java.util.Collection;
 
 /**
  * A mesh that is also a shape.
@@ -36,22 +37,17 @@ public class MeshShape implements Mesh, Shape {
     }
 
     @Override
-    public Iterable<? extends Plane> getPlanes() {
+    public Collection<? extends Plane> getPlanes() {
         return shape.getPlanes();
     }
 
     @Override
-    public Iterable<Vector3fc> getPoints() {
+    public Collection<Vector3fc> getPoints() {
         return shape.getPoints();
     }
 
     @Override
-    public Stream<? extends Plane> getPlaneStream() {
-        return shape.getPlaneStream();
-    }
-
-    @Override
-    public Stream<? extends Vector3fc> getPointStream() {
-        return shape.getPointStream();
+    public AABBf getBoundingBox() {
+        return shape.getBoundingBox();
     }
 }

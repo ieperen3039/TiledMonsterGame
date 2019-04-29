@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -196,11 +197,7 @@ public class GLFWWindow {
             try {
                 File file = dir.getFile(filename + "." + format); // The file to save to.
                 if (file.exists()) {
-                    boolean success = file.delete();
-                    if (!success) {
-                        Logger.ERROR.print("Could not remove existing file", file);
-                        return;
-                    }
+                    Files.delete(file.toPath());
                 } else {
                     boolean success = file.mkdirs();
                     if (!success) {

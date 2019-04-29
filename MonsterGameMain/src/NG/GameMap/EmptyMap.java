@@ -57,7 +57,7 @@ public class EmptyMap implements GameMap {
     }
 
     @Override
-    public Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction) {
+    public Vector3f intersectWithSegment(Vector3fc origin, Vector3fc direction) {
         return new Vector3f();
     }
 

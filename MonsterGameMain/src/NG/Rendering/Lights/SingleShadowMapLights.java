@@ -1,13 +1,10 @@
-package NG.GameState;
+package NG.Rendering.Lights;
 
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
-import NG.Rendering.DirectionalLight;
-import NG.Rendering.FixedPointLight;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.PointLight;
 import NG.Rendering.Shaders.DepthShader;
 import NG.Rendering.Shaders.LightShader;
 import NG.Rendering.Shaders.ShaderProgram;

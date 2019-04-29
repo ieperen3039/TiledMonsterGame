@@ -15,6 +15,7 @@ import NG.Living.Commands.Command;
 import NG.Living.Commands.Command.CType;
 import NG.Storable;
 import org.joml.Vector2i;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.io.DataInput;
@@ -58,6 +59,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     private ArrayDeque<Command> plan;
     private volatile Command executionTarget;
+    private float executionStart;
 
     /** restricts the number of pending action events to 1 */
     private final Semaphore actionEventLock;
@@ -83,6 +85,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
         this.game = game;
+        this.executionStart = 0f;
 
         if (entity != null) {
             entity.dispose();
@@ -111,9 +114,12 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         }
 
         while (executionTarget != null) {
-            EntityAction next = executionTarget.getAction(game, previous.getPositionAt(gameTime), gameTime);
+            Vector3f position = previous.getPositionAt(gameTime - executionStart);
+            EntityAction next = executionTarget.getAction(game, position, gameTime);
 
             if (next != null) {
+                assert next.getStartPosition().equals(position) : next.getStartPosition() + " != " + position;
+
                 boolean success = createEvent(next, gameTime);
                 assert success;
                 return;
@@ -136,6 +142,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 //            Logger.DEBUG.print(String.format("%s executes %s at %1.02f, finishing at %1.02f", this, action, actionTime, event.getTime()));
             game.get(EventLoop.class).addEvent(event);
             entity.currentActions.add(actionTime, action);
+            executionStart = actionTime;
             return true;
         }
         return false;

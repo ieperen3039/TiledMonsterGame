@@ -2,6 +2,8 @@ package NG.Entities;
 
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.Particles.GameParticles;
+import NG.Particles.Particles;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
@@ -15,6 +17,7 @@ import org.joml.Vector3fc;
  */
 public class ProjectilePowerBall extends Projectile {
     private static final GenericShapes mesh = GenericShapes.ICOSAHEDRON;
+    private static final int POWER = 10;
     private final Vector3fc endPosition;
     private final float speed;
 
@@ -43,7 +46,10 @@ public class ProjectilePowerBall extends Projectile {
 
     @Override
     public void collideWith(Object other, float collisionTime) {
-
+        dispose();
+        game.get(GameParticles.class).add(
+                Particles.explosion(getPositionAt(collisionTime), Color4f.RED, POWER)
+        );
     }
 
     @Override

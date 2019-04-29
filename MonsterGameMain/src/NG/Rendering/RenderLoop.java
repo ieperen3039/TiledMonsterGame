@@ -9,8 +9,8 @@ import NG.Engine.GameAspect;
 import NG.Engine.GameTimer;
 import NG.GUIMenu.ScreenOverlay;
 import NG.GameMap.GameMap;
-import NG.GameState.GameLights;
 import NG.InputHandling.KeyMouseCallbacks;
+import NG.Rendering.Lights.GameLights;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
 import NG.Rendering.Shaders.*;
@@ -75,7 +75,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                 .add(game.get(GameLights.class)::draw)
                 .add(pointer::draw);
 
-        game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updateArrow);
+        game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updatePointer);
     }
 
     /**
@@ -88,7 +88,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         return renders.computeIfAbsent(shader == null ? uiShader : shader, RenderBundle::new);
     }
 
-    private void updateArrow(int xPos, int yPos) {
+    private void updatePointer(int xPos, int yPos) {
         GLFWWindow window = game.get(GLFWWindow.class);
 
         if (game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
@@ -99,7 +99,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             Vectors.windowCoordToRay(game, xPos, correctedY, origin, direction);
 
             GameMap map = game.get(GameMap.class);
-            Vector3f position = map.intersectWithRay(origin, direction);
+            Vector3f position = map.intersectWithSegment(origin, direction);
             if (position == null) return;
 
             Vector2i coordinate = map.getCoordinate(position);
@@ -107,7 +107,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             pointer.setPosition(position, midSquare);
 
-            if (cursorIsVisible && game.get(Settings.class).HIDE_CURSOR_ON_MAP) {
+            if (cursorIsVisible && game.get(Settings.class).HIDE_POINTER_ON_MAP) {
                 window.setCursorMode(CursorMode.HIDDEN_FREE);
                 cursorIsVisible = false;
             }
@@ -184,23 +184,23 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         private static final float SIZE = 2;
         private Vector3f midSquare;
         private Vector3f exact;
-        private Vector3f midSquareNegate;
+        private Vector3f exactNegate;
 
         private Pointer() {
             this.midSquare = new Vector3f();
             this.exact = new Vector3f();
-            this.midSquareNegate = new Vector3f();
+            this.exactNegate = new Vector3f();
         }
 
         public void draw(SGL gl) {
             gl.pushMatrix();
             {
-                gl.translate(midSquare);
-                Toolbox.draw3DPointer(gl);
-                gl.translate(midSquareNegate);
-
                 gl.translate(exact);
-                gl.translate(0, 0, 4);
+                Toolbox.draw3DPointer(gl);
+                gl.translate(exactNegate);
+
+                gl.translate(midSquare);
+                gl.translate(0, 0, 2 + SIZE);
                 gl.scale(SIZE, SIZE, -SIZE);
 
                 if (gl.getShader() instanceof MaterialShader) {
@@ -215,8 +215,8 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
         public void setPosition(Vector3fc position, Vector3fc midSquare) {
             this.midSquare.set(midSquare);
-            this.midSquare.negate(midSquareNegate);
-            exact.set(position.x(), position.y(), midSquare.z());
+            this.exact.set(position);
+            this.exactNegate = exact.negate(exactNegate);
         }
     }
 

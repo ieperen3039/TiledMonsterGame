@@ -114,12 +114,12 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      */
     void draw(SGL gl);
 
-    default Vector3f intersectWithRay(Vector3fc origin, Vector3fc direction) {
+    /** @return the collision position or null if there was no collision before (origin + direction) */
+    default Vector3f intersectWithSegment(Vector3fc origin, Vector3fc direction) {
         float t = intersectFraction(origin, direction, 1);
         if (t == 1) return null;
 
-        Vector3f temp = new Vector3f();
-        return origin.add(direction.mul(t, temp), temp);
+        return new Vector3f(direction).mul(t).add(origin);
     }
 
     /**
@@ -148,9 +148,10 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
         Vector3f direction = new Vector3f();
         Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
 
-        Vector3f position = intersectWithRay(origin, direction);
+        Vector3f position = intersectWithSegment(origin, direction);
         if (position == null) return false;
 
+        position.z = getHeightAt(position.x, position.y);
         tool.apply(position);
         return true;
     }
@@ -159,8 +160,8 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      * finds a path from A to B.
      * @param beginPosition the A position
      * @param target        the B position
-     * @param walkSpeed the maximum steepness (y over x) this unit can walk
-     * @param climbSpeed a function that maps height of a cliff to climb speed
+     * @param walkSpeed     the maximum steepness (y over x) this unit can walk
+     * @param climbSpeed    a function that maps height of a cliff to climb speed
      * @return the shortest path from A (exclusive) to B (inclusive)
      * @see NG.Tools.AStar
      */ // TODO add shortcut for situations where the tiles are close
@@ -168,17 +169,24 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
             Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
     );
 
+    /**
+     * calculates the lowest fraction t such that (origin + direction * t) lies on this map, for 0 <= t < maximum.
+     * @param origin    a local origin of a ray
+     * @param direction the direction of the ray
+     * @param maximum   the maximum value of t
+     * @return fraction t of (origin + direction * t), or maximum if it does not hit.
+     */
     float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum);
 
-    default void checkEntityCollision(Entity monster, float startTime, float endTime) {
-        Vector3fc startPos = monster.getPositionAt(startTime);
-        Vector3fc endPos = monster.getPositionAt(endTime);
+    default void checkEntityCollision(Entity entity, float startTime, float endTime) {
+        Vector3fc startPos = entity.getPositionAt(startTime);
+        Vector3fc endPos = entity.getPositionAt(endTime);
 
         float intersect = intersectFraction(startPos, new Vector3f(endPos).sub(startPos), 1);
         if (intersect == 1) return;
 
         float collisionTime = startTime + intersect * (endTime - startTime);
-        monster.collideWith(this, collisionTime);
+        entity.collideWith(this, collisionTime);
     }
 
     interface ChangeListener {

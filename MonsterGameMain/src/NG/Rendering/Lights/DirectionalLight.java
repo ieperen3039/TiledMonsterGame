@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package NG.Rendering;
+package NG.Rendering.Lights;
 
 
 import NG.DataStructures.Generic.Color4f;

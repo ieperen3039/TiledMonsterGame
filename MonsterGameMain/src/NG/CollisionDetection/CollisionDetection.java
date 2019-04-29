@@ -31,6 +31,7 @@ public class CollisionDetection {
 
     private Collection<Entity> entityList;
     private Collection<Entity> newEntities;
+    private static final int INSERTION_SORT_BOUND = 64;
 
     /**
      * @see #CollisionDetection(Collection)
@@ -81,7 +82,6 @@ public class CollisionDetection {
             i++;
         }
 
-        final int INSERTION_SORT_BOUND = 64;
         if (entities.size() < INSERTION_SORT_BOUND) {
             Toolbox.insertionSort(xLowerSorted, CollisionEntity::xLower);
             Toolbox.insertionSort(yLowerSorted, CollisionEntity::yLower);
@@ -130,7 +130,7 @@ public class CollisionDetection {
         /** -- analyse the collisions -- */
 
         // world collisions
-        entityList.forEach(e -> world.checkCollision(e, previousTime, currentTime));
+//        entityList.forEach(e -> world.checkCollision(e, previousTime, currentTime)); //TODO world collision
 
         /* As a single collision may result in a previously not-intersecting pair to collide,
          * we shouldn't re-use the getIntersectingPairs method nor reduce by non-collisions.
@@ -264,7 +264,7 @@ public class CollisionDetection {
         }
 
         // x is sorted
-        float init = -Float.MAX_VALUE;
+        float init = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < xLowerSorted.length; i++) {
             CollisionEntity collisionEntity = xLowerSorted[i];
             if (collisionEntity.xLower() < init) {
@@ -276,7 +276,7 @@ public class CollisionDetection {
         }
 
         // y is sorted
-        init = -Float.MAX_VALUE;
+        init = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < yLowerSorted.length; i++) {
             CollisionEntity collisionEntity = yLowerSorted[i];
             if (collisionEntity.yLower() < init) {
@@ -288,7 +288,7 @@ public class CollisionDetection {
         }
 
         // z is sorted
-        init = -Float.MAX_VALUE;
+        init = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < zLowerSorted.length; i++) {
             CollisionEntity collisionEntity = zLowerSorted[i];
             if (collisionEntity.zLower() < init) {

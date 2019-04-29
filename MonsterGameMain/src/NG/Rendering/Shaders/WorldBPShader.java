@@ -4,7 +4,7 @@ import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
-import NG.Rendering.DirectionalLight;
+import NG.Rendering.Lights.DirectionalLight;
 import NG.Rendering.Textures.Texture;
 import NG.Settings.Settings;
 import NG.Tools.Directory;

@@ -1,6 +1,7 @@
 package NG.Tools;
 
 import NG.Camera.TycoonFixedCamera;
+import NG.CollisionDetection.DynamicState;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.GameService;
 import NG.Engine.GameTimer;
@@ -8,11 +9,10 @@ import NG.Engine.Version;
 import NG.GUIMenu.Frames.SFrameManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
-import NG.GameState.DynamicState;
-import NG.GameState.GameLights;
-import NG.GameState.SingleShadowMapLights;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
+import NG.Rendering.Lights.GameLights;
+import NG.Rendering.Lights.SingleShadowMapLights;
 import NG.Rendering.RenderLoop;
 import NG.Settings.Settings;
 import org.joml.Vector3f;

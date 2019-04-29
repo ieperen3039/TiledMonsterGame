@@ -1,4 +1,4 @@
-package NG.GameState;
+package NG.Rendering.Lights;
 
 import NG.Engine.GameAspect;
 import NG.Entities.Entity;

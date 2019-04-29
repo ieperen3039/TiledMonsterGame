@@ -54,4 +54,8 @@ public class Collision implements Comparable<Collision> {
     public void setEntity(Entity entity) {
         this.entity = entity;
     }
+
+    public float getScalar() {
+        return scalar;
+    }
 }

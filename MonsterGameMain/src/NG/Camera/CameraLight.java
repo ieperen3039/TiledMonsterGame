@@ -1,7 +1,7 @@
 package NG.Camera;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.Rendering.PointLight;
+import NG.Rendering.Lights.PointLight;
 import org.joml.Vector3fc;
 
 /**

@@ -12,7 +12,7 @@ import org.joml.Vector3fc;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.stream.Stream;
+import java.util.Collection;
 
 /**
  * A collection of generic shapes
@@ -30,7 +30,6 @@ public enum GenericShapes implements Mesh, Shape {
 
     private final Mesh mesh;
     private final Shape shape;
-    private final AABBf hitBox;
 
     GenericShapes(String... path) {
         Path asPath = Directory.meshes.getPath(path);
@@ -43,19 +42,16 @@ public enum GenericShapes implements Mesh, Shape {
             Logger.ERROR.print(ex);
             shape = null;
             mesh = null;
-            hitBox = null;
             return;
         }
 
         shape = new BasicShape(pars);
         mesh = pars.getMesh();
-        hitBox = getPointStream().collect(AABBf::new, AABBf::union, AABBf::union);
     }
 
     GenericShapes(CustomShape frame) {
         mesh = frame.asFlatMesh();
         shape = frame.wrapToShape();
-        hitBox = getPointStream().collect(AABBf::new, AABBf::union, AABBf::union);
     }
 
     @Override
@@ -69,23 +65,18 @@ public enum GenericShapes implements Mesh, Shape {
     }
 
     @Override
-    public Iterable<? extends Plane> getPlanes() {
+    public Collection<? extends Plane> getPlanes() {
         return shape.getPlanes();
     }
 
     @Override
-    public Iterable<Vector3fc> getPoints() {
+    public Collection<Vector3fc> getPoints() {
         return shape.getPoints();
     }
 
     @Override
-    public Stream<? extends Plane> getPlaneStream() {
-        return shape.getPlaneStream();
-    }
-
-    @Override
-    public Stream<? extends Vector3fc> getPointStream() {
-        return shape.getPointStream();
+    public AABBf getBoundingBox() {
+        return shape.getBoundingBox();
     }
 
     private static CustomShape makeSingleQuad() {
@@ -98,9 +89,5 @@ public enum GenericShapes implements Mesh, Shape {
                 new Vector3f(0, 0, 1)
         );
         return frame;
-    }
-
-    public AABBf getHitbox() {
-        return hitBox;
     }
 }

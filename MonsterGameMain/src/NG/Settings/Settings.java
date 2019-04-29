@@ -42,7 +42,7 @@ public class Settings {
 
     // UI settings
     public static int TOOL_BAR_HEIGHT = 70;
-    public boolean HIDE_CURSOR_ON_MAP = false;
+    public boolean HIDE_POINTER_ON_MAP = false;
 
     // ambiance settings
     public static final Color4f AMBIENT_LIGHT = new Color4f(1, 1, 1, 0.2f);

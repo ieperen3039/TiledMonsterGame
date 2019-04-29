@@ -1,4 +1,4 @@
-package NG.Rendering;
+package NG.Rendering.Lights;
 
 import NG.DataStructures.Generic.Color4f;
 import org.joml.Vector3fc;

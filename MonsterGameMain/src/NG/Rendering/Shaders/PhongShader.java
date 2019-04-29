@@ -3,7 +3,7 @@ package NG.Rendering.Shaders;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
-import NG.Rendering.DirectionalLight;
+import NG.Rendering.Lights.DirectionalLight;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
 import org.joml.Vector3fc;

@@ -1,7 +1,7 @@
 package NG.Rendering.Shaders;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.Rendering.DirectionalLight;
+import NG.Rendering.Lights.DirectionalLight;
 import org.joml.Vector3fc;
 
 /**

@@ -1,9 +1,8 @@
-package NG.GameState;
+package NG.Rendering.Lights;
 
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.GameAspect;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.PointLight;
 import NG.Storable;
 import org.joml.Vector3fc;
 
