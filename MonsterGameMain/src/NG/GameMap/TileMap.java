@@ -382,47 +382,51 @@ public class TileMap implements GameMap {
         Vector2f coordDir = new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE); // also scale this vector
 
         Vector2f worldClip = new Vector2f();
-        boolean doIntersect = Intersectionf.intersectRayAab(
-                coordPos.x(), coordPos.y(), 0,
-                coordDir.x(), coordDir.y(), 0,
+        boolean isOnWorld = Intersectionf.intersectRayAab(
+                coordPos.x, coordPos.y, 0,
+                coordDir.x, coordDir.y, 0,
                 0, 0, -1,
                 xChunks * chunkSize - 1, yChunks * chunkSize - 1, 1,
                 worldClip
         );
-        if (!doIntersect) return maximum;
+        if (!isOnWorld) return maximum;
 
-        float adjMax = Math.min(worldClip.y, maximum);
         float adjMin = Math.max(worldClip.x, 0);
+        float adjMax = Math.min(worldClip.y, maximum);
 
         coordPos.add(new Vector2f(coordDir).mul(adjMin));
         coordDir.mul(adjMax - adjMin);
         Vector2i lineTraverse = new Vector2i((int) coordPos.x, (int) coordPos.y);
+        List<Vector2i> coords = new ArrayList<>();
 
         while (lineTraverse != null) {
             int xCoord = lineTraverse.x;
             int yCoord = lineTraverse.y;
             MapTile.Instance tileData = getTileData(xCoord, yCoord);
+
             if (tileData == null) {
                 Logger.WARN.print(String.format(
-                        "%s, %s %s is not on the map (ray is %s - %s)",
-                        xCoord, yCoord, Vectors.toString(lineTraverse),
-                        Vectors.toString(coordPos),
-                        Vectors.toString(new Vector2f(coordDir).add(coordPos))
+                        "%s is not on the map (modified ray is from %s to %s)",
+                        Vectors.asVectorString(xCoord, yCoord),
+                        Vectors.toString(new Vector2f(coordDir).mul(adjMin).add(coordPos)),
+                        Vectors.toString(new Vector2f(coordDir).mul(adjMax).add(coordPos))
                 ));
                 return maximum;
             }
 
+            coords.add(new Vector2i(lineTraverse));
             Vector2f tilePosition = new Vector2f((xCoord + 0.5f) * TILE_SIZE, (yCoord + 0.5f) * TILE_SIZE);
 
             float secFrac = tileData.intersectFraction(tilePosition, origin, direction);
-
             if (secFrac >= 0 && secFrac < 1) {
+                setHighlights(coords.toArray(new Vector2ic[0]));
                 return secFrac;
             }
 
             // no luck, try next coordinate
-            lineTraverse = nextCoordinate(xCoord, yCoord, coordPos, coordDir);
+            lineTraverse = nextCoordinate(xCoord, yCoord, coordPos, coordDir, 1);
         }
+        setHighlights(coords.toArray(new Vector2ic[0]));
 
         return maximum;
     }
@@ -436,9 +440,26 @@ public class TileMap implements GameMap {
      * @return the next coordinate hit by the ray. If the previous coordinate was not hit by the ray, return a
      * coordinate closer to the ray than this one (will eventually return coordinates on the ray)
      */
-    private Vector2i nextCoordinate(int xCoord, int yCoord, Vector2fc origin, Vector2fc direction) {
+    private Vector2i nextCoordinate(int xCoord, int yCoord, Vector2fc origin, Vector2fc direction, float maximum) {
         boolean xIsPos = direction.x() > 0;
         boolean yIsPos = direction.y() > 0;
+
+        if (direction.x() == 0) {
+            int yNext = yCoord + (yIsPos ? 1 : -1);
+            if (yNext > origin.y() + direction.y() * maximum) {
+                return null;
+            } else {
+                return new Vector2i(xCoord, yNext);
+            }
+
+        } else if (direction.y() == 0) {
+            int xNext = xCoord + (xIsPos ? 1 : -1);
+            if (xNext > origin.x() + direction.x() * maximum) {
+                return null;
+            } else {
+                return new Vector2i(xNext, yCoord);
+            }
+        }
 
         float xIntersect = Intersectionf.intersectRayPlane(
                 origin.x(), origin.y(), 0, direction.x(), direction.y(), 0,
@@ -451,7 +472,7 @@ public class TileMap implements GameMap {
                 1e-3f
         );
 
-        if (xIntersect >= 1 && yIntersect >= 1) {
+        if (xIntersect >= maximum && yIntersect >= maximum) {
             return null;
         }
 
