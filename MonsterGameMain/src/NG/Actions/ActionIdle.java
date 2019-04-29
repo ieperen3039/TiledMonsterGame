@@ -40,7 +40,7 @@ public class ActionIdle implements EntityAction {
 
     /**
      * idle for an undetermined duration on the given position
-     * @param position
+     * @param position exact position to idle
      */
     public ActionIdle(Vector3fc position) {
         this(position, Float.POSITIVE_INFINITY);
@@ -48,7 +48,7 @@ public class ActionIdle implements EntityAction {
 
     /**
      * idle for a given duration.
-     * @param position the position mapped to the 3d space
+     * @param position the exact position where to execute the idling
      * @param duration how long to stay idle
      */
     public ActionIdle(Vector3fc position, float duration) {

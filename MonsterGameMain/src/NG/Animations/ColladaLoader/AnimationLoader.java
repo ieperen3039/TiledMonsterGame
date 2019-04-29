@@ -11,20 +11,22 @@ public class AnimationLoader {
     private Map<String, TransformList> mapping = new HashMap<>();
     private float maxFrameTime = 0;
 
-    public AnimationLoader(XmlNode animationData) {
+    public AnimationLoader(XmlNode animationData, SkeletonLoader jointsLoader) {
         List<XmlNode> animationNodes = animationData.getChildren("animation");
         for (XmlNode node : animationNodes) {
-            mapping.put(getJointName(node), getJoint(node));
+            String name = jointsLoader.getNameOf(idOf(node));
+            assert name != null : idOf(node);
+            mapping.put(name, getJointTransformations(node));
         }
     }
 
-    private TransformList getJoint(XmlNode jointData) {
-        XmlNode timeNode = getSampler(Sampler.INPUT, jointData);
+    private TransformList getJointTransformations(XmlNode jointData) {
+        XmlNode timeNode = getSource(Sampler.INPUT, jointData);
         String timeData = timeNode.getChild("float_array").getData();
         String[] rawTimes = Toolbox.WHITESPACE_PATTERN.split(timeData);
         int nrOfFrames = rawTimes.length;
 
-        XmlNode frameNode = getSampler(Sampler.OUTPUT, jointData);
+        XmlNode frameNode = getSource(Sampler.OUTPUT, jointData);
         String frameData = frameNode.getChild("float_array").getData();
         String[] rawFrames = Toolbox.WHITESPACE_PATTERN.split(frameData);
         assert rawFrames.length == (nrOfFrames * 16);
@@ -45,16 +47,16 @@ public class AnimationLoader {
         return joint;
     }
 
-    private String getJointName(XmlNode jointData) {
+    private String idOf(XmlNode jointData) {
         XmlNode channelNode = jointData.getChild("channel");
         String data = channelNode.getAttribute("target");
-        return data.split("/")[0].replaceAll("Armature_", "");
+        return data.split("/")[0];
     }
 
-    private XmlNode getSampler(Sampler sampler, XmlNode jointData) {
-        XmlNode node = jointData.getChild("sampler").getChildWithAttribute("input", "semantic", sampler.toString());
+    private XmlNode getSource(Sampler sampler, XmlNode animationNode) {
+        XmlNode node = animationNode.getChild("sampler").getChildWithAttribute("input", "semantic", sampler.toString());
         String samplerName = node.getAttribute("source").substring(1);
-        return jointData.getChildWithAttribute("source", "id", samplerName);
+        return animationNode.getChildWithAttribute("source", "id", samplerName);
     }
 
     enum Sampler {

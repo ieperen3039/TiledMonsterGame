@@ -123,7 +123,7 @@ public interface Mesh {
          */
         public Plane toPlanes(List<Vector3fc> vertices, List<Vector3fc> normals) {
             final Vector3fc[] border = new Vector3fc[size()];
-            Arrays.setAll(border, i -> vertices.get(this.vert[i]));
+            Arrays.setAll(border, i -> vertices.get(vert[i]));
             // take average normal as normal of plane, or use default method if none are registered
             Vector3f normal = new Vector3f();
             for (int index : this.norm) {

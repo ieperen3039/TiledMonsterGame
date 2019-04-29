@@ -15,7 +15,7 @@ public class JointData {
     public final String name;
     public final Matrix4f bindLocalTransform;
 
-    public final List<JointData> children = new ArrayList<JointData>();
+    public final List<JointData> children = new ArrayList<>();
 
     public JointData(String name, Matrix4f bindLocalTransform) {
         this.name = name;

@@ -11,17 +11,17 @@ import java.io.File;
  * @author Geert van Ieperen created on 6-3-2019.
  */
 public enum BodyAnimation implements UniversalAnimation {
-    WALK_START("walkStart.anibi"),
+    //    WALK_START("walkStart.anibi"),
     WALK_CYCLE("walkCycle.anibi"),
-    WALK_END("walkStop.anibi"),
+    //    WALK_END("walkStop.anibi"),
     IDLE(ActionIdle.idleAnimation(0)),
 
     ;
 
-    static {
-        AnimationTransfer.add(WALK_CYCLE, IDLE, WALK_END, 0.5f);
-        AnimationTransfer.add(IDLE, WALK_CYCLE, WALK_START, 0.5f);
-    }
+//    static {
+//        AnimationTransfer.add(WALK_CYCLE, IDLE, WALK_END, 0.5f);
+//        AnimationTransfer.add(IDLE, WALK_CYCLE, WALK_START, 0.5f);
+//    }
 
     private final PartialAnimation animation;
 

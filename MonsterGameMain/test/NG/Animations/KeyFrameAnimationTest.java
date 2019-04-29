@@ -2,6 +2,7 @@ package NG.Animations;
 
 import NG.Storable;
 import NG.Tools.Directory;
+import NG.Tools.Vectors;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector3f;
@@ -20,9 +21,9 @@ public class KeyFrameAnimationTest {
 
     @Before
     public void setUp() throws Exception {
-        File file = Directory.animations.getFile("walk1.anibi");
+        File file = Directory.animations.getFile("walkCycleAnthro.anibi");
         ani = Storable.readFromFile(file, KeyFrameAnimation.class);
-        bone = ani.model.getBone("Anthro_UpperLeg_R");
+        bone = ani.model.getBone("ANTHRO_UpperLeg.R");
     }
 
     @Test
@@ -36,11 +37,11 @@ public class KeyFrameAnimationTest {
         float deltaTime = 0.1f;
         // rotation should be close to a sine wave
 
-        for (int i = 0; i < 20; i++) {
-            Matrix4fc mat = ani.transformationOf(bone, deltaTime * i);
+        for (float t = 0; t < ani.duration(); t += deltaTime) {
+            Matrix4fc mat = ani.transformationOf(bone, t);
             AxisAngle4f rotation = mat.getRotation(new AxisAngle4f());
             Vector3fc translation = mat.getTranslation(new Vector3f());
-            System.out.printf("pos = %s, rot = %s\n", translation, rotation);
+            System.out.printf("pos = %s, rot = %s\n", Vectors.toString(translation), rotation);
         }
     }
 }

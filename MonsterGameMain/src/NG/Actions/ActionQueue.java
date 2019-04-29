@@ -2,6 +2,7 @@ package NG.Actions;
 
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
+import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
@@ -100,7 +101,7 @@ public class ActionQueue extends AbstractQueue<Pair<Float, EntityAction>> {
         if (!success) {
             Toolbox.waitFor(10);
             if (startTime < lastActionStart) {
-                throw new IllegalArgumentException("start time " + startTime + " is earlier than last action start time " + lastActionStart);
+                Logger.WARN.print("start time " + startTime + " is earlier than last action start time " + lastActionStart);
             }
 
             float timeSinceStart = startTime - lastActionStart;

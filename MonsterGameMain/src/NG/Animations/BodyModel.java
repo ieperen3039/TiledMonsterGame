@@ -6,7 +6,6 @@ import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Directory;
-import NG.Tools.Vectors;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -19,12 +18,11 @@ import java.util.Map;
  * @author Geert van Ieperen created on 28-2-2019.
  */
 public enum BodyModel {
-    CUBE("cube.skelbi"),
+    CUBE(new AnimationBone("cube_root")),
     ANTHRO("anthro.skelbi"),
+    TEST_ANTHRO(Converter.getAnthro());
 
-    ;
-
-    private final AnimationBone root;
+    private AnimationBone root;
     private final Map<String, AnimationBone> parts;
 
     BodyModel(String... filePath) {
@@ -32,14 +30,23 @@ public enum BodyModel {
         File file = path.toFile();
 
         if (!file.exists()) {
-            Converter.rewriteSkeleton(file.getName());
+            Converter.rewriteSkeleton(file.getName(), toString());
         }
 
         // load skelly from binary
         root = Storable.readFromFileRequired(file, AnimationBone.class);
+        parts = getParts(root);
+    }
 
-        parts = new HashMap<>();
-        root.stream().forEach(b -> parts.put(b.getName(), b));
+    BodyModel(AnimationBone root) {
+        this.root = root;
+        parts = getParts(root);
+    }
+
+    private HashMap<String, AnimationBone> getParts(AnimationBone root) {
+        HashMap<String, AnimationBone> p = new HashMap<>();
+        root.forEach(b -> p.put(b.getName(), b));
+        return p;
     }
 
     Collection<AnimationBone> getElements() {
@@ -77,7 +84,17 @@ public enum BodyModel {
     public void draw(
             SGL gl, Entity entity, Map<AnimationBone, BoneElement> map, UniversalAnimation ani, float aniTime
     ) {
-        root.draw(gl, entity, map, ani, aniTime, Vectors.Scaling.UNIFORM);
+        root.draw(gl, entity, map, ani, aniTime);
+    }
+
+    /**
+     * replaces the body model of this model with the given model
+     * @param root the root bone of the new model
+     */
+    public void replace(AnimationBone root) {
+        this.root = root;
+        parts.clear();
+        root.forEach(b -> parts.put(b.getName(), b));
     }
 
     /**

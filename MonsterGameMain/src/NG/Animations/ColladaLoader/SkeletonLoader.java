@@ -2,29 +2,35 @@ package NG.Animations.ColladaLoader;
 
 import org.joml.Matrix4f;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 public class SkeletonLoader {
+    private Map<String, String> nameIDMapping = new HashMap<>();
     private JointData jointData;
 
-    public SkeletonLoader(XmlNode armature) {
-        jointData = loadJointData(armature, true);
+    public SkeletonLoader(XmlNode armature, String model) {
+        jointData = loadJointData(armature, model);
     }
 
-    public JointData extractBoneData() {
+    public JointData getBoneData() {
         return jointData;
     }
 
-    private JointData loadJointData(XmlNode jointNode, boolean isRoot) {
-        JointData joint = extractMainJointData(jointNode, isRoot);
+    private JointData loadJointData(XmlNode jointNode, String model) {
+        JointData joint = extractMainJointData(jointNode, model);
 
         for (XmlNode childNode : jointNode.getChildren("node")) {
-            joint.addChild(loadJointData(childNode, false));
+            JointData child = loadJointData(childNode, model);
+            joint.addChild(child);
         }
 
         return joint;
     }
 
-    private JointData extractMainJointData(XmlNode jointNode, boolean isRoot) {
-        String name = jointNode.getAttribute("id").replace("Armature_", ""); // identifier used in animations
+    private JointData extractMainJointData(XmlNode jointNode, String model) {
+        String name = model + "_" + jointNode.getAttribute("name"); // name used in body mapping
 
         XmlNode transform = jointNode.getChild("matrix");
         Matrix4f matrix;
@@ -34,11 +40,20 @@ public class SkeletonLoader {
 
         } else {
             String[] matrixData = transform.getData().split(" ");
-            matrix = ColladaLoader.parseFloatMatrix(matrixData, 0);
+            try {
+                matrix = ColladaLoader.parseFloatMatrix(matrixData, 0);
+            } catch (Exception ex) {
+                System.err.println(Arrays.toString(matrixData));
+                throw ex;
+            }
         }
 
+        nameIDMapping.put(jointNode.getAttribute("id"), name);
 
         return new JointData(name, matrix);
     }
 
+    public String getNameOf(String id) {
+        return nameIDMapping.get(id);
+    }
 }

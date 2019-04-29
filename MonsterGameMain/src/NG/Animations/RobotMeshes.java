@@ -23,6 +23,8 @@ public enum RobotMeshes implements BodyMesh {
     ROBOT_EAR("Robot", "ear.obj"),
     ROBOT_HEAD("Robot", "head.obj"),
     ROBOT_FOOT("Robot", "foot.obj"),
+    ROBOT_CLAW("Robot", "finger.obj"),
+
     ;
 
     private Mesh mesh;

@@ -35,6 +35,10 @@ public class KeyFrameAnimation implements PartialAnimation {
         for (String boneName : mapping.keySet()) {
             AnimationLoader.TransformList frame = mapping.get(boneName);
             AnimationBone bone = model.getBone(boneName);
+            if (bone == null) {
+                Logger.WARN.print("Bone '" + boneName + "' is not part of " + model);
+                continue;
+            }
 
             transformations.put(bone, new TransformArray(frame));
         }

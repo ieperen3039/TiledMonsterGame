@@ -15,15 +15,21 @@ public class Converter {
 
     /** reloads all animations and skeletons */
     public static void main(String[] args) {
-        rewriteSkeleton("anthro.skelbi");
+        rewriteSkeleton("anthro.skelbi", "ANTHRO");
 
-        rewriteAnimation("walkStart.anibi", "walk1.anibi");
-        rewriteAnimation("walkCycle.anibi", "walk2.anibi");
-        rewriteAnimation("walkStop.anibi", "walk3.anibi");
+//        rewriteAnimation("walkStart.anibi", "walk1.anibi");
+        rewriteAnimation("walkCycle.anibi", BodyModel.ANTHRO, "walkCycleAnthro.anibi");
+//        rewriteAnimation("walkStop.anibi", "walk3.anibi");
     }
 
 
-    public static void rewriteSkeleton(String target) {
+    /**
+     * creates a skelbi file from a equally named collada file (.dae) in the collada folder
+     * @param target    the .skelbi file to rewrite
+     * @param bodyModel
+     * @see Directory#colladaFiles
+     */
+    public static void rewriteSkeleton(String target, String bodyModel) {
         String colladaFile = target.replace(".skelbi", ".dae");
         File source = Directory.colladaFiles.getFile(colladaFile);
         File skeletonFile = Directory.skeletons.getFile(target);
@@ -34,20 +40,26 @@ public class Converter {
             // extract from collada file
             ColladaLoader loader = new ColladaLoader(source);
 
-            AnimationBone root = loader.loadSkeleton();
-            if (skeletonFile != null) root.writeToFile(skeletonFile);
+            AnimationBone root = loader.loadSkeleton(bodyModel);
+            root.writeToFile(skeletonFile);
 
         } catch (IOException e) {
             Logger.ERROR.print(e);
         }
     }
 
-    public static void rewriteAnimation(String target, String... sources) {
+    /**
+     * writes an universal animation from several collada files (.dae). Each collada file contains (possibly several)
+     * armatures and animations. The used armatures must be known.
+     * @param target    the target file to write
+     * @param bodyModel
+     * @param sources   which files should be used
+     */
+    public static void rewriteAnimation(String target, BodyModel bodyModel, String... sources) {
         Path[] paths = new Path[sources.length];
 
         for (int i = 0; i < sources.length; i++) {
             Path path = paths[i] = Directory.animations.getPath(sources[i]);
-            BodyModel bodyModel = BodyModel.ANTHRO;
 
             try {
                 File file = path.toFile();
@@ -71,73 +83,46 @@ public class Converter {
         animation.writeToFile(targetFile);
     }
 
-    protected static AnimationBone getAnthro() {
+    public static AnimationBone getAnthro() {
         return new AnimationBone(
-                "anthro_torso",
-                0, 0, 0,
-                0, 0, 0,
+                "ANTHRO_Spine",
                 new AnimationBone(
-                        "anthro_head",
-                        -0.5f, 0f, 6.5f,
-                        0, 0, 0,
+                        "ANTHRO_Head",
                         new AnimationBone(
-                                "anthro_ear_left",
-                                0.0f, 1.0f, 3.2f,
-                                0, 0, 0
+                                "ANTHRO_Ear.L"
                         ),
                         new AnimationBone(
-                                "anthro_ear_right",
-                                0.0f, -1.0f, 3.2f,
-                                0, 0, 0
+                                "ANTHRO_Ear.R"
                         )
                 ),
                 new AnimationBone(
-                        "anthro_upper_arm_left",
-                        -1.0f, 5.0f, 3.5f,
-                        90, 0, 90,
+                        "ANTHRO_UpperArm.L",
                         new AnimationBone(
-                                "anthro_lower_arm_left",
-                                0, 0, 8.0f,
-                                0, 0, 0
+                                "ANTHRO_LowerArm.L"
                         )
                 ),
                 new AnimationBone(
-                        "anthro_upper_arm_right",
-                        -1.0f, -5.0f, 3.5f,
-                        90, 0, -90,
+                        "ANTHRO_UpperArm.R",
                         new AnimationBone(
-                                "anthro_lower_arm_right",
-                                0, 0, 8.0f,
-                                0, 0, 0
+                                "ANTHRO_LowerArm.R"
                         )
                 ),
                 new AnimationBone(
-                        "anthro_upper_leg_left",
-                        0, 2.0f, -7.0f,
-                        180, 0, 0,
+                        "ANTHRO_UpperLeg.L",
                         new AnimationBone(
-                                "anthro_lower_leg_left",
-                                0, 0, 8.0f,
-                                0, 0, 0,
+                                "ANTHRO_LowerLeg.L",
                                 new AnimationBone(
-                                        "anthro_foot_left",
-                                        0, 0, 8.0f,
-                                        0, 0, 0
+                                        "ANTHRO_Foot.L"
                                 )
                         )
                 ),
                 new AnimationBone(
-                        "anthro_upper_leg_right",
-                        0, -2.0f, -7.0f,
-                        -180, 0, 0, // this makes no difference to anthro_upper_leg_left, but for the idea...
+                        "ANTHRO_UpperLeg.R",
+                        // this makes no difference to anthro_upper_leg_left, but for the idea...
                         new AnimationBone(
-                                "anthro_lower_leg_right",
-                                0, 0, 8.0f,
-                                0, 0, 0,
+                                "ANTHRO_LowerLeg.R",
                                 new AnimationBone(
-                                        "anthro_foot_right",
-                                        0, 0, 8.0f,
-                                        0, 0, 0
+                                        "ANTHRO_Foot.R"
                                 )
                         )
                 )

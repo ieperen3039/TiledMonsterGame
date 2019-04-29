@@ -32,7 +32,7 @@ public class XmlNode {
      * @return Any text data contained between the start and end tag of the node.
      */
     public String getData() {
-        return data;
+        return data.trim();
     }
 
     /**

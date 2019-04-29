@@ -132,9 +132,7 @@ public abstract class MonsterEntity implements Entity {
     }
 
     @Override
-    public BoundingBox hitbox() {
-        return new BoundingBox(-1, -1, -1, 1, 1, 1);
-    }
+    public abstract BoundingBox hitbox();
 
     @Override
     public void collideWith(Object other, float collisionTime) {

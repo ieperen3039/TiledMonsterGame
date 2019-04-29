@@ -4,9 +4,7 @@ import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
 import NG.Tools.Vectors;
-import org.joml.Vector2ic;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
+import org.joml.*;
 
 import static NG.Animations.BodyAnimation.WALK_CYCLE;
 
@@ -17,8 +15,10 @@ import static NG.Animations.BodyAnimation.WALK_CYCLE;
 public class ActionWalk implements EntityAction {
     protected final Vector3fc start;
     protected final Vector3fc end;
+    protected final Vector2fc startToEnd;
     protected final float duration;
     private final UniversalAnimation animation;
+    private Game game;
 
     /**
      * @param game       the current game instance
@@ -37,9 +37,11 @@ public class ActionWalk implements EntityAction {
      * @param walkSpeed     the time when this action ends in seconds.
      */
     public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord, float walkSpeed) {
-        GameMap map = game.get(GameMap.class);
+        this.game = game;
+        GameMap map = this.game.get(GameMap.class);
         start = new Vector3f(startPosition);
         end = map.getPosition(endCoord);
+        startToEnd = new Vector2f(end.x() - startPosition.x(), end.y() - startPosition.y());
         duration = walkSpeed / (start.distance(end));
         animation = WALK_CYCLE;
     }
@@ -49,9 +51,14 @@ public class ActionWalk implements EntityAction {
         if (timeSinceStart <= 0) return new Vector3f(start);
         if (timeSinceStart >= duration) return new Vector3f(end);
 
-        // TODO more precise movement, taking animation into account (maybe)
+        // TODO more precise movement, wrt jumping and falling, maybe incorporate animation
         float fraction = timeSinceStart / duration;
-        return new Vector3f(start).lerp(end, fraction);
+        GameMap map = game.get(GameMap.class);
+
+        float x = start.x() + fraction * startToEnd.x();
+        float y = start.y() + fraction * startToEnd.y();
+        float height = map.getHeightAt(x, y);
+        return new Vector3f(x, y, height);
     }
 
     @Override

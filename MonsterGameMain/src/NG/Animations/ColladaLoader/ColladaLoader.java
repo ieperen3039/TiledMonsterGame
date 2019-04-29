@@ -11,7 +11,8 @@ import java.io.IOException;
 
 public class ColladaLoader {
     private XmlNode animNode;
-    private XmlNode jointsNode;
+    private SkeletonLoader jointsLoader = null;
+    private final XmlNode jointsNode;
 
     public ColladaLoader(File colladaFile) throws IOException {
         XmlNode node = XmlParser.loadXmlFile(colladaFile);
@@ -19,17 +20,22 @@ public class ColladaLoader {
         XmlNode sceneElements = node.getChild("library_visual_scenes").getChild("visual_scene");
         jointsNode = sceneElements.getChildWithAttribute("node", "id", "Armature");
 
-        assert animNode != null && jointsNode != null;
+        assert jointsNode != null;
     }
 
-    public AnimationBone loadSkeleton() {
-        SkeletonLoader jointsLoader = new SkeletonLoader(jointsNode);
-        JointData skeletonData = jointsLoader.extractBoneData();
+    public AnimationBone loadSkeleton(String bodyModel) {
+        JointData skeletonData = getJointsLoader(bodyModel).getBoneData();
         return new AnimationBone(skeletonData);
     }
 
+    private SkeletonLoader getJointsLoader(String bodyModel) {
+        if (jointsLoader == null) jointsLoader = new SkeletonLoader(jointsNode, bodyModel);
+        return jointsLoader;
+    }
+
     public KeyFrameAnimation loadAnimation(BodyModel bodyModel) {
-        AnimationLoader loader = new AnimationLoader(animNode);
+        if (animNode == null) throw new IllegalStateException();
+        AnimationLoader loader = new AnimationLoader(animNode, getJointsLoader(bodyModel.toString()));
         return new KeyFrameAnimation(loader.boneMapping(), loader.duration(), bodyModel);
     }
 

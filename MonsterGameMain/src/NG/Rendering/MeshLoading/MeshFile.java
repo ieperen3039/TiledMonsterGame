@@ -33,6 +33,14 @@ public interface MeshFile {
 
     List<Mesh.Face> getFaces();
 
+    static MeshFile loadFileRequired(Path meshPath) {
+        try {
+            return loadFile(meshPath, Vectors.O, Vectors.Scaling.UNIFORM);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     static MeshFile loadFile(Path file) throws IOException {
         return loadFile(file, Vectors.O, Vectors.Scaling.UNIFORM);
     }
