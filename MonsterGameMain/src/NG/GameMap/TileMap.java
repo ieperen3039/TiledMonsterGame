@@ -118,14 +118,14 @@ public class TileMap implements GameMap {
         MapTile.Instance tile = getTileData(ix, iy);
         if (tile == null) return 0;
 
-        float CHECK_HEIGHT = 100;
+        float rayStartHeight = tile.type.getBoundingBox().maxZ + tile.offset * TILE_SIZE_Z + 1;
         float f = tile.intersectFraction(
-                new Vector2f(0, 0),
-                new Vector3f(0, 0, CHECK_HEIGHT),
+                new Vector2f((ix + 0.5f) * TILE_SIZE, (iy + 0.5f) * TILE_SIZE),
+                new Vector3f(x, y, rayStartHeight),
                 new Vector3f(0, 0, -1)
         );
 
-        return tile.getHeight() + (CHECK_HEIGHT - f);
+        return rayStartHeight - f;
     }
 
     @Override
@@ -204,7 +204,7 @@ public class TileMap implements GameMap {
 
     @Override
     public void writeToDataStream(DataOutput out) throws IOException {
-        List<MapTile> tileTypes = MapTile.values();
+        List<MapTile> tileTypes = MapTiles.values();
 
         // number of tile types
         int nrOfTileTypes = tileTypes.size();
@@ -215,7 +215,7 @@ public class TileMap implements GameMap {
             out.writeInt(tileType.tileID);
             out.writeUTF(tileType.toString());
             out.writeUTF(String.valueOf(tileType.sourceSet));
-            out.writeInt(tileType.orientationBytes());
+            out.writeInt(tileType.orientationBits());
         }
 
         out.writeInt(chunkSize);
@@ -252,19 +252,19 @@ public class TileMap implements GameMap {
             if (!set.equals("null")) {
                 TileThemeSet.valueOf(set).load();
             }
-            MapTile presumedTile = MapTile.getByName(name);
+            MapTile presumedTile = MapTiles.getByName(name);
 
             if (presumedTile == MapTile.DEFAULT_TILE) {
-                types.put(tileID, MapTile.getByOrientationBytes(orientation, 0));
+                types.put(tileID, MapTiles.getByOrientationBits(orientation, 0));
 
-            } else if (presumedTile.orientationBytes() == orientation) {
+            } else if (presumedTile.orientationBits() == orientation) {
                 types.put(tileID, presumedTile);
 
             } else {
                 Logger.ASSERT.printf("Closest match for %s (%s) did not have correct rotation. Defaulting to a plain tile",
                         name, presumedTile
                 );
-                types.put(tileID, MapTile.getByOrientationBytes(orientation, 0));
+                types.put(tileID, MapTiles.getByOrientationBits(orientation, 0));
             }
         }
 
@@ -385,7 +385,7 @@ public class TileMap implements GameMap {
         boolean isOnWorld = Intersectionf.intersectRayAab(
                 coordPos.x, coordPos.y, 0,
                 coordDir.x, coordDir.y, 0,
-                0, 0, -1,
+                1, 1, -1,
                 xChunks * chunkSize - 1, yChunks * chunkSize - 1, 1,
                 worldClip
         );
@@ -397,7 +397,6 @@ public class TileMap implements GameMap {
         coordPos.add(new Vector2f(coordDir).mul(adjMin));
         coordDir.mul(adjMax - adjMin);
         Vector2i lineTraverse = new Vector2i((int) coordPos.x, (int) coordPos.y);
-        List<Vector2i> coords = new ArrayList<>();
 
         while (lineTraverse != null) {
             int xCoord = lineTraverse.x;
@@ -414,19 +413,16 @@ public class TileMap implements GameMap {
                 return maximum;
             }
 
-            coords.add(new Vector2i(lineTraverse));
             Vector2f tilePosition = new Vector2f((xCoord + 0.5f) * TILE_SIZE, (yCoord + 0.5f) * TILE_SIZE);
 
             float secFrac = tileData.intersectFraction(tilePosition, origin, direction);
             if (secFrac >= 0 && secFrac < 1) {
-                setHighlights(coords.toArray(new Vector2ic[0]));
                 return secFrac;
             }
 
             // no luck, try next coordinate
             lineTraverse = nextCoordinate(xCoord, yCoord, coordPos, coordDir, 1);
         }
-        setHighlights(coords.toArray(new Vector2ic[0]));
 
         return maximum;
     }
@@ -446,7 +442,7 @@ public class TileMap implements GameMap {
 
         if (direction.x() == 0) {
             int yNext = yCoord + (yIsPos ? 1 : -1);
-            if (yNext > origin.y() + direction.y() * maximum) {
+            if ((yNext - origin.y()) / direction.y() > maximum) { // a = o + d * maximum; maximum = (a - o) / d
                 return null;
             } else {
                 return new Vector2i(xCoord, yNext);
@@ -454,7 +450,7 @@ public class TileMap implements GameMap {
 
         } else if (direction.y() == 0) {
             int xNext = xCoord + (xIsPos ? 1 : -1);
-            if (xNext > origin.x() + direction.x() * maximum) {
+            if ((xNext - origin.x()) / direction.x() > maximum) {
                 return null;
             } else {
                 return new Vector2i(xNext, yCoord);

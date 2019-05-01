@@ -96,6 +96,6 @@ public class FileTexture implements Texture {
     }
 
     public static Texture get(Path texturePath) throws IOException {
-        return get(texturePath.toFile());
+        return texturePath == null ? null : get(texturePath.toFile());
     }
 }

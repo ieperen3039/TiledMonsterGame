@@ -35,7 +35,7 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     }
 
     /**
-     * calculates the height of a given real position
+     * calculates the exact height of a given real position
      * @param x the x position
      * @param y the y position
      * @return the real height at the given position, or 0 when it is out of bounds.
@@ -43,8 +43,9 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     float getHeightAt(float x, float y);
 
     /**
-     * @param x an exact x position on the map
-     * @param y an exact y position on the map
+     * calculates the coordinate height of a coordinate position
+     * @param x the x coordinate
+     * @param y the y coordinate
      * @return the coordinate height at position (x, y) on the map
      */
     int getHeightAt(int x, int y);
@@ -52,7 +53,7 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     /**
      * maps a real position to a coordinate
      * @param position a position in real space
-     * @return a coordinate that is closest to the given position.
+     * @return the coordinate that is closest to the given position.
      */
     Vector2i getCoordinate(Vector3fc position);
 
@@ -75,20 +76,6 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      */
     default Vector3i getCoordinate3D(int x, int y) {
         return new Vector3i(x, y, getHeightAt(x, y));
-    }
-
-    /**
-     * maps a 2D map coordinate to a 3D position. Returns a vector with z == 0 if no map is loaded.
-     * <p>{@code \result.x == mapCoord.x && result.y == mapCoord.y}</p>
-     * @param position a position on the map
-     * @return the 2D coordinate mapped to the surface of the game map.
-     */
-    default Vector3f getPosition(Vector2fc position) {
-        return new Vector3f(
-                position.x(),
-                position.y(),
-                getHeightAt(position.x(), position.y())
-        );
     }
 
     /**

@@ -13,9 +13,7 @@ import NG.GameMap.TileThemeSet;
 import NG.Mods.Mod;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
-import org.joml.Vector2f;
 import org.joml.Vector2i;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,11 +147,7 @@ public class NewGameFrame extends SFrame implements Runnable {
         TileThemeSet.PLAIN.load();
         game.get(GameMap.class).generateNew(generatorMod);
 
-        // set camera to middle of map
-        Vector3f cameraFocus = game.get(GameMap.class).getPosition(new Vector2f(xSize / 2f, ySize / 2f));
-        float initialZoom = (xSize + ySize) * 0.1f;
-        Vector3f cameraEye = new Vector3f(cameraFocus).add(initialZoom, initialZoom, initialZoom);
-        game.get(Camera.class).set(cameraFocus, cameraEye);
+        MainMenu.centerCamera(game.get(Camera.class), game.get(GameMap.class));
 
         // start
         modLoader.startGame();

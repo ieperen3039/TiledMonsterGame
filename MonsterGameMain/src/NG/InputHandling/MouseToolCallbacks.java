@@ -133,16 +133,6 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
         }
     }
 
-    private void execute(Runnable action) {
-        taskScheduler.submit(() -> {
-            try {
-                action.run();
-            } catch (Throwable ex) {
-                Logger.ERROR.print(ex);
-            }
-        });
-    }
-
     private class MouseButtonPressCallback extends GLFWMouseButtonCallback {
         @Override
         public void invoke(long windowHandle, int button, int action, int mods) {
@@ -210,5 +200,18 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
                 execute(() -> keyTypeListener.keyTyped(s));
             }
         }
+    }
+
+    private void execute(Runnable action) {
+        taskScheduler.submit(() -> {
+            try {
+                action.run();
+
+            } catch (Throwable ex) {
+                // Caught an error while executing an input handler.
+                // Look at the second element of the stack trace
+                Logger.ERROR.print(ex);
+            }
+        });
     }
 }

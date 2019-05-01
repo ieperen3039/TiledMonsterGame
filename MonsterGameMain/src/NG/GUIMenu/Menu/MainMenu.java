@@ -110,12 +110,12 @@ public class MainMenu extends SFrame {
             overworld.get(GameMap.class).generateNew(mapGenerator);
 
             pocketworld.loadMap(Directory.savedMaps.getFile("pocketDefault.mgm"));
-            centerCamera(pocketworld);
+            centerCamera(pocketworld.get(Camera.class), pocketworld.get(GameMap.class));
 
             modLoader.initMods(modLoader.allMods());
 
             // set camera to middle of map
-            Vector3f cameraFocus = centerCamera(overworld);
+            Vector3f cameraFocus = centerCamera(overworld.get(Camera.class), overworld.get(GameMap.class));
 
             /* --- DEBUG SECTION --- */
 
@@ -142,10 +142,9 @@ public class MainMenu extends SFrame {
         }
     }
 
-    private Vector3f centerCamera(Game game) {
-        Vector2ic edge = game.get(GameMap.class).getSize();
-        Vector3f cameraFocus = game.get(GameMap.class).getPosition(edge.x() / 2, edge.y() / 2);
-        Camera cam = game.get(Camera.class);
+    public static Vector3f centerCamera(Camera cam, GameMap map) {
+        Vector2ic edge = map.getSize();
+        Vector3f cameraFocus = map.getPosition(edge.x() / 2, edge.y() / 2);
         float initialZoom = (float) edge.length() / 2;
         Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
         cam.set(cameraFocus, cameraEye);

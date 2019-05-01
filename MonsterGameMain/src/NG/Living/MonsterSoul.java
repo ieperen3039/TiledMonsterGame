@@ -14,6 +14,7 @@ import NG.GameEvent.EventLoop;
 import NG.Living.Commands.Command;
 import NG.Living.Commands.Command.CType;
 import NG.Storable;
+import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -59,6 +60,7 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     private ArrayDeque<Command> plan;
     private volatile Command executionTarget;
+    private EntityAction executionAction;
     private float executionStart;
 
     /** restricts the number of pending action events to 1 */
@@ -139,9 +141,10 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
         Event event = action.getFinishEvent(actionTime, this);
 
         if (actionEventLock.tryAcquire()) {
-//            Logger.DEBUG.print(String.format("%s executes %s at %1.02f, finishing at %1.02f", this, action, actionTime, event.getTime()));
+            Logger.DEBUG.printf("%s executes %s at %1.02f, finishing at %1.02f", this, action, actionTime, event.getTime());
             game.get(EventLoop.class).addEvent(event);
-            entity.currentActions.add(actionTime, action);
+            entity.currentActions.insert(action, actionTime);
+            executionAction = action;
             executionStart = actionTime;
             return true;
         }

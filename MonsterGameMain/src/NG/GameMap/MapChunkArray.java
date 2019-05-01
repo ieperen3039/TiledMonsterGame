@@ -50,19 +50,20 @@ public class MapChunkArray implements MapChunk {
                 int neg_neg = (int) xHeight[hy];
                 int neg_pos = (int) x2Height[hy];
 
-                tiles[cx][cy] = MapTile.getRandomOf(random, pos_pos, pos_neg, neg_neg, neg_pos);
+                tiles[cx][cy] = MapTiles.getRandomOf(random, pos_pos, pos_neg, neg_neg, neg_pos);
             }
         }
     }
 
     @Override
     public MapTile.Instance get(int x, int y) {
-        if (outOfBounds(x, y)) return null;
+        checkBounds(x, y);
         return tiles[x][y];
     }
 
     @Override
     public MapTile set(int x, int y, MapTile.Instance tile) {
+        checkBounds(x, y);
         MapTile prev = tiles[x][y].type;
         tiles[x][y] = tile;
         return prev;
@@ -70,12 +71,14 @@ public class MapChunkArray implements MapChunk {
 
     @Override
     public int getHeightAt(int x, int y) {
-        if (outOfBounds(x, y)) return 0;
+        checkBounds(x, y);
         return tiles[x][y].getHeight();
     }
 
-    private boolean outOfBounds(int x, int y) {
-        return x < 0 || y < 0 || x >= size || y >= size;
+    private void checkBounds(int x, int y) {
+        if (x < 0 || y < 0 || x >= size || y >= size) {
+            throw new IndexOutOfBoundsException("(" + x + ", " + y + "), size is " + size);
+        }
     }
 
     @Override
@@ -120,7 +123,7 @@ public class MapChunkArray implements MapChunk {
 
     @Override
     public void highlight(int x, int y) {
-        if (outOfBounds(x, y)) return;
+        checkBounds(x, y);
         highlights.add(tiles[x][y]);
     }
 

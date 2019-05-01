@@ -12,6 +12,7 @@ import NG.Living.SoulDescription;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
+import NG.Tools.Toolbox;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -137,6 +138,10 @@ public class CubeMonster extends MonsterSoul {
 
         @Override
         public void draw(SGL gl, NG.Entities.Entity entity) {
+            gl.translate(0, 0, 2);
+            Toolbox.drawAxisFrame(gl);
+            gl.translate(0, 0, -2);
+
             gl.translate(0, 0, size);
             gl.scale(size);
             super.draw(gl, entity);

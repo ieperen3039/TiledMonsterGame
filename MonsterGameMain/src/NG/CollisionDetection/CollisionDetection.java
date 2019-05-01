@@ -130,7 +130,7 @@ public class CollisionDetection {
         /** -- analyse the collisions -- */
 
         // world collisions
-//        entityList.forEach(e -> world.checkCollision(e, previousTime, currentTime)); //TODO world collision
+        entityList.forEach(e -> world.checkCollision(e, previousTime, currentTime));
 
         /* As a single collision may result in a previously not-intersecting pair to collide,
          * we shouldn't re-use the getIntersectingPairs method nor reduce by non-collisions.

@@ -5,6 +5,7 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Version;
 import NG.GUIMenu.Frames.Components.*;
 import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Menu.MainMenu;
 import NG.GUIMenu.SToolBar;
 import NG.GameMap.*;
 import NG.InputHandling.MouseToolCallbacks;
@@ -14,7 +15,10 @@ import NG.Rendering.Lights.GameLights;
 import NG.Rendering.RenderLoop;
 import NG.Settings.Settings;
 import NG.Tools.*;
-import org.joml.*;
+import org.joml.Vector2i;
+import org.joml.Vector2ic;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -219,7 +223,9 @@ public class MapEditor {
                 }
 
                 Vector2ic size = newMap.getSize();
-                setCameraToMiddle(size.x(), size.y());
+                size.x();
+                size.y();
+                MainMenu.centerCamera(game.get(Camera.class), newMap);
                 Logger.INFO.print("Loaded map of size " + Vectors.toString(size));
 
             } catch (Exception e) {
@@ -295,7 +301,7 @@ public class MapEditor {
 
             game.get(GameMap.class).generateNew(generator);
 
-            setCameraToMiddle(xSize, ySize);
+            MainMenu.centerCamera(game.get(Camera.class), game.get(GameMap.class));
             Logger.removeOnlinePrint(processDisplay);
 
             newMapFrame.dispose();
@@ -303,14 +309,6 @@ public class MapEditor {
 
         newMapFrame.setMainPanel(mainPanel);
         gui.addFrame(newMapFrame);
-    }
-
-    private void setCameraToMiddle(int xSize, int ySize) {
-        Vector3f cameraFocus = game.get(GameMap.class).getPosition(new Vector2f(xSize / 2f, ySize / 2f));
-        // set camera to middle of map
-        float initialZoom = (xSize + ySize);
-        Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom * 0.8f, initialZoom);
-        game.get(Camera.class).set(cameraFocus, cameraEye);
     }
 
     public void start() {

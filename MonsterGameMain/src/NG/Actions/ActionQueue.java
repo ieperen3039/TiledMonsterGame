@@ -202,12 +202,12 @@ public class ActionQueue extends AbstractQueue<Pair<Float, EntityAction>> {
      * @param startTime the moment of interrupt
      */
     public void insert(EntityAction action, float startTime) {
-        if (startTime > lastActionEnd) {
+        if (startTime >= lastActionEnd) {
             add(startTime, action);
             return;
         }
 
-        if (startTime < firstActionStart()) {
+        if (startTime <= firstActionStart()) {
             lockQueueEdit.lock();
             clear();
             setLast(action, startTime);
@@ -217,19 +217,34 @@ public class ActionQueue extends AbstractQueue<Pair<Float, EntityAction>> {
 
         // a currently executing action...
         lockQueueEdit.lock();
-        Iterator<Float> times = startTimes.descendingIterator();
-        Iterator<EntityAction> things = actions.descendingIterator();
+        EntityAction previous;
+        float prevStart;
 
-        while (times.hasNext() && times.next() > startTime) {
-            times.remove();
-            things.remove();
+        if (startTimes.isEmpty()) {
+            previous = lastAction;
+            prevStart = lastActionStart;
+
+        } else {
+            Iterator<Float> times = startTimes.descendingIterator();
+            Iterator<EntityAction> things = actions.descendingIterator();
+
+            do {
+                prevStart = times.next();
+                times.remove();
+                things.next();
+                things.remove();
+            } while (prevStart > startTime);
+            previous = things.next();
         }
 
-        EntityAction newLast = things.next();
-        Vector3f position = newLast.getPositionAt(startTime);
+        Vector3f position = previous.getPositionAt(startTime - prevStart);
         if (!position.equals(action.getStartPosition())) {
             lockQueueEdit.unlock();
-            throw new IllegalArgumentException("Action " + action + " does not follow " + newLast);
+            throw new BrokenMovementException(String.format(
+                    "Action %s does not follow %s(%s != %s)",
+                    action, previous,
+                    Vectors.toString(position), Vectors.toString(action.getStartPosition())
+            ));
         }
 
         // shift last actions into the queue
@@ -237,9 +252,9 @@ public class ActionQueue extends AbstractQueue<Pair<Float, EntityAction>> {
             startTimes.offer(lastActionStart);
             actions.offer(lastAction);
         }
-        lockQueueEdit.unlock();
-
         setLast(action, startTime);
+
+        lockQueueEdit.unlock();
     }
 
     /**

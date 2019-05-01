@@ -38,7 +38,11 @@ public class ActionWalk implements EntityAction {
      */
     public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord, float walkSpeed) {
         this.game = game;
-        GameMap map = this.game.get(GameMap.class);
+        GameMap map = game.get(GameMap.class);
+        assert map.getHeightAt(startPosition.x(), startPosition.y()) == startPosition.z() :
+                String.format("Start position is not on the ground: %s should have z = %s",
+                        Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));
+
         start = new Vector3f(startPosition);
         end = map.getPosition(endCoord);
         startToEnd = new Vector2f(end.x() - startPosition.x(), end.y() - startPosition.y());
@@ -68,7 +72,7 @@ public class ActionWalk implements EntityAction {
 
     @Override
     public String toString() {
-        return "Walk (to " + Vectors.toString(end) + ")";
+        return "Walk from " + Vectors.toString(start) + " to " + Vectors.toString(end);
     }
 
     @Override

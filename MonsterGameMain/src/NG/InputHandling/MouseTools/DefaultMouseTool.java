@@ -12,6 +12,16 @@ import org.joml.Vector3fc;
 import org.lwjgl.glfw.GLFW;
 
 /**
+ * A mouse tool that implements the standard behaviour of the pointer user input.
+ *
+ * <dl>
+ * <dt>UI elements:</dt>
+ * <dd>components are activated when clicked on, drag and release listeners are respected</dd>
+ * <dt>Entities:</dt>
+ * <dd>entities activate their {@link Entity#onClick(int)} function when clicked on</dd>
+ * <dt>Map:</dt>
+ * <dd>Currently, the clicked position is printed to the debug output</dd>
+ * </dl>
  * @author Geert van Ieperen. Created on 26-11-2018.
  */
 public class DefaultMouseTool implements MouseTool {
