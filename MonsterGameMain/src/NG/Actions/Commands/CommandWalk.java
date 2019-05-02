@@ -1,10 +1,11 @@
-package NG.Living.Commands;
+package NG.Actions.Commands;
 
 import NG.Actions.ActionWalk;
 import NG.Actions.EntityAction;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
 import NG.Living.Living;
+import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
@@ -33,7 +34,12 @@ public class CommandWalk extends Command {
                 .findPath(beginCoord, target, walkSpeed, 0.1f)
                 .iterator();
 
-        if (!path.hasNext()) return null; // already there
+        if (!path.hasNext()) {
+            Vector3fc tgtPos = map.getPosition(beginCoord);
+            if (Vectors.almostEqual(tgtPos, beginPosition)) return null; // already there
+
+            return new ActionWalk(game, beginPosition, beginCoord, walkSpeed);
+        }
 
         return new ActionWalk(game, beginPosition, path.next(), walkSpeed);
     }

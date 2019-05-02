@@ -130,7 +130,9 @@ public class CollisionDetection {
         /** -- analyse the collisions -- */
 
         // world collisions
-        entityList.forEach(e -> world.checkCollision(e, previousTime, currentTime));
+        for (Entity e : entityList) {
+            world.checkCollision(e, previousTime, currentTime);
+        }
 
         /* As a single collision may result in a previously not-intersecting pair to collide,
          * we shouldn't re-use the getIntersectingPairs method nor reduce by non-collisions.
@@ -163,6 +165,8 @@ public class CollisionDetection {
      * @return true iff these pairs indeed collided before endTime
      */
     private boolean checkCollisionPair(Entity alpha, Entity beta, float startTime, float endTime) {
+        if (!alpha.canCollideWith(beta) || !beta.canCollideWith(alpha)) return false;
+
         // this may change with previous collisions
         if (alpha.isDisposed() || beta.isDisposed() || alpha == beta) return false;
 

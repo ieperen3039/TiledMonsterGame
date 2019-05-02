@@ -72,7 +72,7 @@ public class WorldBPShader extends SceneShader implements TextureShader {
     public void initialize(Game game) {
         // Base variables
         Vector3fc eye = game.get(Camera.class).getEye();
-        setUniform("ambientLight", game.get(Settings.class).AMBIENT_LIGHT.toVector3f());
+        setUniform("ambientLight", Settings.AMBIENT_LIGHT.toVector3f());
         setUniform("cameraPosition", eye);
         setUniform("specularPower", SPECULAR_POWER);
         setUniform("directionalLight.shadowEnable", game.get(Settings.class).STATIC_SHADOW_RESOLUTION > 0);

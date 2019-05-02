@@ -7,8 +7,6 @@ import NG.Rendering.Shaders.SceneShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import org.joml.*;
 
-import static org.lwjgl.opengl.GL11.*;
-
 /**
  * @author Geert van Ieperen created on 16-11-2017.
  */
@@ -29,10 +27,6 @@ public class SceneShaderGL extends AbstractSGL {
         super();
         this.shader = shader;
         viewProjectionMatrix = viewpoint.getViewProjection(windowWidth, windowHeight, isometric);
-
-        glViewport(0, 0, windowWidth, windowHeight);
-        glEnable(GL_LINE_SMOOTH);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     @Override

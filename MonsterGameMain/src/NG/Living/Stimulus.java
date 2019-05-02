@@ -1,6 +1,6 @@
 package NG.Living;
 
-import NG.Living.Commands.Command;
+import NG.Actions.Commands.Command;
 import NG.Tools.Toolbox;
 import org.joml.Vector3fc;
 

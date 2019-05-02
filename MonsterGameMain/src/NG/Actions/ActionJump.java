@@ -35,6 +35,11 @@ public class ActionJump implements EntityAction {
         return duration;
     }
 
+    @Override
+    public boolean hasWorldCollision() {
+        return true;
+    }
+
     public static float jumpDuration(float jumpSpeed, float distance) {
         return jumpSpeed / distance;
     }

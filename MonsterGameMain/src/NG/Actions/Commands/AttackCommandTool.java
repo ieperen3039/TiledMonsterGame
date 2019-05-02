@@ -1,4 +1,4 @@
-package NG.Living.Commands;
+package NG.Actions.Commands;
 
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
@@ -34,7 +34,7 @@ public class AttackCommandTool extends DefaultMouseTool {
         Vector2i coord = map.getCoordinate(position);
         Vector3f target = map.getPosition(coord.x, coord.y);
 
-        ProjectilePowerBall projectile = new ProjectilePowerBall(game, target, 2f, 0.5f);
+        ProjectilePowerBall projectile = new ProjectilePowerBall(game, entity, target, 2f, 0.5f);
         Command command = new CommandAttack(new Player(), entity, projectile);
         entity.getController().queueCommand(command);
     }

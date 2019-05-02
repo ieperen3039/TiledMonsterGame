@@ -73,13 +73,18 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
-    public float getMagnitude(Vector3fc position) {
+    public float getMagnitude(Vector3fc otherPosition) {
         return 0;
     }
 
     @Override
     public UniversalAnimation getAnimation() {
         return BodyAnimation.IDLE;
+    }
+
+    @Override
+    public boolean hasWorldCollision() {
+        return false;
     }
 
     public static PartialAnimation idleAnimation(final float duration) {

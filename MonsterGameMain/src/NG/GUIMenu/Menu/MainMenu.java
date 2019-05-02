@@ -1,5 +1,7 @@
 package NG.GUIMenu.Menu;
 
+import NG.Actions.Commands.Command;
+import NG.Actions.Commands.CommandWalk;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;
@@ -21,8 +23,6 @@ import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
-import NG.Living.Commands.Command;
-import NG.Living.Commands.CommandWalk;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Particles.GameParticles;
@@ -82,8 +82,7 @@ public class MainMenu extends SFrame {
                 new SButton("BOOM", () -> {
                     ParticleCloud cloud = Particles.explosion(
                             Vectors.O, Vectors.O, Color4f.RED, Color4f.ORANGE,
-                            (int) (overworld.get(Settings.class).PARTICLE_MODIFIER * 1000),
-                            5f, 10f
+                            50_000, 5f, 10f
                     );
                     overworld.get(GameParticles.class).add(cloud);
                 }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)

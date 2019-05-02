@@ -2,6 +2,8 @@ package NG.Entities;
 
 import NG.Actions.ActionIdle;
 import NG.Actions.ActionQueue;
+import NG.Actions.Commands.AttackCommandTool;
+import NG.Actions.Commands.WalkCommandTool;
 import NG.Actions.EntityAction;
 import NG.Animations.AnimationBone;
 import NG.Animations.BodyModel;
@@ -15,9 +17,8 @@ import NG.GUIMenu.Frames.Components.SPanel;
 import NG.GUIMenu.Frames.Components.SToggleButton;
 import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.Menu.MainMenu;
+import NG.GameMap.GameMap;
 import NG.InputHandling.KeyMouseCallbacks;
-import NG.Living.Commands.AttackCommandTool;
-import NG.Living.Commands.WalkCommandTool;
 import NG.Living.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector2i;
@@ -68,6 +69,17 @@ public abstract class MonsterEntity implements Entity {
         gl.popMatrix();
 
         if (action != previousAction) previousAction = action;
+    }
+
+    @Override
+    public void update(float gameTime) {
+        float lastActionEnd = currentActions.lastActionEnd();
+        if (gameTime >= lastActionEnd) {
+            EntityAction next = controller.getNextAction(lastActionEnd);
+            currentActions.insert(next, gameTime);
+        }
+
+        controller.update(gameTime);
     }
 
     /**
@@ -126,9 +138,8 @@ public abstract class MonsterEntity implements Entity {
         return currentActions.lastAction();
     }
 
-    public EntityAction getCurrentAction() {
-        float now = game.get(GameTimer.class).getGametime();
-        return currentActions.getActionAt(now).left;
+    public EntityAction getActionAt(float gameTime) {
+        return currentActions.getActionAt(gameTime).left;
     }
 
     @Override
@@ -136,7 +147,12 @@ public abstract class MonsterEntity implements Entity {
 
     @Override
     public void collideWith(Object other, float collisionTime) {
-        Pair<EntityAction, Float> action = currentActions.getActionAt(collisionTime);
-        controller.onActionFinish(action.left, collisionTime);
+        if (other instanceof GameMap) {
+            EntityAction action = currentActions.getActionAt(collisionTime).left;
+            if (!action.hasWorldCollision()) return;
+        }
+
+        EntityAction nextAction = controller.getNextAction(collisionTime);
+        currentActions.insert(nextAction, collisionTime);
     }
 }

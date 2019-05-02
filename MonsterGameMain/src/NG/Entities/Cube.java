@@ -42,6 +42,11 @@ public class Cube implements Entity {
     }
 
     @Override
+    public void update(float gameTime) {
+
+    }
+
+    @Override
     public void onClick(int button) {
         dispose();
     }

@@ -115,15 +115,15 @@ public class MonsterGame implements ModLoader {
         Logger.DEBUG.print("Installing basic elements...");
 
         // world
-        renderer.getRenderSequence(new WorldBPShader())
+        renderer.newRenderSequence(new WorldBPShader())
                 .add(combinedGame.get(GameLights.class)::draw)
                 .add(combinedGame.get(GameMap.class)::draw);
         // entities
-        renderer.getRenderSequence(new BlinnPhongShader())
+        renderer.newRenderSequence(new BlinnPhongShader())
                 .add(combinedGame.get(GameLights.class)::draw)
                 .add(combinedGame.get(GameState.class)::draw);
         // particles
-        renderer.getRenderSequence(new ParticleShader())
+        renderer.newRenderSequence(new ParticleShader())
                 .add(combinedGame.get(GameParticles.class)::draw);
 
         mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
@@ -140,7 +140,7 @@ public class MonsterGame implements ModLoader {
         Logger.DEBUG.print("Installing optional elements...");
 
         // hitboxes
-        renderer.getRenderSequence(null)
+        renderer.newRenderSequence(null)
                 .add(gl -> {
                     if (combinedGame.get(Settings.class).RENDER_HITBOXES) return;
 

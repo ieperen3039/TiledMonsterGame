@@ -44,7 +44,7 @@ public class ProjectileSpawnEvent extends Event {
 
     /**
      * creates and schedules the spawning of a projectile on the given spawn time
-     * @see #ProjectileSpawnEvent(Game, Projectile, Vector3fc, float, Supplier
+     * @see #ProjectileSpawnEvent(Game, Projectile, Vector3fc, float, Supplier)
      */
     public static void create(
             Game game, Projectile projectile, float spawnTime, Vector3f spawnPosition

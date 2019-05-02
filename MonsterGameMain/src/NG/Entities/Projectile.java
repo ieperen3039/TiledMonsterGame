@@ -1,8 +1,8 @@
 package NG.Entities;
 
-import NG.CollisionDetection.BoundingBox;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3fc;
 
@@ -11,15 +11,15 @@ import org.joml.Vector3fc;
  */
 public abstract class Projectile implements Entity {
     protected final Game game;
-    private final float scaling;
     private float spawnTime = Float.MAX_VALUE;
+    private Object source;
 
     private boolean isDisposed = false;
     private boolean isLaunched = false;
 
-    public Projectile(Game game, float scaling) {
+    public Projectile(Game game, Object source) {
         this.game = game;
-        this.scaling = scaling;
+        this.source = source;
     }
 
     /**
@@ -49,14 +49,11 @@ public abstract class Projectile implements Entity {
         if (isDisposed) return;
         float now = game.get(GameTimer.class).getRendertime();
         if (now < spawnTime) return;
-        float timeSinceStart = now - spawnTime;
 
         gl.pushMatrix();
         {
-            gl.translate(getPositionAt(timeSinceStart));
-            gl.scale(scaling);
-
-            drawProjectile(gl, timeSinceStart);
+            gl.translate(getPositionAt(now));
+            drawProjectile(gl, now);
         }
         gl.popMatrix();
     }
@@ -83,7 +80,34 @@ public abstract class Projectile implements Entity {
     }
 
     @Override
-    public BoundingBox hitbox() {
-        return new BoundingBox(0, 0, 0, 0, 0, 0);
+    public boolean canCollideWith(Entity other) {
+        return other != this && other != source;
+    }
+
+    @Override
+    public void collideWith(Object other, float collisionTime) {
+        assert !(other instanceof Entity) || canCollideWith((Entity) other);
+        dispose();
+    }
+
+    @Override
+    public void checkMapCollision(GameMap map, float startTime, float endTime) {
+        if (endTime < spawnTime) return;
+
+        if (startTime < spawnTime) {
+            startTime = spawnTime;
+        }
+
+        Vector3fc startPos = getPositionAt(startTime);
+        Vector3fc movement = getPositionAt(endTime).sub(startPos);
+        float minIntersect = map.intersectFractionBoundingBox(hitbox(), startPos, movement, 1);
+        if (minIntersect == 1) return;
+
+        float collisionTime = startTime + minIntersect * (endTime - startTime);
+        collideWith(map, collisionTime);
+    }
+
+    protected float getSpawnTime() {
+        return spawnTime;
     }
 }

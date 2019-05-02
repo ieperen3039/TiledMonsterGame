@@ -1,4 +1,4 @@
-package NG.Living.Commands;
+package NG.Actions.Commands;
 
 import NG.Actions.EntityAction;
 import NG.Animations.CompoundAnimation;
@@ -110,5 +110,10 @@ public class CompoundAction implements EntityAction {
     @Override
     public String toString() {
         return Arrays.toString(actions);
+    }
+
+    @Override
+    public boolean hasWorldCollision() {
+        return false;
     }
 }

@@ -79,4 +79,9 @@ public class ActionWalk implements EntityAction {
     public float duration() {
         return duration;
     }
+
+    @Override
+    public boolean hasWorldCollision() {
+        return false;
+    }
 }

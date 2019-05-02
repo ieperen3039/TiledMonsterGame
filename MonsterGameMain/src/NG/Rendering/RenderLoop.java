@@ -71,7 +71,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         });
 
         uiShader = new PhongShader();
-        getRenderSequence(uiShader)
+        newRenderSequence(uiShader)
                 .add(game.get(GameLights.class)::draw)
                 .add(pointer::draw);
 
@@ -84,7 +84,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
      * @param shader the shader used, or null to use a basic Phong shading
      * @return a bundle that allows adding rendering options.
      */
-    public RenderBundle getRenderSequence(ShaderProgram shader) {
+    public RenderBundle newRenderSequence(ShaderProgram shader) {
         return renders.computeIfAbsent(shader == null ? uiShader : shader, RenderBundle::new);
     }
 
@@ -131,11 +131,14 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         GameLights lights = game.get(GameLights.class);
         lights.renderShadowMaps();
 
+        GLFWWindow window = game.get(GLFWWindow.class);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, window.getWidth(), window.getHeight());
+        glEnable(GL_LINE_SMOOTH);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         renders.values().forEach(RenderBundle::draw);
 
-        GLFWWindow window = game.get(GLFWWindow.class);
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
         overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);

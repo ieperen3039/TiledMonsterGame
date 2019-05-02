@@ -65,6 +65,10 @@ public interface PartialAnimation extends Storable {
             model.draw(gl, this, ROBOT_MESH_MAP, ani, aniTime);
         }
 
+        @Override
+        public void update(float gameTime) {
+        }
+
         public void setPosition(Vector3fc position) {
             this.position.set(position);
         }

@@ -2,8 +2,10 @@ package NG.Entities;
 
 import NG.CollisionDetection.BoundingBox;
 import NG.Engine.GameTimer;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 /**
  * An entity is anything that is in the world, excluding the ground itself. Particles and other purely visual elements.
@@ -21,9 +23,16 @@ public interface Entity {
     void draw(SGL gl);
 
     /**
-     * The position of this entity. If the entity does not exist on the given time, the result is undefined.
+     * updates the control and actions of this entity
+     * @param gameTime the current game time
+     */
+    void update(float gameTime);
+
+    /**
+     * The position of this entity. If the entity does not exist on the given time, the result is null.
      * @param currentTime
-     * @return the real position of this entity at the given time
+     * @return the real position of this entity at the given time, or null if the entity does not exist at the given
+     * time
      */
     Vector3f getPositionAt(float currentTime);
 
@@ -51,10 +60,34 @@ public interface Entity {
     BoundingBox hitbox();
 
     /**
+     * @param other another entity
+     * @return false if this entity does not respond on a collision with the other entity. In that case, the other
+     * entity should also not respond on a collision with this.
+     */
+    default boolean canCollideWith(Entity other) {
+        return other != this;
+    }
+
+    /**
      * process a collision with the other entity, happening at collisionTime. The other entity will be called with this
      * same function, as {@code other.collideWith(this, collisionTime)}.
+     * <p>
+     * Should not be called if either {@code this.}{@link #canCollideWith(Entity) canCollideWith}{@code (other)} or
+     * {@code other.}{@link #canCollideWith(Entity) canCollideWith}{@code (this)}
      * @param other         another entity
      * @param collisionTime the moment of collision
      */
     void collideWith(Object other, float collisionTime);
+
+    @SuppressWarnings("Duplicates")
+    default void checkMapCollision(GameMap map, float startTime, float endTime) {
+        Vector3fc startPos = getPositionAt(startTime);
+        Vector3fc endPos = getPositionAt(endTime);
+
+        float intersect = map.intersectFraction(startPos, new Vector3f(endPos).sub(startPos), 1);
+        if (intersect == 1) return;
+
+        float collisionTime = startTime + intersect * (endTime - startTime);
+        collideWith(map, collisionTime);
+    }
 }

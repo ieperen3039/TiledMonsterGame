@@ -19,7 +19,7 @@ public class Cursor implements Entity {
         this.positionSupplier = positionSupplier;
     }
 
-    private void update() {
+    public void update(float gameTime) {
 
     }
 

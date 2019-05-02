@@ -52,4 +52,9 @@ public class ActionFly implements EntityAction {
     public float duration() {
         return duration;
     }
+
+    @Override
+    public boolean hasWorldCollision() {
+        return true;
+    }
 }

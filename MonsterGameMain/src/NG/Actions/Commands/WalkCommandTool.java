@@ -1,4 +1,4 @@
-package NG.Living.Commands;
+package NG.Actions.Commands;
 
 import NG.Engine.Game;
 import NG.Entities.MonsterEntity;

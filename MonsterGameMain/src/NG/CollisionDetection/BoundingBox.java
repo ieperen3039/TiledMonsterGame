@@ -79,7 +79,12 @@ public class BoundingBox extends AABBf {
         return min;
     }
 
-    private Iterable<Vector3f> corners() {
+    /**
+     * Iterates over the corners of this bounding box using an iterator-local buffer vector
+     * @return an iterable source of the corners of this box. Changes of the bounding box are reflected in the values
+     * returned by this iterator.
+     */
+    public Iterable<Vector3f> corners() {
         return () -> new Iterator<>() {
             int i = 0;
             Vector3f buffer = new Vector3f();

@@ -1,7 +1,6 @@
 package NG.Actions;
 
 import NG.Animations.UniversalAnimation;
-import NG.GameEvent.Event;
 import NG.Living.Stimulus;
 import NG.Tools.Vectors;
 import org.joml.Quaternionf;
@@ -15,8 +14,8 @@ import org.joml.Vector3fc;
 public interface EntityAction extends Stimulus {
 
     /**
-     * calculates the position resulting from this action, the given time after the start of this action
-     * @param timeSinceStart the time since the start of this animation in seconds
+     * calculates the position of this action, at the given time after the start of this action
+     * @param timeSinceStart the time since the start of this action in seconds
      * @return the position at the given moment in time as described by this action.
      */
     Vector3f getPositionAt(float timeSinceStart);
@@ -34,17 +33,6 @@ public interface EntityAction extends Stimulus {
      */
     float duration();
 
-
-    @Override
-    default float getMagnitude(Vector3fc position) {
-        return 1;
-    }
-
-    /**
-     * @return the animation that is played when executing this action
-     */
-    UniversalAnimation getAnimation();
-
     /**
      * checks whether this action may follow the given action
      * @param first an action that happened before this action
@@ -56,32 +44,34 @@ public interface EntityAction extends Stimulus {
             throw new IllegalArgumentException("Action is compared to null");
         }
 
-        return Vectors.almostEquals(first.getEndPosition(), getStartPosition());
+        return Vectors.almostEqual(first.getEndPosition(), getStartPosition());
     }
 
-    default Event getFinishEvent(float startTime, ActionFinishListener listener) {
-        return new ActionFinishEvent(this, startTime, listener);
+    /**
+     * @return false if this action trivially touches the ground, true if collision detection with the ground is
+     * required
+     */
+    boolean hasWorldCollision();
+
+    @Override
+    default float getMagnitude(Vector3fc otherPosition) {
+        return 1;
     }
 
+    /**
+     * @return the animation that is played when executing this action
+     */
+    UniversalAnimation getAnimation();
+
+    /**
+     * calculates the rotation of this action, at the given time after the start of this action
+     * @param timeSinceStart the time since the start of this action in seconds
+     * @return the rotation from the base at the given moment in time as described by this action.
+     */
     default Quaternionf getRotationAt(float timeSinceStart) {
         Vector3fc startPosition = getPositionAt(0);
         Vector3fc endPosition = getPositionAt(duration());
         Vector3f relativeMovement = new Vector3f(startPosition).sub(endPosition);
         return Vectors.getPitchYawRotation(relativeMovement);
-    }
-
-    class ActionFinishEvent extends Event {
-        private EntityAction action;
-        private ActionFinishListener listener;
-
-        public ActionFinishEvent(EntityAction action, float startTime, ActionFinishListener listener) {
-            super(startTime + action.duration());
-            this.action = action;
-            this.listener = listener;
-        }
-
-        public void run() {
-            listener.onActionFinish(action, eventTime);
-        }
     }
 }

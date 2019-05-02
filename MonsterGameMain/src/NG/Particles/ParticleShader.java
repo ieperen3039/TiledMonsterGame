@@ -63,6 +63,10 @@ public class ParticleShader implements ShaderProgram {
 
     @Override
     public void initialize(Game game) {
+        GameTimer timer = game.get(GameTimer.class);
+        Settings settings = game.get(Settings.class);
+        glUniform1f(timeUniform, timer.getRendertime());
+        glUniform1f(sizeUniform, settings.PARTICLE_SIZE);
     }
 
     public void bind() {
@@ -97,14 +101,6 @@ public class ParticleShader implements ShaderProgram {
     }
 
     /**
-     * Set the time uniform of this program
-     * @param value The new value of the uniform.
-     */
-    public void setTime(float value) {
-        glUniform1f(timeUniform, value);
-    }
-
-    /**
      * sets the projection matrix uniform
      */
     public void setProjection(Matrix4fc matrix) {
@@ -116,43 +112,28 @@ public class ParticleShader implements ShaderProgram {
         }
     }
 
-    /**
-     * sets the size uniform that determine the size of the particles
-     */
-    public void setParticleSize(float size) {
-        glUniform1f(sizeUniform, size);
-    }
-
     public ParticleGL getGL(Game game) {
         GLFWWindow window = game.get(GLFWWindow.class);
         Camera camera = game.get(Camera.class);
-        GameTimer gameTimer = game.get(GameTimer.class);
         Settings settings = game.get(Settings.class);
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
 
-        return new ParticleGL(camera, windowWidth, windowHeight, settings.ISOMETRIC_VIEW, gameTimer, settings.PARTICLE_SIZE);
+        return new ParticleGL(camera, windowWidth, windowHeight, settings.ISOMETRIC_VIEW);
     }
 
     public class ParticleGL extends AbstractSGL {
         private final Matrix4f viewProjectionMatrix;
-        private final float renderTime;
-        private float particleSize;
 
         public ParticleGL(
-                Camera camera, float windowWidth, float windowHeight, boolean iso, GameTimer gameTimer,
-                float particleSize
+                Camera camera, float windowWidth, float windowHeight, boolean iso
         ) {
-            this.particleSize = particleSize;
             viewProjectionMatrix = camera.getViewProjection(windowWidth, windowHeight, iso);
-            renderTime = gameTimer.getRendertime(); // GL should only be used one per loop
         }
 
         @Override
         public void render(Mesh object, Entity sourceEntity) {
             setProjection(viewProjectionMatrix);
-            setTime(renderTime);
-            setParticleSize(particleSize);
             object.render(LOCK);
         }
 

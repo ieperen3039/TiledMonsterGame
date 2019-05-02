@@ -1,8 +1,8 @@
 package NG.GameMap;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
-import NG.Entities.Entity;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
@@ -165,15 +165,26 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      */
     float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum);
 
-    default void checkEntityCollision(Entity entity, float startTime, float endTime) {
-        Vector3fc startPos = entity.getPositionAt(startTime);
-        Vector3fc endPos = entity.getPositionAt(endTime);
+    /**
+     * calculates the lowest fraction t such that 0 <= t <= maximum, and that the hitbox can move (t * direction)
+     * starting at origin before hitting this map.
+     * @param hitbox    the hitbox to consider
+     * @param origin    the relative position of the hitbox, origin of the movement
+     * @param direction the direction the hitbox is moving in
+     * @param maximum   the maximum value of t
+     * @return t, or maximum if it did not hit
+     */
+    default float intersectFractionBoundingBox(
+            BoundingBox hitbox, Vector3fc origin, Vector3fc direction, float maximum
+    ) {
+        for (Vector3f corner : hitbox.corners()) {
+            corner.add(origin);
 
-        float intersect = intersectFraction(startPos, new Vector3f(endPos).sub(startPos), 1);
-        if (intersect == 1) return;
+            float newIntersect = intersectFraction(corner, direction, maximum);
+            if (newIntersect < maximum) maximum = newIntersect;
+        }
 
-        float collisionTime = startTime + intersect * (endTime - startTime);
-        entity.collideWith(this, collisionTime);
+        return maximum;
     }
 
     interface ChangeListener {

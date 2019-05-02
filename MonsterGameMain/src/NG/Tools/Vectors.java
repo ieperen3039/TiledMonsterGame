@@ -333,7 +333,7 @@ public final class Vectors {
         return new Vector3f(box.maxX - box.minX, box.maxY - box.minY, box.maxZ - box.minZ);
     }
 
-    public static boolean almostEquals(Vector3fc alpha, Vector3fc beta) {
+    public static boolean almostEqual(Vector3fc alpha, Vector3fc beta) {
         return alpha.distanceSquared(beta) < VECTOR_EQUALITY_DIST_SQ;
     }
 

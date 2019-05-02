@@ -32,12 +32,17 @@ public class DynamicState implements GameState {
     @Override
     public void init(Game game) throws Exception {
         this.game = game;
-        entityList.setWorld(game.get(GameMap.class)::checkEntityCollision);
+        entityList.setWorld(this::entityWorldCollision);
+    }
+
+    private void entityWorldCollision(Entity entity, float startTime, float endTime) {
+        entity.checkMapCollision(game.get(GameMap.class), startTime, endTime);
     }
 
     @Override
     public void update(float gameTime) {
         entityList.processCollisions(gameTime);
+        entityList.forEach(entity -> entity.update(gameTime));
     }
 
     @Override
@@ -100,4 +105,5 @@ public class DynamicState implements GameState {
     public void cleanup() {
         entityList.cleanup();
     }
+
 }

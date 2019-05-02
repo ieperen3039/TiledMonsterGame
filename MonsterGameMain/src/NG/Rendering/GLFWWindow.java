@@ -82,7 +82,7 @@ public class GLFWWindow {
             glfwWindowHint(GLFW_SAMPLES, settings.ANTIALIAS_LEVEL);
         }
 
-        window = getWindow(settings.WINDOW_WIDTH, settings.WINDOW_HEIGHT);
+        window = getWindow(settings.DEFAULT_WINDOW_WIDTH, settings.DEFAULT_WINDOW_HEIGHT);
         primaryMonitor = glfwGetPrimaryMonitor();
 
         if (settings.DEBUG) {
@@ -336,8 +336,8 @@ public class GLFWWindow {
         // Center window on display
         glfwSetWindowPos(
                 window,
-                (vidmode.width() - settings.WINDOW_WIDTH) / 2,
-                (vidmode.height() - settings.WINDOW_HEIGHT) / 2
+                (vidmode.width() - settings.DEFAULT_WINDOW_WIDTH) / 2,
+                (vidmode.height() - settings.DEFAULT_WINDOW_HEIGHT) / 2
         );
         fullScreen = false;
     }

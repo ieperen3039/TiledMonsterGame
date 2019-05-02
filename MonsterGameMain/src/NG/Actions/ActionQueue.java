@@ -202,6 +202,8 @@ public class ActionQueue extends AbstractQueue<Pair<Float, EntityAction>> {
      * @param startTime the moment of interrupt
      */
     public void insert(EntityAction action, float startTime) {
+        assert action != null;
+
         if (startTime >= lastActionEnd) {
             add(startTime, action);
             return;

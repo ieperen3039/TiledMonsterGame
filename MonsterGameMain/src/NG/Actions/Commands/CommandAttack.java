@@ -1,4 +1,4 @@
-package NG.Living.Commands;
+package NG.Actions.Commands;
 
 import NG.Actions.ActionFireProjectile;
 import NG.Actions.EntityAction;

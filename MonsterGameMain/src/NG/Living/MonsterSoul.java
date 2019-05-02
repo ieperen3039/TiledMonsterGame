@@ -1,7 +1,10 @@
 package NG.Living;
 
-import NG.Actions.ActionFinishListener;
+import NG.Actions.ActionIdle;
+import NG.Actions.Commands.Command;
+import NG.Actions.Commands.Command.CType;
 import NG.Actions.EntityAction;
+import NG.DataStructures.Generic.Pair;
 import NG.DataStructures.Generic.PairList;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
@@ -9,12 +12,7 @@ import NG.Entities.EntityStatistics;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Frames.Components.SNamedValue;
 import NG.GUIMenu.Frames.Components.SPanel;
-import NG.GameEvent.Event;
-import NG.GameEvent.EventLoop;
-import NG.Living.Commands.Command;
-import NG.Living.Commands.Command.CType;
 import NG.Storable;
-import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -31,7 +29,7 @@ import java.util.concurrent.Semaphore;
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public abstract class MonsterSoul implements Living, Storable, ActionFinishListener {
+public abstract class MonsterSoul implements Living, Storable {
     private static final float MINIMUM_NOTICE_MAGNITUDE = 1e-3f;
 
     private static final int ATTENTION_SIZE = 6;
@@ -98,61 +96,35 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
 
     protected abstract MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction);
 
-    @Override
-    public void onActionFinish(EntityAction previous, float finishTime) {
-        actionEventLock.release();
-        scheduleNext(previous, finishTime);
-    }
-
     /**
-     * queries the next action planned, and executes it at the given start time.
-     * May not be called if another action is currently being executed
-     * @param previous the previous action executed
+     * computes which action should be executed at the given time
      * @param gameTime the start time of the next action
+     * @return the action planned by this entity, or null if nothing is planned
      */
-    private void scheduleNext(EntityAction previous, float gameTime) {
+    public EntityAction getNextAction(float gameTime) {
+        Pair<EntityAction, Float> action = entity.currentActions.getActionAt(gameTime);
+        EntityAction previous = action.left;
+        Vector3f position = previous.getPositionAt(action.right);
+
         if (executionTarget == null) {
             executionTarget = plan.poll();
         }
 
         while (executionTarget != null) {
-            Vector3f position = previous.getPositionAt(gameTime - executionStart);
             EntityAction next = executionTarget.getAction(game, position, gameTime);
 
             if (next != null) {
                 assert next.getStartPosition().equals(position) : next.getStartPosition() + " != " + position;
-
-                boolean success = createEvent(next, gameTime);
-                assert success;
-                return;
+                return next;
             }
 
             executionTarget = plan.poll();
         }
+
+        return new ActionIdle(position);
     }
 
-    /**
-     * schedules an event that the given action has been finished.
-     * @param action     the action to schedule
-     * @param actionTime the start time of the action
-     * @return true if the action has been scheduled, false if another action has already been scheduled.
-     */
-    private boolean createEvent(EntityAction action, float actionTime) {
-        Event event = action.getFinishEvent(actionTime, this);
-
-        if (actionEventLock.tryAcquire()) {
-            Logger.DEBUG.printf("%s executes %s at %1.02f, finishing at %1.02f", this, action, actionTime, event.getTime());
-            game.get(EventLoop.class).addEvent(event);
-            entity.currentActions.insert(action, actionTime);
-            executionAction = action;
-            executionStart = actionTime;
-            return true;
-        }
-        return false;
-    }
-
-    public void update() {
-        float gametime = game.get(GameTimer.class).getGametime();
+    public void update(float gametime) {
         emotions.process(gametime);
     }
 
@@ -276,16 +248,16 @@ public abstract class MonsterSoul implements Living, Storable, ActionFinishListe
     }
 
     /**
-     * Execute the given command
+     * Execute the given command at the end of the current plan
      * @param c the command to be executed.
      */
     public void queueCommand(Command c) {
         plan.offer(c);
 
         if (executionTarget == null) {
-            EntityAction preceding = entity.getLastAction();
             float now = game.get(GameTimer.class).getGametime();
-            scheduleNext(preceding, now);
+            EntityAction nextAction = getNextAction(now);
+            entity.currentActions.insert(nextAction, now);
         }
     }
 

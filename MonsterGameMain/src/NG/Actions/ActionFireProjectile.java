@@ -3,6 +3,7 @@ package NG.Actions;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
+import NG.Engine.GameTimer;
 import NG.Entities.MonsterEntity;
 import NG.Entities.Projectile;
 import NG.Entities.ProjectilePowerBall;
@@ -29,7 +30,9 @@ public class ActionFireProjectile extends ActionIdle {
         Vector3f spawnPosition = source.getPositionAt(spawnTime).add(0, 0, 1);
 
         // TODO replace validity check with something more robust
-        Event e = new ProjectileSpawnEvent(game, elt, spawnPosition, spawnTime, () -> source.getCurrentAction() == this);
+        Event e = new ProjectileSpawnEvent(game, elt, spawnPosition, spawnTime, () ->
+                source.getActionAt(game.get(GameTimer.class).getGametime()) == this
+        );
         game.get(EventLoop.class).addEvent(e);
     }
 
