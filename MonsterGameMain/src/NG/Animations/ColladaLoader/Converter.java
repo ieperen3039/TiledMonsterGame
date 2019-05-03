@@ -83,52 +83,6 @@ public class Converter {
         animation.writeToFile(targetFile);
     }
 
-    public static AnimationBone getAnthro() {
-        return new AnimationBone(
-                "ANTHRO_Spine",
-                new AnimationBone(
-                        "ANTHRO_Head",
-                        new AnimationBone(
-                                "ANTHRO_Ear.L"
-                        ),
-                        new AnimationBone(
-                                "ANTHRO_Ear.R"
-                        )
-                ),
-                new AnimationBone(
-                        "ANTHRO_UpperArm.L",
-                        new AnimationBone(
-                                "ANTHRO_LowerArm.L"
-                        )
-                ),
-                new AnimationBone(
-                        "ANTHRO_UpperArm.R",
-                        new AnimationBone(
-                                "ANTHRO_LowerArm.R"
-                        )
-                ),
-                new AnimationBone(
-                        "ANTHRO_UpperLeg.L",
-                        new AnimationBone(
-                                "ANTHRO_LowerLeg.L",
-                                new AnimationBone(
-                                        "ANTHRO_Foot.L"
-                                )
-                        )
-                ),
-                new AnimationBone(
-                        "ANTHRO_UpperLeg.R",
-                        // this makes no difference to anthro_upper_leg_left, but for the idea...
-                        new AnimationBone(
-                                "ANTHRO_LowerLeg.R",
-                                new AnimationBone(
-                                        "ANTHRO_Foot.R"
-                                )
-                        )
-                )
-        );
-    }
-
     public static PartialAnimation loadAnimation(File file) {
         String fileName = file.getName();
 

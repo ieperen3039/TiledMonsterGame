@@ -26,20 +26,14 @@ public class KeyFrameAnimation implements PartialAnimation {
     private float duration;
 
     public KeyFrameAnimation(
-            Map<String, AnimationLoader.TransformList> mapping, float lengthSeconds, BodyModel model
+            Map<AnimationBone, AnimationLoader.TransformList> mapping, float lengthSeconds, BodyModel model
     ) {
         this.model = model;
         this.duration = lengthSeconds;
         this.transformations = new HashMap<>();
 
-        for (String boneName : mapping.keySet()) {
-            AnimationLoader.TransformList frame = mapping.get(boneName);
-            AnimationBone bone = model.getBone(boneName);
-            if (bone == null) {
-                Logger.WARN.print("Bone '" + boneName + "' is not part of " + model);
-                continue;
-            }
-
+        for (AnimationBone bone : mapping.keySet()) {
+            AnimationLoader.TransformList frame = mapping.get(bone);
             transformations.put(bone, new TransformArray(frame));
         }
     }

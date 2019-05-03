@@ -35,7 +35,7 @@ public class ColladaLoader {
 
     public KeyFrameAnimation loadAnimation(BodyModel bodyModel) {
         if (animNode == null) throw new IllegalStateException();
-        AnimationLoader loader = new AnimationLoader(animNode, getJointsLoader(bodyModel.toString()));
+        AnimationLoader loader = new AnimationLoader(animNode, getJointsLoader(bodyModel.toString()), bodyModel);
         return new KeyFrameAnimation(loader.boneMapping(), loader.duration(), bodyModel);
     }
 

@@ -1,26 +1,32 @@
 package NG.Animations.ColladaLoader;
 
 
+import NG.Animations.AnimationBone;
+import NG.Animations.BodyModel;
 import NG.Tools.Toolbox;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
 import java.util.*;
 
+/**
+ * loads the animations of the given collada xml tree, and store it as a relative transformation of the given BodyModel
+ */
 public class AnimationLoader {
-    private Map<String, TransformList> mapping = new HashMap<>();
+    private Map<AnimationBone, TransformList> mapping = new HashMap<>();
     private float maxFrameTime = 0;
 
-    public AnimationLoader(XmlNode animationData, SkeletonLoader jointsLoader) {
+    public AnimationLoader(XmlNode animationData, SkeletonLoader jointsLoader, BodyModel bodyModel) {
         List<XmlNode> animationNodes = animationData.getChildren("animation");
         for (XmlNode node : animationNodes) {
             String name = jointsLoader.getNameOf(idOf(node));
             assert name != null : idOf(node);
-            mapping.put(name, getJointTransformations(node));
+            AnimationBone bone = bodyModel.getBone(name);
+            mapping.put(bone, getJointTransformations(node, bone));
         }
     }
 
-    private TransformList getJointTransformations(XmlNode jointData) {
+    private TransformList getJointTransformations(XmlNode jointData, AnimationBone bone) {
         XmlNode timeNode = getSource(Sampler.INPUT, jointData);
         String timeData = timeNode.getChild("float_array").getData();
         String[] rawTimes = Toolbox.WHITESPACE_PATTERN.split(timeData);
@@ -32,12 +38,14 @@ public class AnimationLoader {
         assert rawFrames.length == (nrOfFrames * 16);
 
         TransformList joint = new TransformList();
+        Matrix4fc inverse = bone.getInverseTransform();
 
         for (int i = 0; i < nrOfFrames; i++) {
             float time = Float.parseFloat(rawTimes[i]);
             Matrix4f frame = ColladaLoader.parseFloatMatrix(rawFrames, 16 * i);
+            frame.mulLocal(inverse);
 
-            joint.add(time, frame);
+            joint.addNonCopy(time, frame);
 
             if (time > maxFrameTime) {
                 maxFrameTime = time;
@@ -67,14 +75,14 @@ public class AnimationLoader {
         return maxFrameTime;
     }
 
-    public Map<String, TransformList> boneMapping() {
+    public Map<AnimationBone, TransformList> boneMapping() {
         return mapping;
     }
 
     public static class TransformList {
         // these lists are always sorted
-        private final ArrayList<Float> timestamps;
-        private final ArrayList<Matrix4fc> frames;
+        public final ArrayList<Float> timestamps;
+        public final ArrayList<Matrix4fc> frames;
 
         private TransformList() {
             frames = new ArrayList<>();
@@ -82,6 +90,10 @@ public class AnimationLoader {
         }
 
         public void add(float time, Matrix4fc frame) {
+            addNonCopy(time, new Matrix4f(frame));
+        }
+
+        public void addNonCopy(float time, Matrix4fc frame) {
             int index = Collections.binarySearch(timestamps, time);
 
             if (index < 0) {
@@ -90,7 +102,7 @@ public class AnimationLoader {
             }
 
             timestamps.add(index, time);
-            frames.add(index, new Matrix4f(frame));
+            frames.add(index, frame);
         }
 
         public float[] getTimestamps() {

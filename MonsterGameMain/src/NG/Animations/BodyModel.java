@@ -18,9 +18,9 @@ import java.util.Map;
  * @author Geert van Ieperen created on 28-2-2019.
  */
 public enum BodyModel {
-    CUBE(new AnimationBone("cube_root")),
+    CUBE(new AnimationBone("cube_root", 0, 0, 0, 0, 0, 0, 0, 0)),
     ANTHRO("anthro.skelbi"),
-    TEST_ANTHRO(Converter.getAnthro());
+    TEST_ANTHRO(getAnthro());
 
     private AnimationBone root;
     private final Map<String, AnimationBone> parts;
@@ -109,5 +109,80 @@ public enum BodyModel {
         }
 
         return null;
+    }
+
+    public static AnimationBone getAnthro() {
+        return new AnimationBone(
+                "ANTHRO_Spine",
+                0, 0, 0,
+                0, 0, 0, 0, 0.1f,
+                new AnimationBone(
+                        "ANTHRO_Head",
+                        -0.5f, 0f, 6.5f,
+                        0, 0, 0, 0, 0,
+                        new AnimationBone(
+                                "ANTHRO_Ear.L",
+                                0.0f, 1.0f, 3.2f,
+                                0, 0, 0, 0, 0
+                        ),
+                        new AnimationBone(
+                                "ANTHRO_Ear.R",
+                                0.0f, -1.0f, 3.2f,
+                                0, 0, 0, 0, 0
+                        )
+                ),
+                new AnimationBone(
+                        "ANTHRO_UpperArm.L",
+                        -1.0f, 5.0f, 3.5f,
+                        1, 0, 1, 90, 0,
+                        new AnimationBone(
+                                "ANTHRO_LowerArm.L",
+                                0, 0, 8.0f,
+                                0, 0, 0, 0, 0
+                        )
+                ),
+                new AnimationBone(
+                        "ANTHRO_UpperArm.R",
+                        -1.0f, -5.0f, 3.5f,
+                        1, 0, -1, 90, 0,
+                        new AnimationBone(
+                                "ANTHRO_LowerArm.R",
+                                0, 0, 8.0f,
+                                0, 0, 0, 0, 0
+                        )
+                ),
+                new AnimationBone(
+                        "ANTHRO_UpperLeg.L",
+                        0, 2.0f, -7.0f,
+                        1, 0, 0, 180, 0,
+                        new AnimationBone(
+                                "ANTHRO_LowerLeg.L",
+                                0, 0, 8.0f,
+                                0, 0, 0, 0, 0,
+                                new AnimationBone(
+                                        "ANTHRO_Foot.L",
+                                        0, 0, 8.0f,
+                                        0, 0, 0, 0, 0
+                                )
+                        )
+                ),
+                new AnimationBone(
+                        "ANTHRO_UpperLeg.R",
+                        0, -2.0f, -7.0f,
+                        1, 0, 0, // this makes no difference to anthro_upper_leg_left, but for the idea...
+                        -180, 0,
+                        new AnimationBone(
+                                "ANTHRO_LowerLeg.R",
+                                0, 0, 8.0f,
+                                0, 0, 0,
+                                0, 0,
+                                new AnimationBone(
+                                        "ANTHRO_Foot.R",
+                                        0, 0, 8.0f,
+                                        0, 0, 0, 0, 0
+                                )
+                        )
+                )
+        );
     }
 }

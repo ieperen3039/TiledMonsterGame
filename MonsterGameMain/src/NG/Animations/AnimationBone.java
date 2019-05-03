@@ -5,11 +5,12 @@ import NG.Entities.Entity;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
-import org.joml.Matrix4fc;
+import org.joml.*;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.Math;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -19,16 +20,20 @@ import java.util.function.Consumer;
  */
 public class AnimationBone implements Storable {
     private final String name;
+    private final Matrix4fc transformation;
     private final Collection<AnimationBone> subElements;
     private Integer hashCash = null;
 
     /**
      * @param name     the name of this bone
+     * @param offset   position relative to the last joint
+     * @param rotation the rotation of this joint relative to the rotation of the last joint
      * @param childs   the child nodes of this joint/bone
      */
     public AnimationBone(
-            String name, List<AnimationBone> childs
+            String name, Vector3fc offset, Quaternionfc rotation, Vector3fc scaling, List<AnimationBone> childs
     ) {
+        this.transformation = new Matrix4f().translationRotateScale(offset, rotation, scaling);
         this.name = name;
         this.subElements = childs;
     }
@@ -36,15 +41,34 @@ public class AnimationBone implements Storable {
     /**
      * a helper-constructor for recursively defining a bone tree in program code
      * @param name    unique name of this bone
+     * @param xPos    the x offset relative to the parent bone
+     * @param yPos    the y offset relative to the parent bone
+     * @param zPos    the z offset relative to the parent bone
+     * @param xRot    the x element of the rotation axis
+     * @param yRot    the y element of the rotation axis
+     * @param zRot    the z element of the rotation axis
+     * @param angle   angle of rotation relative to the parent bone in degrees
+     * @param scaling the scaling factor relative to the parent bone
      * @param childs  a summation of the child nodes of this bone.
      */
-    public AnimationBone(String name, AnimationBone... childs) {
-        this(name, Arrays.asList(childs));
+    public AnimationBone(
+            String name, float xPos, float yPos, float zPos, float xRot, float yRot, float zRot, float angle,
+            float scaling, AnimationBone... childs
+    ) {
+        this(
+                name, new Vector3f(xPos, yPos, zPos),
+                (angle == 0 ?
+                        new Quaternionf() :
+                        new Quaternionf().rotateAxis((float) Math.toRadians(angle), xRot, yRot, zRot)
+                ),
+                new Vector3f(scaling),
+                Arrays.asList(childs));
     }
 
     public AnimationBone(JointData skeletonData) {
         this.name = skeletonData.name;
-        subElements = new ArrayList<>();
+        this.transformation = skeletonData.bindLocalTransform;
+        this.subElements = new ArrayList<>();
 
         for (JointData child : skeletonData.children) {
             subElements.add(new AnimationBone(child)); // recursively add children
@@ -92,6 +116,8 @@ public class AnimationBone implements Storable {
     ) {
         gl.pushMatrix();
         {
+            gl.multiplyAffine(transformation);
+
             Matrix4fc transformation = animation.transformationOf(this, animationTime);
             if (transformation == null) {
                 throw new NullPointerException(String.format("Animation %s has no support for %s", animation, this));
@@ -160,6 +186,7 @@ public class AnimationBone implements Storable {
     @Override
     public void writeToDataStream(DataOutput out) throws IOException {
         out.writeUTF(name);
+        Storable.writeMatrix4f(out, transformation);
 
         out.writeInt(subElements.size());
         for (AnimationBone elt : subElements) {
@@ -169,12 +196,20 @@ public class AnimationBone implements Storable {
 
     public AnimationBone(DataInput in) throws IOException {
         name = in.readUTF();
+        transformation = Storable.readMatrix4f(in);
 
         int nOfElts = in.readInt();
         subElements = new ArrayList<>(nOfElts);
         for (int i = 0; i < nOfElts; i++) {
             subElements.add(new AnimationBone(in));
         }
+    }
+
+    /**
+     * @return the inverse of the local transformation of this bone
+     */
+    public Matrix4fc getInverseTransform() {
+        return transformation.invertAffine(new Matrix4f());
     }
 
     /**
