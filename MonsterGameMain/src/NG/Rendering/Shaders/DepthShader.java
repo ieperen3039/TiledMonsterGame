@@ -151,6 +151,11 @@ public class DepthShader implements ShaderProgram, LightShader {
         shadowMap.bindFrameBuffer();
     }
 
+    @Override
+    public void discardRemainingLights() {
+        // ignore
+    }
+
     /**
      * create a GL object that allows rendering the depth map of a scene
      * @return a GL object that renders a depth map in the frame buffer of the first light that is rendered.

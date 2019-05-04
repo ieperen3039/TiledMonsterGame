@@ -5,10 +5,11 @@ import NG.Entities.Entity;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
+import NG.Tools.Toolbox;
 import org.joml.*;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.Math;
 import java.util.*;
@@ -71,6 +72,7 @@ public class AnimationBone implements Storable {
         this.subElements = new ArrayList<>();
 
         for (JointData child : skeletonData.children) {
+            if (child.name.endsWith(".IK")) continue;
             subElements.add(new AnimationBone(child)); // recursively add children
         }
     }
@@ -117,12 +119,13 @@ public class AnimationBone implements Storable {
         gl.pushMatrix();
         {
             gl.multiplyAffine(transformation);
+            Toolbox.drawAxisFrame(gl);
 
             Matrix4fc transformation = animation.transformationOf(this, animationTime);
             if (transformation == null) {
                 throw new NullPointerException(String.format("Animation %s has no support for %s", animation, this));
             }
-            gl.multiplyAffine(transformation);
+            gl.multiplyAffine(transformation); // TODO commented out for testing
 
             BoneElement bone = elements.get(this);
             if (bone != null) {
@@ -141,7 +144,9 @@ public class AnimationBone implements Storable {
      */
     public void forEach(Consumer<AnimationBone> action) {
         action.accept(this);
-        subElements.forEach(e -> e.forEach(action));
+        for (AnimationBone e : subElements) {
+            e.forEach(action);
+        }
     }
 
     public int nrOfChildren() {
@@ -184,7 +189,7 @@ public class AnimationBone implements Storable {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         out.writeUTF(name);
         Storable.writeMatrix4f(out, transformation);
 
@@ -194,7 +199,7 @@ public class AnimationBone implements Storable {
         }
     }
 
-    public AnimationBone(DataInput in) throws IOException {
+    public AnimationBone(DataInputStream in) throws IOException {
         name = in.readUTF();
         transformation = Storable.readMatrix4f(in);
 

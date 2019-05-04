@@ -9,13 +9,14 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Settings.Settings;
+import NG.Storable;
 import NG.Tools.AStar;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.Math;
 import java.util.*;
@@ -203,7 +204,7 @@ public class TileMap implements GameMap {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         List<MapTile> tileTypes = MapTiles.values();
 
         // number of tile types
@@ -232,10 +233,10 @@ public class TileMap implements GameMap {
 
     /**
      * Constructs an instance from a data stream. Must be executed on the render thread for loading tile models.
-     * @param in the data stream synchonized to the call to {@link #writeToDataStream(DataOutput)}
+     * @param in the data stream synchonized to the call to {@link Storable#writeToDataStream(DataOutputStream)}
      * @throws IOException if the data produces unexpected values
      */
-    public TileMap(DataInput in) throws IOException {
+    public TileMap(DataInputStream in) throws IOException {
         changeListeners = new ArrayList<>();
 
         // get number of tile types

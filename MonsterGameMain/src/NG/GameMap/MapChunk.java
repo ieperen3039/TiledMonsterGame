@@ -3,8 +3,8 @@ package NG.GameMap;
 import NG.Engine.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -68,7 +68,7 @@ public interface MapChunk {
      */
     void clearHighlight();
 
-    void writeToFile(DataOutput out) throws IOException;
+    void writeToFile(DataOutputStream out) throws IOException;
 
-    void readFromFile(DataInput in, Map<Integer, MapTile> mapping) throws IOException;
+    void readFromFile(DataInputStream in, Map<Integer, MapTile> mapping) throws IOException;
 }

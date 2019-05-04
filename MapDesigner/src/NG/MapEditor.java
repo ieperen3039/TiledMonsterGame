@@ -22,7 +22,10 @@ import org.joml.Vector3fc;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -112,7 +115,7 @@ public class MapEditor {
 
         SButton generate = new SButton("Generate Tilemap", () -> {
             TileThemeSet.PLAIN.load();
-            int chunkSize = game.get(Settings.class).CHUNK_SIZE;
+            int chunkSize = Settings.CHUNK_SIZE;
             GameMap newMap = new TileMap(chunkSize);
             try {
                 newMap.init(game);
@@ -189,7 +192,7 @@ public class MapEditor {
                         new FileOutputStream(selectedFile) :
                         new FileOutputStream(nameWithExtension)
                 ) {
-                    DataOutput output = new DataOutputStream(fileOut);
+                    DataOutputStream output = new DataOutputStream(fileOut);
                     Storable.write(output, game.get(GameMap.class));
 
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));

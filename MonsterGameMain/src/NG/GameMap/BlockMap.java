@@ -13,8 +13,8 @@ import NG.Tools.AStar;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.Math;
 import java.util.*;
@@ -183,7 +183,7 @@ public class BlockMap implements GameMap {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         out.writeInt(xSize);
         out.writeInt(ySize);
 
@@ -195,7 +195,7 @@ public class BlockMap implements GameMap {
         }
     }
 
-    public BlockMap(DataInput in) throws IOException {
+    public BlockMap(DataInputStream in) throws IOException {
         xSize = in.readInt();
         ySize = in.readInt();
 

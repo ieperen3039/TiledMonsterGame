@@ -7,8 +7,8 @@ import NG.Storable;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -121,7 +121,7 @@ public class ClaimRegistry implements GameAspect, Storable {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         claimLock.lock();
         try {
             out.writeInt(claimRegistry.size());
@@ -144,7 +144,7 @@ public class ClaimRegistry implements GameAspect, Storable {
         }
     }
 
-    public ClaimRegistry(DataInput in) throws IOException, ClassNotFoundException {
+    public ClaimRegistry(DataInputStream in) throws IOException, ClassNotFoundException {
         this();
 
         int x = in.readInt();

@@ -17,8 +17,8 @@ import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.EnumMap;
@@ -262,13 +262,13 @@ public abstract class MonsterSoul implements Living, Storable {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         emotions.writeToDataStream(out);
         associationStimuli.writeToDataStream(out);
         actionAssociator.writeToDataStream(out);
     }
 
-    public MonsterSoul(DataInput in) throws IOException, ClassNotFoundException {
+    public MonsterSoul(DataInputStream in) throws IOException, ClassNotFoundException {
         this.plan = new ArrayDeque<>();
         this.actionEventLock = new Semaphore(1, false);
         importance = new HashMap<>(); // TODO serialize

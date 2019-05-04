@@ -8,6 +8,7 @@ import NG.Rendering.Textures.GenericTextures;
 import NG.Rendering.Textures.Texture;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class BlinnPhongShader extends SceneShader implements TextureShader {
     public void initialize(Game game) {
         // Base variables
         Vector3fc eye = game.get(Camera.class).getEye();
-        setUniform("ambientLight", game.get(Settings.class).AMBIENT_LIGHT.toVector3f());
+        setUniform("ambientLight", Settings.AMBIENT_LIGHT.toVector3f());
         setUniform("cameraPosition", eye);
         setUniform("specularPower", SPECULAR_POWER);
         setUniform("directionalLight.shadowEnable", game.get(Settings.class).STATIC_SHADOW_RESOLUTION > 0);
@@ -84,7 +85,7 @@ public class BlinnPhongShader extends SceneShader implements TextureShader {
         GenericTextures.CHECKER.bind(GL_TEXTURE2);
 
         nextLightIndex = 0;
-        resetLights(MAX_POINT_LIGHTS);
+        discardRemainingLights();
         nextLightIndex = 0;
     }
 
@@ -140,5 +141,12 @@ public class BlinnPhongShader extends SceneShader implements TextureShader {
     public void unsetTexture() {
         glBindTexture(GL_TEXTURE_2D, 0);
         setUniform("hasTexture", false);
+    }
+
+    @Override
+    public void discardRemainingLights() {
+        while (nextLightIndex < MAX_POINT_LIGHTS) {
+            setPointLight(new Vector3f(), Color4f.INVISIBLE, 0);
+        }
     }
 }

@@ -42,8 +42,8 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private final ScreenOverlay overlay;
     private Game game;
     private Map<ShaderProgram, RenderBundle> renders;
-    private Pointer pointer;
-    private boolean cursorIsVisible = false;
+    private Pointer arrowPointer;
+    private boolean arrowIsVisible = false;
     private SceneShader uiShader;
 
     /**
@@ -55,7 +55,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         overlay = new ScreenOverlay();
         renders = new HashMap<>();
 
-        pointer = new Pointer();
+        arrowPointer = new Pointer();
     }
 
     public void init(Game game) throws IOException {
@@ -71,11 +71,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         });
 
         uiShader = new PhongShader();
-        newRenderSequence(uiShader)
+        renderSequence(uiShader)
                 .add(game.get(GameLights.class)::draw)
-                .add(pointer::draw);
+                .add(arrowPointer::draw);
 
-        game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updatePointer);
+        game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updateArrow);
     }
 
     /**
@@ -84,11 +84,15 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
      * @param shader the shader used, or null to use a basic Phong shading
      * @return a bundle that allows adding rendering options.
      */
-    public RenderBundle newRenderSequence(ShaderProgram shader) {
+    public RenderBundle renderSequence(ShaderProgram shader) {
         return renders.computeIfAbsent(shader == null ? uiShader : shader, RenderBundle::new);
     }
 
-    private void updatePointer(int xPos, int yPos) {
+    public void setArrowVisibility(boolean doVisible) {
+        arrowPointer.isVisible = doVisible;
+    }
+
+    private void updateArrow(int xPos, int yPos) {
         GLFWWindow window = game.get(GLFWWindow.class);
 
         if (game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
@@ -105,17 +109,17 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             Vector2i coordinate = map.getCoordinate(position);
             Vector3f midSquare = map.getPosition(coordinate);
 
-            pointer.setPosition(position, midSquare);
+            arrowPointer.setPosition(position, midSquare);
 
-            if (cursorIsVisible && game.get(Settings.class).HIDE_POINTER_ON_MAP) {
+            if (arrowIsVisible && game.get(Settings.class).HIDE_POINTER_ON_MAP) {
                 window.setCursorMode(CursorMode.HIDDEN_FREE);
-                cursorIsVisible = false;
+                arrowIsVisible = false;
             }
 
         } else {
-            if (!cursorIsVisible) {
+            if (!arrowIsVisible) {
                 window.setCursorMode(CursorMode.VISIBLE);
-                cursorIsVisible = true;
+                arrowIsVisible = true;
             }
         }
     }
@@ -188,6 +192,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         private Vector3f midSquare;
         private Vector3f exact;
         private Vector3f exactNegate;
+        private boolean isVisible;
 
         private Pointer() {
             this.midSquare = new Vector3f();
@@ -196,6 +201,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         }
 
         public void draw(SGL gl) {
+            if (!isVisible) return;
             gl.pushMatrix();
             {
                 gl.translate(exact);
@@ -254,6 +260,9 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
                 for (Consumer<SGL> tgt : targets) {
                     tgt.accept(gl);
+
+                    assert gl.getPosition(new Vector3f(1, 1, 1))
+                            .equals(new Vector3f(1, 1, 1));
                 }
             }
             shader.unbind();

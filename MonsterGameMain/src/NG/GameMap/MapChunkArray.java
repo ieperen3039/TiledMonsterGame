@@ -5,8 +5,8 @@ import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
@@ -133,7 +133,7 @@ public class MapChunkArray implements MapChunk {
     }
 
     @Override
-    public void writeToFile(DataOutput out) throws IOException {
+    public void writeToFile(DataOutputStream out) throws IOException {
         for (MapTile.Instance[] tileStrip : tiles) {
             for (MapTile.Instance tile : tileStrip) {
                 MapTile type = tile.type; // implementation dependent
@@ -145,7 +145,7 @@ public class MapChunkArray implements MapChunk {
     }
 
     @Override
-    public void readFromFile(DataInput in, Map<Integer, MapTile> mapping) throws IOException {
+    public void readFromFile(DataInputStream in, Map<Integer, MapTile> mapping) throws IOException {
         for (MapTile.Instance[] tileStrip : tiles) {
             for (int i = 0; i < tileStrip.length; i++) {
 

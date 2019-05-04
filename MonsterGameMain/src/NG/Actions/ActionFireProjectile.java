@@ -38,7 +38,7 @@ public class ActionFireProjectile extends ActionIdle {
 
     @Override
     public UniversalAnimation getAnimation() {
-        return BodyAnimation.IDLE;
+        return BodyAnimation.BASE_POSE;
     }
 
     @Override

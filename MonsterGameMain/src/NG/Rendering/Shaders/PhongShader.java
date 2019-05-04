@@ -6,6 +6,7 @@ import NG.Engine.Game;
 import NG.Rendering.Lights.DirectionalLight;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector4f;
 import org.joml.Vector4fc;
@@ -45,8 +46,12 @@ public class PhongShader extends SceneShader {
         setUniform("ambientLight", Settings.AMBIENT_LIGHT.toVector3f());
         setUniform("cameraPosition", eye);
 
+        prepLights();
+    }
+
+    public void prepLights() { // TODO inline
         nextLightIndex = 0;
-        resetLights(MAX_POINT_LIGHTS);
+        discardRemainingLights();
         nextLightIndex = 0;
     }
 
@@ -66,7 +71,7 @@ public class PhongShader extends SceneShader {
 
     private void setLight(Color4f color, Vector4fc mPosition, float intensity) {
         int lightNumber = nextLightIndex++;
-        assert lightNumber <= MAX_POINT_LIGHTS;
+        assert lightNumber < MAX_POINT_LIGHTS;
         setUniform(("lights[" + lightNumber + "]") + ".color", color.rawVector3f());
         setUniform(("lights[" + lightNumber + "]") + ".mPosition", mPosition);
         setUniform(("lights[" + lightNumber + "]") + ".intensity", intensity);
@@ -79,4 +84,13 @@ public class PhongShader extends SceneShader {
         setUniform("material.reflectance", reflectance);
     }
 
+    /**
+     * sets possible unused point-light slots to 'off'. No more point lights can be added after a call to this method.
+     */
+    @Override
+    public void discardRemainingLights() {
+        while (nextLightIndex < MAX_POINT_LIGHTS) {
+            setPointLight(new Vector3f(), Color4f.INVISIBLE, 0);
+        }
+    }
 }

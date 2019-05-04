@@ -67,7 +67,7 @@ public class ActionJump implements EntityAction {
 
     @Override
     public UniversalAnimation getAnimation() {
-        return BodyAnimation.IDLE;
+        return BodyAnimation.BASE_POSE;
     }
 
     @Override

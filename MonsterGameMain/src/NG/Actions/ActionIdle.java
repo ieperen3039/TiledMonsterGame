@@ -1,17 +1,13 @@
 package NG.Actions;
 
-import NG.Animations.AnimationBone;
 import NG.Animations.BodyAnimation;
-import NG.Animations.PartialAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
 import NG.Tools.Vectors;
-import org.joml.*;
-
-import java.io.DataOutput;
-import java.util.Collections;
-import java.util.Set;
+import org.joml.Vector2ic;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 /**
  * Stand still and do nothing at all. Can be interrupted any time.
@@ -79,35 +75,11 @@ public class ActionIdle implements EntityAction {
 
     @Override
     public UniversalAnimation getAnimation() {
-        return BodyAnimation.IDLE;
+        return BodyAnimation.BASE_POSE; // TODO make a real idle animation
     }
 
     @Override
     public boolean hasWorldCollision() {
         return false;
     }
-
-    public static PartialAnimation idleAnimation(final float duration) {
-        return new PartialAnimation() { // TODO make this into a real animation
-            @Override
-            public Matrix4fc transformationOf(AnimationBone bone, float timeSinceStart) {
-                return new Matrix4f();
-            }
-
-            @Override
-            public float duration() {
-                return duration;
-            }
-
-            @Override
-            public Set<AnimationBone> getDomain() {
-                return Collections.emptySet();
-            }
-
-            @Override
-            public void writeToDataStream(DataOutput out) {
-            }
-        };
-    }
-
 }

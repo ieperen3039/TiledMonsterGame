@@ -29,12 +29,13 @@ import NG.Settings.Settings;
 import NG.Storable;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
+import NG.Tools.Splash;
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -45,6 +46,7 @@ import java.util.*;
  */
 public class MonsterGame implements ModLoader {
     public static final Version GAME_VERSION = new Version(0, 4);
+    private Splash splashWindow;
 
     private final RenderLoop renderer;
     private final GLFWWindow window;
@@ -61,12 +63,16 @@ public class MonsterGame implements ModLoader {
     private List<Mod> permanentMods;
 
     public MonsterGame() throws IOException {
+        Logger.DEBUG.print("Showing splash...");
+        splashWindow = new Splash();
+        splashWindow.run();
+
         Logger.INFO.print("Starting up the game engine...");
         String mainThreadName = Thread.currentThread().getName();
 
         // these are not GameAspects, and thus the init() rule does not apply.
         Settings settings = new Settings();
-        window = new GLFWWindow(Settings.GAME_NAME, settings, true);
+        window = new GLFWWindow(Settings.GAME_NAME, new GLFWWindow.Settings(settings), true);
 
         renderer = new RenderLoop(settings.TARGET_FPS);
         inputHandler = new MouseToolCallbacks();
@@ -115,15 +121,15 @@ public class MonsterGame implements ModLoader {
         Logger.DEBUG.print("Installing basic elements...");
 
         // world
-        renderer.newRenderSequence(new WorldBPShader())
+        renderer.renderSequence(new WorldBPShader())
                 .add(combinedGame.get(GameLights.class)::draw)
                 .add(combinedGame.get(GameMap.class)::draw);
         // entities
-        renderer.newRenderSequence(new BlinnPhongShader())
+        renderer.renderSequence(new BlinnPhongShader())
                 .add(combinedGame.get(GameLights.class)::draw)
                 .add(combinedGame.get(GameState.class)::draw);
         // particles
-        renderer.newRenderSequence(new ParticleShader())
+        renderer.renderSequence(new ParticleShader())
                 .add(combinedGame.get(GameParticles.class)::draw);
 
         mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
@@ -140,7 +146,7 @@ public class MonsterGame implements ModLoader {
         Logger.DEBUG.print("Installing optional elements...");
 
         // hitboxes
-        renderer.newRenderSequence(null)
+        renderer.renderSequence(null)
                 .add(gl -> {
                     if (combinedGame.get(Settings.class).RENDER_HITBOXES) return;
 
@@ -208,6 +214,9 @@ public class MonsterGame implements ModLoader {
         Logger.DEBUG.newLine();
         Logger.DEBUG.print("Opening game window...");
 
+        // close splash
+        splashWindow.dispose();
+        splashWindow = null;
         // show main menu
         mainMenu.setVisible(true);
 //        mainMenu.testWorld(); // immediately start test world, for debugging purposes
@@ -285,10 +294,10 @@ public class MonsterGame implements ModLoader {
 
     /**
      * writes all relevant parts that represent the state of this Game object to the output stream. This can be reverted
-     * using {@link #readStateFromFile(DataInput)}.
+     * using {@link #readStateFromFile(DataInputStream)}.
      * @param out an output stream
      */
-    public void writeStateToFile(DataOutput out) throws IOException {
+    public void writeStateToFile(DataOutputStream out) throws IOException {
         GAME_VERSION.writeToDataStream(out);
 
         // store timestamp
@@ -307,7 +316,7 @@ public class MonsterGame implements ModLoader {
         filterAndStore(out, worldGame);
     }
 
-    private static void filterAndStore(DataOutput out, Game game) throws IOException {
+    private static void filterAndStore(DataOutputStream out, Game game) throws IOException {
         List<Storable> box = new ArrayList<>();
 
         for (Object elt : game) {
@@ -316,15 +325,18 @@ public class MonsterGame implements ModLoader {
             }
         }
 
-        Storable.writeCollection(out, box);
+        out.writeInt(box.size());
+        for (Storable s : box) {
+            Storable.writeSafe(out, s);
+        }
     }
 
     /**
-     * reads and restores a state previously written by {@link #writeStateToFile(DataOutput)}. After this method
+     * reads and restores a state previously written by {@link #writeStateToFile(DataOutputStream)}. After this method
      * returns, the elements that represent the state of this object are set to the streamed state.
-     * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(DataOutput)}
+     * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(DataOutputStream)}
      */
-    public void readStateFromFile(DataInput in) throws Exception {
+    public void readStateFromFile(DataInputStream in) throws Exception {
         Version fileVersion = new Version(in);
         Logger.INFO.print("Reading state of version " + fileVersion);
 
@@ -343,21 +355,22 @@ public class MonsterGame implements ModLoader {
             logger.printf("\t%s %s (%s)", modName, version, hasMod ? ("PROVIDED " + targetMod.getVersionNumber()) : "MISSING");
         }
 
-        List<Storable> pocketElts = Storable.readCollection(in, Storable.class);
-        removeStorablesFrom(pocketGame);
-        pocketElts.forEach(pocketGame::add);
-        pocketGame.init();
-
-        List<Storable> worldElts = Storable.readCollection(in, Storable.class);
-        removeStorablesFrom(worldGame);
-        worldElts.forEach(worldGame::add);
-        worldGame.init();
+        readAndClean(in, pocketGame);
+        readAndClean(in, worldGame);
 
         combinedGame.get(GameTimer.class).set(restoredTime);
     }
 
-    public void removeStorablesFrom(Game game) {
-        Iterator<Object> iterator = game.iterator();
+    private void readAndClean(DataInputStream in, Game pocketGame) throws Exception {
+        int size = in.readInt();
+        ArrayList<Object> pocketElts = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            Object entity = Storable.readSafe(in, Object.class);
+            if (entity == null) continue;
+            pocketElts.add(entity);
+        }
+
+        Iterator<Object> iterator = pocketGame.iterator();
         while (iterator.hasNext()) {
             Object elt = iterator.next();
             if (elt instanceof Storable) {
@@ -368,5 +381,10 @@ public class MonsterGame implements ModLoader {
                 iterator.remove();
             }
         }
+
+        pocketElts.forEach(pocketGame::add);
+        pocketGame.init();
     }
+
+
 }

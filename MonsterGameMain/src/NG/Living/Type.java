@@ -2,8 +2,8 @@ package NG.Living;
 
 import NG.Storable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -26,11 +26,11 @@ public interface Type extends Storable {
         }
 
         @Override
-        public void writeToDataStream(DataOutput out) throws IOException {
+        public void writeToDataStream(DataOutputStream out) throws IOException {
             Storable.writeClass(out, id);
         }
 
-        private ClassEquality(DataInput in) throws IOException, ClassNotFoundException {
+        private ClassEquality(DataInputStream in) throws IOException, ClassNotFoundException {
             id = Storable.readClass(in, Object.class);
         }
 

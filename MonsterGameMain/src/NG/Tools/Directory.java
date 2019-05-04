@@ -15,16 +15,16 @@ public enum Directory {
     meshes(true, "res", "models"),
     fonts(true, "res", "fonts"),
     mods(false, "Mods"),
-    screenshots(false, "img", "screenshots"),
+    screenshots(false, "Screenshots"),
     mapTileModels(true, "res", "mapTiles"),
     savedMaps(false, "Saved maps"),
     souls(true, "res", "soul_jar"),
-    colladaFiles(true, "res", "colladaFiles"),
+    colladaFiles(false, "res", "colladaFiles"),
     skeletons(true, "res", "skeletons"),
-    animations(true, "res", "animations");
+    animations(true, "res", "animations"),
+    images(true, "res", "images");
 
-    private static final String TARGET_WORKING_DIRECTORY = "MonsterGame";
-    private static Path WORKING_DIRECTORY = null;
+    private static Path workingDirectory = null;
     private final Path directory; // relative path
 
     Directory(Path directory) {
@@ -69,27 +69,10 @@ public enum Directory {
     }
 
     public static Path workDirectory() {
-        if (WORKING_DIRECTORY == null) {
-            WORKING_DIRECTORY = Paths.get("").toAbsolutePath();
-
-            if (!WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY)) {
-                WORKING_DIRECTORY = WORKING_DIRECTORY.getParent();
-            }
-
-            if (!WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY)) {
-                URL checker = Directory.class.getClassLoader().getResource("check.png");
-                if (checker != null) {
-                    Path checkersPath = Paths.get(checker.getPath());
-                    WORKING_DIRECTORY = checkersPath.getParent().getParent();
-                }
-            }
-
-            if (!WORKING_DIRECTORY.endsWith(TARGET_WORKING_DIRECTORY)) {
-                throw new RuntimeException("Working directory can not be determined from " + Paths.get("")
-                        .toAbsolutePath());
-            }
+        if (workingDirectory == null) {
+            workingDirectory = Paths.get("").toAbsolutePath();
         }
-        return WORKING_DIRECTORY;
+        return workingDirectory;
     }
 
     public URL toURL() {

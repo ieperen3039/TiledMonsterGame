@@ -99,7 +99,7 @@ public class ActionQueue extends AbstractQueue<Pair<Float, EntityAction>> {
     public boolean add(float startTime, EntityAction action) {
         boolean success = offer(startTime, action);
         if (!success) {
-            Toolbox.waitFor(10);
+            Toolbox.sleep(10);
             if (startTime < lastActionStart) {
                 Logger.WARN.print("start time " + startTime + " is earlier than last action start time " + lastActionStart);
             }

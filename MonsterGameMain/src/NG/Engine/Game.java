@@ -4,7 +4,6 @@ import NG.GameMap.GameMap;
 import NG.Storable;
 import NG.Tools.Logger;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -104,7 +103,7 @@ public interface Game extends Iterable<Object> {
 
     default void loadMap(File map) throws Exception {
         FileInputStream fs = new FileInputStream(map);
-        DataInput input = new DataInputStream(fs);
+        DataInputStream input = new DataInputStream(fs);
         GameMap newMap = Storable.read(input, GameMap.class);
         GameMap oldMap = get(GameMap.class);
 

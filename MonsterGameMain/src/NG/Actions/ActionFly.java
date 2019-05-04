@@ -8,7 +8,7 @@ import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import static NG.Animations.BodyAnimation.IDLE;
+import static NG.Animations.BodyAnimation.BASE_POSE;
 
 /**
  * A linear movement from point A to point B
@@ -40,7 +40,7 @@ public class ActionFly implements EntityAction {
 
     @Override
     public UniversalAnimation getAnimation() {
-        return IDLE;
+        return BASE_POSE;
     }
 
     @Override

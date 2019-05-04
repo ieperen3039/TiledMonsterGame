@@ -1,6 +1,6 @@
 package NG.Living;
 
-import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -26,7 +26,7 @@ public enum BaseStimulus implements Type {
     UNKNOWN;
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
 
     }
 }

@@ -1,7 +1,6 @@
 package NG.Rendering;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
@@ -28,13 +27,11 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
- * @author Jorren Hendriks
+ * @author Jorren Hendriks & Geert van Ieperen
  * <p>
  * A window which initializes GLFW and manages it.
  */
 public class GLFWWindow {
-    private static final boolean GL_DEBUG_MESSAGES = false;
-
     private final String title;
     private final boolean resizable;
     // buffers for mouse input
@@ -77,21 +74,21 @@ public class GLFWWindow {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-        if (settings.ANTIALIAS_LEVEL > 0) {
-            glfwWindowHint(GLFW_STENCIL_BITS, settings.ANTIALIAS_LEVEL);
-            glfwWindowHint(GLFW_SAMPLES, settings.ANTIALIAS_LEVEL);
+        if (settings.antialiasLevel > 0) {
+            glfwWindowHint(GLFW_STENCIL_BITS, settings.antialiasLevel);
+            glfwWindowHint(GLFW_SAMPLES, settings.antialiasLevel);
         }
 
-        window = getWindow(settings.DEFAULT_WINDOW_WIDTH, settings.DEFAULT_WINDOW_HEIGHT);
+        window = getWindow(settings.windowWidth, settings.windowHeight);
         primaryMonitor = glfwGetPrimaryMonitor();
 
-        if (settings.DEBUG) {
-            setWindowed(settings);
-        } else {
+        if (settings.fullscreen) {
             setFullScreen(settings);
+        } else {
+            setWindowed(settings);
         }
 
-        if (settings.V_SYNC) {
+        if (settings.vSync) {
             // Turn on vSync
             glfwSwapInterval(1);
         }
@@ -100,7 +97,7 @@ public class GLFWWindow {
         glContext = Thread.currentThread();
 
         // debug message callbacks
-        if (settings.DEBUG && GL_DEBUG_MESSAGES) {
+        if (settings.debugMode && settings.glDebugMessages) {
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             GLUtil.setupDebugMessageCallback();
         }
@@ -116,9 +113,14 @@ public class GLFWWindow {
         // Support transparencies
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        // face culling
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
+        if (settings.cullFace) {
+            // face culling
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+        }
+
+        // set polygons to fill
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         Toolbox.checkGLError();
     }
@@ -310,19 +312,11 @@ public class GLFWWindow {
         return resizable;
     }
 
-    /**
-     * Clear the window.
-     */
-    public void clear() {
-        // Clear framebuffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    }
-
     public void setFullScreen(Settings settings) {
         GLFWVidMode vidmode = glfwGetVideoMode(primaryMonitor);
-        glfwSetWindowMonitor(window, primaryMonitor, 0, 0, vidmode.width(), vidmode.height(), settings.TARGET_FPS);
+        glfwSetWindowMonitor(window, primaryMonitor, 0, 0, vidmode.width(), vidmode.height(), settings.targetFPS);
 
-        if (settings.V_SYNC) {
+        if (settings.vSync) {
             // Turn on vSync
             glfwSwapInterval(1);
         }
@@ -336,8 +330,8 @@ public class GLFWWindow {
         // Center window on display
         glfwSetWindowPos(
                 window,
-                (vidmode.width() - settings.DEFAULT_WINDOW_WIDTH) / 2,
-                (vidmode.height() - settings.DEFAULT_WINDOW_HEIGHT) / 2
+                (vidmode.width() - settings.windowWidth) / 2,
+                (vidmode.height() - settings.windowHeight) / 2
         );
         fullScreen = false;
     }
@@ -400,6 +394,41 @@ public class GLFWWindow {
 
     public Thread getOpenGLThread() {
         return glContext;
+    }
+
+    public static Settings defaultSettings() {
+        return new Settings(false, false, 1, false, 800, 600, false, 60, false);
+    }
+
+    public static class Settings {
+        final boolean debugMode;
+        final boolean glDebugMessages;
+        final int antialiasLevel;
+        final int windowWidth;
+        final int windowHeight;
+        final boolean vSync;
+        final int targetFPS;
+        final boolean fullscreen;
+        final boolean cullFace;
+
+        public Settings(NG.Settings.Settings s) {
+            this(s.DEBUG, false, s.ANTIALIAS_LEVEL, !s.DEBUG, s.DEFAULT_WINDOW_WIDTH, s.DEFAULT_WINDOW_HEIGHT, s.V_SYNC, s.TARGET_FPS, true);
+        }
+
+        public Settings(
+                boolean debugMode, boolean glDebugMessages, int antialiasLevel, boolean fullscreen, int windowWidth,
+                int windowHeight, boolean vSync, int targetFPS, boolean cullFace
+        ) {
+            this.debugMode = debugMode;
+            this.glDebugMessages = glDebugMessages;
+            this.antialiasLevel = antialiasLevel;
+            this.fullscreen = fullscreen;
+            this.windowWidth = windowWidth;
+            this.windowHeight = windowHeight;
+            this.vSync = vSync;
+            this.targetFPS = targetFPS;
+            this.cullFace = cullFace;
+        }
     }
 }
 

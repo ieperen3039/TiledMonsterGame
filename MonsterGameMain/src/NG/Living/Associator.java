@@ -5,8 +5,8 @@ import NG.DataStructures.PriorityCollection;
 import NG.Storable;
 import NG.Tools.Logger;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -129,7 +129,7 @@ public class Associator<T extends Storable> implements Storable {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         // create mapping of stimuli
         Map<Type, Integer> idMap = new HashMap<>(memory.size());
 
@@ -166,7 +166,7 @@ public class Associator<T extends Storable> implements Storable {
         }
     }
 
-    public Associator(DataInput in, Class<T> expected) throws IOException, ClassNotFoundException {
+    public Associator(DataInputStream in, Class<T> expected) throws IOException, ClassNotFoundException {
         // read stimuli mapping
         int nrOfStimuli = in.readInt();
         List<Type> idMap = new ArrayList<>(nrOfStimuli);

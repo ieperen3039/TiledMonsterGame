@@ -100,7 +100,7 @@ public class WorldBPShader extends SceneShader implements TextureShader {
         CHECKER.bind(GL_TEXTURE2);
 
         nextLightIndex = 0;
-        resetLights(MAX_POINT_LIGHTS);
+        discardRemainingLights();
         nextLightIndex = 0;
     }
 
@@ -156,5 +156,15 @@ public class WorldBPShader extends SceneShader implements TextureShader {
     public void unsetTexture() {
         glBindTexture(GL_TEXTURE_2D, 0);
         setUniform("hasTexture", false);
+    }
+
+    /**
+     * sets possible unused point-light slots to 'off'. No more point lights can be added after a call to this method.
+     */
+    @Override
+    public void discardRemainingLights() {
+        while (nextLightIndex < MAX_POINT_LIGHTS) {
+            setPointLight(new Vector3f(), Color4f.INVISIBLE, 0);
+        }
     }
 }

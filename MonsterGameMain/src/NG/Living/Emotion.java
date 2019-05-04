@@ -3,8 +3,8 @@ package NG.Living;
 import NG.Storable;
 import NG.Tools.Toolbox;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -140,7 +140,7 @@ public enum Emotion {
         }
 
         @Override
-        public void writeToDataStream(DataOutput out) throws IOException {
+        public void writeToDataStream(DataOutputStream out) throws IOException {
             out.writeInt(Emotion.count);
 
             for (short value : values) {
@@ -155,7 +155,7 @@ public enum Emotion {
         }
 
         // TODO add robustness in matching names
-        public ECollection(DataInput in) throws IOException {
+        public ECollection(DataInputStream in) throws IOException {
             int nrOfEmotions = in.readInt();
             if (nrOfEmotions != Emotion.count) {
                 throw new IOException("Source emotion set is of different size as current");

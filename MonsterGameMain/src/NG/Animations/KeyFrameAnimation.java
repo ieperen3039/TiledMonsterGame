@@ -6,8 +6,8 @@ import NG.Tools.Logger;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public class KeyFrameAnimation implements PartialAnimation {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         Storable.writeEnum(out, model);
         out.writeInt(transformations.size());
         out.writeFloat(duration);
@@ -78,7 +78,7 @@ public class KeyFrameAnimation implements PartialAnimation {
      * @param in the data input stream
      * @throws IOException if anything goes wrong
      */
-    public KeyFrameAnimation(DataInput in) throws IOException {
+    public KeyFrameAnimation(DataInputStream in) throws IOException {
         model = Storable.readEnum(in, BodyModel.class);
 
         int size = in.readInt();
@@ -126,7 +126,7 @@ public class KeyFrameAnimation implements PartialAnimation {
             );
         }
 
-        public TransformArray(DataInput in) throws IOException {
+        public TransformArray(DataInputStream in) throws IOException {
             size = in.readInt();
             timeStamps = new float[size];
             frames = new Matrix4fc[size];
@@ -140,7 +140,7 @@ public class KeyFrameAnimation implements PartialAnimation {
         }
 
         @Override
-        public void writeToDataStream(DataOutput out) throws IOException {
+        public void writeToDataStream(DataOutputStream out) throws IOException {
             out.writeInt(size);
             for (float f : timeStamps) {
                 out.writeFloat(f);

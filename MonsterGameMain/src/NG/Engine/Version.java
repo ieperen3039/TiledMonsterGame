@@ -2,8 +2,8 @@ package NG.Engine;
 
 import NG.Storable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -58,13 +58,13 @@ public class Version implements Comparable<Version>, Storable {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         out.writeChar('v');
         out.writeInt(major);
         out.writeInt(minor);
     }
 
-    public Version(DataInput in) throws IOException {
+    public Version(DataInputStream in) throws IOException {
         char c = in.readChar();
         if (c != 'v') {
             throw new IOException(String.format("Expected '%04x', but found %04x", (int) 'v', (int) c));

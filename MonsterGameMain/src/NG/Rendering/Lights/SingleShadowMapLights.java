@@ -14,8 +14,8 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector4f;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,7 +159,7 @@ public class SingleShadowMapLights implements GameLights {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         pointLightReadLock.lock();
         try {
             out.writeInt(lights.size());
@@ -174,7 +174,7 @@ public class SingleShadowMapLights implements GameLights {
         }
     }
 
-    public SingleShadowMapLights(DataInput in) throws IOException {
+    public SingleShadowMapLights(DataInputStream in) throws IOException {
         this();
 
         try {

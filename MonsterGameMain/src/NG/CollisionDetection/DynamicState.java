@@ -11,8 +11,8 @@ import NG.Storable;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,7 +83,7 @@ public class DynamicState implements GameState {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
         Collection<Entity> entities = entityList.getEntityList();
         List<Storable> box = new ArrayList<>(entities.size());
 
@@ -93,11 +93,20 @@ public class DynamicState implements GameState {
             }
         }
 
-        Storable.writeCollection(out, box);
+        out.writeInt(box.size());
+        for (Storable s : box) {
+            Storable.writeSafe(out, s);
+        }
     }
 
-    public DynamicState(DataInput in) throws IOException, ClassNotFoundException {
-        List<Entity> list = Storable.readCollection(in, Entity.class);
+    public DynamicState(DataInputStream in) throws IOException {
+        int size = in.readInt();
+        List<Entity> list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            Entity entity = Storable.readSafe(in, Entity.class);
+            if (entity == null) continue;
+            list.add(entity);
+        }
         entityList = new CollisionDetection(list);
     }
 

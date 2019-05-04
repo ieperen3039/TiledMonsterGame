@@ -97,7 +97,7 @@ public class Converter {
         // load from binary
         PartialAnimation animation;
         try (InputStream fileStream = new FileInputStream(file)) {
-            DataInput in = new DataInputStream(fileStream);
+            DataInputStream in = new DataInputStream(fileStream);
             animation = Storable.read(in, PartialAnimation.class);
 
         } catch (IOException | ClassNotFoundException e) {

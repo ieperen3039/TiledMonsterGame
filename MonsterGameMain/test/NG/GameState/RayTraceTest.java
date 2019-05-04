@@ -34,7 +34,7 @@ public class RayTraceTest {
     @Before
     public void setUp() throws Exception {
         Settings settings = new Settings();
-        GLFWWindow window = new GLFWWindow(Settings.GAME_NAME, settings, true);
+        GLFWWindow window = new GLFWWindow(Settings.GAME_NAME, new GLFWWindow.Settings(settings), true);
         MouseToolCallbacks inputHandler = new MouseToolCallbacks();
 
         Camera cam = new TycoonFixedCamera(new Vector3f(), 10, 10);

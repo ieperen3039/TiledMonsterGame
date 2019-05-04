@@ -30,6 +30,8 @@ import NG.Particles.ParticleCloud;
 import NG.Particles.Particles;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.Lights.GameState;
+import NG.Rendering.RenderLoop;
+import NG.Rendering.Shapes.GenericShapes;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -76,6 +78,7 @@ public class MainMenu extends SFrame {
 
     private void particles() {
         GUIManager targetGUI = overworld.get(GUIManager.class);
+        overworld.get(RenderLoop.class).setArrowVisibility(false);
 
         targetGUI.addFrame(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
                 new STextArea("MR. TORGUE APPROVES", BUTTON_MIN_HEIGHT),
@@ -87,7 +90,6 @@ public class MainMenu extends SFrame {
                     overworld.get(GameParticles.class).add(cloud);
                 }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
         )));
-        dispose();
     }
 
     public void testWorld() {
@@ -115,6 +117,7 @@ public class MainMenu extends SFrame {
 
             // set camera to middle of map
             Vector3f cameraFocus = centerCamera(overworld.get(Camera.class), overworld.get(GameMap.class));
+            overworld.get(RenderLoop.class).setArrowVisibility(true);
 
             /* --- DEBUG SECTION --- */
 
@@ -180,7 +183,7 @@ public class MainMenu extends SFrame {
         BodyModel[] models = BodyModel.values();
         BodyAnimation[] animations = BodyAnimation.values();
 
-        BodyAnimation baseAni = BodyAnimation.WALK_CYCLE;
+        BodyAnimation baseAni = BodyAnimation.BASE_POSE;
         BodyModel baseMode = BodyModel.ANTHRO;
 
         GUIManager targetGUI = overworld.get(GUIManager.class);
@@ -197,6 +200,17 @@ public class MainMenu extends SFrame {
 
         animationSelection.addStateChangeListener((i) -> demonstrator.setAnimation(animations[i]));
         modelSelection.addStateChangeListener(i -> demonstrator.setModel(models[i]));
+
+
+        RenderLoop renderer = overworld.get(RenderLoop.class);
+        renderer.setArrowVisibility(false);
+        renderer.renderSequence(null)
+                .add(gl -> {
+                    gl.translate(-1, -1, 0);
+                    Toolbox.drawAxisFrame(gl);
+                    gl.translate(1, 1, 0);
+                    gl.render(GenericShapes.QUAD, null);
+                });
 
         overworld.get(GameState.class).addEntity(demonstrator);
 

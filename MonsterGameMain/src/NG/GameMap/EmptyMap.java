@@ -8,8 +8,8 @@ import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -99,11 +99,11 @@ public class EmptyMap implements GameMap {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
 
     }
 
-    public EmptyMap(DataInput in) {
+    public EmptyMap(DataInputStream in) {
 
     }
 }

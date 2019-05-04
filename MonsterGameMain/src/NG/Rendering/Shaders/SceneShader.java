@@ -100,12 +100,6 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
         Toolbox.checkGLError();
     }
 
-    protected void resetLights(int nOfLights) {
-        for (int i = 0; i < nOfLights; i++) {
-            setPointLight(new Vector3f(), Color4f.INVISIBLE, 0);
-        }
-    }
-
     @Override
     public void bind() {
         glUseProgram(programId);
@@ -188,7 +182,7 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
      * @param uniformName The name of the uniform.
      * @param value       The new value of the uniform.
      */
-    protected void setUniform(String uniformName, Vector3fc value) {
+    public void setUniform(String uniformName, Vector3fc value) {
         glUniform3f(unif(uniformName), value.x(), value.y(), value.z());
     }
 

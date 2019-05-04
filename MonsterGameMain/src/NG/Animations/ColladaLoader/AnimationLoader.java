@@ -20,7 +20,10 @@ public class AnimationLoader {
         List<XmlNode> animationNodes = animationData.getChildren("animation");
         for (XmlNode node : animationNodes) {
             String name = jointsLoader.getNameOf(idOf(node));
+
             assert name != null : idOf(node);
+            if (name.endsWith(".IK")) continue;
+
             AnimationBone bone = bodyModel.getBone(name);
             mapping.put(bone, getJointTransformations(node, bone));
         }

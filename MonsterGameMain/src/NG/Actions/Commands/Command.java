@@ -9,8 +9,8 @@ import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -70,7 +70,7 @@ public abstract class Command implements Stimulus {
         }
 
         // compatibility to Storable
-        private CType(DataInput in) throws IOException {
+        private CType(DataInputStream in) throws IOException {
             isTarget = in.readBoolean();
         }
 
@@ -83,7 +83,7 @@ public abstract class Command implements Stimulus {
         }
 
         @Override
-        public void writeToDataStream(DataOutput out) throws IOException {
+        public void writeToDataStream(DataOutputStream out) throws IOException {
             out.writeBoolean(isTarget);
         }
 

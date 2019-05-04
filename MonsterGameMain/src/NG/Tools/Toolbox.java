@@ -80,10 +80,8 @@ public final class Toolbox {
 
             matShader.setMaterial(mat, Color4f.GREEN);
             gl.render(GenericShapes.ARROW, null);
-            gl.scale(0.2f);
 
-            matShader.setMaterial(mat, Color4f.WHITE);
-            gl.render(GenericShapes.CUBE, null);
+            matShader.setMaterial(Material.ROUGH, Color4f.WHITE);
         }
         gl.popMatrix();
     }
@@ -119,6 +117,7 @@ public final class Toolbox {
             gl.scale(CURSOR_SIZE, CURSOR_SIZE, 1);
             gl.render(GenericShapes.CUBE, null);
         }
+        matShader.setMaterial(Material.ROUGH, Color4f.WHITE);
         gl.popMatrix();
     }
 
@@ -261,7 +260,7 @@ public final class Toolbox {
         return (float) (StrictMath.pow(rotationPreserveFactor, deltaTime));
     }
 
-    public static void waitFor(int millis) {
+    public static void sleep(int millis) {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException ignored) {

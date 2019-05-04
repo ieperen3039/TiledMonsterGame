@@ -17,7 +17,7 @@ import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class CubeMonster extends MonsterSoul {
         );
     }
 
-    public CubeMonster(DataInput in) throws IOException, ClassNotFoundException {
+    public CubeMonster(DataInputStream in) throws IOException, ClassNotFoundException {
         super(in);
         boneMap = null;
     }

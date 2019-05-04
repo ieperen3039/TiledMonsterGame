@@ -5,10 +5,11 @@ import NG.Storable;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -69,17 +70,22 @@ public class AnimationCombiner implements UniversalAnimation, PartialAnimation {
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
-        Storable.writeCollection(out, mux.values());
+    public void writeToDataStream(DataOutputStream out) throws IOException {
+        Collection<? extends Storable> box = mux.values();
+        out.writeInt(box.size());
+        for (Storable s : box) {
+            Storable.writeSafe(out, s);
+        }
     }
 
-    public AnimationCombiner(DataInput in) throws IOException, ClassNotFoundException {
+    public AnimationCombiner(DataInputStream in) throws IOException {
         int size = in.readInt();
         this.mux = new HashMap<>(size);
         float duration = 0;
 
         for (int i = 0; i < size; i++) {
-            PartialAnimation ani = Storable.read(in, PartialAnimation.class);
+            PartialAnimation ani = Storable.readSafe(in, PartialAnimation.class);
+            if (ani == null) continue;
             duration = ani.duration();
             add(ani);
         }

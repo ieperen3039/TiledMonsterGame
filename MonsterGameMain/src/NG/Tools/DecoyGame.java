@@ -28,7 +28,7 @@ public class DecoyGame extends GameService {
         Logger.INFO.print("Starting up a partial game engine...");
 
         add(new GameTimer(settings.RENDER_DELAY));
-        add(new GLFWWindow(title, settings, true));
+        add(new GLFWWindow(title, new GLFWWindow.Settings(settings), true));
         add(new MouseToolCallbacks());
         add(new SingleShadowMapLights());
         add(new SFrameManager());

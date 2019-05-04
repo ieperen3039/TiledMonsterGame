@@ -6,7 +6,7 @@ import NG.Engine.GameTimer;
 import NG.Rendering.Lights.GameState;
 import NG.Storable;
 
-import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.Lock;
@@ -115,7 +115,7 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Storable, Ev
     }
 
     @Override
-    public void writeToDataStream(DataOutput out) throws IOException {
+    public void writeToDataStream(DataOutputStream out) throws IOException {
 
     }
 }
