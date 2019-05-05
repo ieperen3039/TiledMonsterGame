@@ -32,7 +32,7 @@ public class BasicShape implements Shape {
     ) {
         this.vertices = Collections.unmodifiableList(vertices);
         this.triangles = faces.parallelStream()
-                .map(f -> f.toPlanes(vertices, normals))
+                .map(f -> Plane.faceToPlane(f, vertices, normals))
                 .collect(Collectors.toList());
 
         boundingBox = vertices.parallelStream()

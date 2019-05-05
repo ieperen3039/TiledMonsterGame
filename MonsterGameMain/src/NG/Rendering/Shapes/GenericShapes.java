@@ -28,13 +28,13 @@ public enum GenericShapes implements Mesh, Shape {
     /** a quad of size 2x2 on the xy plane */
     QUAD(makeSingleQuad());
 
-    private final Mesh mesh;
+    private MeshFile pars;
+    private Mesh mesh;
     private final Shape shape;
 
     GenericShapes(String... path) {
         Path asPath = Directory.meshes.getPath(path);
 
-        MeshFile pars;
         try {
             pars = MeshFile.loadFile(asPath);
 
@@ -56,12 +56,19 @@ public enum GenericShapes implements Mesh, Shape {
 
     @Override
     public void render(SGL.Painter lock) {
+        if (mesh == null) {
+            mesh = pars.getMesh();
+            pars = null;
+        }
         mesh.render(lock);
     }
 
     @Override
     public void dispose() {
-        mesh.dispose();
+        if (mesh != null) {
+            mesh.dispose();
+            pars = null;
+        }
     }
 
     @Override

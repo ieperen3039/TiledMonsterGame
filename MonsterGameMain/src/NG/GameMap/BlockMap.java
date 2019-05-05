@@ -1,6 +1,5 @@
 package NG.GameMap;
 
-import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.InputHandling.MouseTools.MouseTool;
@@ -10,7 +9,6 @@ import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Tools.AStar;
-import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.io.DataInputStream;
@@ -26,8 +24,9 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
  * A map that is built from cubes on the coordinates, which takes the heightmap as exact heights of each block.
  * @author Geert van Ieperen created on 17-2-2019.
  */
-public class BlockMap implements GameMap {
+public class BlockMap extends AbstractMap {
     private static final Color4f SELECTION_COLOR = Color4f.BLUE;
+    private static final short BASE_LEVEL = -32; // Short.MAX_VALUE / 2;
     private final List<ChangeListener> changeListeners = new ArrayList<>();
     private Map<Integer, Set<Integer>> highlightedTiles = new HashMap<>();
     private Game game;
@@ -37,6 +36,18 @@ public class BlockMap implements GameMap {
     private int ySize;
 
     public BlockMap() {
+    }
+
+    public BlockMap(DataInputStream in) throws IOException {
+        xSize = in.readInt();
+        ySize = in.readInt();
+
+        map = new short[xSize][ySize];
+        for (int x = 0; x < xSize; x++) {
+            for (int y = 0; y < ySize; y++) {
+                map[x][y] = in.readShort();
+            }
+        }
     }
 
     @Override
@@ -52,10 +63,10 @@ public class BlockMap implements GameMap {
         ySize = heightMap[0].length;
         short[][] intMap = new short[xSize][ySize];
 
-        // we should copy anyway
+        // we must copy anyway
         for (int x = 0; x < xSize; x++) {
             for (int y = 0; y < ySize; y++) {
-                intMap[x][y] = (short) Math.max(heightMap[x][y], 0);
+                intMap[x][y] = (short) heightMap[x][y];
             }
         }
 
@@ -74,8 +85,8 @@ public class BlockMap implements GameMap {
 
     @Override
     public float getHeightAt(float x, float y) {
-        int ix = (int) (x / TILE_SIZE);
-        int iy = (int) (y / TILE_SIZE);
+        int ix = (int) ((x + 0.5f) / TILE_SIZE);
+        int iy = (int) ((y + 0.5f) / TILE_SIZE);
 
         return getHeightAt(ix, iy) * TILE_SIZE_Z;
     }
@@ -90,8 +101,8 @@ public class BlockMap implements GameMap {
     @Override
     public Vector2i getCoordinate(Vector3fc position) {
         return new Vector2i(
-                (int) (position.x() / TILE_SIZE),
-                (int) (position.y() / TILE_SIZE)
+                (int) (position.x() / TILE_SIZE + 0.5f),
+                (int) (position.y() / TILE_SIZE + 0.5f)
         );
     }
 
@@ -106,6 +117,7 @@ public class BlockMap implements GameMap {
 
     @Override
     public void draw(SGL gl) {
+        if (map == null) return;
         ShaderProgram shader = gl.getShader();
         MaterialShader mShader = (diffuse, specular, reflectance) -> {};
 
@@ -115,10 +127,13 @@ public class BlockMap implements GameMap {
             mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
         }
 
-        float totalYTranslation = -1 * ySize * TILE_SIZE;
+        float totalYTranslation = ySize * TILE_SIZE;
 
         gl.pushMatrix();
         {
+            // tile 1 stretches from (-TILE_SIZE / 2, -TILE_SIZE / 2) to (TILE_SIZE / 2, TILE_SIZE / 2)
+            gl.translate(0, 0, BASE_LEVEL);
+
             for (int x = 0; x < xSize; x++) {
                 short[] slice = map[x];
 
@@ -133,21 +148,25 @@ public class BlockMap implements GameMap {
                         mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
                     }
 
-                    // +/- mesh size (-0.5 * MESH_SIZE)
-                    float height = slice[y] * TILE_SIZE_Z;
+                    float height = slice[y] * TILE_SIZE_Z - BASE_LEVEL;
 
                     if (height > 0) {
-                        gl.scale(1, 1, height);
+                        float h = height / 2;
+                        gl.translate(0, 0, h);
+                        gl.scale(1, 1, h);
                         gl.render(GenericShapes.CUBE, null); // todo make half cube
-                        gl.scale(1, 1, 1 / height);
+                        gl.scale(1, 1, 1 / h);
+                        gl.translate(0, 0, -h);
 
                     } else {
+                        gl.translate(0, 0, height);
                         gl.render(GenericShapes.QUAD, null);
+                        gl.translate(0, 0, -height);
                     }
 
                     gl.translate(0, TILE_SIZE, 0);
                 }
-                gl.translate(TILE_SIZE, totalYTranslation, 0);
+                gl.translate(TILE_SIZE, -totalYTranslation, 0);
             }
         }
         gl.popMatrix();
@@ -195,18 +214,6 @@ public class BlockMap implements GameMap {
         }
     }
 
-    public BlockMap(DataInputStream in) throws IOException {
-        xSize = in.readInt();
-        ySize = in.readInt();
-
-        map = new short[xSize][ySize];
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                map[x][y] = in.readShort();
-            }
-        }
-    }
-
     @Override
     public Collection<Vector2i> findPath(
             Vector2ic source, Vector2ic target, float walkSpeed, float climbSpeed
@@ -231,10 +238,20 @@ public class BlockMap implements GameMap {
     }
 
     @Override
-    public float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum) {
-        Vector3fc point = game.get(Camera.class).getFocus();
-        return Intersectionf.intersectRayPlane(origin, direction, point, Vectors.Z, 1E-6f);
+    public Float getTileIntersect(Vector3fc origin, Vector3fc direction, int xCoord, int yCoord) {
+        if (xCoord < 0 || xCoord >= xSize || yCoord < 0 || yCoord >= ySize) return null;
+
+        Vector3f p = getPosition(xCoord, yCoord).sub(1, 1, 0);
+
+        Vector2f result = new Vector2f();
+        boolean doIntersect = Intersectionf.intersectRayAab(
+                origin.x(), origin.y(), origin.z(),
+                direction.x(), direction.y(), direction.z(),
+                p.x, p.y, Float.NEGATIVE_INFINITY,
+                p.x + TILE_SIZE, p.y + TILE_SIZE, p.z,
+                result
+        );
+
+        return doIntersect ? result.x : Float.POSITIVE_INFINITY;
     }
-
-
 }

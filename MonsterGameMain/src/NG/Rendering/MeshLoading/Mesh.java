@@ -1,14 +1,8 @@
 package NG.Rendering.MeshLoading;
 
 import NG.Rendering.MatrixStack.SGL;
-import NG.Rendering.Shapes.Primitives.Plane;
-import NG.Rendering.Shapes.Primitives.Quad;
-import NG.Rendering.Shapes.Primitives.Triangle;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Geert van Ieperen created on 17-11-2017.
@@ -115,29 +109,5 @@ public interface Mesh {
             return index.isEmpty() ? -1 : Integer.parseInt(index) - 1;
         }
 
-        /**
-         * creates a plane object, using the indices on the given lists
-         * @param vertices a list where the vertex indices of A, B and C refer to
-         * @param normals  a list where the normal indices of A, B and C refer to
-         * @return a triangle whose normal is the average of those of A, B and C, in Shape-space
-         */
-        public Plane toPlanes(List<Vector3fc> vertices, List<Vector3fc> normals) {
-            final Vector3fc[] border = new Vector3fc[size()];
-            Arrays.setAll(border, i -> vertices.get(vert[i]));
-            // take average normal as normal of plane, or use default method if none are registered
-            Vector3f normal = new Vector3f();
-            for (int index : this.norm) {
-                if (index >= 0) normal.add(normals.get(index));
-            }
-
-            switch (size()) {
-                case 3:
-                    return Triangle.createTriangle(border[0], border[1], border[2], normal);
-                case 4:
-                    return Quad.createQuad(border[0], border[1], border[2], border[3], normal);
-                default:
-                    throw new UnsupportedOperationException("polygons with " + size() + " edges are not supported");
-            }
-        }
     }
 }

@@ -147,7 +147,7 @@ public class MainMenu extends SFrame {
     public static Vector3f centerCamera(Camera cam, GameMap map) {
         Vector2ic edge = map.getSize();
         Vector3f cameraFocus = map.getPosition(edge.x() / 2, edge.y() / 2);
-        float initialZoom = (float) edge.length() / 2;
+        float initialZoom = Math.max((float) edge.length() / 2, 8);
         Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
         cam.set(cameraFocus, cameraEye);
         return cameraFocus;

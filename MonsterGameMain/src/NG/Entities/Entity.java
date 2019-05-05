@@ -84,7 +84,7 @@ public interface Entity {
         Vector3fc startPos = getPositionAt(startTime);
         Vector3fc endPos = getPositionAt(endTime);
 
-        float intersect = map.intersectFraction(startPos, new Vector3f(endPos).sub(startPos), 1);
+        float intersect = map.gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos), 1);
         if (intersect == 1) return;
 
         float collisionTime = startTime + intersect * (endTime - startTime);

@@ -18,7 +18,6 @@ import org.joml.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.lang.Math;
 import java.util.*;
 
 import static NG.Settings.Settings.TILE_SIZE;
@@ -27,7 +26,7 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
 /**
  * @author Geert van Ieperen created on 3-2-2019.
  */
-public class TileMap implements GameMap {
+public class TileMap extends AbstractMap {
     private final int chunkSize;
     private final float realChunkSize;
     private final List<ChangeListener> changeListeners;
@@ -142,7 +141,7 @@ public class TileMap implements GameMap {
 
         gl.pushMatrix();
         {
-            // tile 1 stretches form (0, 0) to (TILE_SIZE, TILE_SIZE)
+            // tile 1 stretches from (0, 0) to (TILE_SIZE, TILE_SIZE)
             gl.translate(TILE_SIZE * 0.5f, TILE_SIZE * 0.5f, 0);
 
             for (MapChunk[] chunks : map) {
@@ -376,108 +375,19 @@ public class TileMap implements GameMap {
     }
 
     @Override
-    public float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum) {
-        if (direction.x() == 0 && direction.y() == 0) return maximum;
+    public Float getTileIntersect(Vector3fc origin, Vector3fc direction, int xCoord, int yCoord) {
+        MapTile.Instance tileData = getTileData(xCoord, yCoord);
 
-        Vector2f coordPos = new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
-        Vector2f coordDir = new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE); // also scale this vector
-
-        Vector2f worldClip = new Vector2f();
-        boolean isOnWorld = Intersectionf.intersectRayAab(
-                coordPos.x, coordPos.y, 0,
-                coordDir.x, coordDir.y, 0,
-                1, 1, -1,
-                xChunks * chunkSize - 1, yChunks * chunkSize - 1, 1,
-                worldClip
-        );
-        if (!isOnWorld) return maximum;
-
-        float adjMin = Math.max(worldClip.x, 0);
-        float adjMax = Math.min(worldClip.y, maximum);
-
-        coordPos.add(new Vector2f(coordDir).mul(adjMin));
-        coordDir.mul(adjMax - adjMin);
-        Vector2i lineTraverse = new Vector2i((int) coordPos.x, (int) coordPos.y);
-
-        while (lineTraverse != null) {
-            int xCoord = lineTraverse.x;
-            int yCoord = lineTraverse.y;
-            MapTile.Instance tileData = getTileData(xCoord, yCoord);
-
-            if (tileData == null) {
-                Logger.WARN.print(String.format(
-                        "%s is not on the map (modified ray is from %s to %s)",
-                        Vectors.asVectorString(xCoord, yCoord),
-                        Vectors.toString(new Vector2f(coordDir).mul(adjMin).add(coordPos)),
-                        Vectors.toString(new Vector2f(coordDir).mul(adjMax).add(coordPos))
-                ));
-                return maximum;
-            }
-
-            Vector2f tilePosition = new Vector2f((xCoord + 0.5f) * TILE_SIZE, (yCoord + 0.5f) * TILE_SIZE);
-
-            float secFrac = tileData.intersectFraction(tilePosition, origin, direction);
-            if (secFrac >= 0 && secFrac < 1) {
-                return secFrac;
-            }
-
-            // no luck, try next coordinate
-            lineTraverse = nextCoordinate(xCoord, yCoord, coordPos, coordDir, 1);
-        }
-
-        return maximum;
-    }
-
-    /**
-     * assuming you are at (xCoord, yCoord), computes the next coordinate hit by the given ray
-     * @param xCoord    the current x coordinate
-     * @param yCoord    the current y coordinate
-     * @param origin    the origin of the ray
-     * @param direction the direction of the ray
-     * @return the next coordinate hit by the ray. If the previous coordinate was not hit by the ray, return a
-     * coordinate closer to the ray than this one (will eventually return coordinates on the ray)
-     */
-    private Vector2i nextCoordinate(int xCoord, int yCoord, Vector2fc origin, Vector2fc direction, float maximum) {
-        boolean xIsPos = direction.x() > 0;
-        boolean yIsPos = direction.y() > 0;
-
-        if (direction.x() == 0) {
-            int yNext = yCoord + (yIsPos ? 1 : -1);
-            if ((yNext - origin.y()) / direction.y() > maximum) { // a = o + d * maximum; maximum = (a - o) / d
-                return null;
-            } else {
-                return new Vector2i(xCoord, yNext);
-            }
-
-        } else if (direction.y() == 0) {
-            int xNext = xCoord + (xIsPos ? 1 : -1);
-            if ((xNext - origin.x()) / direction.x() > maximum) {
-                return null;
-            } else {
-                return new Vector2i(xNext, yCoord);
-            }
-        }
-
-        float xIntersect = Intersectionf.intersectRayPlane(
-                origin.x(), origin.y(), 0, direction.x(), direction.y(), 0,
-                (xIsPos ? xCoord + 1 : xCoord), yCoord, 0, (xIsPos ? -1 : 1), 0, 0,
-                1e-3f
-        );
-        float yIntersect = Intersectionf.intersectRayPlane(
-                origin.x(), origin.y(), 0, direction.x(), direction.y(), 0,
-                xCoord, (yIsPos ? yCoord + 1 : yCoord), 0, 0, (yIsPos ? -1 : 1), 0,
-                1e-3f
-        );
-
-        if (xIntersect >= maximum && yIntersect >= maximum) {
+        if (tileData == null) {
+            Logger.WARN.print(String.format(
+                    "%s is not on the map",
+                    Vectors.asVectorString(xCoord, yCoord)
+            ));
             return null;
+
+        } else {
+            Vector2f tilePosition = new Vector2f((xCoord + 0.5f) * TILE_SIZE, (yCoord + 0.5f) * TILE_SIZE);
+            return tileData.intersectFraction(tilePosition, origin, direction);
         }
-
-        Vector2i next = new Vector2i(xCoord, yCoord);
-
-        if (xIntersect <= yIntersect) next.add((xIsPos ? 1 : -1), 0);
-        if (yIntersect <= xIntersect) next.add(0, (yIsPos ? 1 : -1));
-
-        return next;
     }
 }

@@ -28,7 +28,7 @@ public enum TileThemeSet {
         if (isLoaded) return;
 
         try {
-            MapTiles.readFile(this, path);
+            MapTiles.readTileSetFile(this, path);
             isLoaded = true;
 
         } catch (IOException ex) {

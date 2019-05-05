@@ -122,15 +122,15 @@ public class MonsterGame implements ModLoader {
 
         // world
         renderer.renderSequence(new WorldBPShader())
-                .add(combinedGame.get(GameLights.class)::draw)
-                .add(combinedGame.get(GameMap.class)::draw);
+                .add(gl -> combinedGame.get(GameLights.class).draw(gl))
+                .add(gl -> combinedGame.get(GameMap.class).draw(gl));
         // entities
         renderer.renderSequence(new BlinnPhongShader())
-                .add(combinedGame.get(GameLights.class)::draw)
-                .add(combinedGame.get(GameState.class)::draw);
+                .add(gl -> combinedGame.get(GameLights.class).draw(gl))
+                .add(gl -> combinedGame.get(GameState.class).draw(gl));
         // particles
         renderer.renderSequence(new ParticleShader())
-                .add(combinedGame.get(GameParticles.class)::draw);
+                .add(gl -> combinedGame.get(GameParticles.class).draw(gl));
 
         mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
         frameManager.addFrame(mainMenu);

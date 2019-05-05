@@ -13,6 +13,7 @@ import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.RenderLoop;
+import NG.Rendering.Shaders.WorldBPShader;
 import NG.Settings.Settings;
 import NG.Tools.*;
 import org.joml.Vector2i;
@@ -26,6 +27,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -33,7 +35,7 @@ import java.util.function.Supplier;
  * @author Geert van Ieperen created on 6-2-2019.
  */
 public class MapEditor {
-    private static final Version EDITOR_VERSION = new Version(0, 2);
+    private static final Version EDITOR_VERSION = new Version(0, 3);
     private static final String MAP_FILE_EXTENSION = "mgm";
     private static final int BUTTON_MIN_WIDTH = 180;
     private static final int BUTTON_MIN_HEIGHT = 80;
@@ -54,6 +56,7 @@ public class MapEditor {
         settings.ISOMETRIC_VIEW = true;
         settings.DYNAMIC_SHADOW_RESOLUTION = 0;
         settings.STATIC_SHADOW_RESOLUTION = 0;
+        settings.DEBUG_SCREEN = true;
 
         renderloop = new RenderLoop(settings.TARGET_FPS) {
             @Override // override exception handler
@@ -62,7 +65,7 @@ public class MapEditor {
             }
         };
 
-        game = new DecoyGame("MonsterGame Map designer", renderloop, settings);
+        game = new DecoyGame("MonsterGame Map designer", renderloop, settings, EDITOR_VERSION);
         blockMap = new BlockMap();
         game.setGameMap(blockMap);
 
@@ -86,16 +89,20 @@ public class MapEditor {
     public void init() throws Exception {
         game.init();
 
-        GLFWWindow window = game.get(GLFWWindow.class);
+        // world
+        renderloop.renderSequence(new WorldBPShader())
+                .add(gl -> game.get(GameLights.class).draw(gl))
+                .add(gl -> game.get(AbstractMap.class).draw(gl));
+
         GUIManager gui = game.get(GUIManager.class);
-        SToolBar files = getFileToolbar(window);
+        SToolBar files = getFileToolbar();
         gui.setToolBar(files);
 
         game.get(MouseToolCallbacks.class).setMouseTool(blockModificationTool);
         game.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 4f), Color4f.WHITE, 0.4f);
     }
 
-    private SToolBar getFileToolbar(GLFWWindow window) {
+    private SToolBar getFileToolbar() {
         SToolBar mainMenu = new SToolBar(game, false);
 
         mainMenu.addButton("Generate Random", this::createNew, 250);
@@ -162,7 +169,7 @@ public class MapEditor {
             for (File file : selectedFiles) {
                 try {
                     inc[0]++;
-                    MapTiles.readFile(null, file.toPath());
+                    MapTiles.readTileSetFile(null, file.toPath());
 
                 } catch (IOException ex) {
                     Logger.ERROR.print(ex);
@@ -193,7 +200,7 @@ public class MapEditor {
                         new FileOutputStream(nameWithExtension)
                 ) {
                     DataOutputStream output = new DataOutputStream(fileOut);
-                    Storable.write(output, game.get(GameMap.class));
+                    Storable.write(output, game.get(AbstractMap.class));
 
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
@@ -219,7 +226,7 @@ public class MapEditor {
             try {
                 game.loadMap(selectedFile);
 
-                GameMap newMap = game.get(GameMap.class);
+                GameMap newMap = game.get(AbstractMap.class);
 
                 if (newMap instanceof BlockMap) {
                     blockMap = (BlockMap) newMap;
@@ -254,42 +261,27 @@ public class MapEditor {
     private void createNew() {
         SFrame newMapFrame = new SFrame("New Map Settings", 200, 200, true);
         MapGeneratorMod generator = new SimpleMapGenerator(Toolbox.random.nextInt());
-
-        final int ROWS = 10;
-        final int COLS = 3;
-        Vector2i mpos = new Vector2i(1, 0);
         GUIManager gui = game.get(GUIManager.class);
 
-        SPanel mainPanel = new SPanel(COLS, ROWS);
-        mainPanel.add(new SFiller(10, 10), new Vector2i(0, 0));
-        mainPanel.add(new SFiller(10, 10), new Vector2i(COLS - 1, ROWS - 1));
-
-        // size selection
-        SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
-        sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
-        SDropDown xSizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
-        sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
-        sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
-        SDropDown ySizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
-        sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
-        mainPanel.add(sizeSelection, mpos.add(0, 1));
-
-        // other properties
+        // collect map generator properties
         Map<String, Integer> properties = generator.getProperties();
+        SPanel propPanel = new SPanel(1, properties.size());
+        Vector2i mpos = new Vector2i(0, -1);
+
         for (String prop : properties.keySet()) {
             int initialValue = properties.get(prop);
-            mainPanel.add(
+            propPanel.add(
                     new SModifiableIntegerPanel(i -> properties.put(prop, i), prop, initialValue),
                     mpos.add(0, 1)
             );
         }
 
-        // generate button
-        mainPanel.add(new SFiller(0, 50), mpos.add(0, 1));
-        SButton generate = new SButton("Generate", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        mainPanel.add(generate, mpos.add(0, 1));
-
         Supplier<String> processDisplay = () -> "Generating heightmap : " + generator.heightmapProgress() * 100 + "%";
+
+        // buttons
+        SButton generate = new SButton("Generate", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
+        SDropDown xSizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
+        SDropDown ySizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
 
         generate.addLeftClickListener(() -> {
             Logger.printOnline(processDisplay);
@@ -302,22 +294,41 @@ public class MapEditor {
 
             TileThemeSet.PLAIN.load();
 
-            game.get(GameMap.class).generateNew(generator);
+            GameMap gameMap = game.get(AbstractMap.class);
+            gameMap.generateNew(generator);
 
-            MainMenu.centerCamera(game.get(Camera.class), game.get(GameMap.class));
+            MainMenu.centerCamera(game.get(Camera.class), gameMap);
             Logger.removeOnlinePrint(processDisplay);
 
             newMapFrame.dispose();
         });
+
+        // GUI structure
+        SPanel mainPanel = new SPanel(3, 3);
+        mainPanel.add(new SFiller(10, 10), new Vector2i(0, 0));
+        mainPanel.add(new SFiller(10, 10), new Vector2i(2, 2));
+
+        mainPanel.add(SPanel.column(
+                SPanel.row(
+                        new STextArea("Size", 0),
+                        xSizeSelector,
+                        new STextArea("X", 0),
+                        ySizeSelector
+                ),
+                propPanel,
+                new SFiller(0, 50),
+                generate
+        ), new Vector2i(2, 2));
 
         newMapFrame.setMainPanel(mainPanel);
         gui.addFrame(newMapFrame);
     }
 
     public void start() {
-        game.get(GLFWWindow.class).open();
+        GLFWWindow window = game.get(GLFWWindow.class);
+        window.open();
         renderloop.run();
-        game.get(GLFWWindow.class).close();
+        window.close();
         game.get(MouseToolCallbacks.class).cleanup();
     }
 
@@ -429,7 +440,9 @@ public class MapEditor {
 
         @Override
         public void apply(Vector3fc position) {
-            GameMap map = game.get(GameMap.class);
+            GameMap map = game.get(AbstractMap.class);
+            GUIManager gui = game.get(GUIManager.class);
+
             assert (map instanceof TileMap);
 
             Vector2i coordinate = map.getCoordinate(position);
@@ -441,27 +454,23 @@ public class MapEditor {
             window = new SFrame("Tile at (" + x + ", " + y + ")");
 
             TileMap tileMap = (TileMap) map;
-            MapTile.Instance tileData = tileMap.getTileData(x, y);
-            SPanel elements = new SPanel(1, 5);
+            MapTile tileType = tileMap.getTileData(x, y).type;
+            List<MapTile> mapTileList = MapTiles.getByOrientationBits(tileType.fit);
 
-            STextArea typeDist = new STextArea("Type: " + tileData.type.name, BUTTON_MIN_HEIGHT);
-            elements.add(typeDist, new Vector2i(0, 0));
+            SNamedValue typeDist = new SNamedValue("Type", () -> tileType.name, BUTTON_MIN_HEIGHT);
+            SNamedValue heightDisp = new SNamedValue("Height", () -> map.getHeightAt(x, y), BUTTON_MIN_HEIGHT);
+            SDropDown tileSelection = new SDropDown(gui, BUTTON_MIN_HEIGHT, BUTTON_MIN_WIDTH, tileType, mapTileList);
 
-            STextArea heightDisp = new STextArea("Height: " + map.getHeightAt(x, y), BUTTON_MIN_HEIGHT);
-            elements.add(heightDisp, new Vector2i(0, 1));
-
-            Runnable switchAction = () -> {
-                MapTile.Instance instance = tileData.cycle(1);
-                tileMap.setTile(x, y, instance);
-                typeDist.setText("Type: " + tileData.type.name);
-                heightDisp.setText("Height: " + map.getHeightAt(x, y));
-            };
-            elements.add(new SButton("Cycle tile type", switchAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT), new Vector2i(0, 3));
+            SPanel elements = SPanel.column(
+                    typeDist,
+                    heightDisp,
+                    tileSelection
+            );
 
             window.setMainPanel(elements);
 
             window.pack();
-            game.get(GUIManager.class).addFrame(window);
+            gui.addFrame(window);
         }
 
         public void dispose() {

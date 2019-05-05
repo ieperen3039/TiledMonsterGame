@@ -20,7 +20,6 @@ import org.joml.Vector3fc;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Random;
 
 import static NG.Settings.Settings.TILE_SIZE_Z;
@@ -177,10 +176,7 @@ public class MapTile {
             gl.popMatrix();
         }
 
-        public Instance cycle(int offset) {
-            List<MapTile> list = MapTiles.tileFinder.get(type.fit.id);
-            int index = (list.indexOf(type) + offset) % list.size();
-            MapTile newType = list.get(index);
+        public Instance replaceWith(MapTile newType) {
             int newRotation = this.rotation + (newType.fit.rotation - type.fit.rotation);
             int newHeight = this.offset + (newType.baseHeight - type.baseHeight);
 

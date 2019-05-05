@@ -1,11 +1,13 @@
 package NG.Rendering.Shapes.Primitives;
 
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Tools.Vectors;
 import org.joml.Intersectionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * a plane with hitbox, allowing checks whether a line-piece hits the plane. all vectors are in a given frame of
@@ -97,5 +99,30 @@ public abstract class Plane {
         return middle;
     }
 
+    /**
+     * creates a plane object, using the indices on the given lists
+     * @param face     the face to create into a plane
+     * @param vertices a list where the vertex indices of A, B and C refer to
+     * @param normals  a list where the normal indices of A, B and C refer to
+     * @return a triangle whose normal is the average of those of A, B and C, in Shape-space
+     */
+    public static Plane faceToPlane(Mesh.Face face, List<Vector3fc> vertices, List<Vector3fc> normals) {
+        final Vector3fc[] border = new Vector3fc[face.size()];
+        Arrays.setAll(border, i -> vertices.get(face.vert[i]));
+        // take average normal as normal of plane, or use default method if none are registered
+        Vector3f normal = new Vector3f();
+        for (int index : face.norm) {
+            if (index >= 0) normal.add(normals.get(index));
+        }
+
+        switch (face.size()) {
+            case 3:
+                return Triangle.createTriangle(border[0], border[1], border[2], normal);
+            case 4:
+                return Quad.createQuad(border[0], border[1], border[2], border[3], normal);
+            default:
+                throw new UnsupportedOperationException("polygons with " + face.size() + " edges are not supported");
+        }
+    }
 }
 

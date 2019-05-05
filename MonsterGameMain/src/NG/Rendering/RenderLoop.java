@@ -103,7 +103,14 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             Vectors.windowCoordToRay(game, xPos, correctedY, origin, direction);
 
             GameMap map = game.get(GameMap.class);
-            Vector3f position = map.intersectWithSegment(origin, direction);
+            Vector3f result;
+            float t = map.gridMapIntersection(origin, direction, 1);
+            if (t == 1) {
+                result = null;
+            } else {
+                result = new Vector3f(direction).mul(t).add(origin);
+            }
+            Vector3f position = result;
             if (position == null) return;
 
             Vector2i coordinate = map.getCoordinate(position);

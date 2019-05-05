@@ -21,10 +21,9 @@ import org.joml.Vector3f;
  * @author Geert van Ieperen created on 6-2-2019.
  */
 public class DecoyGame extends GameService {
-    private static final Version VERSION = new Version(2, 0);
 
-    public DecoyGame(String title, RenderLoop renderloop, Settings settings) {
-        super(VERSION, Thread.currentThread().getName(), renderloop, settings);
+    public DecoyGame(String title, RenderLoop renderloop, Settings settings, Version version) {
+        super(version, Thread.currentThread().getName(), renderloop, settings);
         Logger.INFO.print("Starting up a partial game engine...");
 
         add(new GameTimer(settings.RENDER_DELAY));

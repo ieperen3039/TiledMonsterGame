@@ -88,16 +88,22 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
      * @param initial   the initial selected item, such that {@code values[initial]} is shown
      * @param values    a list of possible values for this dropdown menu
      */
-    public SDropDown(GUIManager gui, int minHeight, int minWidth, int initial, Object[] values) {
+    public <T> SDropDown(GUIManager gui, int minHeight, int minWidth, T initial, List<? extends T> values) {
         this.minHeight = minHeight;
         this.minWidth = minWidth;
-        this.current = initial;
 
-        String[] arr = new String[values.length];
-        for (int i = 0; i < values.length; i++) {
-            arr[i] = values[i].toString();
+        int candidate = -1;
+        String[] arr = new String[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            T elt = values.get(i);
+            arr[i] = elt.toString();
+
+            if (elt.equals(initial)) {
+                candidate = i;
+            }
         }
 
+        this.current = candidate;
         this.values = arr;
         this.optionPane = new DropDownOptions(arr);
         this.gui = gui;

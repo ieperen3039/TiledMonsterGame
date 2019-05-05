@@ -18,7 +18,7 @@ import java.util.Collections;
  * an empty map that does absolutely nothing at all
  * @author Geert van Ieperen created on 28-2-2019.
  */
-public class EmptyMap implements GameMap {
+public class EmptyMap extends AbstractMap {
     public EmptyMap() {
     }
 
@@ -56,7 +56,6 @@ public class EmptyMap implements GameMap {
 
     }
 
-    @Override
     public Vector3f intersectWithSegment(Vector3fc origin, Vector3fc direction) {
         return new Vector3f();
     }
@@ -77,15 +76,13 @@ public class EmptyMap implements GameMap {
     }
 
     @Override
-    public Collection<Vector2i> findPath(
-            Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed
-    ) {
+    public Collection<Vector2i> findPath(Vector2ic beginPosition, Vector2ic target, float walkSpeed, float climbSpeed) {
         return Collections.emptyList();
     }
 
     @Override
-    public float intersectFraction(Vector3fc origin, Vector3fc direction, float maximum) {
-        return 0;
+    public Float getTileIntersect(Vector3fc origin, Vector3fc direction, int xCoord, int yCoord) {
+        return null;
     }
 
     @Override

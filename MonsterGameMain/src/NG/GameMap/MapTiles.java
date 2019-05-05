@@ -24,7 +24,7 @@ public class MapTiles {
     private static final Set<Path> PATHS = new HashSet<>();
     static final HashMap<Integer, List<MapTile>> tileFinder = new HashMap<>();
 
-    public static void readFile(TileThemeSet sourceSet, Path path) throws IOException {
+    public static void readTileSetFile(TileThemeSet sourceSet, Path path) throws IOException {
         Path folder = path.getParent();
         Scanner sc = new Scanner(path);
 
@@ -64,6 +64,11 @@ public class MapTiles {
             int culledIndex = index % list.size();
             return list.get(culledIndex);
         }
+    }
+
+    public static List<MapTile> getByOrientationBits(RotationFreeFit fit) {
+        List<MapTile> list = tileFinder.get(fit.id);
+        return list == null ? Collections.emptyList() : Collections.unmodifiableList(list);
     }
 
     /**
@@ -175,7 +180,7 @@ public class MapTiles {
             Random random, int pos_pos, int pos_neg, int neg_neg, int neg_pos
     ) {
         MapTiles.RotationFreeFit tgtFit = createRFF(pos_pos, pos_neg, neg_neg, neg_pos);
-        List<MapTile> list = tileFinder.get(tgtFit.id);
+        List<MapTile> list = getByOrientationBits(tgtFit);
 
         if (list == null) {
             Logger.ASSERT.printf("No tile found for configuration (%d, %d, %d, %d)", pos_pos, pos_neg, neg_neg, neg_pos);

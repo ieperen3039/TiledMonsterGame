@@ -7,6 +7,7 @@ import NG.Engine.GameService;
 import NG.Engine.Version;
 import NG.Entities.Entity;
 import NG.GUIMenu.Frames.Components.SComponent;
+import NG.GameMap.AbstractMap;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseToolCallbacks;
@@ -42,7 +43,7 @@ public class RayTraceTest {
         game = new GameService(new Version(0, 0), "", map, cam, window, inputHandler, new Settings());
 
         cam.init(game);
-        instance = game.get(GameMap.class);
+        instance = game.get(AbstractMap.class);
         instance.init(game);
         cam.set(new Vector3f(0, 0, 0), new Vector3f(-10, -10, 10));
     }
