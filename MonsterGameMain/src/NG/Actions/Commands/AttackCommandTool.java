@@ -14,11 +14,10 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 5-4-2019.
  */
 public class AttackCommandTool extends DefaultMouseTool {
-    private final Game game;
     private MonsterEntity entity;
 
     public AttackCommandTool(Game game, MonsterEntity entity) {
-        this.game = game;
+        super(game);
         this.entity = entity;
     }
 

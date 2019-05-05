@@ -26,16 +26,27 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
  */
 public class BlockMap extends AbstractMap {
     private static final Color4f SELECTION_COLOR = Color4f.BLUE;
-    private static final short BASE_LEVEL = -32; // Short.MAX_VALUE / 2;
+
     private final List<ChangeListener> changeListeners = new ArrayList<>();
     private Map<Integer, Set<Integer>> highlightedTiles = new HashMap<>();
     private Game game;
+
+    private float hBlockSize;
+    private float hBlockHeight;
+    private float blockElevation;
 
     private short[][] map; // strictly positive
     private int xSize;
     private int ySize;
 
     public BlockMap() {
+        this(TILE_SIZE, 4f * TILE_SIZE_Z, 0f);
+    }
+
+    public BlockMap(float blockSize, float blockHeight, float blockElevation) {
+        this.hBlockSize = blockSize / 2;
+        this.blockElevation = blockElevation;
+        hBlockHeight = blockHeight / 2;
     }
 
     public BlockMap(DataInputStream in) throws IOException {
@@ -132,7 +143,6 @@ public class BlockMap extends AbstractMap {
         gl.pushMatrix();
         {
             // tile 1 stretches from (-TILE_SIZE / 2, -TILE_SIZE / 2) to (TILE_SIZE / 2, TILE_SIZE / 2)
-            gl.translate(0, 0, BASE_LEVEL);
 
             for (int x = 0; x < xSize; x++) {
                 short[] slice = map[x];
@@ -148,21 +158,17 @@ public class BlockMap extends AbstractMap {
                         mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
                     }
 
-                    float height = slice[y] * TILE_SIZE_Z - BASE_LEVEL;
+                    float height = slice[y] * TILE_SIZE_Z;
 
-                    if (height > 0) {
-                        float h = height / 2;
-                        gl.translate(0, 0, h);
-                        gl.scale(1, 1, h);
-                        gl.render(GenericShapes.CUBE, null); // todo make half cube
-                        gl.scale(1, 1, 1 / h);
-                        gl.translate(0, 0, -h);
+                    float offset = height - hBlockHeight + blockElevation;
 
-                    } else {
-                        gl.translate(0, 0, height);
-                        gl.render(GenericShapes.QUAD, null);
-                        gl.translate(0, 0, -height);
-                    }
+                    gl.translate(0, 0, offset);
+                    gl.scale(hBlockSize, hBlockSize, hBlockHeight);
+
+                    gl.render(GenericShapes.CUBE, null); // todo make half cube
+
+                    gl.scale(1 / hBlockSize, 1 / hBlockSize, 1 / hBlockHeight);
+                    gl.translate(0, 0, -offset);
 
                     gl.translate(0, TILE_SIZE, 0);
                 }
@@ -241,14 +247,16 @@ public class BlockMap extends AbstractMap {
     public Float getTileIntersect(Vector3fc origin, Vector3fc direction, int xCoord, int yCoord) {
         if (xCoord < 0 || xCoord >= xSize || yCoord < 0 || yCoord >= ySize) return null;
 
-        Vector3f p = getPosition(xCoord, yCoord).sub(1, 1, 0);
+        Vector3f p = getPosition(xCoord, yCoord);//.sub(TILE_SIZE / 2, TILE_SIZE / 2, 0);
+        float top = p.z + blockElevation;
 
         Vector2f result = new Vector2f();
+
         boolean doIntersect = Intersectionf.intersectRayAab(
                 origin.x(), origin.y(), origin.z(),
                 direction.x(), direction.y(), direction.z(),
-                p.x, p.y, Float.NEGATIVE_INFINITY,
-                p.x + TILE_SIZE, p.y + TILE_SIZE, p.z,
+                p.x - hBlockSize, p.y - hBlockSize, top - 2 * hBlockHeight,
+                p.x + hBlockSize, p.y + hBlockSize, top,
                 result
         );
 

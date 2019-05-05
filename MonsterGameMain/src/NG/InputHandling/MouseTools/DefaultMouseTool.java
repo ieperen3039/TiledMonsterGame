@@ -1,15 +1,19 @@
 package NG.InputHandling.MouseTools;
 
+import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.GUIMenu.Frames.Components.SComponent;
+import NG.GUIMenu.Frames.GUIManager;
+import NG.GameMap.GameMap;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
+import NG.Rendering.GLFWWindow;
+import NG.Rendering.Lights.GameState;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * A mouse tool that implements the standard behaviour of the pointer user input.
@@ -29,6 +33,12 @@ public class DefaultMouseTool implements MouseTool {
     private MouseMoveListener dragListener = null;
     private MouseReleaseListener releaseListener = null;
     private int button;
+
+    protected Game game;
+
+    public DefaultMouseTool(Game game) {
+        this.game = game;
+    }
 
     @Override
     public void apply(SComponent component, int xSc, int ySc) {
@@ -90,12 +100,20 @@ public class DefaultMouseTool implements MouseTool {
         return "Default MouseTool";
     }
 
-    /**
-     * sets the button field. Should only be called by the input handling
-     * @param button a button enum, often {@link GLFW#GLFW_MOUSE_BUTTON_LEFT} or {@link GLFW#GLFW_MOUSE_BUTTON_RIGHT}
-     */
     @Override
-    public void setButton(int button) {
+    public void onClick(int button, int x, int y) {
+        setButton(button);
+
+        if (game.get(GUIManager.class).checkMouseClick(this, x, y)) return;
+
+        // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
+        y = game.get(GLFWWindow.class).getHeight() - y;
+
+        if (game.get(GameState.class).checkMouseClick(this, x, y)) return;
+        game.get(GameMap.class).checkMouseClick(this, x, y);
+    }
+
+    protected void setButton(int button) {
         this.button = button;
     }
 }

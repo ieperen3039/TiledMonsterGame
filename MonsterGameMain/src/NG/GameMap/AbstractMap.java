@@ -7,8 +7,6 @@ import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.lang.Math;
-import java.util.ArrayList;
-import java.util.List;
 
 import static NG.Settings.Settings.TILE_SIZE;
 
@@ -35,7 +33,6 @@ public abstract class AbstractMap implements GameMap {
         return getPosition(mapCoord.x(), mapCoord.y());
     }
 
-    @Override
     public boolean checkMouseClick(MouseTool tool, int xSc, int ySc, Game game) {
         Vector3f origin = new Vector3f();
         Vector3f direction = new Vector3f();
@@ -88,12 +85,10 @@ public abstract class AbstractMap implements GameMap {
         coordPos.add(new Vector2f(coordDir).mul(adjMin));
         coordDir.mul(adjMax - adjMin);
         Vector2i lineTraverse = new Vector2i((int) coordPos.x, (int) coordPos.y);
-        List<Vector2i> coords = new ArrayList<>();
 
         while (lineTraverse != null) {
             int xCoord = lineTraverse.x;
             int yCoord = lineTraverse.y;
-            coords.add(new Vector2i(xCoord, yCoord));
 
             Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
 
@@ -101,7 +96,6 @@ public abstract class AbstractMap implements GameMap {
                 return maximum;
 
             } else if (secFrac >= 0 && secFrac < 1) {
-                setHighlights(coords.toArray(new Vector2i[0]));
                 return secFrac;
             }
 
@@ -109,7 +103,6 @@ public abstract class AbstractMap implements GameMap {
             lineTraverse = nextCoordinate(xCoord, yCoord, coordPos, coordDir, 1);
         }
 
-        setHighlights(coords.toArray(new Vector2i[0]));
         return maximum;
     }
 

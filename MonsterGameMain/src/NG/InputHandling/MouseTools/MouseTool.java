@@ -3,6 +3,7 @@ package NG.InputHandling.MouseTools;
 import NG.Entities.Entity;
 import NG.GUIMenu.Frames.Components.SComponent;
 import NG.InputHandling.MouseMoveListener;
+import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
 import org.joml.Vector3fc;
 
@@ -10,7 +11,7 @@ import org.joml.Vector3fc;
  * Determines the behaviour of clicking
  * @author Geert van Ieperen. Created on 22-11-2018.
  */
-public interface MouseTool extends MouseMoveListener, MouseReleaseListener {
+public interface MouseTool extends MouseMoveListener, MouseReleaseListener, MouseRelativeClickListener {
 
     /**
      * applies the functionality of this tool to the given component
@@ -33,6 +34,4 @@ public interface MouseTool extends MouseMoveListener, MouseReleaseListener {
      * @param position a position in the world where is clicked.
      */
     void apply(Vector3fc position);
-
-    void setButton(int button);
 }

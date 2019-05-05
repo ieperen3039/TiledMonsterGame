@@ -13,11 +13,10 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 18-2-2019.
  */
 public class WalkCommandTool extends DefaultMouseTool {
-    private Game game;
     private MonsterSoul controller;
 
     public WalkCommandTool(Game game, MonsterEntity entity) {
-        this.game = game;
+        super(game);
         controller = entity.getController();
     }
 

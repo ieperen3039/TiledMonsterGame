@@ -9,7 +9,6 @@ import NG.GUIMenu.Menu.MainMenu;
 import NG.GUIMenu.SToolBar;
 import NG.GameMap.*;
 import NG.InputHandling.MouseToolCallbacks;
-import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.RenderLoop;
@@ -19,7 +18,6 @@ import NG.Tools.*;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -27,7 +25,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -37,11 +34,10 @@ import java.util.function.Supplier;
 public class MapEditor {
     private static final Version EDITOR_VERSION = new Version(0, 3);
     private static final String MAP_FILE_EXTENSION = "mgm";
-    private static final int BUTTON_MIN_WIDTH = 180;
-    private static final int BUTTON_MIN_HEIGHT = 80;
+    public static final int BUTTON_MIN_WIDTH = 180;
+    public static final int BUTTON_MIN_HEIGHT = 60;
 
-    private final TileCycleTool tileCycleTool = new TileCycleTool();
-    private final BlockModificationTool blockModificationTool = new BlockModificationTool();
+    private final DualEditorTool dualEditorTool;
 
     private final RenderLoop renderloop;
     private final DecoyGame game;
@@ -50,6 +46,7 @@ public class MapEditor {
     private final JFileChooser loadTileDialog;
     private final JFileChooser loadMapDialog;
     private BlockMap blockMap;
+    private TileMap tileMap;
 
     public MapEditor() {
         Settings settings = new Settings();
@@ -61,13 +58,14 @@ public class MapEditor {
         renderloop = new RenderLoop(settings.TARGET_FPS) {
             @Override // override exception handler
             protected void exceptionHandler(Exception ex) {
-                Toolbox.display(ex);
+                errorDialog(ex);
             }
         };
 
         game = new DecoyGame("MonsterGame Map designer", renderloop, settings, EDITOR_VERSION);
-        blockMap = new BlockMap();
-        game.setGameMap(blockMap);
+        blockMap = new BlockMap(0.5f, 0.1f, 0.1f);
+        tileMap = new TileMap(Settings.CHUNK_SIZE);
+        game.setGameMap(tileMap);
 
         loadMapDialog = new JFileChooser(Directory.savedMaps.getDirectory());
         loadMapDialog.setDialogTitle("Load map");
@@ -84,21 +82,26 @@ public class MapEditor {
         FileNameExtensionFilter filter2 = new FileNameExtensionFilter("Tile description files", "txt");
         loadTileDialog.setApproveButtonText("Load");
         loadTileDialog.setFileFilter(filter2);
+
+        dualEditorTool = new DualEditorTool(game, blockMap, tileMap);
     }
 
     public void init() throws Exception {
         game.init();
+        blockMap.init(game);
 
         // world
         renderloop.renderSequence(new WorldBPShader())
                 .add(gl -> game.get(GameLights.class).draw(gl))
-                .add(gl -> game.get(AbstractMap.class).draw(gl));
+                .add(gl -> blockMap.draw(gl))
+                .add(gl -> tileMap.draw(gl))
+        ;
 
         GUIManager gui = game.get(GUIManager.class);
         SToolBar files = getFileToolbar();
         gui.setToolBar(files);
 
-        game.get(MouseToolCallbacks.class).setMouseTool(blockModificationTool);
+        game.get(MouseToolCallbacks.class).setMouseTool(dualEditorTool);
         game.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 4f), Color4f.WHITE, 0.4f);
     }
 
@@ -106,7 +109,7 @@ public class MapEditor {
         SToolBar mainMenu = new SToolBar(game, false);
 
         mainMenu.addButton("Generate Random", this::createNew, 250);
-        mainMenu.addButton("Transform Tiles", this::generateTileMap, 250);
+        mainMenu.addButton("Transform Tiles", null, 250);
         mainMenu.addButton("Load Map", this::loadMap, BUTTON_MIN_WIDTH);
         mainMenu.addButton("Save Map", this::saveMap, BUTTON_MIN_WIDTH);
         mainMenu.addButton("Load Tiles", this::loadTiles, BUTTON_MIN_WIDTH);
@@ -115,44 +118,6 @@ public class MapEditor {
         mainMenu.addButton("Exit editor", renderloop::stopLoop, BUTTON_MIN_WIDTH);
 
         return mainMenu;
-    }
-
-    private void generateTileMap() {
-        SFrame transformDialog = new SFrame("Tile map generator");
-
-        SButton generate = new SButton("Generate Tilemap", () -> {
-            TileThemeSet.PLAIN.load();
-            int chunkSize = Settings.CHUNK_SIZE;
-            GameMap newMap = new TileMap(chunkSize);
-            try {
-                newMap.init(game);
-                newMap.generateNew(new CopyGenerator(blockMap));
-                game.setGameMap(newMap);
-
-                blockModificationTool.dispose();
-                game.get(MouseToolCallbacks.class).setMouseTool(tileCycleTool);
-
-            } catch (Exception ex) {
-                Toolbox.display(ex);
-            }
-        }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        generate.setGrowthPolicy(true, false);
-
-        SButton back = new SButton("Back to Blockmap", () -> {
-            game.setGameMap(blockMap);
-            tileCycleTool.dispose();
-            game.get(MouseToolCallbacks.class).setMouseTool(blockModificationTool);
-
-        }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        back.setGrowthPolicy(true, false);
-
-        transformDialog.setMainPanel(SPanel.column(
-                generate,
-                back
-        ));
-
-        transformDialog.pack();
-        game.get(GUIManager.class).addFrame(transformDialog);
     }
 
     private void loadTiles() {
@@ -205,7 +170,7 @@ public class MapEditor {
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
                 } catch (IOException e) {
-                    Toolbox.display(e);
+                    errorDialog(e);
                 }
 
                 Logger.removeOnlinePrint(saveNotify);
@@ -239,7 +204,7 @@ public class MapEditor {
                 Logger.INFO.print("Loaded map of size " + Vectors.toString(size));
 
             } catch (Exception e) {
-                Toolbox.display(e);
+                errorDialog(e);
             }
 
             Logger.removeOnlinePrint(loadNotify);
@@ -256,6 +221,17 @@ public class MapEditor {
         renderloop.unPause();
         window.setMinimized(false);
         return result;
+    }
+
+    public void errorDialog(Exception ex) {
+        GLFWWindow window = game.get(GLFWWindow.class);
+        window.setMinimized(true);
+        renderloop.pause();
+
+        Toolbox.display(new Exception(ex));
+
+        renderloop.unPause();
+        window.setMinimized(false);
     }
 
     private void createNew() {
@@ -294,10 +270,10 @@ public class MapEditor {
 
             TileThemeSet.PLAIN.load();
 
-            GameMap gameMap = game.get(AbstractMap.class);
-            gameMap.generateNew(generator);
+            blockMap.generateNew(generator);
+            tileMap.generateNew(new CopyGenerator(blockMap));
 
-            MainMenu.centerCamera(game.get(Camera.class), gameMap);
+            MainMenu.centerCamera(game.get(Camera.class), tileMap);
             Logger.removeOnlinePrint(processDisplay);
 
             newMapFrame.dispose();
@@ -341,140 +317,6 @@ public class MapEditor {
 
         } catch (Exception ex) {
             Toolbox.display(ex);
-        }
-    }
-
-    private class BlockModificationTool extends DefaultMouseTool {
-        private SFrame window;
-        private Integer selectionSize;
-
-        @Override
-        public void apply(Vector3fc position) {
-            Vector2ic wPos = null;
-            boolean recycle = true;
-
-            if (window == null) {
-                window = new SFrame("No tile selected");
-                recycle = false;
-
-            } else if (window.isDisposed()) {
-                wPos = window.getScreenPosition();
-                window = new SFrame("No tile selected");
-                recycle = false;
-            }
-
-            Vector2i coordinate = blockMap.getCoordinate(position);
-            int x = coordinate.x;
-            int y = coordinate.y;
-
-            window.setTitle("Block at (" + x + ", " + y + ")");
-
-            selectionSize = 1;
-            incSelect(x, y, 0);
-
-            SPanel mainPanel = SPanel.column(
-                    SPanel.column(
-                            new SNamedValue("Height", () -> blockMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT), // supplier is expensive
-                            new SButton("increase", () -> incTile(x, y, 1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                            new SButton("decrease", () -> incTile(x, y, -1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
-                    ),
-                    SPanel.column(
-                            new SNamedValue("Selection range", () -> selectionSize, BUTTON_MIN_HEIGHT),
-                            new SButton("increase", () -> incSelect(x, y, 1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                            new SButton("decrease", () -> incSelect(x, y, -1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
-                    )
-            );
-
-            window.setMainPanel(mainPanel);
-
-            if (!recycle) {
-                if (wPos == null) {
-                    game.get(GUIManager.class).addFrame(window);
-                } else {
-                    game.get(GUIManager.class).addFrame(window, wPos.x(), wPos.y());
-                }
-            }
-        }
-
-        /**
-         * not necessarily a circle
-         * @param r number of tiles including middle
-         * @return a collection of tiles, the given radius around the given coordinate
-         */
-        private Vector2ic[] getCircleOf(int x, int y, int r) {
-            float hRadius = (r - 1) / 2f;
-            Vector2ic[] result = new Vector2ic[r * r];
-
-            int i = 0;
-            for (int u = (int) (x - hRadius); u <= x + hRadius; u++) {
-                for (int v = (int) (y - hRadius); v <= y + hRadius; v++) {
-                    result[i++] = new Vector2i(u, v);
-                }
-            }
-
-            return result;
-        }
-
-        private void incTile(int x, int y, int change) {
-            Vector2ic[] tiles = getCircleOf(x, y, selectionSize);
-
-            for (Vector2ic tile : tiles) {
-                int tx = tile.x();
-                int ty = tile.y();
-                blockMap.setTile(tx, ty, blockMap.getHeightAt(tx, ty) + change);
-            }
-        }
-
-        private void incSelect(int x, int y, int v) {
-            selectionSize += v;
-            blockMap.setHighlights(getCircleOf(x, y, selectionSize));
-        }
-
-        public void dispose() {
-            if (window != null) window.dispose();
-        }
-    }
-
-    private class TileCycleTool extends DefaultMouseTool {
-        private SFrame window;
-
-        @Override
-        public void apply(Vector3fc position) {
-            GameMap map = game.get(AbstractMap.class);
-            GUIManager gui = game.get(GUIManager.class);
-
-            assert (map instanceof TileMap);
-
-            Vector2i coordinate = map.getCoordinate(position);
-            int x = coordinate.x;
-            int y = coordinate.y;
-            map.setHighlights(coordinate);
-
-            if (window != null) window.dispose();
-            window = new SFrame("Tile at (" + x + ", " + y + ")");
-
-            TileMap tileMap = (TileMap) map;
-            MapTile tileType = tileMap.getTileData(x, y).type;
-            List<MapTile> mapTileList = MapTiles.getByOrientationBits(tileType.fit);
-
-            SNamedValue typeDist = new SNamedValue("Type", () -> tileType.name, BUTTON_MIN_HEIGHT);
-            SNamedValue heightDisp = new SNamedValue("Height", () -> map.getHeightAt(x, y), BUTTON_MIN_HEIGHT);
-            SDropDown tileSelection = new SDropDown(gui, BUTTON_MIN_HEIGHT, BUTTON_MIN_WIDTH, tileType, mapTileList);
-
-            SPanel elements = SPanel.column(
-                    typeDist,
-                    heightDisp,
-                    tileSelection
-            );
-
-            window.setMainPanel(elements);
-
-            window.pack();
-            gui.addFrame(window);
-        }
-
-        public void dispose() {
-            if (window != null) window.dispose();
         }
     }
 }

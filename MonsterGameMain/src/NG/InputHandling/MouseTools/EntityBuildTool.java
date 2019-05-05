@@ -46,7 +46,6 @@ public abstract class EntityBuildTool implements MouseTool {
      * sets the button field. Should only be called by the input handling
      * @param button a button enum, often {@link GLFW#GLFW_MOUSE_BUTTON_LEFT} or {@link GLFW#GLFW_MOUSE_BUTTON_RIGHT}
      */
-    @Override
     public void setButton(int button) {
         this.button = button;
     }

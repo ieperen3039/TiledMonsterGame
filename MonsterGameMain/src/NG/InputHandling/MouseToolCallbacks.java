@@ -5,11 +5,9 @@ import NG.DataStructures.Tracked.TrackedFloat;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
 import NG.GUIMenu.Frames.GUIManager;
-import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
-import NG.Rendering.Lights.GameState;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector2i;
@@ -29,21 +27,26 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
  * @author Geert van Ieperen. Created on 18-11-2018.
  */
 public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
-    private final DefaultMouseTool DEFAULT_MOUSE_TOOL = new DefaultMouseTool();
     private final Collection<KeyPressListener> keyPressListeners = new ArrayList<>();
     private final Collection<KeyReleaseListener> keyReleaseListeners = new ArrayList<>();
     private final Collection<MousePositionListener> mousePositionListeners = new ArrayList<>();
+
+    private DefaultMouseTool DEFAULT_MOUSE_TOOL;
 
     private final ExecutorService taskScheduler = Executors.newSingleThreadExecutor();
 
     private Game game;
     private KeyTypeListener keyTypeListener = null;
-    private MouseTool currentTool = DEFAULT_MOUSE_TOOL;
+    private MouseTool currentTool;
 
     @Override
     public void init(Game game) {
         if (this.game != null) return;
         this.game = game;
+
+        DEFAULT_MOUSE_TOOL = new DefaultMouseTool(game);
+        currentTool = DEFAULT_MOUSE_TOOL;
+
         GLFWWindow target = game.get(GLFWWindow.class);
         Vector2i mousePosition = target.getMousePosition();
         target.setCallbacks(new KeyPressCallback(), new MouseButtonPressCallback(), new MouseMoveCallback(mousePosition), new MouseScrollCallback());
@@ -139,19 +142,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
             Vector2i pos = game.get(GLFWWindow.class).getMousePosition();
 
             if (action == GLFW_PRESS) {
-                execute(() -> {
-                    int x = pos.x;
-                    int y = pos.y;
-                    currentTool.setButton(button);
-
-                    if (game.get(GUIManager.class).checkMouseClick(currentTool, x, y)) return;
-
-                    // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
-                    y = game.get(GLFWWindow.class).getHeight() - y;
-
-                    if (game.get(GameState.class).checkMouseClick(currentTool, x, y)) return;
-                    game.get(GameMap.class).checkMouseClick(currentTool, x, y);
-                });
+                execute(() -> currentTool.onClick(button, pos.x, pos.y));
 
             } else if (action == GLFW_RELEASE) {
                 execute(() -> currentTool.onRelease(button, pos.x, pos.y));

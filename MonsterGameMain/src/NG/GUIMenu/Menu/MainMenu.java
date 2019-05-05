@@ -239,10 +239,9 @@ public class MainMenu extends SFrame {
 
     private class AStartTestMouseTool extends DefaultMouseTool {
         Vector2i first;
-        private Game game;
 
         public AStartTestMouseTool(Game game) {
-            this.game = game;
+            super(game);
         }
 
         @Override

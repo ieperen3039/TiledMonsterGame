@@ -1,9 +1,7 @@
 package NG.GameMap;
 
 import NG.CollisionDetection.BoundingBox;
-import NG.Engine.Game;
 import NG.Engine.GameAspect;
-import NG.InputHandling.MouseTools.MouseTool;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
@@ -101,8 +99,6 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      * the number of coordinates in x and y direction. The real (floating-point) size can be completely different.
      */
     Vector2ic getSize();
-
-    boolean checkMouseClick(MouseTool tool, int xSc, int ySc, Game game);
 
     /**
      * finds a path from A to B.

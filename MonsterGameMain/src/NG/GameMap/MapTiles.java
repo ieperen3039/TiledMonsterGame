@@ -182,7 +182,7 @@ public class MapTiles {
         MapTiles.RotationFreeFit tgtFit = createRFF(pos_pos, pos_neg, neg_neg, neg_pos);
         List<MapTile> list = getByOrientationBits(tgtFit);
 
-        if (list == null) {
+        if (list.isEmpty()) {
             Logger.ASSERT.printf("No tile found for configuration (%d, %d, %d, %d)", pos_pos, pos_neg, neg_neg, neg_pos);
             return new MapTile.Instance(neg_neg, tgtFit.offset, MapTile.DEFAULT_TILE);
 

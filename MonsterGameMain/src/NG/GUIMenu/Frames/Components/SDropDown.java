@@ -92,7 +92,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         this.minHeight = minHeight;
         this.minWidth = minWidth;
 
-        int candidate = -1;
+        int candidate = 0;
         String[] arr = new String[values.size()];
         for (int i = 0; i < values.size(); i++) {
             T elt = values.get(i);

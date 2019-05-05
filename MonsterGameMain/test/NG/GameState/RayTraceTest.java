@@ -7,12 +7,14 @@ import NG.Engine.GameService;
 import NG.Engine.Version;
 import NG.Entities.Entity;
 import NG.GUIMenu.Frames.Components.SComponent;
+import NG.GUIMenu.Frames.GUIManager;
 import NG.GameMap.AbstractMap;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
+import NG.Rendering.Lights.GameState;
 import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
@@ -21,7 +23,6 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.junit.Before;
 import org.junit.Test;
-import org.lwjgl.glfw.GLFW;
 
 import static org.junit.Assert.assertTrue;
 
@@ -159,13 +160,15 @@ public class RayTraceTest {
             Logger.DEBUG.print(button, xSc, ySc);
         }
 
-        /**
-         * sets the button field. Should only be called by the input handling
-         * @param button a button enum, often {@link GLFW#GLFW_MOUSE_BUTTON_LEFT} or {@link
-         *               GLFW#GLFW_MOUSE_BUTTON_RIGHT}
-         */
         @Override
-        public void setButton(int button) {
+        public void onClick(int button, int x, int y) {
+            if (game.get(GUIManager.class).checkMouseClick(this, x, y)) return;
+
+            // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
+            y = game.get(GLFWWindow.class).getHeight() - y;
+
+            if (game.get(GameState.class).checkMouseClick(this, x, y)) return;
+            game.get(GameMap.class).checkMouseClick(this, x, y);
         }
     }
 }
