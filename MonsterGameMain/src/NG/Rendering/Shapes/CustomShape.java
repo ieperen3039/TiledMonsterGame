@@ -248,16 +248,15 @@ public class CustomShape {
 
         writer.println("# created using a simple obj writer by Geert van Ieperen");
         writer.println("# calling method: " + Logger.getCallingMethod(2));
-        writer.println("mtllib arrow.mtl"); // TODO is this necessary?
 
         List<Vector3fc> sortedVertices = getSortedVertices();
 
         for (Vector3fc vec : sortedVertices) {
-            writer.println(String.format(Locale.US, "v %1.09f %1.09f %1.09f", vec.x(), vec.z(), vec.y()));
+            writer.println(String.format(Locale.US, "v %1.08f %1.08f %1.08f", vec.x(), vec.y(), vec.z()));
         }
 
         for (Vector3fc vec : normals) {
-            writer.println(String.format(Locale.US, "vn %1.09f %1.09f %1.09f", vec.x(), vec.z(), vec.y()));
+            writer.println(String.format(Locale.US, "vn %1.08f %1.08f %1.08f", vec.x(), vec.y(), vec.z()));
         }
 
         writer.println("usemtl None");
@@ -267,7 +266,7 @@ public class CustomShape {
         for (Mesh.Face face : faces) {
             writer.print("f ");
             for (int i = 0; i < face.vert.length; i++) {
-                writer.print(" " + vertexToString(face.vert[i], face.norm[i]));
+                writer.print(" " + String.format("%d//%d", face.vert[i] + 1, face.norm[i] + 1));
             }
             writer.println();
         }
@@ -321,7 +320,4 @@ public class CustomShape {
         }
     }
 
-    private static String vertexToString(int vertex, int normal) {
-        return String.format("%d//%d", vertex + 1, normal + 1);
-    }
 }

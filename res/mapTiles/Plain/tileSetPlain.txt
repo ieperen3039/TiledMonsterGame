@@ -1,10 +1,10 @@
 # Basic set of tiles.
 
 # Each line must have the following structure:
-# mesh-filename hitbox-filename texture-filename properties
+# <mesh-filename> [hitbox-filename] [texture-filename] [properties...]
 # Where properties is a summation of properties this tile has
 # It is advised to use the plainXXXX tileset as temporary replacement for the hitbox.
-# Any element not given must be replaced with a single dash '-'
+# Any element not given must be replaced with a single dash '-', exept for the properties field
 # The set of properties may change over time
 # Empty lines or lines starting with # are ignored
 
@@ -12,43 +12,97 @@ plain0000.obj - -
 plain0001.obj - -
 plain0002.obj - -
 plain0003.obj - -
+plain0004.obj - -
 plain0011.obj - -
 plain0012.obj - -
 plain0013.obj - -
+plain0014.obj - -
 plain0021.obj - -
 plain0022.obj - -
 plain0023.obj - -
+plain0024.obj - -
 plain0031.obj - -
 plain0032.obj - -
 plain0033.obj - -
+plain0034.obj - -
+plain0041.obj - -
+plain0042.obj - -
+plain0043.obj - -
+plain0044.obj - -
 plain0101.obj - -
+plain0102.obj - -
+plain0103.obj - -
+plain0104.obj - -
 plain0111.obj - -
 plain0112.obj - -
 plain0113.obj - -
+plain0114.obj - -
 plain0121.obj - -
 plain0122.obj - -
 plain0123.obj - -
+plain0124.obj - -
 plain0131.obj - -
 plain0132.obj - -
 plain0133.obj - -
-plain0201.obj - -
+plain0134.obj - -
+plain0141.obj - -
+plain0142.obj - -
+plain0143.obj - -
+plain0144.obj - -
 plain0202.obj - -
+plain0203.obj - -
+plain0204.obj - -
 plain0211.obj - -
 plain0212.obj - -
 plain0213.obj - -
+plain0214.obj - -
 plain0221.obj - -
 plain0222.obj - -
 plain0223.obj - -
+plain0224.obj - -
 plain0231.obj - -
 plain0232.obj - -
 plain0233.obj - -
+plain0234.obj - -
+plain0241.obj - -
 plain0242.obj - -
+plain0243.obj - -
+plain0244.obj - -
+plain0303.obj - -
+plain0304.obj - -
 plain0311.obj - -
 plain0312.obj - -
 plain0313.obj - -
+plain0314.obj - -
 plain0321.obj - -
 plain0322.obj - -
 plain0323.obj - -
+plain0324.obj - -
 plain0331.obj - -
 plain0332.obj - -
 plain0333.obj - -
+plain0334.obj - -
+plain0341.obj - -
+plain0342.obj - -
+plain0343.obj - -
+plain0344.obj - -
+plain0401.obj - -
+plain0402.obj - -
+plain0403.obj - -
+plain0404.obj - -
+plain0411.obj - -
+plain0412.obj - -
+plain0413.obj - -
+plain0414.obj - -
+plain0421.obj - -
+plain0422.obj - -
+plain0423.obj - -
+plain0424.obj - -
+plain0431.obj - -
+plain0432.obj - -
+plain0433.obj - -
+plain0434.obj - -
+plain0441.obj - -
+plain0442.obj - -
+plain0443.obj - -
+plain0444.obj - -

@@ -21,11 +21,6 @@ public enum BodyAnimation implements UniversalAnimation {
 
     ;
 
-//    static {
-//        AnimationTransfer.add(WALK_CYCLE, IDLE, WALK_END, 0.5f);
-//        AnimationTransfer.add(IDLE, WALK_CYCLE, WALK_START, 0.5f);
-//    }
-
     private final PartialAnimation animation;
 
     BodyAnimation(String... filePath) {

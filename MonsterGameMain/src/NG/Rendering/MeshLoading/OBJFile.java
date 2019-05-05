@@ -46,9 +46,9 @@ public class OBJFile implements MeshFile {
                 case "v":
                     // Geometric vertex
                     vertices.add(new Vector3f(
-                                    Float.parseFloat(tokens[3]),
                                     Float.parseFloat(tokens[1]),
-                                    Float.parseFloat(tokens[2])
+                            Float.parseFloat(tokens[2]),
+                            Float.parseFloat(tokens[3])
                             )
                                     .mul(scale)
                                     .add(offSet)
@@ -57,9 +57,9 @@ public class OBJFile implements MeshFile {
                 case "vn":
                     // Vertex normal
                     normals.add(new Vector3f(
-                            Float.parseFloat(tokens[3]),
                             Float.parseFloat(tokens[1]),
-                            Float.parseFloat(tokens[2])
+                            Float.parseFloat(tokens[2]),
+                            Float.parseFloat(tokens[3])
                     ));
                     break;
                 case "vt":

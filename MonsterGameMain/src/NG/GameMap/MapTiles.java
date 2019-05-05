@@ -22,7 +22,7 @@ public class MapTiles {
     private static final Pattern SEPARATOR = Toolbox.WHITESPACE_PATTERN;
     private static final Set<String> NAMES = new HashSet<>();
     private static final Set<Path> PATHS = new HashSet<>();
-    static final HashMap<Integer, List<MapTile>> tileFinder = new HashMap<>();
+    private static final HashMap<Integer, List<MapTile>> tileFinder = new HashMap<>();
 
     public static void readTileSetFile(TileThemeSet sourceSet, Path path) throws IOException {
         Path folder = path.getParent();
@@ -30,24 +30,29 @@ public class MapTiles {
 
         while (sc.hasNext()) {
             String line = sc.nextLine().trim();
-            if (line.isEmpty() || line.charAt(0) == '#') continue; // comments
+            try {
+                if (line.isEmpty() || line.charAt(0) == '#') continue; // comments
 
-            String[] elts = SEPARATOR.split(line);
+                String[] elts = SEPARATOR.split(line);
 
-            String meshFile = elts[0];
-            String hitboxFile = elts[1];
-            String texture = elts[2];
+                String meshFile = elts[0];
+                String hitboxFile = elts[1];
+                String texture = elts[2];
 
-            EnumSet<Properties> properties = EnumSet.noneOf(Properties.class);
-            for (int i = 3; i < elts.length; i++) {
-                properties.add(Properties.valueOf(elts[i]));
+                EnumSet<Properties> properties = EnumSet.noneOf(Properties.class);
+                for (int i = 3; i < elts.length; i++) {
+                    properties.add(Properties.valueOf(elts[i]));
+                }
+
+                Path meshPath = folder.resolve(meshFile);
+                Path hitboxPath = hitboxFile.equals("-") ? meshPath : folder.resolve(hitboxFile);
+                Path texturePath = texture.equals("-") ? null : folder.resolve(texture);
+
+                registerTile(meshFile, meshPath, hitboxPath, texturePath, properties, sourceSet);
+
+            } catch (Exception ex) {
+                Logger.ERROR.print(ex);
             }
-
-            Path meshPath = folder.resolve(meshFile);
-            Path hitboxPath = hitboxFile.equals("-") ? meshPath : folder.resolve(hitboxFile);
-            Path texturePath = texture.equals("-") ? null : folder.resolve(texture);
-
-            registerTile(meshFile, meshPath, hitboxPath, texturePath, properties, sourceSet);
         }
     }
 
@@ -106,7 +111,7 @@ public class MapTiles {
     public static MapTile registerTile(
             String name, Path meshPath, Path hitboxPath, Path texturePath, EnumSet<Properties> properties,
             TileThemeSet sourceSet
-    ) {
+    ) throws IOException {
         // ensure uniqueness in mesh
         if (PATHS.contains(meshPath)) {
             Logger.WARN.printSpamless(String.valueOf(sourceSet), "Tile " + name + " from set " + sourceSet + " was already loaded");
@@ -128,12 +133,12 @@ public class MapTiles {
         NAMES.add(name);
         PATHS.add(meshPath);
 
-        Shape hitbox = new BasicShape(MeshFile.loadFileRequired(hitboxPath));
+        Shape hitbox = new BasicShape(MeshFile.loadFile(hitboxPath));
         int[] heights = gatherHeights(hitbox);
         int baseHeight = heights[8];
         heights = Arrays.copyOf(heights, 8);
 
-        MeshFile meshFile = MeshFile.loadFileRequired(meshPath);
+        MeshFile meshFile = MeshFile.loadFile(meshPath);
 
         MapTile tile = new MapTile(name, meshFile, hitbox, texturePath, heights, baseHeight, properties, sourceSet);
 

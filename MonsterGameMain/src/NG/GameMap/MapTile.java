@@ -91,9 +91,9 @@ public class MapTile {
         this.heights = new int[]{1, 1, 1, 1, 1, 1, 1, 1};
         this.baseHeight = 1;
 
-        Path path = Directory.mapTileModels.getPath("cube.obj");
+        Path path = Directory.meshes.getPath("general", "cube.obj");
         this.meshFile = MeshFile.loadFileRequired(path);
-        this.shape = new BasicShape(this.meshFile);
+        this.shape = new BasicShape(meshFile);
     }
 
     public int orientationBits() {
