@@ -74,15 +74,15 @@ class DualEditorTool extends DefaultMouseTool {
         incSelect(x, y, 0);
 
         SPanel mainPanel = SPanel.column(
-                SPanel.column(
+                SPanel.row(
                         new SNamedValue("Height", () -> blockMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT),
-                        new SButton("increase", () -> incTile(x, y, 1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("decrease", () -> incTile(x, y, -1), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                        new SButton("increase", () -> incTile(x, y, 1), 50, BUTTON_MIN_HEIGHT),
+                        new SButton("decrease", () -> incTile(x, y, -1), 50, BUTTON_MIN_HEIGHT)
                 ),
-                SPanel.column(
+                SPanel.row(
                         new SNamedValue("Selection range", () -> String.format("%1.01f", selectionSize), BUTTON_MIN_HEIGHT),
-                        new SButton("increase", () -> incSelect(x, y, SELECTION_STEP_SIZE), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("decrease", () -> incSelect(x, y, -SELECTION_STEP_SIZE), BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                        new SButton("increase", () -> incSelect(x, y, SELECTION_STEP_SIZE), 50, BUTTON_MIN_HEIGHT),
+                        new SButton("decrease", () -> incSelect(x, y, -SELECTION_STEP_SIZE), 50, BUTTON_MIN_HEIGHT)
                 )
         );
 
@@ -157,7 +157,7 @@ class DualEditorTool extends DefaultMouseTool {
         MapTile tileType = tileMap.getTileData(x, y).type;
         List<MapTile> mapTileList = MapTiles.getByOrientationBits(tileType.fit);
 
-        SNamedValue typeDist = new SNamedValue("Type", () -> tileType.name, BUTTON_MIN_HEIGHT);
+        SNamedValue typeDist = new SNamedValue("Type", () -> tileMap.getTileData(x, y).type.name, BUTTON_MIN_HEIGHT);
         SNamedValue heightDisp = new SNamedValue("Height", () -> tileMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT);
         SNamedValue orientationDisp = new SNamedValue("Orientation", () -> getOrientation(x, y), BUTTON_MIN_HEIGHT);
 
