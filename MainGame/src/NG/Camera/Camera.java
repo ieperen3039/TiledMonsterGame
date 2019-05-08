@@ -41,18 +41,16 @@ public interface Camera extends GameAspect, MouseScrollListener {
      * Calculates a projection matrix based on a camera position and the given parameters of the viewport
      * @param aspectRatio the ratio between width and height of the projection. For screen this is width / height, both
      *                    in pixels.
-     * @param isometric   if true, an isometric projection will be calculated. Otherwise a perspective transformation is
-     *                    used.
      * @return a projection matrix, such that modelspace vectors multiplied with this matrix will be transformed to
      * viewspace.
      */
-    default Matrix4f getViewProjection(float aspectRatio, boolean isometric) {
+    default Matrix4f getViewProjection(float aspectRatio) {
         Matrix4f vpMatrix = new Matrix4f();
 
-        if (isometric) {
+        if (isIsometric()) {
             float visionSize = vectorToFocus().length() - Settings.Z_NEAR;
             visionSize /= 2;
-            vpMatrix.orthoSymmetric(aspectRatio * visionSize, visionSize, Settings.Z_NEAR, Settings.Z_FAR);
+            vpMatrix.setOrthoSymmetric(aspectRatio * visionSize, visionSize, Settings.Z_NEAR, Settings.Z_FAR);
         } else {
             vpMatrix.setPerspective(Settings.FOV, aspectRatio, Settings.Z_NEAR, Settings.Z_FAR);
         }
@@ -66,4 +64,6 @@ public interface Camera extends GameAspect, MouseScrollListener {
 
         return vpMatrix;
     }
+
+    boolean isIsometric();
 }

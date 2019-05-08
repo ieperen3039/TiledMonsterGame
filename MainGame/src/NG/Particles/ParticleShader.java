@@ -128,7 +128,7 @@ public class ParticleShader implements ShaderProgram {
         public ParticleGL(
                 Camera camera, float windowWidth, float windowHeight, boolean iso
         ) {
-            viewProjectionMatrix = camera.getViewProjection((float) windowWidth / windowHeight, iso);
+            viewProjectionMatrix = camera.getViewProjection((float) windowWidth / windowHeight);
         }
 
         @Override

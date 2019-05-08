@@ -56,6 +56,11 @@ public class StaticCamera implements Camera {
     }
 
     @Override
+    public boolean isIsometric() {
+        return false;
+    }
+
+    @Override
     public void onScroll(float value) {
 
     }

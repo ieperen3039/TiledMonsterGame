@@ -29,7 +29,7 @@ public enum GenericShapes implements Mesh, Shape {
     QUAD(makeSingleQuad());
 
     private MeshFile pars;
-    private Mesh mesh;
+    private Mesh mesh = null;
     private final Shape shape;
 
     GenericShapes(String... path) {
@@ -46,11 +46,10 @@ public enum GenericShapes implements Mesh, Shape {
         }
 
         shape = new BasicShape(pars);
-        mesh = pars.getMesh();
     }
 
     GenericShapes(CustomShape frame) {
-        mesh = frame.toFlatMesh();
+        pars = frame.toMeshFile();
         shape = frame.toShape();
     }
 
@@ -65,9 +64,9 @@ public enum GenericShapes implements Mesh, Shape {
 
     @Override
     public void dispose() {
+        pars = null;
         if (mesh != null) {
             mesh.dispose();
-            pars = null;
         }
     }
 

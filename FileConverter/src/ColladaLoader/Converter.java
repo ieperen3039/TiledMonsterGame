@@ -31,7 +31,7 @@ public class Converter {
         AssimpScene scene = new AssimpScene(sourceFile);
         writeSkeleton(fileBaseName, scene);
         writeMapping(fileBaseName, scene);
-        scene.dispose();
+        scene.close();
     }
 
     public static void writeSkeleton(String fileBaseName, AssimpScene scene) {

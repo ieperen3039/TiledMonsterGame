@@ -73,16 +73,21 @@ class DualEditorTool extends DefaultMouseTool {
         selectionSize = 1;
         incSelect(x, y, 0);
 
+        final int BUTTON_SIZE = BUTTON_MIN_HEIGHT;
+        final int GAP_SIZE = 20;
+
         SPanel mainPanel = SPanel.column(
                 SPanel.row(
                         new SNamedValue("Height", () -> blockMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT),
-                        new SButton("increase", () -> incTile(x, y, 1), 50, BUTTON_MIN_HEIGHT),
-                        new SButton("decrease", () -> incTile(x, y, -1), 50, BUTTON_MIN_HEIGHT)
+                        new SFiller(GAP_SIZE, 0),
+                        new SButton("+", () -> incTile(x, y, 1), BUTTON_SIZE, BUTTON_SIZE),
+                        new SButton("-", () -> incTile(x, y, -1), BUTTON_SIZE, BUTTON_SIZE)
                 ),
                 SPanel.row(
                         new SNamedValue("Selection range", () -> String.format("%1.01f", selectionSize), BUTTON_MIN_HEIGHT),
-                        new SButton("increase", () -> incSelect(x, y, SELECTION_STEP_SIZE), 50, BUTTON_MIN_HEIGHT),
-                        new SButton("decrease", () -> incSelect(x, y, -SELECTION_STEP_SIZE), 50, BUTTON_MIN_HEIGHT)
+                        new SFiller(GAP_SIZE, 0),
+                        new SButton("+", () -> incSelect(x, y, SELECTION_STEP_SIZE), BUTTON_SIZE, BUTTON_SIZE),
+                        new SButton("-", () -> incSelect(x, y, -SELECTION_STEP_SIZE), BUTTON_SIZE, BUTTON_SIZE)
                 )
         );
 

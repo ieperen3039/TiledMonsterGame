@@ -60,9 +60,6 @@ public class AssimpScene implements AutoCloseable {
         return map;
     }
 
-    public void dispose() {
-    }
-
     @Override
     public void close() {
         Assimp.aiReleaseImport(scene);

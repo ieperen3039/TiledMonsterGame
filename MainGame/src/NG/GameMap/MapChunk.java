@@ -71,4 +71,24 @@ public interface MapChunk {
     void writeToFile(DataOutputStream out) throws IOException;
 
     void readFromFile(DataInputStream in, Map<Integer, MapTile> mapping) throws IOException;
+
+    Extremes getMinMax();
+
+    class Extremes {
+        private float min = Float.POSITIVE_INFINITY;
+        private float max = Float.NEGATIVE_INFINITY;
+
+        public void check(float value) {
+            if (value > max) max = value;
+            if (value < min) min = value;
+        }
+
+        public float getMin() {
+            return min;
+        }
+
+        public float getMax() {
+            return max;
+        }
+    }
 }

@@ -22,7 +22,7 @@ public class Settings {
     public static final float GRAVITY_CONSTANT = 9.81f;
 
     // video settings
-    public static final float FOV = (float) Math.toRadians(40);
+    public static final float FOV = (float) Math.toRadians(30);
     public static final float Z_NEAR = 0.01f;
     public static final float Z_FAR = 1000;
     public int TARGET_FPS = 60;
@@ -30,7 +30,7 @@ public class Settings {
     public int DEFAULT_WINDOW_WIDTH = 1200;
     public int DEFAULT_WINDOW_HEIGHT = 800;
     public int ANTIALIAS_LEVEL = 1;
-    public boolean ISOMETRIC_VIEW = true;
+    public boolean ISOMETRIC_VIEW = false;
     public float RENDER_DELAY = 1f / TARGET_TPS;
     public float CAMERA_ZOOM_SPEED = 0.1f;
     public int MAX_CAMERA_DIST = 1000;

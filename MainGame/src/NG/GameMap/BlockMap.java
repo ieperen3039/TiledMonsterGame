@@ -1,5 +1,6 @@
 package NG.GameMap;
 
+import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.InputHandling.MouseTools.MouseTool;
@@ -138,16 +139,29 @@ public class BlockMap extends AbstractMap {
             mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
         }
 
-        float totalYTranslation = ySize * TILE_SIZE;
+        Camera camera = game.get(Camera.class);
+        Vector3fc eye = camera.getEye();
+        Vector3fc viewDir = camera.vectorToFocus();
+        float fraction = gridMapIntersection(eye, viewDir, 1f);
+        Vector3fc focus = new Vector3f(viewDir).mul(fraction).add(eye);
+        float radius = viewDir.length() / TILE_SIZE + 10;
+
+        int xMin = (int) Math.max(0, (focus.x() - radius) / TILE_SIZE);
+        int yMin = (int) Math.max(0, (focus.y() - radius) / TILE_SIZE);
+        int xMax = (int) Math.min(xSize, (focus.x() + radius) / TILE_SIZE);
+        int yMax = (int) Math.min(ySize, (focus.y() + radius) / TILE_SIZE);
+
+        float totalYTranslation = (yMax - yMin) * TILE_SIZE;
 
         gl.pushMatrix();
         {
+            gl.translate(xMin * TILE_SIZE, yMin * TILE_SIZE, 0);
             // tile 1 stretches from (-TILE_SIZE / 2, -TILE_SIZE / 2) to (TILE_SIZE / 2, TILE_SIZE / 2)
 
-            for (int x = 0; x < xSize; x++) {
+            for (int x = xMin; x < xMax; x++) {
                 short[] slice = map[x];
 
-                for (int y = 0; y < ySize; y++) {
+                for (int y = yMin; y < yMax; y++) {
                     boolean highlightThis = doHighlight &&
                             highlightedTiles.containsKey(x) &&
                             highlightedTiles.get(x).contains(y);

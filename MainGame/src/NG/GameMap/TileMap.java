@@ -2,6 +2,7 @@ package NG.GameMap;
 
 import NG.Camera.Camera;
 import NG.DataStructures.Direction;
+import NG.DataStructures.Generic.AveragingQueue;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
 import NG.InputHandling.MouseTools.MouseTool;
@@ -39,6 +40,7 @@ public class TileMap extends AbstractMap {
     private Game game;
 
     private Collection<MapChunk> highlightedChunks;
+    private AveragingQueue culledChunks = new AveragingQueue(30);
 
     public TileMap(int chunkSize) {
         this.chunkSize = chunkSize;
@@ -51,6 +53,7 @@ public class TileMap extends AbstractMap {
     @Override
     public void init(Game game) {
         this.game = game;
+        Logger.printOnline(() -> "culled chunks: " + culledChunks.average());
     }
 
     @Override
@@ -141,9 +144,11 @@ public class TileMap extends AbstractMap {
             ((MaterialShader) shader).setMaterial(Material.ROUGH, new Color4f(85, 153, 0, 1));
         }
 
-        Matrix4f viewProjection = new Matrix4f().orthoSymmetric(50, 50, Settings.Z_NEAR, Settings.Z_FAR);
-        viewProjection.lookAt(16, 0, 16, 16, 16, 0, 0, 0, 1);
+        GLFWWindow window = game.get(GLFWWindow.class);
+        Matrix4f viewProjection = game.get(Camera.class)
+                .getViewProjection((float) window.getWidth() / window.getHeight());
         FrustumIntersection fic = new FrustumIntersection().set(viewProjection, false);
+        int numOfCulled = 0;
 
         gl.pushMatrix();
         {
@@ -156,16 +161,20 @@ public class TileMap extends AbstractMap {
                 gl.pushMatrix();
                 {
                     for (int y = 0; y < chunks.length; y++) {
+                        MapChunk chunk = chunks[y];
+                        MapChunk.Extremes minMax = chunk.getMinMax();
                         boolean isVisible = fic.testAab(
-                                x * realChunkSize, y * realChunkSize, Float.NEGATIVE_INFINITY,
-                                (x + 1) * realChunkSize, (y + 1) * realChunkSize, Float.POSITIVE_INFINITY
+                                x * realChunkSize, y * realChunkSize, minMax.getMin(),
+                                (x + 1) * realChunkSize, (y + 1) * realChunkSize, minMax.getMax()
                         );
 
                         if (isVisible) {
-                            MapChunk chunk = chunks[y];
                             chunk.setHighlight(isMaterialShader);
                             chunk.draw(gl);
+                        } else {
+                            numOfCulled++;
                         }
+
                         gl.translate(0, realChunkSize, 0);
                     }
                 }
@@ -173,6 +182,8 @@ public class TileMap extends AbstractMap {
                 gl.translate(realChunkSize, 0, 0);
             }
         }
+
+        culledChunks.add(numOfCulled);
         gl.popMatrix();
     }
 
@@ -181,7 +192,7 @@ public class TileMap extends AbstractMap {
         boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
-        return camera.getViewProjection((float) windowWidth / windowHeight, doIsometric);
+        return camera.getViewProjection((float) windowWidth / windowHeight);
     }
 
     @Override

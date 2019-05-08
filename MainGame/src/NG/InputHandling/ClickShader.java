@@ -305,7 +305,7 @@ public class ClickShader implements ShaderProgram {
         ClickShaderGL(
                 int windowWidth, int windowHeight, Camera viewpoint, boolean isometric
         ) {
-            viewProjectionMatrix = viewpoint.getViewProjection((float) windowWidth / windowHeight, isometric);
+            viewProjectionMatrix = viewpoint.getViewProjection((float) windowWidth / windowHeight);
 
         }
 

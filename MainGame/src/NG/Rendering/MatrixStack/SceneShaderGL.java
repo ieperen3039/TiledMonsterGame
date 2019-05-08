@@ -26,7 +26,7 @@ public class SceneShaderGL extends AbstractSGL {
     public SceneShaderGL(SceneShader shader, int windowWidth, int windowHeight, Camera viewpoint, boolean isometric) {
         super();
         this.shader = shader;
-        viewProjectionMatrix = viewpoint.getViewProjection((float) windowWidth / windowHeight, isometric);
+        viewProjectionMatrix = viewpoint.getViewProjection((float) windowWidth / windowHeight);
     }
 
     @Override

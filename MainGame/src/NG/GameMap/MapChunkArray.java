@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.Set;
 
 import static NG.Settings.Settings.TILE_SIZE;
+import static NG.Settings.Settings.TILE_SIZE_Z;
 
 /**
  * @author Geert van Ieperen created on 3-2-2019.
@@ -23,6 +24,8 @@ public class MapChunkArray implements MapChunk {
     private final int size;
     private final Set<MapTile.Instance> highlights;
     private boolean doHighlight;
+
+    private Extremes minimumMaximum = new Extremes();
 
     public MapChunkArray(int size) {
         this.size = size;
@@ -50,7 +53,11 @@ public class MapChunkArray implements MapChunk {
                 int neg_neg = (int) xHeight[hy];
                 int neg_pos = (int) x2Height[hy];
 
-                tiles[cx][cy] = MapTiles.getRandomOf(random, pos_pos, pos_neg, neg_neg, neg_pos);
+                MapTile.Instance randTile = MapTiles.getRandomOf(random, pos_pos, pos_neg, neg_neg, neg_pos);
+                float height = randTile.getHeight() * TILE_SIZE_Z;
+                minimumMaximum.check(height);
+
+                tiles[cx][cy] = randTile;
             }
         }
     }
@@ -66,6 +73,7 @@ public class MapChunkArray implements MapChunk {
         checkBounds(x, y);
         MapTile prev = tiles[x][y].type;
         tiles[x][y] = tile;
+        minimumMaximum.check(tile.getHeight() * TILE_SIZE_Z);
         return prev;
     }
 
@@ -153,13 +161,21 @@ public class MapChunkArray implements MapChunk {
                 byte rotation = in.readByte();
                 byte offset = in.readByte();
 
-                tileStrip[i] = new MapTile.Instance(
+                MapTile.Instance newTile = new MapTile.Instance(
                         offset,
                         rotation,
                         mapping.get(typeID)
                 );
+                minimumMaximum.check(newTile.getHeight() * TILE_SIZE_Z);
+
+                tileStrip[i] = newTile;
             }
         }
+    }
+
+    @Override
+    public Extremes getMinMax() {
+        return minimumMaximum;
     }
 
     @Override

@@ -159,6 +159,11 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     }
 
     @Override
+    public boolean isIsometric() {
+        return game.get(Settings.class).ISOMETRIC_VIEW;
+    }
+
+    @Override
     public void onScroll(float value) {
         Settings s = game.get(Settings.class);
         float zoomSpeed = s.CAMERA_ZOOM_SPEED;
