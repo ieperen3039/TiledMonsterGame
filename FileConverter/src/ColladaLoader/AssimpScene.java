@@ -1,5 +1,6 @@
-package NG.Animations.ColladaLoader;
+package ColladaLoader;
 
+import NG.Rendering.MeshLoading.MeshFile;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
 
@@ -19,6 +20,7 @@ public class AssimpScene implements AutoCloseable {
     public AssimpScene(File file) {
         AIPropertyStore importProperties = Objects.requireNonNull(aiCreatePropertyStore());
         Assimp.aiSetImportPropertyInteger(importProperties, AI_CONFIG_IMPORT_COLLADA_USE_COLLADA_NAMES, 1);
+//        Assimp.aiSetImportPropertyInteger(importProperties, AI_CONFIG_IMPORT_, 1);
 
         scene = Assimp.aiImportFileExWithProperties(
                 file.getPath(),
@@ -47,6 +49,15 @@ public class AssimpScene implements AutoCloseable {
         }
 
         return result;
+    }
+
+    public List<MeshFile> getMeshes() {
+        List<MeshFile> map = new ArrayList<>();
+        AssimpBone root = getSkeleton();
+
+        root.forAll(bone -> map.addAll(bone.createMeshes(scene, root.toSkeletonBone())));
+
+        return map;
     }
 
     public void dispose() {

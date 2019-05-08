@@ -1,6 +1,5 @@
 package NG.Animations;
 
-import NG.Animations.ColladaLoader.Converter;
 import NG.Storable;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -8,7 +7,6 @@ import org.joml.Matrix4fc;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,19 +18,6 @@ import java.util.Set;
 public class AnimationCombiner implements UniversalAnimation, PartialAnimation {
     private final Map<SkeletonBone, PartialAnimation> mux;
     private final float duration;
-
-    public AnimationCombiner(Path... binaries) {
-        mux = new HashMap<>();
-        float duration = 0;
-
-        for (Path path : binaries) {
-            PartialAnimation part = Converter.loadAnimation(path.toFile());
-            duration = part.duration();
-            add(part);
-        }
-
-        this.duration = duration;
-    }
 
     public AnimationCombiner(PartialAnimation... parts) {
         mux = new HashMap<>();

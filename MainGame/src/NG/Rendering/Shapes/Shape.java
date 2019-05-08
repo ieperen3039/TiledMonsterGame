@@ -101,7 +101,7 @@ public interface Shape {
 
         List<Shape> shapes = new ArrayList<>();
         for (CustomShape frame : containers) {
-            shapes.add(frame.wrapToShape());
+            shapes.add(frame.toShape());
         }
         return shapes;
     }

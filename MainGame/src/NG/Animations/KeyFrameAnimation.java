@@ -1,6 +1,5 @@
 package NG.Animations;
 
-import NG.Animations.ColladaLoader.AssimpAnimation;
 import NG.DataStructures.Generic.PairList;
 import NG.Storable;
 import NG.Tools.Logger;
@@ -26,18 +25,21 @@ public class KeyFrameAnimation implements PartialAnimation {
     /** total duration of the animation */
     private float duration;
 
-    public KeyFrameAnimation(AssimpAnimation animation, BodyModel bodyModel) {
-        this.model = bodyModel;
-        this.duration = animation.duration();
+    public KeyFrameAnimation(
+            BodyModel model, Map<String, PairList<Float, Matrix4f>> animation, float duration
+    ) {
+        this.model = model;
+        this.duration = duration;
         this.transformations = new HashMap<>();
 
-        for (String boneName : animation.bones()) {
+        for (String boneName : animation.keySet()) {
             PairList<Float, Matrix4f> pairs = animation.get(boneName);
             Float[] timeStamps = pairs.leftToArray(new Float[0]);
             Matrix4fc[] frames = pairs.rightToArray(new Matrix4f[0]);
 
-            SkeletonBone bone = bodyModel.getBone(boneName);
-            transformations.put(bone, new TransformArray(timeStamps, frames));
+            SkeletonBone bone = model.getBone(boneName);
+            TransformArray transforms = new TransformArray(timeStamps, frames);
+            transformations.put(bone, transforms);
         }
     }
 

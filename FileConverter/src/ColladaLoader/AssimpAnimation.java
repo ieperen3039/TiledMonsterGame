@@ -1,5 +1,7 @@
-package NG.Animations.ColladaLoader;
+package ColladaLoader;
 
+import NG.Animations.BodyModel;
+import NG.Animations.KeyFrameAnimation;
 import NG.DataStructures.Generic.PairList;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -80,5 +82,9 @@ public class AssimpAnimation {
 
     public PairList<Float, Matrix4f> get(String boneName) {
         return animation.get(boneName);
+    }
+
+    public KeyFrameAnimation toKeyFrames(BodyModel bodyModel) {
+        return new KeyFrameAnimation(bodyModel, animation, duration);
     }
 }

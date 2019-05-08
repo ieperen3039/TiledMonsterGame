@@ -1,14 +1,11 @@
 package NG.Rendering.Shapes;
 
 import NG.Rendering.MeshLoading.Mesh;
-import NG.Tools.Logger;
+import NG.Rendering.MeshLoading.MeshFile;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -42,7 +39,7 @@ public class CustomShape {
 
     /**
      * A shape that may be defined by the client code using methods of this class. When the shape is finished, call
-     * {@link #asFlatMesh()} to load it into the GPU. The returned shape should be re-used as a static mesh for any
+     * {@link #toFlatMesh()} to load it into the GPU. The returned shape should be re-used as a static mesh for any
      * future calls to such shape.
      * @param middle the middle of this object. More specifically, from this point, all normal vectors point outward
      *               except maybe for those that have their normal explicitly defined.
@@ -222,13 +219,18 @@ public class CustomShape {
      * convert this object into a Mesh
      * @return a hardware-accelerated Mesh object
      */
-    public Mesh asFlatMesh() {
+    public Mesh toFlatMesh() {
         return new FlatMesh(getSortedVertices(), normals, faces);
     }
 
-//    public Mesh asSmoothMesh(){
-//        return null;
-//    }
+    public Shape toShape() {
+        return new BasicShape(getSortedVertices(), normals, faces);
+    }
+
+    public MeshFile toMeshFile() {
+        return new MeshFile("custom", Collections.emptyList(), getSortedVertices(), normals, faces, Collections.emptyList(), Collections
+                .emptyList());
+    }
 
     private List<Vector3fc> getSortedVertices() {
         // this is the most clear, structured solution of the duplicate-vector problem. maybe not the most efficient.
@@ -236,44 +238,6 @@ public class CustomShape {
         points.forEach((v, i) -> sortedVertices[i] = v);
 
         return Arrays.asList(sortedVertices);
-    }
-
-    /**
-     * writes an object to the given filename
-     * @param filename
-     * @throws IOException if any problem occurs while creating the file
-     */
-    public void writeOBJFile(String filename) throws IOException {
-        PrintWriter writer = new PrintWriter(filename, StandardCharsets.UTF_8);
-
-        writer.println("# created using a simple obj writer by Geert van Ieperen");
-        writer.println("# calling method: " + Logger.getCallingMethod(2));
-
-        List<Vector3fc> sortedVertices = getSortedVertices();
-
-        for (Vector3fc vec : sortedVertices) {
-            writer.println(String.format(Locale.US, "v %1.08f %1.08f %1.08f", vec.x(), vec.y(), vec.z()));
-        }
-
-        for (Vector3fc vec : normals) {
-            writer.println(String.format(Locale.US, "vn %1.08f %1.08f %1.08f", vec.x(), vec.y(), vec.z()));
-        }
-
-        writer.println("usemtl None");
-        writer.println("s off");
-        writer.println("");
-
-        for (Mesh.Face face : faces) {
-            writer.print("f ");
-            for (int i = 0; i < face.vert.length; i++) {
-                writer.print(" " + String.format("%d//%d", face.vert[i] + 1, face.norm[i] + 1));
-            }
-            writer.println();
-        }
-
-        writer.close();
-
-        Logger.DEBUG.print("Successfully created obj file: " + filename);
     }
 
     public void setMiddle(Vector3f middle) {
@@ -284,11 +248,6 @@ public class CustomShape {
     public String toString() {
         return getSortedVertices().toString();
     }
-
-    public Shape wrapToShape() {
-        return new BasicShape(getSortedVertices(), normals, faces);
-    }
-
     /**
      * Adds an arbitrary polygon to the object. For correct rendering, the plane should be flat
      * @param normal the direction of the normal of this plane. When null, it is calculated using the middle

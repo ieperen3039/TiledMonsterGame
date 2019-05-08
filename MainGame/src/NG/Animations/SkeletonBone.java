@@ -1,17 +1,17 @@
 package NG.Animations;
 
-import NG.Animations.ColladaLoader.AssimpBone;
 import NG.Entities.Entity;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import NG.Tools.Toolbox;
-import org.joml.*;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import org.joml.Quaternionf;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.lang.Math;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -36,15 +36,14 @@ public class SkeletonBone implements Storable {
 
 
     /**
-     * @param name     the name of this bone
-     * @param offset   position relative to the last joint
-     * @param rotation the rotation of this joint relative to the rotation of the last joint
-     * @param childs   the child nodes of this joint/bone
+     * @param name           the name of this bone
+     * @param childs         the child nodes of this joint/bone
+     * @param transformation the full transformation of the bone
      */
     public SkeletonBone(
-            String name, Vector3fc offset, Quaternionfc rotation, Vector3fc scaling, List<SkeletonBone> childs
+            String name, List<SkeletonBone> childs, Matrix4fc transformation
     ) {
-        this.transformation = new Matrix4f().translationRotateScale(offset, rotation, scaling);
+        this.transformation = transformation;
         this.name = name;
         this.subElements = childs;
     }
@@ -66,28 +65,15 @@ public class SkeletonBone implements Storable {
             String name, float xPos, float yPos, float zPos, float xRot, float yRot, float zRot, float angle,
             float scaling, SkeletonBone... childs
     ) {
-        this(
-                name, new Vector3f(xPos, yPos, zPos),
-                (angle == 0 ?
-                        new Quaternionf() :
-                        new Quaternionf().rotateAxis((float) Math.toRadians(angle), xRot, yRot, zRot)
-                ),
-                new Vector3f(scaling),
-                Arrays.asList(childs));
-    }
+        Quaternionf rotation = angle == 0 ? new Quaternionf() : new Quaternionf().rotateAxis((float) Math.toRadians(angle), xRot, yRot, zRot);
 
-    public SkeletonBone(AssimpBone skeletonData) {
-        this.name = skeletonData.name;
-        this.transformation = skeletonData.getTransformation();
-
-        ArrayList<SkeletonBone> elts = new ArrayList<>();
-        for (AssimpBone child : skeletonData.children()) {
-            if (child.name.endsWith(".IK")) continue;
-            elts.add(new SkeletonBone(child)); // recursively add children
-        }
-        elts.trimToSize();
-
-        this.subElements = elts;
+        this.transformation = new Matrix4f().translationRotateScale(
+                xPos, yPos, zPos,
+                rotation.x, rotation.y, rotation.z, rotation.w,
+                scaling
+        );
+        this.name = name;
+        this.subElements = Arrays.asList(childs);
     }
 
     public boolean isLeaf() {
@@ -132,7 +118,6 @@ public class SkeletonBone implements Storable {
         gl.pushMatrix();
         {
             gl.multiplyAffine(transformation);
-            Toolbox.drawAxisFrame(gl);
 
             Matrix4fc transformation = animation.transformationOf(this, animationTime);
             if (transformation == null) {
@@ -142,6 +127,7 @@ public class SkeletonBone implements Storable {
 
             BoneElement bone = elements.get(this);
             if (bone != null) {
+                Toolbox.drawAxisFrame(gl);
                 bone.draw(gl, entity);
             }
 
@@ -155,10 +141,10 @@ public class SkeletonBone implements Storable {
     /**
      * depth-first execution of the action
      */
-    public void forEach(Consumer<SkeletonBone> action) {
+    public void forAll(Consumer<SkeletonBone> action) {
         action.accept(this);
         for (SkeletonBone e : subElements) {
-            e.forEach(action);
+            e.forAll(action);
         }
     }
 
@@ -228,6 +214,17 @@ public class SkeletonBone implements Storable {
      */
     public Matrix4fc getInverseTransform() {
         return transformation.invertAffine(new Matrix4f());
+    }
+
+    public SkeletonBone findBone(String boneName) {
+        if (name.equals(boneName)) return this;
+
+        for (SkeletonBone elt : subElements) {
+            SkeletonBone found = elt.findBone(boneName);
+            if (found != null) return found;
+        }
+
+        return null;
     }
 
     /**

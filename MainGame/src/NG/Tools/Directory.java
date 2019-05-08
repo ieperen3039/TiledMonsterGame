@@ -19,7 +19,7 @@ public enum Directory {
     mapTileModels(true, "res", "mapTiles"),
     savedMaps(false, "Saved maps"),
     souls(true, "res", "soul_jar"),
-    colladaFiles(false, "res", "colladaFiles"),
+    rawFiles(false, "res", "colladaFiles"),
     skeletons(true, "res", "skeletons"),
     animations(true, "res", "animations"),
     images(true, "res", "images");

@@ -50,8 +50,8 @@ public enum GenericShapes implements Mesh, Shape {
     }
 
     GenericShapes(CustomShape frame) {
-        mesh = frame.asFlatMesh();
-        shape = frame.wrapToShape();
+        mesh = frame.toFlatMesh();
+        shape = frame.toShape();
     }
 
     @Override

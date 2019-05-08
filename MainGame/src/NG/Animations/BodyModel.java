@@ -1,7 +1,6 @@
 package NG.Animations;
 
 import NG.Actions.EntityAction;
-import NG.Animations.ColladaLoader.Converter;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
@@ -29,10 +28,6 @@ public enum BodyModel {
         Path path = Directory.skeletons.getPath(filePath);
         File file = path.toFile();
 
-        if (!file.exists()) {
-            Converter.rewriteSkeleton(file.getName());
-        }
-
         // load skelly from binary
         root = Storable.readFromFileRequired(file, SkeletonBone.class);
         parts = getParts(root);
@@ -45,7 +40,7 @@ public enum BodyModel {
 
     private HashMap<String, SkeletonBone> getParts(SkeletonBone root) {
         HashMap<String, SkeletonBone> p = new HashMap<>();
-        root.forEach(b -> p.put(b.getName(), b));
+        root.forAll(b -> p.put(b.getName(), b));
         return p;
     }
 
@@ -94,7 +89,7 @@ public enum BodyModel {
     public void replace(SkeletonBone root) {
         this.root = root;
         parts.clear();
-        root.forEach(b -> parts.put(b.getName(), b));
+        root.forAll(b -> parts.put(b.getName(), b));
     }
 
     /**

@@ -231,6 +231,12 @@ public class PairList<L, R> extends AbstractList<Pair<L, R>> {
         return rightList.toArray(a);
     }
 
+    public static <L, R> PairList<L, R> empty() {
+        return new PairList<>(
+                Collections.emptyList(), Collections.emptyList()
+        );
+    }
+
     /**
      * allows iteration over this pairList
      */

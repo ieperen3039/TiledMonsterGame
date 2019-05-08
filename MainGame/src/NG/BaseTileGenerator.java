@@ -7,6 +7,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @author Geert van Ieperen created on 4-2-2019.
@@ -83,7 +84,7 @@ public class BaseTileGenerator {
     }
 
     private static void write(CustomShape frame, String name) throws IOException {
-        String filename = Directory.mapTileModels.getFile("Plain", name).getAbsolutePath();
-        frame.writeOBJFile(filename);
+        Path path = Directory.mapTileModels.getPath("Plain", name);
+        frame.toMeshFile().writeOBJFile(path.toFile());
     }
 }
