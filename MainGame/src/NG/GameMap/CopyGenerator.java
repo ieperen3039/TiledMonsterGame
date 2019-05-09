@@ -14,7 +14,7 @@ public class CopyGenerator implements MapGeneratorMod {
     private final GameMap target;
     private int xSize = -1;
     private int ySize = -1;
-    private int progress = 0;
+    protected int progress = 0;
 
     public CopyGenerator(GameMap target) {
         this.target = target;
@@ -27,6 +27,7 @@ public class CopyGenerator implements MapGeneratorMod {
 
     @Override
     public float[][] generateHeightMap() {
+        progress = 0;
         Vector2ic size = target.getSize();
         if (xSize == -1) xSize = size.x();
         if (ySize == -1) ySize = size.y();

@@ -27,10 +27,6 @@ public interface MapChunk {
      */
     MapTile set(int x, int y, MapTile.Instance tile);
 
-    default MapTile set(int x, int y, MapTile newTile, int height, int rotation) {
-        return set(x, y, new MapTile.Instance(height, rotation, newTile));
-    }
-
     /**
      * return the height of the MapTile on the given position
      * @param x the x coordinate relative to this chunk

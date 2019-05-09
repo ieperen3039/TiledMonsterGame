@@ -23,7 +23,6 @@ import java.util.EnumSet;
 import java.util.Random;
 
 import static NG.Settings.Settings.TILE_SIZE_Z;
-import static java.lang.Math.PI;
 
 /**
  * a MapTile represents the mesh with its properties, and is fully immutable. Tiles can be queried with methods like
@@ -44,7 +43,7 @@ public class MapTile {
     public final TileThemeSet sourceSet;
 
     // all eight height values in clockwise order
-    private final int[] heights;// pp, pn, nn, np
+    private final int[] heights;// pp, pm, pn, mn, nn, nm, np, mp
     private final Shape shape;
     private MeshFile meshFile;
 
@@ -124,15 +123,15 @@ public class MapTile {
     }
 
     public static int index(Direction direction) {
-        switch (direction) {
+        switch (direction) { // pp, pm, pn, mn, nn, nm, np, mp
             case POSITIVE_X:
-                return 7;
-            case NEGATIVE_Y:
-                return 5;
-            case NEGATIVE_X:
-                return 3;
-            case POSITIVE_Y:
                 return 1;
+            case NEGATIVE_Y:
+                return 3;
+            case NEGATIVE_X:
+                return 5;
+            case POSITIVE_Y:
+                return 7;
             default:
                 throw new IllegalArgumentException(String.valueOf(direction));
         }
@@ -142,7 +141,6 @@ public class MapTile {
      * @author Geert van Ieperen created on 3-2-2019.
      */
     public static class Instance {
-        private static final float QUARTER = (float) (PI / 2);
 
         public final byte offset;
         public final byte rotation;
@@ -151,6 +149,7 @@ public class MapTile {
         Instance(int offset, int rotation, MapTile type) {
             assert type != null;
             this.offset = (byte) (offset);
+            while (rotation < 0) rotation += 4;
             this.rotation = (byte) rotation;
             this.type = type;
         }
@@ -159,7 +158,7 @@ public class MapTile {
             gl.pushMatrix();
             {
                 gl.translate(0, 0, offset * TILE_SIZE_Z);
-                gl.rotate(rotation * QUARTER, 0, 0, 1);
+                gl.rotateQuarter(0, 0, rotation);
 
                 if (type.mesh == null) {
                     type.loadMesh();
@@ -178,16 +177,34 @@ public class MapTile {
 
         public Instance replaceWith(MapTile newType) {
             int newRotation = this.rotation + (newType.fit.rotation - type.fit.rotation);
-            int newHeight = this.offset + (newType.baseHeight - type.baseHeight);
 
-            return new Instance(newHeight, newRotation, newType);
+            return new Instance(offset, newRotation, newType);
         }
 
         public int heightOf(Direction direction) {
             if (direction == Direction.NONE) return getHeight();
 
-            int shift = rotation * -2;
-            int index = (shift + index(direction) + 8) % 8;
+            return heightOfInd(index(direction));
+        }
+
+        public int heightOfCorner(boolean positiveX, boolean positiveY) {
+            int hInd;
+            if (positiveX && positiveY) {// pp, pm, pn, mn, nn, nm, np, mp
+                hInd = 0;
+            } else if (positiveX) {
+                hInd = 2;
+            } else if (positiveY) {
+                hInd = 4;
+            } else {
+                hInd = 6;
+            }
+
+            return heightOfInd(hInd);
+        }
+
+        private int heightOfInd(int hInd) {
+            int shift = rotation * 2;
+            int index = (16 - (shift + hInd)) % 8;
             return offset + type.heights[index]; // heights array replaces baseheight
         }
 

@@ -1,5 +1,6 @@
 package NG.Rendering.Shapes;
 
+import NG.Rendering.MeshLoading.FlatMesh;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
 import NG.Tools.Vectors;

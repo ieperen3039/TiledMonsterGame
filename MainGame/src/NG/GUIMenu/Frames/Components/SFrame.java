@@ -21,7 +21,6 @@ public class SFrame extends SContainer {
 
     public static final int FRAME_TITLE_BAR_SIZE = 50;
     private final String title;
-    private boolean minimized;
     private SContainer upperBar;
     private boolean isDisposed = false;
     private STextArea titleComponent;
@@ -92,8 +91,8 @@ public class SFrame extends SContainer {
      * @return this
      */
     public SFrame setMainPanel(SContainer comp) {
-        super.add(comp, null); // single element layout
         comp.setPosition(0, upperBar.getHeight());
+        super.add(comp, null); // single element layout
         return this;
     }
 
@@ -116,27 +115,13 @@ public class SFrame extends SContainer {
         setSize(minWidth(), minHeight());
     }
 
-    public void setMinimized(boolean minimized) {
-        this.minimized = minimized;
-    }
-
-    public boolean isMinimized() {
-        return minimized;
-    }
-
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         if (!isVisible()) return;
-        if (minimized) {
-            // todo minimized panel
-//            design.drawMinimized();
-
-        } else {
-            // take offset into account for consistency.
-            design.draw(FRAME_BODY, screenPosition, dimensions);
-            upperBar.draw(design, screenPosition);
-            drawChildren(design, screenPosition);
-        }
+        // take offset into account for consistency.
+        design.draw(FRAME_BODY, screenPosition, dimensions);
+        upperBar.draw(design, screenPosition);
+        drawChildren(design, screenPosition);
     }
 
     @Override

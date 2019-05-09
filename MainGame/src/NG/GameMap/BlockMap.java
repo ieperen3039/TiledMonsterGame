@@ -27,6 +27,7 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
  */
 public class BlockMap extends AbstractMap {
     private static final Color4f SELECTION_COLOR = Color4f.BLUE;
+    private static final Color4f WHITE = Color4f.WHITE;
 
     private final List<ChangeListener> changeListeners = new ArrayList<>();
     private Map<Integer, Set<Integer>> highlightedTiles = new HashMap<>();
@@ -71,8 +72,8 @@ public class BlockMap extends AbstractMap {
     public void generateNew(MapGeneratorMod mapGenerator) {
         float[][] heightMap = mapGenerator.generateHeightMap();
 
-        xSize = heightMap.length;
-        ySize = heightMap[0].length;
+        int xSize = heightMap.length;
+        int ySize = heightMap[0].length;
         short[][] intMap = new short[xSize][ySize];
 
         // we must copy anyway
@@ -82,7 +83,11 @@ public class BlockMap extends AbstractMap {
             }
         }
 
-        map = intMap;
+        synchronized (this) {
+            this.map = intMap;
+            this.xSize = xSize;
+            this.ySize = ySize;
+        }
 
         changeListeners.forEach(ChangeListener::onMapChange);
     }
@@ -136,7 +141,7 @@ public class BlockMap extends AbstractMap {
         boolean doHighlight = shader instanceof MaterialShader;
         if (doHighlight) {
             mShader = (MaterialShader) shader;
-            mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
+            mShader.setMaterial(Material.ROUGH, WHITE);
         }
 
         Camera camera = game.get(Camera.class);
@@ -146,50 +151,52 @@ public class BlockMap extends AbstractMap {
         Vector3fc focus = new Vector3f(viewDir).mul(fraction).add(eye);
         float radius = viewDir.length() / TILE_SIZE + 10;
 
-        int xMin = (int) Math.max(0, (focus.x() - radius) / TILE_SIZE);
-        int yMin = (int) Math.max(0, (focus.y() - radius) / TILE_SIZE);
-        int xMax = (int) Math.min(xSize, (focus.x() + radius) / TILE_SIZE);
-        int yMax = (int) Math.min(ySize, (focus.y() + radius) / TILE_SIZE);
+        synchronized (this) {
+            int xMin = (int) Math.max(0, (focus.x() - radius) / TILE_SIZE);
+            int yMin = (int) Math.max(0, (focus.y() - radius) / TILE_SIZE);
+            int xMax = (int) Math.min(xSize, (focus.x() + radius) / TILE_SIZE);
+            int yMax = (int) Math.min(ySize, (focus.y() + radius) / TILE_SIZE);
 
-        float totalYTranslation = (yMax - yMin) * TILE_SIZE;
+            float totalYTranslation = (yMax - yMin) * TILE_SIZE;
 
-        gl.pushMatrix();
-        {
-            gl.translate(xMin * TILE_SIZE, yMin * TILE_SIZE, 0);
-            // tile 1 stretches from (-TILE_SIZE / 2, -TILE_SIZE / 2) to (TILE_SIZE / 2, TILE_SIZE / 2)
+            gl.pushMatrix();
+            {
+                gl.translate(xMin * TILE_SIZE, yMin * TILE_SIZE, 0);
+                // tile 1 stretches from (-TILE_SIZE / 2, -TILE_SIZE / 2) to (TILE_SIZE / 2, TILE_SIZE / 2)
 
-            for (int x = xMin; x < xMax; x++) {
-                short[] slice = map[x];
+                for (int x = xMin; x < xMax; x++) {
+                    short[] slice = map[x];
 
-                for (int y = yMin; y < yMax; y++) {
-                    boolean highlightThis = doHighlight &&
-                            highlightedTiles.containsKey(x) &&
-                            highlightedTiles.get(x).contains(y);
+                    for (int y = yMin; y < yMax; y++) {
+                        boolean highlightThis = doHighlight &&
+                                highlightedTiles.containsKey(x) &&
+                                highlightedTiles.get(x).contains(y);
 
-                    if (highlightThis) {
-                        mShader.setMaterial(Material.ROUGH, SELECTION_COLOR);
-                    } else {
-                        mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
+                        if (highlightThis) {
+                            mShader.setMaterial(Material.ROUGH, SELECTION_COLOR);
+                        } else {
+                            mShader.setMaterial(Material.ROUGH, WHITE);
+                        }
+
+                        float height = slice[y] * TILE_SIZE_Z;
+
+                        float offset = height - hBlockHeight + blockElevation;
+
+                        gl.translate(0, 0, offset);
+                        gl.scale(hBlockSize, hBlockSize, hBlockHeight);
+
+                        gl.render(GenericShapes.CUBE, null); // todo make half cube
+
+                        gl.scale(1 / hBlockSize, 1 / hBlockSize, 1 / hBlockHeight);
+                        gl.translate(0, 0, -offset);
+
+                        gl.translate(0, TILE_SIZE, 0);
                     }
-
-                    float height = slice[y] * TILE_SIZE_Z;
-
-                    float offset = height - hBlockHeight + blockElevation;
-
-                    gl.translate(0, 0, offset);
-                    gl.scale(hBlockSize, hBlockSize, hBlockHeight);
-
-                    gl.render(GenericShapes.CUBE, null); // todo make half cube
-
-                    gl.scale(1 / hBlockSize, 1 / hBlockSize, 1 / hBlockHeight);
-                    gl.translate(0, 0, -offset);
-
-                    gl.translate(0, TILE_SIZE, 0);
+                    gl.translate(TILE_SIZE, -totalYTranslation, 0);
                 }
-                gl.translate(TILE_SIZE, -totalYTranslation, 0);
             }
+            gl.popMatrix();
         }
-        gl.popMatrix();
     }
 
     @Override
@@ -223,13 +230,15 @@ public class BlockMap extends AbstractMap {
 
     @Override
     public void writeToDataStream(DataOutputStream out) throws IOException {
-        out.writeInt(xSize);
-        out.writeInt(ySize);
+        synchronized (this) {
+            out.writeInt(xSize);
+            out.writeInt(ySize);
 
-        for (int x = 0; x < xSize; x++) {
-            short[] slice = map[x];
-            for (int y = 0; y < ySize; y++) {
-                out.writeShort(slice[y]);
+            for (int x = 0; x < xSize; x++) {
+                short[] slice = map[x];
+                for (int y = 0; y < ySize; y++) {
+                    out.writeShort(slice[y]);
+                }
             }
         }
     }

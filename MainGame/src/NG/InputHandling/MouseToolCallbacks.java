@@ -1,6 +1,5 @@
 package NG.InputHandling;
 
-import NG.Camera.Camera;
 import NG.DataStructures.Tracked.TrackedFloat;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
@@ -177,8 +176,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
     private class MouseScrollCallback extends GLFWScrollCallback {
         @Override
         public void invoke(long window, double xoffset, double yoffset) {
-            // TODO send signal to mousetool
-            game.get(Camera.class).onScroll((float) yoffset);
+            currentTool.onScroll((float) yoffset);
         }
     }
 

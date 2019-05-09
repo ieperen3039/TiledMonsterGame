@@ -14,7 +14,7 @@ import java.util.Collection;
  */
 public interface GameMap extends GameAspect, MouseToolListener, Storable {
     /**
-     * generate a map using the provided generator. This method should be run in a separate thread
+     * generate a map using the provided generator. This method can be run in a separate thread
      * @param mapGenerator the generator to use for this map.
      */
     void generateNew(MapGeneratorMod mapGenerator);
@@ -54,7 +54,7 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     /**
      * @param x x-coordinate
      * @param y y-coordinate
-     * @return the height on that coordinate
+     * @return a vector of (x, y, z), with z being the height on (x, y)
      */
     Vector3i getCoordinate3D(int x, int y);
 
@@ -123,7 +123,7 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     float gridMapIntersection(Vector3fc origin, Vector3fc direction, float maximum);
 
     /**
-     * calculates the lowest fraction t such that 0 <= t <= maximum, and that the hitbox can move (t * direction)
+     * calculates the lowest fraction t such that 0 <= t <= maximum, and such that that the hitbox can move (t * direction)
      * starting at origin before hitting this map.
      * @param hitbox    the hitbox to consider
      * @param origin    the relative position of the hitbox, origin of the movement

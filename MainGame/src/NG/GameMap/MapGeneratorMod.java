@@ -48,6 +48,4 @@ public interface MapGeneratorMod extends Mod {
         setXSize(x);
         setYSize(y);
     }
-
-    ;
 }

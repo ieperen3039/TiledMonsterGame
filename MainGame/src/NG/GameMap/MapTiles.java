@@ -27,9 +27,11 @@ public class MapTiles {
     public static void readTileSetFile(TileThemeSet sourceSet, Path path) throws IOException {
         Path folder = path.getParent();
         Scanner sc = new Scanner(path);
+        int lineNr = 0;
 
         while (sc.hasNext()) {
             String line = sc.nextLine().trim();
+            lineNr++;
             try {
                 if (line.isEmpty() || line.charAt(0) == '#') continue; // comments
 
@@ -51,7 +53,7 @@ public class MapTiles {
                 registerTile(meshFile, meshPath, hitboxPath, texturePath, properties, sourceSet);
 
             } catch (Exception ex) {
-                Logger.ERROR.print(ex);
+                Logger.ERROR.print("Error on line " + lineNr + " of file " + path + ":\n", ex);
             }
         }
     }
@@ -208,6 +210,10 @@ public class MapTiles {
 
     static RotationFreeFit createRFF(int a, int b, int c, int d) {
         return new RotationFreeFit(a, b, c, d);
+    }
+
+    public static int rotationFreeBits(int a, int b, int c, int d) {
+        return createRFF(a, b, c, d).id;
     }
 
     /**

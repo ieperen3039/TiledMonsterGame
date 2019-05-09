@@ -11,6 +11,25 @@ import java.util.Deque;
  * @author Geert van Ieperen created on 30-1-2019.
  */
 public abstract class AbstractSGL implements SGL {
+    private static final Matrix4fc QUARTER_X = new Matrix4f(
+            1, 0, 0, 0,
+            0, 0, 1, 0,
+            0, -1, 0, 0,
+            0, 0, 0, 1
+    );
+    private static final Matrix4fc QUARTER_Y = new Matrix4f(
+            0, 0, -1, 0,
+            0, 1, 0, 0,
+            1, 0, 0, 0,
+            0, 0, 0, 1
+    );
+    private static final Matrix4fc QUARTER_Z = new Matrix4f(
+            0, 1, 0, 0,
+            -1, 0, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+    );
+
     protected static final Painter LOCK = new Painter();
     private Deque<Matrix4f> matrixStack;
     private Matrix4f modelMatrix;
@@ -87,6 +106,22 @@ public abstract class AbstractSGL implements SGL {
     @Override
     public void rotateXYZ(float x, float y, float z) {
         modelMatrix.rotateXYZ(x, y, z);
+    }
+
+    @Override
+    public void rotateQuarter(int x, int y, int z) {
+        assert x >= 0 && y >= 0 && z >= 0;
+
+        for (int i = 0; i < x; i++) {
+            modelMatrix.mulAffine(QUARTER_X);
+        }
+        for (int i = 0; i < y; i++) {
+            //noinspection SuspiciousNameCombination
+            modelMatrix.mulAffine(QUARTER_Y);
+        }
+        for (int i = 0; i < z; i++) {
+            modelMatrix.mulAffine(QUARTER_Z);
+        }
     }
 
     protected Matrix4f getModelMatrix() {

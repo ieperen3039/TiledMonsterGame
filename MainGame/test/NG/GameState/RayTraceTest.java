@@ -170,5 +170,11 @@ public class RayTraceTest {
             if (game.get(GameState.class).checkMouseClick(this, x, y)) return;
             game.get(GameMap.class).checkMouseClick(this, x, y);
         }
+
+        @Override
+        public void onScroll(float value) {
+            game.get(Camera.class).onScroll(value);
+            Logger.DEBUG.print(value);
+        }
     }
 }

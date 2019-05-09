@@ -8,6 +8,7 @@ import NG.GUIMenu.Frames.Components.SFrame;
 import NG.GUIMenu.SToolBar;
 import NG.GUIMenu.ScreenOverlay;
 import NG.InputHandling.KeyMouseCallbacks;
+import NG.InputHandling.MouseScrollListener;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.RenderLoop;
 import NG.Tools.Logger;
@@ -84,7 +85,7 @@ public class SFrameManager implements GUIManager {
         // reposition frame not to overlap other frames (greedy)
         for (Iterator<SFrame> iterator = frames.descendingIterator(); iterator.hasNext(); ) {
             SFrame other = iterator.next();
-            if (other.isDisposed() || other.isMinimized() || !other.isVisible()) continue;
+            if (other.isDisposed() || !other.isVisible()) continue;
 
             Vector2ic otherPos = other.getScreenPosition();
 
@@ -185,6 +186,17 @@ public class SFrameManager implements GUIManager {
 
     @Override
     public boolean checkMouseClick(MouseTool tool, final int xSc, final int ySc) {
+        SComponent component = getComponentAt(xSc, ySc);
+
+        if (component != null) {
+            tool.apply(component, xSc, ySc);
+            return true;
+        }
+
+        return false;
+    }
+
+    private SComponent getComponentAt(int xSc, int ySc) {
         // check modal dialogues
         if (modalSection != null) {
             Vector2ic mPos = modalSection.getScreenPosition();
@@ -192,20 +204,18 @@ public class SFrameManager implements GUIManager {
             if (xSc >= mPos.x() && ySc >= mPos.y()) {
                 if (xSc <= mPos.x() + modalSection.getWidth()) {
                     if (ySc <= mPos.y() + modalSection.getHeight()) {
-                        tool.apply(modalSection, xSc, ySc);
+                        SComponent target = modalSection;
+                        modalSection = null;
+                        return target;
                     }
                 }
             }
-
-            modalSection = null;
-            return true;
         }
 
         // check toolbar
         if (toolBar != null) {
             if (toolBar.contains(xSc, ySc)) {
-                tool.apply(toolBar, xSc, ySc);
-                return true;
+                return toolBar;
             }
         }
 
@@ -215,11 +225,21 @@ public class SFrameManager implements GUIManager {
                 focus(frame);
                 int xr = xSc - frame.getX();
                 int yr = ySc - frame.getY();
-                SComponent component = frame.getComponentAt(xr, yr);
-
-                tool.apply(component, xSc, ySc);
-                return true; // only for top-most frame
+                return frame.getComponentAt(xr, yr);
             }
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean checkMouseScroll(int xSc, int ySc, float value) {
+        SComponent component = getComponentAt(xSc, ySc);
+
+        if (component instanceof MouseScrollListener) {
+            MouseScrollListener listener = (MouseScrollListener) component;
+            listener.onScroll(value);
+            return true;
         }
 
         return false;

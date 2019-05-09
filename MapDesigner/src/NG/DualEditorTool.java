@@ -1,9 +1,7 @@
 package NG;
 
 import NG.Engine.Game;
-import NG.GUIMenu.Frames.Components.*;
 import NG.GUIMenu.Frames.GUIManager;
-import NG.GameMap.*;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Rendering.GLFWWindow;
 import org.joml.Vector2i;
@@ -12,7 +10,6 @@ import org.joml.Vector3fc;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import static NG.MapEditor.BUTTON_MIN_HEIGHT;
@@ -27,21 +24,16 @@ class DualEditorTool extends DefaultMouseTool {
     private SFrame tileWindow;
     private float selectionSize;
     private BlockMap blockMap;
-    private TileMap tileMap;
-    private final Map<GameMap, Consumer<Vector3fc>> funcTable;
-    private final GameMap[] order;
-    private GameMap currentMap;
+    private Consumer<Vector3fc> activationFunc;
 
-    public DualEditorTool(Game game, BlockMap blockMap, TileMap tileMap) {
+    public DualEditorTool(Game game, BlockMap blockMap) {
         super(game);
-        funcTable = Map.of(
-                blockMap, this::applyBlockmap,
-                tileMap, this::applyTileMap
-        );
-
-        order = new GameMap[]{blockMap, tileMap};
         this.blockMap = blockMap;
-        this.tileMap = tileMap;
+
+        blockMap.addChangeListener(() ->
+                // TODO only change tiles that are given
+                game.get(TileMap.class).generateNew(new CopyGenerator(blockMap))
+        );
     }
 
     @Override
@@ -53,19 +45,19 @@ class DualEditorTool extends DefaultMouseTool {
         // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
         y = game.get(GLFWWindow.class).getHeight() - y;
 
-        for (GameMap map : order) {
-            currentMap = map;
-            if (map.checkMouseClick(this, x, y)) return;
-        }
+        activationFunc = this::applyBlockmap;
+        if (blockMap.checkMouseClick(this, x, y)) return;
+
+        activationFunc = this::applyTileMap;
+        game.get(TileMap.class).checkMouseClick(this, x, y);
     }
 
     @Override
     public void apply(Vector3fc position) {
-        funcTable.get(currentMap).accept(position);
+        activationFunc.accept(position);
     }
 
     public void applyBlockmap(Vector3fc position) {
-
         Vector2i coordinate = blockMap.getCoordinate(position);
         int x = coordinate.x;
         int y = coordinate.y;
@@ -81,6 +73,7 @@ class DualEditorTool extends DefaultMouseTool {
                         new SNamedValue("Height", () -> blockMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT),
                         new SFiller(GAP_SIZE, 0),
                         new SButton("+", () -> incTile(x, y, 1), BUTTON_SIZE, BUTTON_SIZE),
+                        new SButton("=", () -> flatten(x, y), BUTTON_SIZE, BUTTON_SIZE),
                         new SButton("-", () -> incTile(x, y, -1), BUTTON_SIZE, BUTTON_SIZE)
                 ),
                 SPanel.row(
@@ -91,18 +84,24 @@ class DualEditorTool extends DefaultMouseTool {
                 )
         );
 
-        if (blockWindow == null) {
-            blockWindow = new SFrame("No tile selected");
-            game.get(GUIManager.class).addFrame(blockWindow);
-
-        } else if (blockWindow.isDisposed()) {
-            Vector2ic wPos = blockWindow.getScreenPosition();
-            blockWindow = new SFrame("No tile selected");
-            game.get(GUIManager.class).addFrame(blockWindow, wPos.x(), wPos.y());
-        }
+        blockWindow = createIfAbsent(blockWindow);
 
         blockWindow.setTitle("Block at (" + x + ", " + y + ")");
         blockWindow.setMainPanel(mainPanel);
+    }
+
+    public SFrame createIfAbsent(SFrame window) {
+        if (window == null) {
+            window = new SFrame("No tile selected");
+            game.get(GUIManager.class).addFrame(window);
+
+        } else if (window.isDisposed()) {
+            Vector2ic wPos = window.getScreenPosition();
+            window = new SFrame("No tile selected");
+            game.get(GUIManager.class).addFrame(window, wPos.x(), wPos.y());
+        }
+
+        return window;
     }
 
     /**
@@ -134,8 +133,6 @@ class DualEditorTool extends DefaultMouseTool {
             int ty = tile.y();
             blockMap.setTile(tx, ty, blockMap.getHeightAt(tx, ty) + change);
         }
-
-        recalculateTileMap(tiles);
     }
 
     private void incSelect(int x, int y, float v) {
@@ -143,36 +140,43 @@ class DualEditorTool extends DefaultMouseTool {
         blockMap.setHighlights(getCircleOf(x, y, selectionSize));
     }
 
-    private void recalculateTileMap(Vector2ic... tiles) {
-        // TODO only change tiles that are given
-        tileMap.generateNew(new CopyGenerator(blockMap));
+    private void flatten(int x, int y) {
+        Vector2ic[] tiles = getCircleOf(x, y, selectionSize);
+
+        for (Vector2ic tile : tiles) {
+            blockMap.setTile(tile.x(), tile.y(), blockMap.getHeightAt(x, y));
+        }
     }
 
     public void applyTileMap(Vector3fc position) {
         GUIManager gui = game.get(GUIManager.class);
+        TileMap tileMap = game.get(TileMap.class);
 
         Vector2i coordinate = tileMap.getCoordinate(position);
         int x = coordinate.x;
         int y = coordinate.y;
         tileMap.setHighlights(coordinate);
 
-        if (tileWindow != null) tileWindow.dispose();
-        tileWindow = new SFrame("Tile at (" + x + ", " + y + ")");
+        tileWindow = createIfAbsent(tileWindow);
+        tileWindow.setTitle("Tile at (" + x + ", " + y + ")");
 
         MapTile tileType = tileMap.getTileData(x, y).type;
         List<MapTile> mapTileList = MapTiles.getByOrientationBits(tileType.fit);
 
         SNamedValue typeDist = new SNamedValue("Type", () -> tileMap.getTileData(x, y).type.name, BUTTON_MIN_HEIGHT);
         SNamedValue heightDisp = new SNamedValue("Height", () -> tileMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT);
-        SNamedValue orientationDisp = new SNamedValue("Orientation", () -> getOrientation(x, y), BUTTON_MIN_HEIGHT);
+        SNamedValue orientationDisp = new SNamedValue("Orientation", () -> getOrientationString(tileMap, x, y), BUTTON_MIN_HEIGHT);
 
         SDropDown tileSelection;
         if (mapTileList.isEmpty()) {
             tileSelection = new SDropDown(gui, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT, 0, "<No applicable tiles>");
+
         } else {
             tileSelection = new SDropDown(gui, BUTTON_MIN_HEIGHT, BUTTON_MIN_WIDTH, tileType, mapTileList);
+            tileSelection.addStateChangeListener(i -> tileMap.replaceTile(x, y, mapTileList.get(i)));
         }
 
+        // structure
         SPanel elements = SPanel.column(
                 typeDist,
                 heightDisp,
@@ -181,13 +185,11 @@ class DualEditorTool extends DefaultMouseTool {
         );
 
         tileWindow.setMainPanel(elements);
-
         tileWindow.pack();
-        gui.addFrame(tileWindow);
     }
 
-    public String getOrientation(int x, int y) {
-        int height = tileMap.getHeightAt(x, y);
+    public String getOrientationString(TileMap map, int x, int y) {
+        int height = map.getHeightAt(x, y);
         return String.format("(%d, %d, %d, %d)",
                 blockMap.getHeightAt(x, y) - height,
                 blockMap.getHeightAt(x + 1, y) - height,
@@ -198,5 +200,7 @@ class DualEditorTool extends DefaultMouseTool {
 
     public void dispose() {
         if (blockWindow != null) blockWindow.dispose();
+        if (tileWindow != null) tileWindow.dispose();
+        blockMap.cleanup();
     }
 }

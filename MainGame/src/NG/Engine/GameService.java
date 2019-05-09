@@ -4,6 +4,7 @@ import NG.DataStructures.Generic.PairList;
 import NG.Rendering.RenderLoop;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A Service-Oriented-Architecture for games, based on classes
@@ -48,8 +49,8 @@ public class GameService implements Game { // TODO make exception elements for r
             }
         }
 
-        Object[] elts = elements.stream().map(p -> p.right).map(Class::getSimpleName).toArray();
-        throw new NoSuchElementException(String.format("No element of %s :\n%s", target.toString(), Arrays.toString(elts)));
+        List<String> elts = elements.stream().map(p -> p.right).map(Class::getSimpleName).collect(Collectors.toList());
+        throw new NoSuchElementException(String.format("No element of %s :\n%s", target.toString(), elts));
     }
 
     @Override

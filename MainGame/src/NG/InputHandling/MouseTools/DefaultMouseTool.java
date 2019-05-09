@@ -1,5 +1,6 @@
 package NG.InputHandling.MouseTools;
 
+import NG.Camera.Camera;
 import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.GUIMenu.Frames.Components.SComponent;
@@ -12,6 +13,7 @@ import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameState;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
+import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 
@@ -115,5 +117,14 @@ public class DefaultMouseTool implements MouseTool {
 
     protected void setButton(int button) {
         this.button = button;
+    }
+
+    @Override
+    public void onScroll(float value) {
+        Vector2i pos = game.get(GLFWWindow.class).getMousePosition();
+        GUIManager gui = game.get(GUIManager.class);
+        if (gui.checkMouseScroll(pos.x, pos.y, value)) return;
+
+        game.get(Camera.class).onScroll(value);
     }
 }

@@ -3,28 +3,21 @@ package NG;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Version;
-import NG.GUIMenu.Frames.Components.*;
 import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GUIMenu.SToolBar;
-import NG.GameMap.*;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.RenderLoop;
 import NG.Rendering.Shaders.WorldBPShader;
 import NG.Settings.Settings;
-import NG.Tools.*;
 import org.joml.Vector2i;
-import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -32,12 +25,12 @@ import java.util.function.Supplier;
  * @author Geert van Ieperen created on 6-2-2019.
  */
 public class MapEditor {
-    private static final Version EDITOR_VERSION = new Version(0, 3);
+    private static final Version EDITOR_VERSION = new Version(0, 5);
     private static final String MAP_FILE_EXTENSION = "mgm";
     public static final int BUTTON_MIN_WIDTH = 180;
     public static final int BUTTON_MIN_HEIGHT = 60;
 
-    private final DualEditorTool dualEditorTool;
+    private DualEditorTool dualEditorTool;
 
     private final RenderLoop renderloop;
     private final DecoyGame game;
@@ -46,12 +39,13 @@ public class MapEditor {
     private final JFileChooser loadTileDialog;
     private final JFileChooser loadMapDialog;
     private BlockMap blockMap;
-    private TileMap tileMap;
 
     public MapEditor() {
         Settings settings = new Settings();
         settings.ISOMETRIC_VIEW = true;
         settings.DYNAMIC_SHADOW_RESOLUTION = 0;
+
+
         settings.STATIC_SHADOW_RESOLUTION = 0;
         settings.DEBUG_SCREEN = true;
 
@@ -63,8 +57,10 @@ public class MapEditor {
         };
 
         game = new DecoyGame("MonsterGame Map designer", renderloop, settings, EDITOR_VERSION);
-        blockMap = new BlockMap(0.5f, 0.1f, 0.1f);
-        tileMap = new TileMap(Settings.CHUNK_SIZE);
+        blockMap = new BlockMap(0.75f, 0.5f, 0.125f);
+        dualEditorTool = new DualEditorTool(game, blockMap);
+
+        TileMap tileMap = new TileMap(Settings.CHUNK_SIZE);
         game.setGameMap(tileMap);
 
         loadMapDialog = new JFileChooser(Directory.savedMaps.getDirectory());
@@ -83,7 +79,9 @@ public class MapEditor {
         loadTileDialog.setApproveButtonText("Load");
         loadTileDialog.setFileFilter(filter2);
 
-        dualEditorTool = new DualEditorTool(game, blockMap, tileMap);
+        Logger.INFO.print("Loaded Map Editor " + EDITOR_VERSION);
+        Logger.DEBUG.newLine();
+
     }
 
     public void init() throws Exception {
@@ -94,7 +92,7 @@ public class MapEditor {
         renderloop.renderSequence(new WorldBPShader())
                 .add(gl -> game.get(GameLights.class).draw(gl))
                 .add(gl -> blockMap.draw(gl))
-                .add(gl -> tileMap.draw(gl))
+                .add(gl -> game.get(TileMap.class).draw(gl))
         ;
 
         GUIManager gui = game.get(GUIManager.class);
@@ -109,7 +107,6 @@ public class MapEditor {
         SToolBar mainMenu = new SToolBar(game, false);
 
         mainMenu.addButton("Generate Random", this::createNew, 250);
-        mainMenu.addButton("Transform Tiles", null, 250);
         mainMenu.addButton("Load Map", this::loadMap, BUTTON_MIN_WIDTH);
         mainMenu.addButton("Save Map", this::saveMap, BUTTON_MIN_WIDTH);
         mainMenu.addButton("Load Tiles", this::loadTiles, BUTTON_MIN_WIDTH);
@@ -165,7 +162,7 @@ public class MapEditor {
                         new FileOutputStream(nameWithExtension)
                 ) {
                     DataOutputStream output = new DataOutputStream(fileOut);
-                    Storable.write(output, game.get(AbstractMap.class));
+                    Storable.write(output, game.get(TileMap.class));
 
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
@@ -189,19 +186,16 @@ public class MapEditor {
             Logger.printOnline(loadNotify);
 
             try {
-                game.loadMap(selectedFile);
+                FileInputStream fs = new FileInputStream(selectedFile);
+                DataInputStream input = new DataInputStream(fs);
+                TileMap newMap = Storable.read(input, TileMap.class);
+                newMap.init(game);
 
-                GameMap newMap = game.get(AbstractMap.class);
+                game.setGameMap(newMap);
+                blockMap.generateNew(newMap.cornerCopyGenerator());
 
-                if (newMap instanceof BlockMap) {
-                    blockMap = (BlockMap) newMap;
-                }
-
-                Vector2ic size = newMap.getSize();
-                size.x();
-                size.y();
                 MainMenu.centerCamera(game.get(Camera.class), newMap);
-                Logger.INFO.print("Loaded map of size " + Vectors.toString(size));
+                Logger.INFO.print("Loaded map of size " + Vectors.toString(newMap.getSize()));
 
             } catch (Exception e) {
                 errorDialog(e);
@@ -256,8 +250,8 @@ public class MapEditor {
 
         // buttons
         SButton generate = new SButton("Generate", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
-        SDropDown xSizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
-        SDropDown ySizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128");
+        SDropDown xSizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128", "256", "512", "1024");
+        SDropDown ySizeSelector = new SDropDown(gui, 100, 60, 1, "16", "32", "64", "128", "256", "512", "1024");
 
         generate.addLeftClickListener(() -> {
             Logger.printOnline(processDisplay);
@@ -271,6 +265,7 @@ public class MapEditor {
             TileThemeSet.PLAIN.load();
 
             blockMap.generateNew(generator);
+            TileMap tileMap = game.get(TileMap.class);
             tileMap.generateNew(new CopyGenerator(blockMap));
 
             MainMenu.centerCamera(game.get(Camera.class), tileMap);

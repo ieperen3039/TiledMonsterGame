@@ -3,7 +3,6 @@ package NG.Rendering.MeshLoading;
 import NG.Animations.SkeletonBone;
 import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.PairList;
-import NG.Rendering.Shapes.FlatMesh;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector2fc;

@@ -5,13 +5,15 @@ import NG.GUIMenu.Frames.Components.SComponent;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
+import NG.InputHandling.MouseScrollListener;
 import org.joml.Vector3fc;
 
 /**
  * Determines the behaviour of clicking
  * @author Geert van Ieperen. Created on 22-11-2018.
  */
-public interface MouseTool extends MouseMoveListener, MouseReleaseListener, MouseRelativeClickListener {
+public interface MouseTool
+        extends MouseMoveListener, MouseReleaseListener, MouseRelativeClickListener, MouseScrollListener {
 
     /**
      * applies the functionality of this tool to the given component

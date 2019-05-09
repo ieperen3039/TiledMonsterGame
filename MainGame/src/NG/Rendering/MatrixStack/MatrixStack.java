@@ -4,6 +4,8 @@ package NG.Rendering.MatrixStack;
 import NG.Tools.Vectors;
 import org.joml.*;
 
+import static java.lang.Math.PI;
+
 /**
  * @author Geert van Ieperen created on 19-11-2017.
  */
@@ -115,5 +117,10 @@ public interface MatrixStack {
 
     default void rotateXYZ(Vector3fc rot) {
         rotateXYZ(rot.x(), rot.y(), rot.z());
+    }
+
+    default void rotateQuarter(int x, int y, int z) {
+        float QUARTER = (float) (PI / 2);
+        rotateXYZ(x * QUARTER, y * QUARTER, z * QUARTER);
     }
 }

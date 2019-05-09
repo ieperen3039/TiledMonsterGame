@@ -21,7 +21,7 @@ import static NG.Camera.TycoonFixedCamera.MoveDirection.*;
  * @author Geert van Ieperen. Created on 18-11-2018.
  */
 public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPressListener, KeyReleaseListener {
-    private static final int SCREEN_MOVE_MINIMUM_PIXELS = 200;
+    private static final int SCREEN_MOVE_MINIMUM_PIXELS = 100;
     private static final float ZOOM_SPEED_LIMIT = 0.03f;
     private static final float ROTATION_MODIFIER = 1f;
     private static final float MOVE_SPEED = 0.5f;

@@ -1,7 +1,6 @@
 package NG.Rendering.MeshLoading;
 
 import NG.Rendering.Shaders.ShaderProgram;
-import NG.Rendering.Shapes.AbstractMesh;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector2fc;

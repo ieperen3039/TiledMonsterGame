@@ -39,15 +39,14 @@ public class TileMap extends AbstractMap {
     private MapChunk[][] map;
     private Game game;
 
-    private Collection<MapChunk> highlightedChunks;
+    private Collection<MapChunk> highlightedChunks = new HashSet<>();
     private AveragingQueue culledChunks = new AveragingQueue(30);
 
     public TileMap(int chunkSize) {
         this.chunkSize = chunkSize;
         this.realChunkSize = chunkSize * Settings.TILE_SIZE;
-        this.changeListeners = new ArrayList<>();
-        highlightedChunks = new HashSet<>();
         map = new MapChunk[0][0];
+        changeListeners = new ArrayList<>();
     }
 
     @Override
@@ -58,8 +57,6 @@ public class TileMap extends AbstractMap {
 
     @Override
     public void generateNew(MapGeneratorMod mapGenerator) {
-        changeListeners.forEach(ChangeListener::onMapChange);
-
         // height map generation
         float[][] heightmap = mapGenerator.generateHeightMap();
         int randomSeed = mapGenerator.getMapSeed();
@@ -80,10 +77,14 @@ public class TileMap extends AbstractMap {
             }
         }
 
-        this.map = newMap;
-        this.xChunks = xChunks;
-        this.yChunks = yChunks;
+        synchronized (this) {
+            this.map = newMap;
+            this.xChunks = xChunks;
+            this.yChunks = yChunks;
+        }
+        changeListeners.forEach(ChangeListener::onMapChange);
     }
+
 
     @Override
     public int getHeightAt(int x, int y) {
@@ -150,41 +151,80 @@ public class TileMap extends AbstractMap {
         FrustumIntersection fic = new FrustumIntersection().set(viewProjection, false);
         int numOfCulled = 0;
 
-        gl.pushMatrix();
-        {
-            // tile 1 stretches from (0, 0) to (TILE_SIZE, TILE_SIZE)
-            gl.translate(TILE_SIZE * 0.5f, TILE_SIZE * 0.5f, 0);
+        synchronized (this) {
+            gl.pushMatrix();
+            {
+                // tile 1 stretches from (0, 0) to (TILE_SIZE, TILE_SIZE)
+                gl.translate(TILE_SIZE * 0.5f, TILE_SIZE * 0.5f, 0);
 
-            for (int x = 0; x < map.length; x++) {
-                MapChunk[] chunks = map[x];
+                for (int x = 0; x < map.length; x++) {
+                    MapChunk[] chunks = map[x];
 
-                gl.pushMatrix();
-                {
-                    for (int y = 0; y < chunks.length; y++) {
-                        MapChunk chunk = chunks[y];
-                        MapChunk.Extremes minMax = chunk.getMinMax();
-                        boolean isVisible = fic.testAab(
-                                x * realChunkSize, y * realChunkSize, minMax.getMin(),
-                                (x + 1) * realChunkSize, (y + 1) * realChunkSize, minMax.getMax()
-                        );
+                    gl.pushMatrix();
+                    {
+                        for (int y = 0; y < chunks.length; y++) {
+                            MapChunk chunk = chunks[y];
+                            MapChunk.Extremes minMax = chunk.getMinMax();
+                            boolean isVisible = fic.testAab(
+                                    x * realChunkSize, y * realChunkSize, minMax.getMin(),
+                                    (x + 1) * realChunkSize, (y + 1) * realChunkSize, minMax.getMax()
+                            );
 
-                        if (isVisible) {
-                            chunk.setHighlight(isMaterialShader);
-                            chunk.draw(gl);
-                        } else {
-                            numOfCulled++;
+                            if (isVisible) {
+                                chunk.setHighlight(isMaterialShader);
+                                chunk.draw(gl);
+                            } else {
+                                numOfCulled++;
+                            }
+
+                            gl.translate(0, realChunkSize, 0);
                         }
-
-                        gl.translate(0, realChunkSize, 0);
                     }
+                    gl.popMatrix();
+                    gl.translate(realChunkSize, 0, 0);
                 }
-                gl.popMatrix();
-                gl.translate(realChunkSize, 0, 0);
             }
-        }
 
-        culledChunks.add(numOfCulled);
-        gl.popMatrix();
+            culledChunks.add(numOfCulled);
+            gl.popMatrix();
+        }
+    }
+
+    public CopyGenerator cornerCopyGenerator() {
+        return new CopyGenerator(this) {
+            @Override
+            public float[][] generateHeightMap() {
+                progress = 0;
+                int mapXSize = chunkSize * xChunks;
+                int mapYSize = chunkSize * yChunks;
+                setSize(mapXSize + 1, mapYSize + 1);
+                float[][] floats = new float[mapXSize + 1][mapYSize + 1];
+
+                for (int x = 0; x < mapXSize; x++) {
+                    for (int y = 0; y < mapYSize; y++) {
+                        MapTile.Instance tile = getTileData(x, y);
+                        floats[x][y] = tile.heightOfCorner(false, false);
+                        progress++;
+                    }
+
+                    MapTile.Instance tile = getTileData(x, mapYSize - 1);
+                    floats[x][mapYSize] = tile.heightOfCorner(false, true);
+                    progress++;
+                }
+
+                for (int y = 0; y < mapYSize; y++) {
+                    MapTile.Instance tile = getTileData(mapXSize - 1, y);
+                    floats[mapXSize][y] = tile.heightOfCorner(true, false);
+                    progress++;
+                }
+
+                MapTile.Instance tile = getTileData(mapXSize - 1, mapYSize - 1);
+                floats[mapXSize][mapYSize] = tile.heightOfCorner(true, true);
+                progress++;
+
+                return floats;
+            }
+        };
     }
 
     public static Matrix4f getViewProjection(Game game, Camera camera) {
@@ -253,14 +293,16 @@ public class TileMap extends AbstractMap {
             out.writeInt(tileType.orientationBits());
         }
 
-        out.writeInt(chunkSize);
-        out.writeInt(xChunks);
-        out.writeInt(yChunks);
+        synchronized (this) {
+            out.writeInt(chunkSize);
+            out.writeInt(xChunks);
+            out.writeInt(yChunks);
 
-        // now write the chunks themselves
-        for (MapChunk[] mapChunks : map) {
-            for (MapChunk chunk : mapChunks) {
-                chunk.writeToFile(out);
+            // now write the chunks themselves
+            for (MapChunk[] mapChunks : map) {
+                for (MapChunk chunk : mapChunks) {
+                    chunk.writeToFile(out);
+                }
             }
         }
     }
@@ -271,7 +313,6 @@ public class TileMap extends AbstractMap {
      * @throws IOException if the data produces unexpected values
      */
     public TileMap(DataInputStream in) throws IOException {
-        changeListeners = new ArrayList<>();
 
         // get number of tile types
         int nrOfTileTypes = in.readInt();
@@ -308,6 +349,8 @@ public class TileMap extends AbstractMap {
         this.xChunks = in.readInt();
         this.yChunks = in.readInt();
 
+        Logger.DEBUG.printf("Tilemap: %s x %s", chunkSize * xChunks, chunkSize * yChunks);
+
         // now read chunks themselves
         map = new MapChunk[xChunks][];
         for (int mx = 0; mx < xChunks; mx++) {
@@ -320,6 +363,8 @@ public class TileMap extends AbstractMap {
             }
             map[mx] = yStrip;
         }
+
+        changeListeners = new ArrayList<>();
     }
 
     public MapTile.Instance getTileData(int x, int y) {
@@ -349,6 +394,13 @@ public class TileMap extends AbstractMap {
         int ry = y - cy * chunkSize;
 
         chunk.set(rx, ry, instance);
+
+        changeListeners.forEach(ChangeListener::onMapChange);
+    }
+
+    public void replaceTile(int x, int y, MapTile newShape) {
+        MapTile.Instance oldTile = getTileData(x, y);
+        setTile(x, y, oldTile.replaceWith(newShape));
     }
 
     @Override

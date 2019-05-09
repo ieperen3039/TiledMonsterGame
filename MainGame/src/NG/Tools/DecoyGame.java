@@ -3,6 +3,7 @@ package NG.Tools;
 import NG.Camera.TycoonFixedCamera;
 import NG.CollisionDetection.DynamicState;
 import NG.DataStructures.Generic.Color4f;
+import NG.Engine.GameAspect;
 import NG.Engine.GameService;
 import NG.Engine.GameTimer;
 import NG.Engine.Version;
@@ -16,6 +17,8 @@ import NG.Rendering.Lights.SingleShadowMapLights;
 import NG.Rendering.RenderLoop;
 import NG.Settings.Settings;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 /**
  * @author Geert van Ieperen created on 6-2-2019.
@@ -40,9 +43,9 @@ public class DecoyGame extends GameService {
     }
 
     public void setGameMap(GameMap gameMap) {
-        GameMap oldMap = get(GameMap.class);
+        List<GameMap> oldMap = getAll(GameMap.class);
         add(gameMap);
-        remove(oldMap);
-        oldMap.cleanup();
+        oldMap.forEach(this::remove);
+        oldMap.forEach(GameAspect::cleanup);
     }
 }
