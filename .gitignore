@@ -9,6 +9,7 @@ tex/
 img/
 gen
 !/tex/Game Concept.pdf
-MapDesigner.jar
 res/colladaFiles/
-/Demonstrator/
+Demonstrator/
+Screenshots/
+blend/

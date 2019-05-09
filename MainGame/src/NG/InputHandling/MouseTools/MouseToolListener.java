@@ -16,8 +16,8 @@ public interface MouseToolListener {
 
     /**
      * checks whether a scroll action can be handled by this object
-     * @param xSc   the screen x position of the mouse
-     * @param ySc   the screen y position of the mouse
+     * @param xSc  the screen x position of the mouse
+     * @param ySc  the screen y position of the mouse
      * @param value the amount of scrolling
      * @return true iff the scroll has been handled by this object
      */

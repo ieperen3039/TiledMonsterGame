@@ -1,0 +1,35 @@
+# Description of a monster soul, to be parsed as basis.
+
+# summation of [stimulus - importance - [associated emotion : addition]]
+stimulus:
+        BaseStimulus.DAMAGE         1.0     FRIGHT:10
+        BaseStimulus.DEATH          1.0     FRIGHT:100
+        BaseStimulus.REWARD         1.0     EXCITEMENT:10   ANGER:-10
+        BaseStimulus.AFFECTION      0.8     SELF_CONFIDENCE:10
+        BaseStimulus.RESPECT        0.8     SELF_CONFIDENCE:20
+        BaseStimulus.ANNOYANCE      0.4     ANGER:50
+        BaseStimulus.FOOTSTEP       0.1     CURIOUSNESS:1
+        BaseStimulus.EXPLOSION      1.0     CURIOUSNESS:10  FRIGHT:10
+        BaseStimulus.RUMBLE         0.5     CURIOUSNESS:1   FRIGHT:5
+        BaseStimulus.FLASH          1.0     CURIOUSNESS:50
+        Command.Command		        1.0     STRESS:1 		
+end
+
+# values of emotions and their un-normalized transformations per second. Table describes [row affects col]
+emotion:
+#       from-emotion        base    | EXCITEMENT  | CURIOUSNESS   | FRIGHT   | ANGER   | PATIENCE    | SELF_CONFIDENCE   | STRESS
+        EXCITEMENT          100     | -0.005      | 0.00          | -0.01    | 0.0     | -0.005      | 0.0               | -0.001
+        CURIOUSNESS         100     | 0.01        | -0.005        | -0.01    | 0.0     | -0.003      | 0.0               | 0.0   
+        FRIGHT              0       | 0.01        | -0.005        | -0.001   | -0.01   | 0.0         | -0.002            | 0.005
+        ANGER               0       | 0.03        | 0.00          | -0.01    | -0.005  | -0.01       | 0.0               | 0.001
+        PATIENCE            50      | -0.02       | -0.01         | 0.0      | -0.03   | 0.001       | 0.0               | -0.001
+        SELF_CONFIDENCE     50      | 0.00        | 0.005         | -0.01    | 0.0     | 0.0         | 0.0               | -0.001
+        STRESS              0       | 0.02        | -0.01         | 0.04     | 0.01    | -0.005      | -0.0005           | -0.0001
+end
+
+value:
+#		emotion				value
+		FRIGHT          	-1.0
+		SELF_CONFIDENCE 	1.0
+		STRESS          	-0.1
+end

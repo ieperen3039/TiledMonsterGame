@@ -1,7 +1,9 @@
 package NG;
 
 import NG.Engine.Game;
+import NG.GUIMenu.Frames.Components.*;
 import NG.GUIMenu.Frames.GUIManager;
+import NG.GameMap.*;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Rendering.GLFWWindow;
 import org.joml.Vector2i;
