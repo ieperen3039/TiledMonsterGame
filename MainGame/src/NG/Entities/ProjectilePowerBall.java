@@ -1,8 +1,13 @@
 package NG.Entities;
 
+import NG.Actions.Commands.Command;
+import NG.Actions.Commands.CommandAttack;
+import NG.Actions.Commands.CommandSelection;
 import NG.CollisionDetection.BoundingBox;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
+import NG.GameMap.GameMap;
+import NG.Living.Living;
 import NG.Particles.GameParticles;
 import NG.Particles.Particles;
 import NG.Rendering.Material;
@@ -12,6 +17,7 @@ import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Settings.Settings;
 import NG.Tools.Vectors;
+import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -83,6 +89,21 @@ public class ProjectilePowerBall extends Projectile {
         }
 
         gl.render(mesh, this);
+    }
+
+    public static CommandSelection.CommandProvider command(final Game game) {
+        return new CommandSelection.CommandProvider("PowerBall") {
+            @Override
+            public Command create(Living source, Living receiver, Vector2ic target) {
+                MonsterEntity entity = receiver.entity();
+                if (entity == null) return null;
+
+                Vector3f targetPosition = game.get(GameMap.class).getPosition(target);
+                Projectile prj = new ProjectilePowerBall(game, receiver, targetPosition, 2, 0.5f);
+
+                return new CommandAttack(source, entity, prj);
+            }
+        };
     }
 
     @Override

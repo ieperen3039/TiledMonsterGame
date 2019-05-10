@@ -20,12 +20,12 @@ public class SoulDescription {
     public Emotion.ECollection emotions = null;
     public EnumMap<Emotion, Float> emotionValues = new EnumMap<>(Emotion.class);
 
+    public String name = "Generic Monster";
+
     public SoulDescription(File description) throws IOException {
-        int lineNr = -1;
         try (Scanner reader = new Scanner(new FileInputStream(description))) {
             while (reader.hasNext()) {
                 String line = reader.nextLine().trim();
-                lineNr++;
                 if (line.isEmpty() || line.charAt(0) == '#') continue; // ignore comments and blank lines
 
                 switch (line) {
@@ -41,13 +41,15 @@ public class SoulDescription {
                         // sets emotionValue
                         readEmotionValues(reader);
                         break;
+                    case "name:":
+                        name = reader.nextLine().trim();
                     default:
                         throw new IllegalStateException("Unexpected input: " + line);
                 }
 
             }
         } catch (Exception ex) {
-            String message = (lineNr == -1) ? "Error while loading file" : "Error on line " + lineNr;
+            String message = "Error while loading file";
             throw new IOException(message, ex);
         }
     }

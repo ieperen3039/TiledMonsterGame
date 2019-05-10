@@ -293,7 +293,7 @@ public final class Vectors {
         int windowHeight = window.getHeight();
         Matrix4f projection = camera.getViewProjection((float) windowWidth / windowHeight);
 
-        Vector2f winCoords = new Vector2f(xSc, ySc);
+        Vector2f winCoords = new Vector2f(xSc, windowHeight - ySc);
         int[] viewport = {0, 0, windowWidth, windowHeight};
         projection.unprojectRay(winCoords, viewport, origin, direction);
     }

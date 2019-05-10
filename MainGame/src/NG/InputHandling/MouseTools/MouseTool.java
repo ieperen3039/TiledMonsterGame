@@ -26,14 +26,16 @@ public interface MouseTool
     /**
      * applies the functionality of this tool to the given entity
      * @param entity an entity that is clicked on using this tool, always not null
-     * @param xSc
-     * @param ySc
+     * @param xSc       screen x position of the mouse in pixels from left
+     * @param ySc       screen y position of the mouse in pixels from top
      */
     void apply(Entity entity, int xSc, int ySc);
 
     /**
      * applies the functionality of this tool to the given position in the world
      * @param position a position in the world where is clicked.
+     * @param xSc       screen x position of the mouse in pixels from left
+     * @param ySc       screen y position of the mouse in pixels from top
      */
-    void apply(Vector3fc position);
+    void apply(Vector3fc position, int xSc, int ySc);
 }

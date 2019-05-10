@@ -5,7 +5,6 @@ import NG.GUIMenu.Frames.Components.*;
 import NG.GUIMenu.Frames.GUIManager;
 import NG.GameMap.*;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
-import NG.Rendering.GLFWWindow;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
@@ -44,9 +43,6 @@ class DualEditorTool extends DefaultMouseTool {
 
         if (game.get(GUIManager.class).checkMouseClick(this, x, y)) return;
 
-        // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
-        y = game.get(GLFWWindow.class).getHeight() - y;
-
         activationFunc = this::applyBlockmap;
         if (blockMap.checkMouseClick(this, x, y)) return;
 
@@ -55,7 +51,7 @@ class DualEditorTool extends DefaultMouseTool {
     }
 
     @Override
-    public void apply(Vector3fc position) {
+    public void apply(Vector3fc position, int xSc, int ySc) {
         activationFunc.accept(position);
     }
 

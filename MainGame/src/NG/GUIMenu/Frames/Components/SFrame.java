@@ -11,7 +11,7 @@ import org.joml.Vector4ic;
 import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.FRAME_BODY;
 
 /**
- * A Frame object similar to {@link javax.swing.JFrame} objects. The {@link #setMainPanel(SContainer)} can be used for
+ * A Frame object similar to {@link javax.swing.JFrame} objects. The {@link #setMainPanel(SComponent)} can be used for
  * full control over the contents of the SFrame.
  * @author Geert van Ieperen. Created on 20-9-2018.
  */
@@ -66,6 +66,12 @@ public class SFrame extends SContainer {
         this(title, 0, 0);
     }
 
+    public SFrame(String title, SComponent mainPanel) {
+        this(title);
+        setMainPanel(mainPanel);
+        pack();
+    }
+
     public void setTitle(String title) {
         titleComponent.setText(title);
     }
@@ -90,7 +96,7 @@ public class SFrame extends SContainer {
      * @param comp the new middle component
      * @return this
      */
-    public SFrame setMainPanel(SContainer comp) {
+    public SFrame setMainPanel(SComponent comp) {
         comp.setPosition(0, upperBar.getHeight());
         super.add(comp, null); // single element layout
         return this;
@@ -98,7 +104,7 @@ public class SFrame extends SContainer {
 
     /**
      * This method should not be used. The main panel should be modified, which can be set with {@link
-     * #setMainPanel(SContainer)}
+     * #setMainPanel(SComponent)}
      * @throws UnsupportedOperationException always
      * @deprecated this should not be used
      */

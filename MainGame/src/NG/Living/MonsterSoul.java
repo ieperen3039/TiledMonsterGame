@@ -1,6 +1,7 @@
 package NG.Living;
 
 import NG.Actions.ActionIdle;
+import NG.Actions.BrokenMovementException;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.Command.CType;
 import NG.Actions.EntityAction;
@@ -24,7 +25,6 @@ import java.util.ArrayDeque;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 /**
  * @author Geert van Ieperen created on 4-2-2019.
@@ -49,6 +49,7 @@ public abstract class MonsterSoul implements Living, Storable {
 
     protected Game game;
     private MonsterEntity entity;
+    private String monsterName;
 
     private int hitpoints;
     private EntityStatistics stats;
@@ -58,11 +59,6 @@ public abstract class MonsterSoul implements Living, Storable {
 
     private ArrayDeque<Command> plan;
     private volatile Command executionTarget;
-    private EntityAction executionAction;
-    private float executionStart;
-
-    /** restricts the number of pending action events to 1 */
-    private final Semaphore actionEventLock;
 
     /**
      * read a monster description from the given file
@@ -70,7 +66,6 @@ public abstract class MonsterSoul implements Living, Storable {
      */
     public MonsterSoul(SoulDescription soulDescription) {
         this.plan = new ArrayDeque<>();
-        this.actionEventLock = new Semaphore(1, false);
         this.associationStimuli = new Associator<>(Type.class, ATTENTION_SIZE, ASSOCIATION_SIZE);
         this.actionAssociator = new Associator<>(CType.class, ATTENTION_SIZE, 4);
 
@@ -78,6 +73,7 @@ public abstract class MonsterSoul implements Living, Storable {
         this.stimulusEffects = soulDescription.stimulusEffects;
         this.emotionValues = soulDescription.emotionValues;
         this.emotions = soulDescription.emotions;
+        this.monsterName = soulDescription.name;
 
         this.stats = new EntityStatistics(100);
         this.hitpoints = stats.hitPoints;
@@ -85,7 +81,6 @@ public abstract class MonsterSoul implements Living, Storable {
 
     public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
         this.game = game;
-        this.executionStart = 0f;
 
         if (entity != null) {
             entity.dispose();
@@ -114,7 +109,10 @@ public abstract class MonsterSoul implements Living, Storable {
             EntityAction next = executionTarget.getAction(game, position, gameTime);
 
             if (next != null) {
-                assert next.getStartPosition().equals(position) : next.getStartPosition() + " != " + position;
+                if (next != previous && !next.getStartPosition().equals(position)) {
+                    throw new BrokenMovementException(previous, next, action.right);
+                }
+
                 return next;
             }
 
@@ -270,7 +268,6 @@ public abstract class MonsterSoul implements Living, Storable {
 
     public MonsterSoul(DataInputStream in) throws IOException, ClassNotFoundException {
         this.plan = new ArrayDeque<>();
-        this.actionEventLock = new Semaphore(1, false);
         importance = new HashMap<>(); // TODO serialize
         stimulusEffects = new HashMap<>();
         emotionValues = new EnumMap<>(Emotion.class);
@@ -283,13 +280,18 @@ public abstract class MonsterSoul implements Living, Storable {
 
     public SPanel getStatisticsPanel(int buttonHeight) {
         return SPanel.column(
-                new SNamedValue("Happiness", () -> emotions.calculateJoy(emotionValues), buttonHeight),
-                new SNamedValue("Health points", () -> hitpoints, buttonHeight)
+                new SNamedValue("Health points", () -> hitpoints, buttonHeight),
+                new SNamedValue("Happiness", () -> String.format("%1.02f", emotions.calculateJoy(emotionValues)), buttonHeight)
         );
     }
 
     @Override
     public String toString() {
-        return entity.toString();
+        return monsterName;
+    }
+
+    @Override
+    public MonsterEntity entity() {
+        return entity;
     }
 }

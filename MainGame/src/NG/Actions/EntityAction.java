@@ -69,9 +69,9 @@ public interface EntityAction extends Stimulus {
      * @return the rotation from the base at the given moment in time as described by this action.
      */
     default Quaternionf getRotationAt(float timeSinceStart) {
-        Vector3fc startPosition = getPositionAt(0);
-        Vector3fc endPosition = getPositionAt(duration());
-        Vector3f relativeMovement = new Vector3f(startPosition).sub(endPosition);
+        Vector3f startPosition = getPositionAt(0);
+        Vector3f endPosition = getPositionAt(duration());
+        Vector3f relativeMovement = endPosition.sub(startPosition);
         return Vectors.getPitchYawRotation(relativeMovement);
     }
 }

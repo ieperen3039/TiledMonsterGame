@@ -2,8 +2,6 @@ package NG.Entities;
 
 import NG.Actions.ActionIdle;
 import NG.Actions.ActionQueue;
-import NG.Actions.Commands.AttackCommandTool;
-import NG.Actions.Commands.WalkCommandTool;
 import NG.Actions.EntityAction;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
@@ -14,11 +12,9 @@ import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.GUIMenu.Frames.Components.SFrame;
 import NG.GUIMenu.Frames.Components.SPanel;
-import NG.GUIMenu.Frames.Components.SToggleButton;
 import NG.GUIMenu.Frames.GUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.GameMap;
-import NG.InputHandling.KeyMouseCallbacks;
 import NG.Living.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector2i;
@@ -111,13 +107,7 @@ public abstract class MonsterEntity implements Entity {
 
         frame = new SFrame("Entity " + this);
         frame.setMainPanel(SPanel.column(
-                controller.getStatisticsPanel(buttonHeight),
-                SPanel.column(
-                        new SToggleButton("Walk to...", 400, buttonHeight, (s) -> game.get(KeyMouseCallbacks.class)
-                                .setMouseTool(s ? new WalkCommandTool(game, this) : null)),
-                        new SToggleButton("Attack...", 400, buttonHeight, (s) -> game.get(KeyMouseCallbacks.class)
-                                .setMouseTool(s ? new AttackCommandTool(game, this) : null))
-                )
+                controller.getStatisticsPanel(buttonHeight)
         ));
         frame.pack();
         game.get(GUIManager.class).addFrame(frame);

@@ -1,5 +1,7 @@
 package NG.Living;
 
+import NG.Entities.MonsterEntity;
+
 import java.util.function.Consumer;
 
 /**
@@ -8,5 +10,8 @@ import java.util.function.Consumer;
  * @see MonsterSoul
  */
 public interface Living extends Consumer<Stimulus> {
-
+    /**
+     * @return The entity associated with this living being, or null if this Living has currently no entity
+     */
+    MonsterEntity entity();
 }

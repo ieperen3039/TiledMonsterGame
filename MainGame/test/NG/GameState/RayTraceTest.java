@@ -58,7 +58,7 @@ public class RayTraceTest {
         // middle of screen must be focus
         instance.checkMouseClick(new TestTool() {
             @Override
-            public void apply(Vector3fc position) {
+            public void apply(Vector3fc position, int xSc, int ySc) {
                 Logger.DEBUG.print(position);
                 assertTrue(position.distance(new Vector3f(0, 0, 0)) < 1f);
             }
@@ -74,7 +74,7 @@ public class RayTraceTest {
         // middle of screen must be focus
         instance.checkMouseClick(new TestTool() {
             @Override
-            public void apply(Vector3fc position) {
+            public void apply(Vector3fc position, int xSc, int ySc) {
                 Logger.DEBUG.print(position);
                 assertTrue(position.distance(new Vector3f(0, 0, 0)) < 1f);
             }
@@ -126,7 +126,7 @@ public class RayTraceTest {
         // test whether this screen position results in almost the right coordinate
         instance.checkMouseClick(new TestTool() {
             @Override
-            public void apply(Vector3fc position) {
+            public void apply(Vector3fc position, int xSc, int ySc) {
                 Logger.DEBUG.print(original, screen, position);
                 assertTrue(position.distance(new Vector3f(original.x(), original.y(), 0f)) < 1f);
             }
@@ -146,7 +146,7 @@ public class RayTraceTest {
         }
 
         @Override
-        public void apply(Vector3fc position) {
+        public void apply(Vector3fc position, int xSc, int ySc) {
             Logger.DEBUG.print(Vectors.toString(position));
         }
 

@@ -271,13 +271,14 @@ public class ClickShader implements ShaderProgram {
                 unbind();
 
                 // extract information
+                GLFWWindow window = game.get(GLFWWindow.class);
+                int windowHeight = window.getHeight();
 
                 if (game.get(Settings.class).DEBUG) {
-                    GLFWWindow window = game.get(GLFWWindow.class);
                     window.printScreen(Directory.screenshots, "click", GL11.GL_BACK);
                 }
 
-                Vector3i value = ClickShader.getPixelValue(xPos, yPos);
+                Vector3i value = ClickShader.getPixelValue(xPos, windowHeight - yPos);
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 int i = colorToNumber(value);

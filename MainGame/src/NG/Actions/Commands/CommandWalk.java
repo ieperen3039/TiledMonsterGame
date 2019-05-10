@@ -43,4 +43,13 @@ public class CommandWalk extends Command {
 
         return new ActionWalk(game, beginPosition, path.next(), walkSpeed);
     }
+
+    public static CommandSelection.CommandProvider provider() {
+        return new CommandSelection.CommandProvider("Walk") {
+            @Override
+            public Command create(Living source, Living receiver, Vector2ic target) {
+                return new CommandWalk(receiver, receiver, target);
+            }
+        };
+    }
 }

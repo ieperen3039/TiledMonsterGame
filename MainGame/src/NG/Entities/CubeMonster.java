@@ -27,14 +27,13 @@ import java.util.Map;
  */
 public class CubeMonster extends MonsterSoul {
     private static final float HALF_SIZE = 0.4f;
-    private static final BodyModel BODY_MODEL = BodyModel.CUBE;
 
     private final Map<SkeletonBone, BoneElement> boneMap;
     private final BoundingBox hitbox = new BoundingBox(-HALF_SIZE, -HALF_SIZE, 0, HALF_SIZE, HALF_SIZE, HALF_SIZE * 2);
 
     public CubeMonster(File description) throws IOException {
         super(new SoulDescription(description));
-        boneMap = Map.of(BODY_MODEL.getBone("cube_root"),
+        boneMap = Map.of(BodyModel.CUBE.getBone("cube_root"),
                 new CubeElement(HALF_SIZE)
         );
     }
@@ -104,7 +103,7 @@ public class CubeMonster extends MonsterSoul {
 
         @Override
         protected BodyModel bodyModel() {
-            return BODY_MODEL;
+            return BodyModel.CUBE;
         }
 
         @Override
@@ -129,6 +128,7 @@ public class CubeMonster extends MonsterSoul {
     }
 
     private class CubeElement extends BoneElement {
+        private static final int ELEVATION = 3;
         private final float size;
 
         CubeElement(float size) {
@@ -138,13 +138,15 @@ public class CubeMonster extends MonsterSoul {
 
         @Override
         public void draw(SGL gl, NG.Entities.Entity entity) {
-            gl.translate(0, 0, 2);
-            Toolbox.drawAxisFrame(gl);
-            gl.translate(0, 0, -2);
-
-            gl.translate(0, 0, size);
-            gl.scale(size);
-            super.draw(gl, entity);
+            gl.pushMatrix();
+            {
+                gl.translate(0, 0, ELEVATION);
+                Toolbox.drawAxisFrame(gl);
+                gl.translate(0, 0, size - ELEVATION);
+                gl.scale(size);
+                super.draw(gl, entity);
+            }
+            gl.popMatrix();
         }
     }
 }

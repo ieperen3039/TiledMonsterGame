@@ -84,4 +84,5 @@ public class ActionWalk implements EntityAction {
     public boolean hasWorldCollision() {
         return false;
     }
+
 }

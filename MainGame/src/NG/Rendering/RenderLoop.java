@@ -99,8 +99,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             Vector3f origin = new Vector3f();
             Vector3f direction = new Vector3f();
 
-            int correctedY = window.getHeight() - yPos;
-            Vectors.windowCoordToRay(game, xPos, correctedY, origin, direction);
+            Vectors.windowCoordToRay(game, xPos, yPos, origin, direction);
 
             GameMap map = game.get(GameMap.class);
             Vector3f result;

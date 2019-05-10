@@ -42,7 +42,7 @@ public abstract class AbstractMap implements GameMap {
         if (t == 1) return false;
 
         Vector3f position = new Vector3f(direction).mul(t).add(origin);
-        tool.apply(position);
+        tool.apply(position, xSc, ySc);
         return true;
     }
 

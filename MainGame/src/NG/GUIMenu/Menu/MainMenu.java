@@ -244,7 +244,7 @@ public class MainMenu extends SFrame {
         }
 
         @Override
-        public void apply(Vector3fc position) {
+        public void apply(Vector3fc position, int xSc, int ySc) {
             Vector2i second = game.get(GameMap.class).getCoordinate(position);
 
             if (first == null) {

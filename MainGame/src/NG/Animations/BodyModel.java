@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Geert van Ieperen created on 28-2-2019.
  */
 public enum BodyModel {
-    CUBE(new SkeletonBone("cube_root", 0, 0, 0, 0, 0, 0, 0, 0)),
+    CUBE(new SkeletonBone("cube_root", 0, 0, 0, 0, 0, 0, 0, 1)),
     ANTHRO("anthro.skelbi"),
     TEST_ANTHRO(getAnthro());
 

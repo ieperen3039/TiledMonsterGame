@@ -33,7 +33,7 @@ public abstract class Command implements Stimulus {
     }
 
     /**
-     * @return the identity that issued the command.
+     * @return the entity that issued the command.
      */
     public Living getSource() {
         return source;
@@ -50,6 +50,9 @@ public abstract class Command implements Stimulus {
      */
     public abstract EntityAction getAction(Game game, Vector3fc startPosition, float gameTime);
 
+    /**
+     * @return the entity that is supposed to execute the command
+     */
     public Living getTarget() {
         return target;
     }

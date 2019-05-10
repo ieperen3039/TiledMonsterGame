@@ -1,6 +1,5 @@
-package NG.Actions.Commands;
+package NG.Actions;
 
-import NG.Actions.EntityAction;
 import NG.Animations.CompoundAnimation;
 import NG.Animations.UniversalAnimation;
 import org.joml.Quaternionf;
