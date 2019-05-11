@@ -17,13 +17,11 @@ import NG.Rendering.Shaders.*;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Rendering.Textures.Texture;
 import NG.Settings.Settings;
-import NG.Tools.Directory;
-import NG.Tools.Logger;
-import NG.Tools.Toolbox;
-import NG.Tools.Vectors;
+import NG.Tools.*;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,6 +44,8 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private boolean arrowIsVisible = false;
     private SceneShader uiShader;
 
+    private TimeObserver timeObserver;
+
     /**
      * creates a new, paused gameloop
      * @param targetFPS the target frames per second
@@ -56,6 +56,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         renders = new HashMap<>();
 
         arrowPointer = new Pointer();
+        timeObserver = new TimeObserver(targetFPS / 4, false);
     }
 
     public void init(Game game) throws IOException {
@@ -75,7 +76,13 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                 .add(game.get(GameLights.class)::draw)
                 .add(arrowPointer::draw);
 
-        game.get(KeyMouseCallbacks.class).addMousePositionListener(this::updateArrow);
+        KeyMouseCallbacks input = game.get(KeyMouseCallbacks.class);
+        input.addMousePositionListener(this::updateArrow);
+        input.addKeyPressListener(k -> {
+            if (k == GLFW.GLFW_KEY_PERIOD) {
+                Logger.DEBUG.print("\n" + timeObserver.resultsTable());
+            }
+        });
     }
 
     /**
@@ -134,12 +141,15 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     protected void update(float deltaTime) {
         // current time
         game.get(GameTimer.class).updateRenderTime();
+        timeObserver.startNewLoop();
 
         // camera
         game.get(Camera.class).updatePosition(deltaTime); // real-time deltatime
 
+        timeObserver.startTiming("Lights");
         GameLights lights = game.get(GameLights.class);
         lights.renderShadowMaps();
+        timeObserver.endTiming("Lights");
 
         GLFWWindow window = game.get(GLFWWindow.class);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -147,11 +157,18 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         glEnable(GL_LINE_SMOOTH);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        renders.values().forEach(RenderBundle::draw);
+        for (RenderBundle renderBundle : renders.values()) {
+            String identifier = renderBundle.shader.getClass().getSimpleName();
+            timeObserver.startTiming(identifier);
+            renderBundle.draw();
+            timeObserver.endTiming(identifier);
+        }
 
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
+        timeObserver.startTiming("GUI");
         overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
+        timeObserver.endTiming("GUI");
 
         // update window
         window.update();

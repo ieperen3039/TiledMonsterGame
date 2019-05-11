@@ -26,7 +26,7 @@ public class Settings {
     public static final float Z_NEAR = 0.01f;
     public static final float Z_FAR = 1000;
     public int TARGET_FPS = 60;
-    public boolean V_SYNC = true;
+    public boolean V_SYNC = false;
     public int DEFAULT_WINDOW_WIDTH = 1200;
     public int DEFAULT_WINDOW_HEIGHT = 800;
     public int ANTIALIAS_LEVEL = 1;

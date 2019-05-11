@@ -91,15 +91,15 @@ public class MonsterGame implements ModLoader {
     }
 
     private GameService createWorld(String name, String mainThreadName, Settings settings, GameMap pocketMap) {
-        Camera pocketView = new TycoonFixedCamera(new Vector3f(), 10, 10);
-        EventLoop pocketGameLoop = new GameEventQueueLoop(name + " Loop", settings.TARGET_TPS);
-        GameState pocketGameState = new DynamicState();
-        GameLights pocketLights = new SingleShadowMapLights();
-        GameParticles pocketParticles = new GameParticles();
-        GameTimer pocketTimer = new GameTimer(settings.RENDER_DELAY);
+        Camera camera = new TycoonFixedCamera(new Vector3f(), 10, 10);
+        EventLoop eventLoop = new GameEventQueueLoop(name + " Loop", settings.TARGET_TPS);
+        GameState gameState = new DynamicState();
+        GameLights lights = new SingleShadowMapLights();
+        GameParticles particles = new GameParticles();
+        GameTimer timer = new GameTimer(settings.RENDER_DELAY);
 
         return new GameService(GAME_VERSION, mainThreadName,
-                pocketGameLoop, pocketGameState, pocketMap, pocketLights, pocketView, pocketParticles, pocketTimer,
+                eventLoop, gameState, pocketMap, lights, camera, particles, timer,
                 settings, window, renderer, inputHandler, frameManager
         );
     }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.function.Consumer;
 
 /**
  * A collection of references to any major element of the game.
@@ -61,6 +62,21 @@ public interface Game extends Iterable<Object> {
      * @return true iff the element was found and removed
      */
     boolean remove(Object original);
+
+    /**
+     * if the given target class is part of this game, execute it and return true. if no such class is found, nothing is
+     * executed and false is returned.
+     * @param target a class that is part of this game
+     * @param action an action that uses an instance of such object
+     * @return {@link #has(Class) this.has(target)}
+     */
+    default <T> boolean ifAvailable(Class<T> target, Consumer<T> action) {
+        if (has(target)) {
+            action.accept(get(target));
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @return the version of the game engine
