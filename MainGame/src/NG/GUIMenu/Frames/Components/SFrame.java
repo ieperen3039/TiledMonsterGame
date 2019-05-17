@@ -1,12 +1,11 @@
 package NG.GUIMenu.Frames.Components;
 
+import NG.GUIMenu.Frames.ComponentBorder;
 import NG.GUIMenu.Frames.LayoutManagers.SingleElementLayout;
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
 import NG.GUIMenu.NGFonts;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
-import org.joml.Vector4i;
-import org.joml.Vector4ic;
 
 import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.FRAME_BODY;
 
@@ -41,7 +40,7 @@ public class SFrame extends SContainer {
      * @see SPanel
      */
     public SFrame(String title, int width, int height, boolean manipulable) {
-        super(new SingleElementLayout(), false, false);
+        super(new SingleElementLayout());
         this.title = title;
 
         if (manipulable) {
@@ -174,17 +173,14 @@ public class SFrame extends SContainer {
     @Override
     public void validateLayout() {
         if (layoutIsValid()) return;
-        dimensions.x = Math.max(dimensions.x, minWidth());
-        dimensions.y = Math.max(dimensions.y, minHeight());
 
-        upperBar.setSize(getWidth(), FRAME_TITLE_BAR_SIZE);
         upperBar.validateLayout();
         super.validateLayout();
     }
 
     @Override
-    protected Vector4ic getBorderSize() {
-        return new Vector4i(INNER_BORDER, INNER_BORDER + upperBar.getHeight(), INNER_BORDER, INNER_BORDER);
+    protected ComponentBorder getLayoutBorder() {
+        return new ComponentBorder(INNER_BORDER, INNER_BORDER, INNER_BORDER + upperBar.getHeight(), INNER_BORDER);
     }
 
     /**

@@ -1,19 +1,17 @@
 package NG.GUIMenu.Frames.LayoutManagers;
 
 import NG.GUIMenu.Frames.Components.SComponent;
-import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-import java.util.Collections;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
+import java.util.*;
 
 /**
+ * Uses {@link Vector2ic} as object placement. The vector determines the grid (x, y) position and must be positive
  * @author Geert van Ieperen. Created on 21-9-2018.
  */
 public class GridLayoutManager implements SLayoutManager {
     private final SComponent[][] grid;
-    private int changeChecker = 0;
+    private int nrOfElements;
     private final int xElts;
     private final int yElts;
 
@@ -25,13 +23,6 @@ public class GridLayoutManager implements SLayoutManager {
     private boolean[] rowWantGrow;
     private boolean[] colWantGrow;
 
-    private Vector2i position = new Vector2i();
-    private Vector2i dimensions = new Vector2i();
-
-    GridLayoutManager() {
-        this(3, 3);
-    }
-
     public GridLayoutManager(int xElts, int yElts) {
         assert xElts > 0 && yElts > 0 : "A grid without room for items is not allowed";
         this.grid = new SComponent[xElts][yElts];
@@ -41,6 +32,7 @@ public class GridLayoutManager implements SLayoutManager {
         minRowHeight = new int[yElts];
         colWantGrow = new boolean[xElts];
         rowWantGrow = new boolean[yElts];
+        nrOfElements = 0;
     }
 
     /**
@@ -60,17 +52,20 @@ public class GridLayoutManager implements SLayoutManager {
             ));
         }
 
-        changeChecker++;
+        nrOfElements++;
     }
 
     @Override
     public void add(SComponent comp, Object prop) {
+        assert comp != null;
+
         if (prop instanceof Vector2ic) {
             Vector2ic pos = (Vector2ic) prop;
             add(comp, pos.x(), pos.y());
 
         } else {
-            throw new IllegalArgumentException("prop must be an Vector2i instance, but was " + prop.getClass());
+            throw new IllegalArgumentException("prop must be an Vector2i instance, but was " + (prop == null ? "null" : prop
+                    .getClass()));
         }
     }
 
@@ -81,7 +76,7 @@ public class GridLayoutManager implements SLayoutManager {
             for (int y = 0; y < yElts; y++) {
                 if (comp.equals(col[y])) {
                     grid[x][y] = null;
-                    changeChecker++;
+                    nrOfElements--;
                     return;
                 }
             }
@@ -90,7 +85,7 @@ public class GridLayoutManager implements SLayoutManager {
 
     @Override
     public void recalculateProperties() {
-        int startChangeNr = changeChecker;
+        int startChangeNr = nrOfElements;
         nOfRowGrows = 0;
         nOfColGrows = 0;
         rowWantGrow = new boolean[yElts];
@@ -122,13 +117,23 @@ public class GridLayoutManager implements SLayoutManager {
         }
 
         // if something changed while restructuring, try again
-        if (startChangeNr != changeChecker) recalculateProperties();
+        if (startChangeNr != nrOfElements) recalculateProperties();
     }
 
     @Override
-    public Iterable<SComponent> getComponents() {
-        if (grid.length == 0) return Collections.emptySet();
-        return GridIterator::new;
+    public Collection<SComponent> getComponents() {
+        if (nrOfElements == 0) return Collections.emptySet();
+        return new AbstractCollection<>() {
+            @Override
+            public Iterator<SComponent> iterator() {
+                return new GridIterator();
+            }
+
+            @Override
+            public int size() {
+                return nrOfElements;
+            }
+        };
     }
 
     @Override
@@ -150,19 +155,13 @@ public class GridLayoutManager implements SLayoutManager {
     }
 
     @Override
-    public void setDimensions(Vector2ic position, Vector2ic dimensions) {
-        this.position.set(position);
-        this.dimensions.set(dimensions);
-    }
-
-    @Override
-    public void placeComponents() {
+    public void placeComponents(Vector2ic position, Vector2ic dimensions) {
         int[] colSizes = calculateDimensionSizes(minColWidth, nOfColGrows, colWantGrow, dimensions.x());
         int[] rowSizes = calculateDimensionSizes(minRowHeight, nOfRowGrows, rowWantGrow, dimensions.y());
 
-        int xPos = position.x;
+        int xPos = position.x();
         for (int x = 0; x < xElts; x++) {
-            int yPos = position.y;
+            int yPos = position.y();
             for (int y = 0; y < yElts; y++) {
                 SComponent elt = grid[x][y];
 
@@ -230,26 +229,33 @@ public class GridLayoutManager implements SLayoutManager {
     }
 
     private class GridIterator implements Iterator<SComponent> {
-        int startChangeNr = changeChecker;
+        final int yMax;
+        final int startNrOfElts = nrOfElements;
         int xCur = -1;
         int yCur = 0;
 
         GridIterator() {
+            yMax = grid[0].length;
             progress();
         }
 
         @Override
         public boolean hasNext() {
-            return yCur < grid[0].length;
+            return yCur < yMax;
         }
 
         @Override
         public SComponent next() {
-            if (startChangeNr != changeChecker) {
+            if (startNrOfElts != nrOfElements) {
                 throw new ConcurrentModificationException("Grid changed while iterating");
             }
 
             SComponent retVal = grid[xCur][yCur];
+
+            if (retVal == null) {
+                throw new IllegalStateException(String.format("null on (%d, %d) with %d elements", xCur, yCur, nrOfElements));
+            }
+
             progress();
             return retVal;
         }

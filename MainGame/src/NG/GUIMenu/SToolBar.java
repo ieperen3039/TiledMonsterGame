@@ -20,7 +20,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
  */
 public class SToolBar extends SContainer implements MouseReleaseListener, MouseRelativeClickListener {
     public static final int MAX_BAR_ICONS = 20; // TODO look for opportunity of calculating this
-    private static int BUTTON_SIZE = TOOL_BAR_HEIGHT - (SContainer.INNER_BORDER + SContainer.OUTER_BORDER);
+    private static int BUTTON_SIZE = TOOL_BAR_HEIGHT - (4 + 4);
 
     private Game game;
     private int i = 0;

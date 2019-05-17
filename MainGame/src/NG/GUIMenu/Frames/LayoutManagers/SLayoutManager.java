@@ -3,6 +3,8 @@ package NG.GUIMenu.Frames.LayoutManagers;
 import NG.GUIMenu.Frames.Components.SComponent;
 import org.joml.Vector2ic;
 
+import java.util.Collection;
+
 /**
  * a layout manager with the same purpose as an {@link java.awt.LayoutManager}: it lays the components in a nice order.
  * @author Geert van Ieperen. Created on 21-9-2018.
@@ -29,21 +31,24 @@ public interface SLayoutManager {
     void remove(SComponent comp);
 
     /**
-     * invalidates the properties of the components, and thus the state of the layout manager. After returning, call
-     * {@link #placeComponents()} to let the new layout have effect
+     * invalidates and recomputes the properties of the components, and thus the state of the layout manager. After
+     * returning, all getters will return the correct value. Call {@link #placeComponents(Vector2ic, Vector2ic)} to
+     * let the new layout have effect.
      */
     void recalculateProperties();
 
     /**
      * places the components of the layout at the previously set dimensions. When this method returns, all components
      * will be positioned and sized correctly
+     * @param position   upper left position of the layout
+     * @param dimensions size of the layout, as (width, height)
      */
-    void placeComponents();
+    void placeComponents(Vector2ic position, Vector2ic dimensions);
 
     /**
      * @return an iterable view of the loaded components
      */
-    Iterable<SComponent> getComponents();
+    Collection<SComponent> getComponents();
 
     /**
      * The returned value is only valid after a call to {@link #recalculateProperties()}
@@ -56,13 +61,6 @@ public interface SLayoutManager {
      * @return the minimum height of the components together in this layout
      */
     int getMinimumHeight();
-
-    /**
-     * sets the dimensions where the layout is drawn. This does not invalidate the layout.
-     * @param position   the position of the top left corner of the field where the objects should be placed
-     * @param dimensions the width and height of the area to draw
-     */
-    void setDimensions(Vector2ic position, Vector2ic dimensions);
 
     /**
      * @return the properties class expected when adding elements

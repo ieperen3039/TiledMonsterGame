@@ -1,6 +1,7 @@
 package NG.GUIMenu.Frames.Components;
 
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.NGFonts;
 import NG.InputHandling.MouseRelativeClickListener;
 import org.joml.Vector2ic;
 
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
+import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
 
 /**
  * A button with a state that only changes upon clicking the button
@@ -18,8 +19,6 @@ import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
 public class SToggleButton extends SComponent implements MouseRelativeClickListener {
     private final int minHeight;
     private final int minWidth;
-    private boolean vtGrow = false;
-    private boolean hzGrow = false;
     private String text;
 
     private boolean state;
@@ -64,11 +63,6 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
         addStateChangeListener(() -> stateChangeListener.accept(state));
     }
 
-    public void setGrowthPolicy(boolean horizontal, boolean vertical) {
-        hzGrow = horizontal;
-        vtGrow = vertical;
-    }
-
     @Override
     public int minWidth() {
         return minWidth;
@@ -80,20 +74,10 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
     }
 
     @Override
-    public boolean wantHorizontalGrow() {
-        return hzGrow;
-    }
-
-    @Override
-    public boolean wantVerticalGrow() {
-        return vtGrow;
-    }
-
-    @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         if (dimensions.x == 0 || dimensions.y == 0) return;
-        design.draw(state ? BUTTON_ACTIVE : BUTTON_INACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text);
+        design.draw(state ? BUTTON_PRESSED : BUTTON_ACTIVE, screenPosition, dimensions);
+        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
     }
 
     @Override

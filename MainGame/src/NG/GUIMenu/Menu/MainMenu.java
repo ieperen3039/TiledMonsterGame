@@ -68,11 +68,25 @@ public class MainMenu extends SFrame {
                         new SButton("Start Testworld", this::testWorld, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                         new SButton("Animation Tester", this::animationDisplay, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                         new SButton("Particle Tester", this::particles, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("GUI Tester", this::gui, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
                         new SFiller(),
                         new SButton("Exit game", exitGameAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
                 ),
                 new SFiller()
         ));
+    }
+
+    private void gui() {
+        SFrame newFrame = new SFrame("Gui tester", SPanel.column(
+                new SScrollableList(3,
+                        new SButton("Button 1", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Button 2", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Button 3", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Button 4", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Button 5", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                )
+        ));
+        overworld.get(GUIManager.class).addFrame(newFrame);
     }
 
     private void particles() {
@@ -107,23 +121,24 @@ public class MainMenu extends SFrame {
             int seed = Math.abs(Toolbox.random.nextInt());
             MapGeneratorMod mapGenerator = new SimpleMapGenerator(seed);
             mapGenerator.setSize(xSize + 1, ySize + 1);
-            overworld.get(GameMap.class).generateNew(mapGenerator);
+            GameMap gameMap = overworld.get(GameMap.class);
+            gameMap.generateNew(mapGenerator);
 
-            centerCamera(overworld.get(Camera.class), overworld.get(GameMap.class));
+            centerCamera(overworld.get(Camera.class), gameMap);
 
             modLoader.initMods(modLoader.allMods());
 
             // set camera to middle of map
-            Vector3f cameraFocus = centerCamera(overworld.get(Camera.class), overworld.get(GameMap.class));
+            Vector3f cameraFocus = centerCamera(overworld.get(Camera.class), gameMap);
             overworld.get(RenderLoop.class).setArrowVisibility(true);
 
             /* --- DEBUG SECTION --- */
 
             // add a default entity
-            Vector2i position = overworld.get(GameMap.class).getCoordinate(cameraFocus);
+            Vector2i position = gameMap.getCoordinate(cameraFocus);
             MonsterSoul monsterSoul = new CubeMonster(Directory.souls.getFile("soul1.txt"));
             MonsterEntity cow = monsterSoul.getAsEntity(overworld, position, Vectors.X);
-            overworld.get(GameState.class).addEntity(cow);
+            state.addEntity(cow);
 
             // give it some command
             Command command = new CommandWalk(new Player(), monsterSoul, new Vector2i(position.x + 1, position.y + 1));

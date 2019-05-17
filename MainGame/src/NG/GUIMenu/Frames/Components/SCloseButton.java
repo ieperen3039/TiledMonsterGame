@@ -7,7 +7,7 @@ import NG.InputHandling.MouseReleaseListener;
 import org.joml.Vector2ic;
 
 import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
+import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 /**
@@ -19,10 +19,12 @@ public class SCloseButton extends SComponent implements MouseReleaseListener, Mo
 
     public SCloseButton(SFrame frame) {
         this.closeAction = frame::dispose;
+        setGrowthPolicy(false, false);
     }
 
     public SCloseButton(Runnable closeAction) {
         this.closeAction = closeAction;
+        setGrowthPolicy(false, false);
     }
 
     public void setCloseAction(Runnable closeAction) {
@@ -40,18 +42,8 @@ public class SCloseButton extends SComponent implements MouseReleaseListener, Mo
     }
 
     @Override
-    public boolean wantHorizontalGrow() {
-        return false;
-    }
-
-    @Override
-    public boolean wantVerticalGrow() {
-        return false;
-    }
-
-    @Override
     public void draw(SFrameLookAndFeel design, Vector2ic scPos) {
-        design.draw(state ? BUTTON_ACTIVE : BUTTON_INACTIVE, scPos, dimensions);
+        design.draw(state ? BUTTON_PRESSED : BUTTON_ACTIVE, scPos, dimensions);
         design.drawText(scPos, dimensions, "X", NGFonts.TextType.ACCENT, SFrameLookAndFeel.Alignment.CENTER);
 
 //        try {

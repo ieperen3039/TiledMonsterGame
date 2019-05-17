@@ -56,6 +56,8 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         this.minWidth = minWidth;
         this.optionPane = new DropDownOptions(values);
         this.gui = gui;
+
+        setGrowthPolicy(true, false);
     }
 
     /**
@@ -107,6 +109,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         this.values = arr;
         this.optionPane = new DropDownOptions(arr);
         this.gui = gui;
+        setGrowthPolicy(true, false);
     }
 
     /** @return the index of the currently selected item in the original array */
@@ -135,7 +138,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
     }
 
     @Override
-    public void setParent(SContainer parent) {
+    public void setParent(SComponent parent) {
         super.setParent(parent);
         optionPane.setParent(parent);
     }
@@ -148,16 +151,6 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
     @Override
     public int minHeight() {
         return minHeight;
-    }
-
-    @Override
-    public boolean wantHorizontalGrow() {
-        return true;
-    }
-
-    @Override
-    public boolean wantVerticalGrow() {
-        return false;
     }
 
     @Override

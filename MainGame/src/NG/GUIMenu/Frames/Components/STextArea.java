@@ -12,7 +12,6 @@ public class STextArea extends SComponent {
     protected final NGFonts.TextType textType;
     protected String text;
 
-    private final boolean doGrowInWidth;
     private int height;
     private int specMinWidth;
 
@@ -20,8 +19,8 @@ public class STextArea extends SComponent {
         this.text = text;
         this.height = minHeight;
         this.specMinWidth = minWidth;
-        this.doGrowInWidth = doGrowInWidth;
         this.textType = textType;
+        setGrowthPolicy(doGrowInWidth, false);
     }
 
     public STextArea(String text, int minHeight) {
@@ -36,16 +35,6 @@ public class STextArea extends SComponent {
     @Override
     public int minHeight() {
         return height;
-    }
-
-    @Override
-    public boolean wantHorizontalGrow() {
-        return doGrowInWidth;
-    }
-
-    @Override
-    public boolean wantVerticalGrow() {
-        return false;
     }
 
     @Override

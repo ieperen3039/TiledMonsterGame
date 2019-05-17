@@ -12,12 +12,16 @@ import static org.junit.Assert.*;
  * @author Geert van Ieperen. Created on 22-9-2018.
  */
 public class GridLayoutManagerTest extends GridLayoutManager {
+    public GridLayoutManagerTest() {
+        super(3, 3);
+    }
+
     @Test
     public void minimumInvalidationTest() {
         add(new SPanel(10, 10, 1, 1, false, true), 0, 0);
         add(new SPanel(15, 15, 1, 2, false, false), 1, 1);
         super.recalculateProperties();
-        super.placeComponents();
+        super.placeComponents(new Vector2i(), new Vector2i());
 
         System.out.println("cols = " + Arrays.toString(getMinColWidth()) + " | " + "colGrow = " + Arrays.toString(getColWantGrow()));
 
@@ -58,8 +62,7 @@ public class GridLayoutManagerTest extends GridLayoutManager {
 
         final Vector2i pos = new Vector2i(100, 50);
         final Vector2i dim = new Vector2i(200, 400);
-        super.setDimensions(pos, dim);
-        super.placeComponents();
+        super.placeComponents(pos, dim);
 
         System.out.println("cols = " + Arrays.toString(getMinColWidth()) + " | " + "colGrow = " + Arrays.toString(getColWantGrow()));
 

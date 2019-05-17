@@ -1,9 +1,9 @@
 package NG.GUIMenu.Frames.LayoutManagers;
 
 import NG.GUIMenu.Frames.Components.SComponent;
-import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
+import java.util.Collection;
 import java.util.Collections;
 
 /**
@@ -12,8 +12,6 @@ import java.util.Collections;
  */
 public class SingleElementLayout implements SLayoutManager {
     private SComponent target;
-    private final Vector2i position = new Vector2i();
-    private final Vector2i dimensions = new Vector2i();
 
     @Override
     public void add(SComponent comp, Object prop) {
@@ -27,17 +25,16 @@ public class SingleElementLayout implements SLayoutManager {
 
     @Override
     public void recalculateProperties() {
-        placeComponents();
     }
 
     @Override
-    public void placeComponents() {
+    public void placeComponents(Vector2ic position, Vector2ic dimensions) {
         target.setPosition(position);
         target.setSize(dimensions.x(), dimensions.y());
     }
 
     @Override
-    public Iterable<SComponent> getComponents() {
+    public Collection<SComponent> getComponents() {
         return Collections.singleton(target);
     }
 
@@ -51,12 +48,6 @@ public class SingleElementLayout implements SLayoutManager {
     public int getMinimumHeight() {
         if (target == null) return 0;
         return target.minHeight();
-    }
-
-    @Override
-    public void setDimensions(Vector2ic position, Vector2ic dimensions) {
-        this.position.set(position);
-        this.dimensions.set(dimensions);
     }
 
     @Override

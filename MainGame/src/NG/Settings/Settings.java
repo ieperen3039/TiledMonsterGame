@@ -25,7 +25,7 @@ public class Settings {
     public static final float FOV = (float) Math.toRadians(30);
     public static final float Z_NEAR = 0.01f;
     public static final float Z_FAR = 1000;
-    public int TARGET_FPS = 60;
+    public int TARGET_FPS = 10;
     public boolean V_SYNC = false;
     public int DEFAULT_WINDOW_WIDTH = 1200;
     public int DEFAULT_WINDOW_HEIGHT = 800;
@@ -35,7 +35,7 @@ public class Settings {
     public float CAMERA_ZOOM_SPEED = 0.1f;
     public int MAX_CAMERA_DIST = 1000;
     public float MIN_CAMERA_DIST = 0.5f;
-    public int STATIC_SHADOW_RESOLUTION = 2048;
+    public int STATIC_SHADOW_RESOLUTION = 0;
     public int DYNAMIC_SHADOW_RESOLUTION = 0;
     public float PARTICLE_SIZE = 0.2f;
     public float PARTICLE_MODIFIER = 1f;

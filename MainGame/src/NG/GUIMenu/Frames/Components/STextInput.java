@@ -1,6 +1,7 @@
 package NG.GUIMenu.Frames.Components;
 
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.NGFonts;
 import NG.InputHandling.KeyPressListener;
 import NG.InputHandling.MouseRelativeClickListener;
 import org.joml.Vector2ic;
@@ -18,7 +19,7 @@ public class STextInput extends STextArea implements KeyPressListener, MouseRela
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         design.draw(SELECTION, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text);
+        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
     }
 
     @Override

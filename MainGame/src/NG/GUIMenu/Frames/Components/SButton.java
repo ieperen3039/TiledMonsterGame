@@ -1,6 +1,7 @@
 package NG.GUIMenu.Frames.Components;
 
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.NGFonts;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
 import NG.Tools.Logger;
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_INACTIVE;
+import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
@@ -26,20 +27,19 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
     private String text;
     private boolean isPressed = false;
-    private boolean vtGrow = false;
-    private boolean hzGrow = false;
 
     /**
      * a button with no associated action (a dead button)
      * @param text      the text of the button
-     * @param minWidth  the minimal width of this buttion, which {@link NG.GUIMenu.Frames.LayoutManagers.SLayoutManager}s
+     * @param width  the minimal width of this buttion, which {@link NG.GUIMenu.Frames.LayoutManagers.SLayoutManager}s
      *                  should respect
-     * @param minHeight the minimal height of this button.
+     * @param height the minimal height of this button.
      * @see #addLeftClickListener(Runnable)
      */
-    public SButton(String text, int minWidth, int minHeight) {
-        this.minHeight = minHeight;
-        this.minWidth = minWidth;
+    public SButton(String text, int width, int height) {
+        this.minHeight = height;
+        this.minWidth = width;
+        setSize(width, height);
         setText(text);
     }
 
@@ -47,12 +47,12 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
      * a button with a basic associated action
      * @param text      the text of the button
      * @param action    the action that is executed upon (releasing a) left click
-     * @param minWidth  the minimal width of this buttion, which {@link NG.GUIMenu.Frames.LayoutManagers.SLayoutManager}s
+     * @param width  the minimal width of this buttion, which {@link NG.GUIMenu.Frames.LayoutManagers.SLayoutManager}s
      *                  should respect
-     * @param minHeight the minimal height of this button.
+     * @param height the minimal height of this button.
      */
-    public SButton(String text, Runnable action, int minWidth, int minHeight) {
-        this(text, minWidth, minHeight);
+    public SButton(String text, Runnable action, int width, int height) {
+        this(text, width, height);
         leftClickListeners.add(action);
     }
 
@@ -61,18 +61,13 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
      * @param text         the text of the button
      * @param onLeftClick  the action that is executed upon (releasing a) left click
      * @param onRightClick the action that is executed upon (releasing a) right click
-     * @param minWidth     the minimal width of this buttion, which {@link NG.GUIMenu.Frames.LayoutManagers.SLayoutManager}s
+     * @param width     the minimal width of this buttion, which {@link NG.GUIMenu.Frames.LayoutManagers.SLayoutManager}s
      *                     should respect
-     * @param minHeight    the minimal height of this button.
+     * @param height    the minimal height of this button.
      */
-    public SButton(String text, Runnable onLeftClick, Runnable onRightClick, int minWidth, int minHeight) {
-        this(text, onLeftClick, minWidth, minHeight);
+    public SButton(String text, Runnable onLeftClick, Runnable onRightClick, int width, int height) {
+        this(text, onLeftClick, width, height);
         rightClickListeners.add(onRightClick);
-    }
-
-    public void setGrowthPolicy(boolean horizontal, boolean vertical) {
-        hzGrow = horizontal;
-        vtGrow = vertical;
     }
 
     @Override
@@ -85,16 +80,6 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
         return minHeight;
     }
 
-    @Override
-    public boolean wantHorizontalGrow() {
-        return hzGrow;
-    }
-
-    @Override
-    public boolean wantVerticalGrow() {
-        return vtGrow;
-    }
-
     public void addLeftClickListener(Runnable action) {
         leftClickListeners.add(action);
     }
@@ -105,8 +90,8 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.draw(isPressed ? BUTTON_ACTIVE : BUTTON_INACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text);
+        design.draw(isPressed ? BUTTON_PRESSED : BUTTON_ACTIVE, screenPosition, dimensions);
+        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
     }
 
     @Override

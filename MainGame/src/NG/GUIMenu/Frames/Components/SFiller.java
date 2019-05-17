@@ -13,6 +13,7 @@ public class SFiller extends SComponent {
     public SFiller(int minWidth, int minHeight) {
         this.minWidth = minWidth;
         this.minHeight = minHeight;
+        setGrowthPolicy(true, true);
     }
 
     public SFiller() {
@@ -27,16 +28,6 @@ public class SFiller extends SComponent {
     @Override
     public int minHeight() {
         return minHeight;
-    }
-
-    @Override
-    public boolean wantHorizontalGrow() {
-        return true;
-    }
-
-    @Override
-    public boolean wantVerticalGrow() {
-        return true;
     }
 
     @Override

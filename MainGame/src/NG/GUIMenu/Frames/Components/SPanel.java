@@ -1,5 +1,6 @@
 package NG.GUIMenu.Frames.Components;
 
+import NG.GUIMenu.Frames.ComponentBorder;
 import NG.GUIMenu.Frames.LayoutManagers.GridLayoutManager;
 import NG.GUIMenu.Frames.LayoutManagers.SLayoutManager;
 import NG.GUIMenu.Frames.LayoutManagers.SingleElementLayout;
@@ -43,10 +44,12 @@ public class SPanel extends SContainer {
             boolean growVertical,
             boolean drawBorder
     ) {
-        super(layoutManager, growHorizontal, growVertical);
+        super(layoutManager);
         this.minimumWidth = minimumWidth;
         this.minimumHeight = minimumHeight;
         this.border = drawBorder;
+
+        setGrowthPolicy(growHorizontal, growVertical);
     }
 
     /**
@@ -61,7 +64,10 @@ public class SPanel extends SContainer {
     public SPanel(
             int minimumWidth, int minimumHeight, int cols, int rows, boolean growHorizontal, boolean growVertical
     ) {
-        this(minimumWidth, minimumHeight, (cols * rows > 0 ? new GridLayoutManager(cols, rows) : new SingleElementLayout()), growHorizontal, growVertical, true);
+        this(
+                minimumWidth, minimumHeight,
+                (cols * rows > 0 ? new GridLayoutManager(cols, rows) : new SingleElementLayout()),
+                growHorizontal, growVertical, true);
     }
 
     /**
@@ -87,7 +93,7 @@ public class SPanel extends SContainer {
      * {@link #MIDDLE}
      */
     public SPanel() {
-        super(new GridLayoutManager(3, 3), false, false);
+        super(new GridLayoutManager(3, 3));
         this.minimumWidth = 0;
         this.minimumHeight = 0;
     }
@@ -99,9 +105,10 @@ public class SPanel extends SContainer {
      * @param growPolicy    if true, this panel tries to grow in each direction
      */
     public SPanel(int minimumWidth, int minimumHeight, boolean growPolicy) {
-        super(new GridLayoutManager(1, 1), growPolicy, growPolicy);
+        super(new GridLayoutManager(1, 1));
         this.minimumWidth = minimumWidth;
         this.minimumHeight = minimumHeight;
+        setGrowthPolicy(growPolicy, growPolicy);
     }
 
     /**
@@ -159,5 +166,10 @@ public class SPanel extends SContainer {
 
         if (border) lookFeel.draw(FRAME_BODY, screenPosition, dimensions);
         drawChildren(lookFeel, screenPosition);
+    }
+
+    @Override
+    protected ComponentBorder getLayoutBorder() {
+        return border ? super.getLayoutBorder() : new ComponentBorder();
     }
 }

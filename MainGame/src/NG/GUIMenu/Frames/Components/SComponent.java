@@ -13,10 +13,13 @@ import java.util.Optional;
 public abstract class SComponent {
     private boolean layoutIsValid = false;
     private boolean isVisible = true;
-    private SContainer parent = null;
+    private SComponent parent = null;
 
     protected final Vector2i position = new Vector2i();
     protected final Vector2i dimensions = new Vector2i();
+
+    private boolean wantHzGrow = true;
+    private boolean wantVtGrow = true;
 
     /**
      * @return minimum width of this component in pixels. The final width can be assumed to be at least this size unless
@@ -30,26 +33,51 @@ public abstract class SComponent {
      */
     public abstract int minHeight();
 
+    /**
+     * sets the layout validity flag of this component and all of its parents to false.
+     */
     protected void invalidateLayout() {
         layoutIsValid = false;
         if (parent != null) parent.invalidateLayout();
     }
 
+    /**
+     * restores the validity of the layout of this component.
+     * <p>
+     * The order of validating is top-down as follows: - The component sets its own position and size - the component
+     * validates its children
+     */
     public void validateLayout() {
         layoutIsValid = true;
+    }
+
+    /**
+     * sets the want-grow policies.
+     * @param horizontal if true, the next invocation of {@link #wantHorizontalGrow()} will return true. Otherwise, it
+     *                   will return true iff any of its child components returns true on that method.
+     * @param vertical   if true, the next invocation of {@link #wantVerticalGrow()} will return true. Otherwise, it
+     *                   will return true iff any of its child components returns true on that method.
+     */
+    public void setGrowthPolicy(boolean horizontal, boolean vertical) {
+        wantHzGrow = horizontal;
+        wantVtGrow = vertical;
     }
 
     /**
      * @return true if this component should expand horizontally when possible. when false, the components should always
      * be its minimum width.
      */
-    public abstract boolean wantHorizontalGrow();
+    public boolean wantHorizontalGrow() {
+        return wantHzGrow;
+    }
 
     /**
      * @return true if this component should expand horizontally when possible. When false, the components should always
      * be its minimum height.
      */
-    public abstract boolean wantVerticalGrow();
+    public boolean wantVerticalGrow() {
+        return wantVtGrow;
+    }
 
     /**
      * if this has sub-components, it will find the topmost component {@code c} for which {@code c.contains(x, y)}.
@@ -142,8 +170,7 @@ public abstract class SComponent {
     /**
      * Draw this component.
      * @param design         The element that provides functions for drawing
-     * @param screenPosition the position that should be assumed instead of that returned by {@link #getPosition()}.
-     *                       This position is absolute regarding the screen.
+     * @param screenPosition the position where this component is drawn instead of the local (relative) position.
      */
     public abstract void draw(SFrameLookAndFeel design, Vector2ic screenPosition);
 
@@ -161,7 +188,7 @@ public abstract class SComponent {
         return isVisible;
     }
 
-    public void setParent(SContainer parent) {
+    public void setParent(SComponent parent) {
         this.parent = parent;
     }
 
@@ -172,7 +199,7 @@ public abstract class SComponent {
         return new Vector2i(scRef).add(position);
     }
 
-    Optional<SContainer> getParent() {
+    Optional<SComponent> getParent() {
         return Optional.ofNullable(parent);
     }
 

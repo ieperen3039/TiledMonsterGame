@@ -11,7 +11,6 @@ import org.lwjgl.nanovg.NanoVG;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
 import static NG.GUIMenu.NGFonts.ORBITRON_MEDIUM;
 
 /**
@@ -49,6 +48,11 @@ public class BaseLF implements SFrameLookAndFeel {
     }
 
     @Override
+    public ScreenOverlay.Painter getPainter() {
+        return hud;
+    }
+
+    @Override
     public void draw(UIComponent type, Vector2ic pos, Vector2ic dim) {
         int x = pos.x();
         int y = pos.y();
@@ -57,10 +61,17 @@ public class BaseLF implements SFrameLookAndFeel {
         Color4f color;
 
         switch (type) {
-            case BUTTON_INACTIVE:
+            case SCROLL_BAR_BACKGROUND:
+                break;
+
             case BUTTON_ACTIVE:
-                color = BUTTON_COLOR;
-                if (type == BUTTON_ACTIVE) color = color.darken(0.5f);
+            case BUTTON_INACTIVE:
+            case SCROLL_BAR_DRAG_ELEMENT:
+                hud.roundedRectangle(x, y, width, height, BUTTON_INDENT, BUTTON_COLOR, STROKE_COLOR, STROKE_WIDTH);
+                break;
+
+            case BUTTON_PRESSED:
+                color = BUTTON_COLOR.darken(0.5f);
                 hud.roundedRectangle(x, y, width, height, BUTTON_INDENT, color, STROKE_COLOR, STROKE_WIDTH);
                 break;
 
@@ -139,8 +150,8 @@ public class BaseLF implements SFrameLookAndFeel {
     }
 
     @Override
-    public void drawIcon(Vector2ic pos, Vector2ic dim, Path icon) throws IOException {
-        hud.image(icon, pos.x(), pos.y(), dim.x(), dim.y(), 1f);
+    public void drawImage(Vector2ic pos, Vector2ic dim, Path file) throws IOException {
+        hud.image(file, pos.x(), pos.y(), dim.x(), dim.y(), 1f);
     }
 
     @Override

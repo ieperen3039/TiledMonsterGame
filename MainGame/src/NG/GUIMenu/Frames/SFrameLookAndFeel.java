@@ -13,13 +13,6 @@ import java.nio.file.Path;
  * @author Geert van Ieperen. Created on 20-9-2018.
  */
 public interface SFrameLookAndFeel extends InitialisationMod {
-
-    /**
-     * sets the LF to draw with the specified painter
-     * @param painter a new, fresh Painter instance
-     */
-    void setPainter(ScreenOverlay.Painter painter);
-
     /**
      * Draw the given element on the given position
      * @param type the type of element
@@ -27,10 +20,6 @@ public interface SFrameLookAndFeel extends InitialisationMod {
      * @param dim  the (width, height) of the button in pixels
      */
     void draw(UIComponent type, Vector2ic pos, Vector2ic dim);
-
-    default void drawText(Vector2ic pos, Vector2ic dim, String text) {
-        drawText(pos, dim, text, NGFonts.TextType.REGULAR, Alignment.CENTER);
-    }
 
     void drawText(
             Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, Alignment align
@@ -40,16 +29,27 @@ public interface SFrameLookAndFeel extends InitialisationMod {
      * draw a button with an image on it. The image should be scaled uniformly to fit the button
      * @param pos  upper left position of the button
      * @param dim  dimension of the button
-     * @param icon a path to the file containing the icon to display
+     * @param file a path to the file containing the icon to display
      * @throws IOException if the file could not be found or accessed
      */
-    void drawIcon(Vector2ic pos, Vector2ic dim, Path icon) throws IOException;
+    void drawImage(Vector2ic pos, Vector2ic dim, Path file) throws IOException;
 
     /**
      * Draw a rectangle on the top of the screen with the given height
      * @param height height of the bar in pixels
      */
     void drawToolbar(int height);
+
+    /**
+     * sets the LF to draw with the specified painter
+     * @param painter a new, fresh Painter instance
+     */
+    void setPainter(ScreenOverlay.Painter painter);
+
+    /**
+     * @return the used painter instance
+     */
+    ScreenOverlay.Painter getPainter();
 
     enum Alignment {
         LEFT, CENTER, RIGHT,
@@ -58,7 +58,7 @@ public interface SFrameLookAndFeel extends InitialisationMod {
 
     enum UIComponent {
         /** a simple button, either held down or not held down */
-        BUTTON_ACTIVE, BUTTON_INACTIVE,
+        BUTTON_PRESSED, BUTTON_ACTIVE, BUTTON_INACTIVE,
         /** draw a button with an image on it. The image should be scaled uniformly to fit the button */
         ICON_BUTTON_ACTIVE, ICON_BUTTON_INACTIVE,
         /** The top panel of a dropdown menu. */
@@ -72,6 +72,6 @@ public interface SFrameLookAndFeel extends InitialisationMod {
         /** An area with text that hints the user that the text can be changed. */
         INPUT_FIELD,
         /** A marking to indicate that e.g. a textfield is selected. */
-        SELECTION,
+        SELECTION, SCROLL_BAR_DRAG_ELEMENT, SCROLL_BAR_BACKGROUND,
     }
 }

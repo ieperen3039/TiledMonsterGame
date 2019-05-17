@@ -1,6 +1,7 @@
 package NG.GUIMenu;
 
 import NG.DataStructures.Generic.Color4f;
+import NG.Rendering.Textures.Texture;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -23,6 +24,7 @@ import java.util.function.Function;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.nanovg.NanoVGGL3.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
@@ -436,6 +438,13 @@ public final class ScreenOverlay {
             int x = (int) (relativePosition.x() * windowWidth);
             int y = (int) (relativePosition.y() * windowHeight);
             return new Vector2i(x, y);
+        }
+
+        public void drawTexture(
+                Texture image, int x, int y, int width, int height, float txMin, float tyMin, float txMax, float tyMax
+        ) {
+            image.bind(GL_TEXTURE0);
+
         }
     }
 }

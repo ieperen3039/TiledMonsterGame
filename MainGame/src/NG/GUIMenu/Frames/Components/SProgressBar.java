@@ -21,6 +21,7 @@ public class SProgressBar extends SComponent {
         this.minWidth = minWidth;
         this.minHeight = minHeight;
         this.progress = progressSource;
+        setGrowthPolicy(false, false);
     }
 
     @Override
@@ -31,16 +32,6 @@ public class SProgressBar extends SComponent {
     @Override
     public int minHeight() {
         return minHeight;
-    }
-
-    @Override
-    public boolean wantHorizontalGrow() {
-        return false;
-    }
-
-    @Override
-    public boolean wantVerticalGrow() {
-        return false;
     }
 
     @Override
