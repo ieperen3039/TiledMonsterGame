@@ -1,8 +1,8 @@
 package NG.Actions.Commands;
 
-import NG.GUIMenu.Frames.Components.SButton;
-import NG.GUIMenu.Frames.Components.SComponent;
-import NG.GUIMenu.Frames.Components.SPanel;
+import NG.GUIMenu.Components.SButton;
+import NG.GUIMenu.Components.SComponent;
+import NG.GUIMenu.Components.SPanel;
 import NG.Living.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;

@@ -21,9 +21,8 @@ public class SceneShaderGL extends AbstractSGL {
      * @param windowWidth  the width of the viewport in pixels
      * @param windowHeight the height of the viewport in pixels
      * @param viewpoint    the camera that defines eye position, focus and up vector
-     * @param isometric    when true, no perspective transformation is used. This results in a retro tycoon style
      */
-    public SceneShaderGL(SceneShader shader, int windowWidth, int windowHeight, Camera viewpoint, boolean isometric) {
+    public SceneShaderGL(SceneShader shader, int windowWidth, int windowHeight, Camera viewpoint) {
         super();
         this.shader = shader;
         viewProjectionMatrix = viewpoint.getViewProjection((float) windowWidth / windowHeight);

@@ -90,7 +90,6 @@ public class BlinnPhongShader extends SceneShader implements TextureShader {
     }
 
     @Override
-    @SuppressWarnings("Duplicates")
     public void setPointLight(Vector3fc position, Color4f color, float intensity) {
         int lightNumber = nextLightIndex++;
         setUniform(("pointLights[" + lightNumber + "]") + ".color", color.rawVector3f());

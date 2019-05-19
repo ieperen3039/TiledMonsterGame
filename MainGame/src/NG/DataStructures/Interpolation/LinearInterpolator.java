@@ -49,8 +49,8 @@ public abstract class LinearInterpolator<T> extends BlockingTimedArrayQueue<T> {
             firstElt = secondElt;
         }
 
-        Float fraction = (float) ((timeStamp - firstTime) / (secondTime - firstTime));
-        if (fraction.isNaN()) return firstElt;
+        float fraction = (float) ((timeStamp - firstTime) / (secondTime - firstTime));
+        if (Float.isNaN(fraction)) return firstElt;
 
         return interpolate(firstElt, secondElt, fraction);
     }

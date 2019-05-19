@@ -1,8 +1,8 @@
 package NG;
 
 import NG.Engine.Game;
-import NG.GUIMenu.Frames.Components.*;
-import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Components.*;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.*;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import org.joml.Vector2i;
@@ -41,7 +41,7 @@ class DualEditorTool extends DefaultMouseTool {
     public void onClick(int button, int x, int y) {
         setButton(button);
 
-        if (game.get(GUIManager.class).checkMouseClick(this, x, y)) return;
+        if (game.get(FrameGUIManager.class).checkMouseClick(this, x, y)) return;
 
         activationFunc = this::applyBlockmap;
         if (blockMap.checkMouseClick(this, x, y)) return;
@@ -91,12 +91,12 @@ class DualEditorTool extends DefaultMouseTool {
     public SFrame createIfAbsent(SFrame window) {
         if (window == null) {
             window = new SFrame("No tile selected");
-            game.get(GUIManager.class).addFrame(window);
+            game.get(FrameGUIManager.class).addFrame(window);
 
         } else if (window.isDisposed()) {
-            Vector2ic wPos = window.getScreenPosition();
+            Vector2i wPos = window.getScreenPosition();
             window = new SFrame("No tile selected");
-            game.get(GUIManager.class).addFrame(window, wPos.x(), wPos.y());
+            game.get(FrameGUIManager.class).addFrame(window, wPos.x(), wPos.y());
         }
 
         return window;
@@ -147,7 +147,7 @@ class DualEditorTool extends DefaultMouseTool {
     }
 
     public void applyTileMap(Vector3fc position) {
-        GUIManager gui = game.get(GUIManager.class);
+        FrameGUIManager gui = game.get(FrameGUIManager.class);
         TileMap tileMap = game.get(TileMap.class);
 
         Vector2i coordinate = tileMap.getCoordinate(position);

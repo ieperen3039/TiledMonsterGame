@@ -1,5 +1,6 @@
 package NG.Actions.Commands;
 
+import NG.Actions.ActionJump;
 import NG.Actions.ActionWalk;
 import NG.Actions.EntityAction;
 import NG.Engine.Game;
@@ -29,6 +30,9 @@ public class CommandWalk extends Command {
         GameMap map = game.get(GameMap.class);
 
         Vector2i beginCoord = map.getCoordinate(beginPosition);
+        if (beginPosition.z() > map.getHeightAt(beginCoord)) {
+            return new ActionJump(beginPosition, map.getPosition(beginCoord), walkSpeed);
+        }
 
         Iterator<Vector2i> path = map
                 .findPath(beginCoord, target, walkSpeed, 0.1f)

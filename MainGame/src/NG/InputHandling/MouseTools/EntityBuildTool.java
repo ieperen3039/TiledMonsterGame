@@ -1,8 +1,8 @@
 package NG.InputHandling.MouseTools;
 
 import NG.Engine.Game;
-import NG.GUIMenu.Frames.Components.SComponent;
-import NG.GUIMenu.Frames.Components.SToggleButton;
+import NG.GUIMenu.Components.SComponent;
+import NG.GUIMenu.Components.SToggleButton;
 import NG.InputHandling.KeyMouseCallbacks;
 import org.lwjgl.glfw.GLFW;
 

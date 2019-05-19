@@ -6,8 +6,8 @@ import NG.Engine.Game;
 import NG.Engine.GameService;
 import NG.Engine.Version;
 import NG.Entities.Entity;
-import NG.GUIMenu.Frames.Components.SComponent;
-import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Components.SComponent;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.AbstractMap;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
@@ -162,7 +162,7 @@ public class RayTraceTest {
 
         @Override
         public void onClick(int button, int x, int y) {
-            if (game.get(GUIManager.class).checkMouseClick(this, x, y)) return;
+            if (game.get(FrameGUIManager.class).checkMouseClick(this, x, y)) return;
 
             // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
             y = game.get(GLFWWindow.class).getHeight() - y;

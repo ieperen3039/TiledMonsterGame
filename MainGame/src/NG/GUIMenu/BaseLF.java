@@ -5,15 +5,18 @@ import NG.Engine.Game;
 import NG.Engine.Version;
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
 import NG.Tools.Logger;
+import org.joml.Vector2i;
 import org.joml.Vector2ic;
-import org.lwjgl.nanovg.NanoVG;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.EnumSet;
 
+import static NG.GUIMenu.GUIPainter.Alignment.*;
 import static NG.GUIMenu.NGFonts.ORBITRON_MEDIUM;
 
 /**
+ * Little more than the absolute basic appearance of a GUI
  * @author Geert van Ieperen. Created on 21-9-2018.
  */
 public class BaseLF implements SFrameLookAndFeel {
@@ -31,7 +34,7 @@ public class BaseLF implements SFrameLookAndFeel {
     private static final Color4f INPUT_FIELD_COLOR = Color4f.LIGHT_GREY;
     private Color4f SELECTION_COLOR = Color4f.TRANSPARENT_GREY;
 
-    private ScreenOverlay.Painter hud;
+    private GUIPainter hud;
 
     @Override
     public void init(Game game) {
@@ -41,14 +44,14 @@ public class BaseLF implements SFrameLookAndFeel {
     }
 
     @Override
-    public void setPainter(ScreenOverlay.Painter painter) {
+    public void setPainter(GUIPainter painter) {
         this.hud = painter;
         painter.setFillColor(PANEL_COLOR);
         painter.setStroke(STROKE_COLOR, STROKE_WIDTH);
     }
 
     @Override
-    public ScreenOverlay.Painter getPainter() {
+    public GUIPainter getPainter() {
         return hud;
     }
 
@@ -58,7 +61,7 @@ public class BaseLF implements SFrameLookAndFeel {
         int y = pos.y();
         int width = dim.x();
         int height = dim.y();
-        Color4f color;
+        assert width > 0 && height > 0 : String.format("Non-positive dimensions: height = %d, width = %d", height, width);
 
         switch (type) {
             case SCROLL_BAR_BACKGROUND:
@@ -67,40 +70,61 @@ public class BaseLF implements SFrameLookAndFeel {
             case BUTTON_ACTIVE:
             case BUTTON_INACTIVE:
             case SCROLL_BAR_DRAG_ELEMENT:
-                hud.roundedRectangle(x, y, width, height, BUTTON_INDENT, BUTTON_COLOR, STROKE_COLOR, STROKE_WIDTH);
+                drawRoundedRectangle(x, y, width, height, BUTTON_COLOR);
                 break;
 
             case BUTTON_PRESSED:
-                color = BUTTON_COLOR.darken(0.5f);
-                hud.roundedRectangle(x, y, width, height, BUTTON_INDENT, color, STROKE_COLOR, STROKE_WIDTH);
+                drawRoundedRectangle(x, y, width, height, BUTTON_COLOR.darken(0.5f));
+                break;
+
+            case INPUT_FIELD:
+                drawRoundedRectangle(x, y, width, height, INPUT_FIELD_COLOR);
+                break;
+
+            case SELECTION:
+                drawRoundedRectangle(x, y, width, height, SELECTION_COLOR);
                 break;
 
             case DROP_DOWN_HEAD_CLOSED:
             case DROP_DOWN_HEAD_OPEN:
             case DROP_DOWN_OPTION_FIELD:
-            case FRAME_BODY:
+            case PANEL:
             case FRAME_HEADER:
-                hud.roundedRectangle(pos, dim, INDENT);
-                break;
-
-            case INPUT_FIELD:
-                color = INPUT_FIELD_COLOR;
-                hud.roundedRectangle(x, y, width, height, BUTTON_INDENT, color, STROKE_COLOR, STROKE_WIDTH);
-                break;
-
-            case SELECTION:
-                color = SELECTION_COLOR;
-                hud.roundedRectangle(x, y, width, height, BUTTON_INDENT, color, STROKE_COLOR, STROKE_WIDTH);
-                break;
-
             default:
-                hud.roundedRectangle(pos, dim, INDENT);
+                drawRoundedRectangle(x, y, width, height);
         }
     }
 
-    @Override
-    public void drawToolbar(int height) {
-        hud.rectangle(0, 0, hud.windowWidth, height, TOOLBAR_COLOR, Color4f.INVISIBLE, 0);
+    private void drawRoundedRectangle(int x, int y, int width, int height, Color4f color) {
+        int xMax2 = x + width;
+        int yMax2 = y + height;
+
+        hud.polygon(color, STROKE_COLOR, STROKE_WIDTH,
+                new Vector2i(x + BUTTON_INDENT, y),
+                new Vector2i(xMax2 - BUTTON_INDENT, y),
+                new Vector2i(xMax2, y + BUTTON_INDENT),
+                new Vector2i(xMax2, yMax2 - BUTTON_INDENT),
+                new Vector2i(xMax2 - BUTTON_INDENT, yMax2),
+                new Vector2i(x + BUTTON_INDENT, yMax2),
+                new Vector2i(x, yMax2 - BUTTON_INDENT),
+                new Vector2i(x, y + BUTTON_INDENT)
+        );
+    }
+
+    private void drawRoundedRectangle(int x, int y, int width, int height) {
+        int xMax = x + width;
+        int yMax = y + height;
+
+        hud.polygon(
+                new Vector2i(x + INDENT, y),
+                new Vector2i(xMax - INDENT, y),
+                new Vector2i(xMax, y + INDENT),
+                new Vector2i(xMax, yMax - INDENT),
+                new Vector2i(xMax - INDENT, yMax),
+                new Vector2i(x + INDENT, yMax),
+                new Vector2i(x, yMax - INDENT),
+                new Vector2i(x, y + INDENT)
+        );
     }
 
     @Override
@@ -128,22 +152,22 @@ public class BaseLF implements SFrameLookAndFeel {
         switch (align) {
             case LEFT:
                 hud.text(x, y + (height / 2), actualSize,
-                        font, NanoVG.NVG_ALIGN_LEFT | NanoVG.NVG_ALIGN_MIDDLE, textColor, text
+                        font, EnumSet.of(ALIGN_LEFT), textColor, text
                 );
                 break;
             case CENTER:
                 hud.text(x + (width / 2), y + (height / 2), actualSize,
-                        font, NanoVG.NVG_ALIGN_CENTER | NanoVG.NVG_ALIGN_MIDDLE, textColor, text
+                        font, EnumSet.noneOf(GUIPainter.Alignment.class), textColor, text
                 );
                 break;
             case CENTER_TOP:
                 hud.text(x + (width / 2), y, actualSize,
-                        font, NanoVG.NVG_ALIGN_CENTER | NanoVG.NVG_ALIGN_TOP, textColor, text
+                        font, EnumSet.of(ALIGN_TOP), textColor, text
                 );
                 break;
             case RIGHT:
                 hud.text(x + width, y + (height / 2), actualSize,
-                        font, NanoVG.NVG_ALIGN_RIGHT | NanoVG.NVG_ALIGN_MIDDLE, textColor, text
+                        font, EnumSet.of(ALIGN_RIGHT), textColor, text
                 );
                 break;
         }
@@ -156,7 +180,7 @@ public class BaseLF implements SFrameLookAndFeel {
 
     @Override
     public void cleanup() {
-
+        hud = null;
     }
 
     @Override

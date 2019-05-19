@@ -19,13 +19,13 @@ public class Settings {
     public static final int CHUNK_SIZE = 16; // number of tiles in a chunk
     public static final float TILE_SIZE = 2f;
     public static final float TILE_SIZE_Z = 0.5f;
-    public static final float GRAVITY_CONSTANT = 9.81f;
+    public static final float GRAVITY_CONSTANT = 10f; // 9,81
 
     // video settings
     public static final float FOV = (float) Math.toRadians(30);
     public static final float Z_NEAR = 0.01f;
     public static final float Z_FAR = 1000;
-    public int TARGET_FPS = 10;
+    public int TARGET_FPS = 30;
     public boolean V_SYNC = false;
     public int DEFAULT_WINDOW_WIDTH = 1200;
     public int DEFAULT_WINDOW_HEIGHT = 800;
@@ -33,7 +33,7 @@ public class Settings {
     public boolean ISOMETRIC_VIEW = false;
     public float RENDER_DELAY = 1f / TARGET_TPS;
     public float CAMERA_ZOOM_SPEED = 0.1f;
-    public int MAX_CAMERA_DIST = 1000;
+    public int MAX_CAMERA_DIST = (int) Z_FAR;
     public float MIN_CAMERA_DIST = 0.5f;
     public int STATIC_SHADOW_RESOLUTION = 0;
     public int DYNAMIC_SHADOW_RESOLUTION = 0;

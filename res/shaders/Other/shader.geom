@@ -27,7 +27,7 @@ layout(binding = 0) uniform UniformBufferObject {
     LightSource light;
 } ubo;
 
-layout (location = 0) in vec3 inNormal[];
+layout (location = 0) in vec3 inNormal[3];
 
 layout (location = 0) out vec3 outColor;
 

@@ -4,8 +4,8 @@ import NG.Camera.Camera;
 import NG.DataStructures.Generic.PairList;
 import NG.Engine.Game;
 import NG.Engine.ModLoader;
-import NG.GUIMenu.Frames.Components.*;
-import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Components.*;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
@@ -55,10 +55,10 @@ public class NewGameFrame extends SFrame implements Runnable {
         SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
         sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
         this.game = game;
-        xSizeSelector = new SDropDown(this.game.get(GUIManager.class), 100, 60, 1, "100", "200", "500", "1000");
+        xSizeSelector = new SDropDown(this.game.get(FrameGUIManager.class), 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(xSizeSelector, new Vector2i(1, 0));
         sizeSelection.add(new STextArea("X", 0), new Vector2i(2, 0));
-        ySizeSelector = new SDropDown(this.game.get(GUIManager.class), 100, 60, 1, "100", "200", "500", "1000");
+        ySizeSelector = new SDropDown(this.game.get(FrameGUIManager.class), 100, 60, 1, "100", "200", "500", "1000");
         sizeSelection.add(ySizeSelector, new Vector2i(3, 0));
         mainPanel.add(sizeSelection, mpos.add(0, 1));
 
@@ -91,10 +91,10 @@ public class NewGameFrame extends SFrame implements Runnable {
         }
 
         if (!generatorNames.isEmpty()) {
-            generatorSelector = new SDropDown(this.game.get(GUIManager.class), generatorNames);
+            generatorSelector = new SDropDown(this.game.get(FrameGUIManager.class), generatorNames);
             mainPanel.add(generatorSelector, mpos.add(0, 1));
         } else {
-            generatorSelector = new SDropDown(game.get(GUIManager.class), 0, "Default Implementation");
+            generatorSelector = new SDropDown(game.get(FrameGUIManager.class), 0, "Default Implementation");
         }
 
         // generate button

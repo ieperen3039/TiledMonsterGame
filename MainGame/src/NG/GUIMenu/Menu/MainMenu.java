@@ -5,6 +5,7 @@ import NG.Actions.Commands.CommandWalk;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;
+import NG.Animations.RobotMeshes;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Game;
@@ -14,9 +15,8 @@ import NG.Entities.Cube;
 import NG.Entities.CubeMonster;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
-import NG.GUIMenu.Frames.Components.*;
-import NG.GUIMenu.Frames.GUIManager;
-import NG.GUIMenu.SToolBar;
+import NG.GUIMenu.Components.*;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
@@ -30,7 +30,13 @@ import NG.Particles.ParticleCloud;
 import NG.Particles.Particles;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.Lights.GameState;
+import NG.Rendering.Material;
+import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.RenderLoop;
+import NG.Rendering.Shaders.MaterialShader;
+import NG.Rendering.Shaders.ShaderProgram;
+import NG.Rendering.Shapes.GenericShapes;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -43,6 +49,8 @@ import org.joml.Vector3fc;
 
 import java.util.Collection;
 
+import static NG.Rendering.Shapes.GenericShapes.CUBE;
+
 /**
  * @author Geert van Ieperen. Created on 28-9-2018.
  */
@@ -54,6 +62,7 @@ public class MainMenu extends SFrame {
     private final Game overworld;
     private final Game pocketworld;
     private final ModLoader modLoader;
+    private Mesh demoS3DModel = CUBE;
 
     public MainMenu(Game overworld, Game pocketworld, ModLoader modManager, Runnable exitGameAction) {
         super("Main Menu", 400, 500, false);
@@ -78,19 +87,32 @@ public class MainMenu extends SFrame {
 
     private void gui() {
         SFrame newFrame = new SFrame("Gui tester", SPanel.column(
-                new SScrollableList(3,
-                        new SButton("Button 1", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("Button 2", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("Button 3", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("Button 4", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("Button 5", BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                new S3DModelDisplay(
+                        overworld, 500, 500, this::drawCube, CUBE.getBoundingBox(),
+                        () -> new Vector3f(2, 0, 1).rotateZ(overworld.get(GameTimer.class).getRendertime())
+                ),
+                new STileBrowser(true, 600, 150,
+                        new SButton("Cube", () -> demoS3DModel = CUBE, 150, 150),
+                        new SButton("Arrow", () -> demoS3DModel = GenericShapes.ARROW, 150, 150),
+                        new SButton("Icosahedron", () -> demoS3DModel = GenericShapes.ICOSAHEDRON, 150, 150),
+                        new SButton("Inv cube", () -> demoS3DModel = GenericShapes.INV_CUBE, 150, 150),
+                        new SButton("Robot Torso", () -> demoS3DModel = RobotMeshes.ROBOT_TORSO, 150, 150)
                 )
         ));
-        overworld.get(GUIManager.class).addFrame(newFrame);
+        overworld.get(FrameGUIManager.class).addFrame(newFrame);
+    }
+
+    private void drawCube(SGL gl) {
+        ShaderProgram s = gl.getShader();
+        if (s instanceof MaterialShader) {
+            ((MaterialShader) s).setMaterial(Material.ROUGH, Color4f.GREY);
+        }
+
+        gl.render(demoS3DModel, null);
     }
 
     private void particles() {
-        GUIManager targetGUI = overworld.get(GUIManager.class);
+        FrameGUIManager targetGUI = overworld.get(FrameGUIManager.class);
         overworld.get(RenderLoop.class).setArrowVisibility(false);
 
         targetGUI.addFrame(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
@@ -160,7 +182,7 @@ public class MainMenu extends SFrame {
     public static Vector3f centerCamera(Camera cam, GameMap map) {
         Vector2ic edge = map.getSize();
         Vector3f cameraFocus = map.getPosition(edge.x() / 2, edge.y() / 2);
-        float initialZoom = Math.min(Math.max((float) edge.length() / 2, 8), 100);
+        float initialZoom = Math.min(Math.max((float) edge.length() / 4, 8), 100);
         Vector3f cameraEye = new Vector3f(cameraFocus).add(-initialZoom, -initialZoom, initialZoom);
         cam.set(cameraFocus, cameraEye);
         return cameraFocus;
@@ -199,7 +221,7 @@ public class MainMenu extends SFrame {
         BodyAnimation baseAni = BodyAnimation.BASE_POSE;
         BodyModel baseMode = BodyModel.ANTHRO;
 
-        GUIManager targetGUI = overworld.get(GUIManager.class);
+        FrameGUIManager targetGUI = overworld.get(FrameGUIManager.class);
         SDropDown animationSelection = new SDropDown(targetGUI, baseAni.ordinal(), Toolbox.toStringArray(animations));
         SDropDown modelSelection = new SDropDown(targetGUI, baseMode.ordinal(), Toolbox.toStringArray(models));
         PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.get(GameTimer.class));
@@ -234,14 +256,14 @@ public class MainMenu extends SFrame {
     private void showNewGamePanel() {
         SFrame newGameFrame = new NewGameFrame(overworld, modLoader);
         newGameFrame.setVisible(true);
-        overworld.get(GUIManager.class).addFrame(newGameFrame);
+        overworld.get(FrameGUIManager.class).addFrame(newGameFrame);
     }
 
     public SToolBar getToolBar(Game game) {
         SToolBar toolBar = new SToolBar(game, true);
 
         toolBar.addButton("Stop", () -> {
-            game.get(GUIManager.class).setToolBar(null);
+            game.get(FrameGUIManager.class).setToolBar(null);
             setVisible(true);
         }, 100);
 

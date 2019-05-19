@@ -1,5 +1,8 @@
 package NG.Settings;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
@@ -11,23 +14,41 @@ public enum KeyBinding {
     CAMERA_UP(GLFW_KEY_W),
     CAMERA_DOWN(GLFW_KEY_S),
     CAMERA_LEFT(GLFW_KEY_A),
-    CAMERA_RIGHT(GLFW_KEY_D);
+    CAMERA_RIGHT(GLFW_KEY_D),
 
-    private static final KeyBinding[] VALUES = values();
+    EXIT_GAME(GLFW_KEY_ESCAPE),
+    TOGGLE_FULLSCREEN(GLFW_KEY_F11),
+    SWITCH_WORLD(GLFW_KEY_LEFT_SHIFT),
+    TOGGLE_PAUSE(GLFW_KEY_SPACE),
+
+    ;
+
+    private static final Map<Integer, KeyBinding> map = new HashMap<>();
 
     private int key;
     private boolean isMouseAxis;
 
     KeyBinding(int value) {
-        this.key = value;
-        this.isMouseAxis = false;
+        this(value, false);
     }
 
+    KeyBinding(int value, boolean isMouseAxis) {
+        this.key = value;
+        this.isMouseAxis = isMouseAxis;
+    }
+
+    /**
+     * @return the KeyBinding associated with the given {@link org.lwjgl.glfw.GLFW GLFW} key, or {@link #NO_ACTION} if
+     * the given key is not bound
+     */
     public static KeyBinding get(int keyCode) {
-        for (KeyBinding binding : VALUES) {
-            if (keyCode == binding.key) return binding;
+        if (map.isEmpty()) {
+            for (KeyBinding binding : values()) {
+                map.put(binding.key, binding);
+            }
         }
-        return NO_ACTION;
+
+        return map.getOrDefault(keyCode, NO_ACTION);
     }
 
     public int getKey() {
@@ -36,10 +57,6 @@ public enum KeyBinding {
 
     public boolean isMouseAxis() {
         return isMouseAxis;
-    }
-
-    public boolean is(int i) {
-        return key == i;
     }
 
     public String keyName() {
@@ -322,7 +339,7 @@ public enum KeyBinding {
                 return "MOUSE 8";
 
             default:
-                return "UNKNOWN_KEY";
+                return "UNKNOWN";
         }
     }
 }

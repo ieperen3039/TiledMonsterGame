@@ -49,7 +49,6 @@ public interface Camera extends GameAspect, MouseScrollListener {
 
         if (isIsometric()) {
             float visionSize = vectorToFocus().length() - Settings.Z_NEAR;
-            visionSize /= 2;
             vpMatrix.setOrthoSymmetric(aspectRatio * visionSize, visionSize, Settings.Z_NEAR, Settings.Z_FAR);
         } else {
             vpMatrix.setPerspective(Settings.FOV, aspectRatio, Settings.Z_NEAR, Settings.Z_FAR);

@@ -9,6 +9,7 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 22-12-2017. a camera that doesn't move
  */
 public class StaticCamera implements Camera {
+    private boolean isometric = false;
 
     private Vector3f eye, focus;
     private Vector3f up;
@@ -17,6 +18,11 @@ public class StaticCamera implements Camera {
         this.eye = eye;
         this.focus = focus;
         this.up = up;
+    }
+
+    public StaticCamera(Vector3fc eye, Vector3fc focus, Vector3fc up, boolean iso) {
+        this(new Vector3f(eye), new Vector3f(focus), new Vector3f(up));
+        isometric = iso;
     }
 
     @Override
@@ -57,7 +63,7 @@ public class StaticCamera implements Camera {
 
     @Override
     public boolean isIsometric() {
-        return false;
+        return isometric;
     }
 
     @Override

@@ -7,9 +7,9 @@ import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.Entities.ProjectilePowerBall;
-import NG.GUIMenu.Frames.Components.SComponent;
-import NG.GUIMenu.Frames.Components.SFrame;
-import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Components.SComponent;
+import NG.GUIMenu.Components.SFrame;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
@@ -21,7 +21,6 @@ import NG.Rendering.Lights.GameState;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
-import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 import org.lwjgl.glfw.GLFW;
 
@@ -60,8 +59,8 @@ public class DefaultMouseTool implements MouseTool {
         if (component instanceof MouseRelativeClickListener) {
             MouseRelativeClickListener cl = (MouseRelativeClickListener) component;
             // by def. of MouseRelativeClickListener, give relative coordinates
-            Vector2ic pos = component.getScreenPosition();
-            cl.onClick(button, xSc - pos.x(), ySc - pos.y());
+            Vector2i pos = component.getScreenPosition();
+            cl.onClick(button, xSc - pos.x, ySc - pos.y);
         }
 
         if (component instanceof MouseMoveListener) {
@@ -108,7 +107,7 @@ public class DefaultMouseTool implements MouseTool {
 
             if (selectionFrame == null || selectionFrame.isDisposed()) {
                 selectionFrame = new SFrame("Command " + controller);
-                game.get(GUIManager.class).addFrame(selectionFrame);
+                game.get(FrameGUIManager.class).addFrame(selectionFrame);
             }
 
             selectionFrame.setMainPanel(commandSelector.asComponent());
@@ -156,7 +155,7 @@ public class DefaultMouseTool implements MouseTool {
     public void onClick(int button, int x, int y) {
         setButton(button);
 
-        if (game.get(GUIManager.class).checkMouseClick(this, x, y)) return;
+        if (game.get(FrameGUIManager.class).checkMouseClick(this, x, y)) return;
 
 //        // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
 //        y = game.get(GLFWWindow.class).getHeight() - y;
@@ -172,7 +171,7 @@ public class DefaultMouseTool implements MouseTool {
     @Override
     public void onScroll(float value) {
         Vector2i pos = game.get(GLFWWindow.class).getMousePosition();
-        GUIManager gui = game.get(GUIManager.class);
+        FrameGUIManager gui = game.get(FrameGUIManager.class);
         if (gui.checkMouseScroll(pos.x, pos.y, value)) return;
 
         game.get(Camera.class).onScroll(value);

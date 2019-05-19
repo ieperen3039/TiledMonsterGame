@@ -28,7 +28,6 @@ public interface KeyMouseCallbacks {
      * @param listener a previously installed listener
      * @return true iff any listener has been removed
      */
-    @SuppressWarnings("SuspiciousMethodCalls")
     boolean removeListener(Object listener);
 
     /**

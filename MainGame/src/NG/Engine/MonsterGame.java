@@ -5,8 +5,9 @@ import NG.Camera.TycoonFixedCamera;
 import NG.CollisionDetection.DynamicState;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Entity;
-import NG.GUIMenu.Frames.GUIManager;
-import NG.GUIMenu.Frames.SFrameManager;
+import NG.GUIMenu.Frames.FrameGUIManager;
+import NG.GUIMenu.Frames.FrameManagerImpl;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventQueueLoop;
@@ -25,6 +26,7 @@ import NG.Rendering.Lights.SingleShadowMapLights;
 import NG.Rendering.RenderLoop;
 import NG.Rendering.Shaders.BlinnPhongShader;
 import NG.Rendering.Shaders.WorldBPShader;
+import NG.Settings.KeyBinding;
 import NG.Settings.Settings;
 import NG.Storable;
 import NG.Tools.Directory;
@@ -32,7 +34,6 @@ import NG.Tools.Logger;
 import NG.Tools.Splash;
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFW;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -51,7 +52,7 @@ public class MonsterGame implements ModLoader {
     private final RenderLoop renderer;
     private final GLFWWindow window;
     private final MouseToolCallbacks inputHandler;
-    private final GUIManager frameManager;
+    private final FrameGUIManager frameManager;
     private MainMenu mainMenu;
 
     private Game pocketGame;
@@ -76,7 +77,7 @@ public class MonsterGame implements ModLoader {
 
         renderer = new RenderLoop(settings.TARGET_FPS);
         inputHandler = new MouseToolCallbacks();
-        frameManager = new SFrameManager();
+        frameManager = new FrameManagerImpl();
 
         GameMap pocketMap = new EmptyMap();
         GameService pocketGame = createWorld("pocket", mainThreadName, settings, pocketMap);
@@ -132,16 +133,11 @@ public class MonsterGame implements ModLoader {
         renderer.renderSequence(new ParticleShader())
                 .add(gl -> combinedGame.get(GameParticles.class).draw(gl));
 
+        // GUIs
+        renderer.addHudItem(painter -> combinedGame.getAll(HUDManager.class).forEach(m -> m.draw(painter)));
+
         mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
         frameManager.addFrame(mainMenu);
-
-        inputHandler.addKeyPressListener(k -> {
-            if (k == GLFW.GLFW_KEY_SPACE) {
-                combinedGame.executeOnRenderThread(() -> {
-                    combinedGame.select((combinedGame.current() + 1) % 2);
-                });
-            }
-        });
 
         Logger.DEBUG.print("Installing optional elements...");
 
@@ -165,12 +161,19 @@ public class MonsterGame implements ModLoader {
         }
 
         inputHandler.addKeyPressListener(k -> {
-            switch (k) {
-                case GLFW.GLFW_KEY_ESCAPE:
+            switch (KeyBinding.get(k)) {
+                case EXIT_GAME:
                     renderer.stopLoop();
                     break;
-                case GLFW.GLFW_KEY_F11:
+
+                case TOGGLE_FULLSCREEN:
                     window.toggleFullScreen();
+                    break;
+
+                case SWITCH_WORLD:
+                    combinedGame.executeOnRenderThread(() ->
+                            combinedGame.select((combinedGame.current() + 1) % 2)
+                    );
                     break;
             }
         });
@@ -179,18 +182,27 @@ public class MonsterGame implements ModLoader {
 
         allMods = JarModReader.loadMods(Directory.mods);
         permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
+
         initMods(permanentMods);
 
         Logger.DEBUG.print("Initial world setup...");
 
         final Color4f HALOGEN = Color4f.rgb(255, 241, 224);
-        pocketGame.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1, 2), HALOGEN, 0.8f);
-        worldGame.get(GameLights.class).addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
+        pocketGame.get(GameLights.class).
+
+                addDirectionalLight(new Vector3f(1, 1, 2), HALOGEN, 0.8f);
+        worldGame.get(GameLights.class).
+
+                addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         Logger.DEBUG.print("Booting game loops...");
 
-        pocketGame.getAll(GameEventQueueLoop.class).forEach(Thread::start);
-        worldGame.getAll(GameEventQueueLoop.class).forEach(Thread::start);
+        pocketGame.getAll(GameEventQueueLoop.class).
+
+                forEach(Thread::start);
+        worldGame.getAll(GameEventQueueLoop.class).
+
+                forEach(Thread::start);
 
         Logger.INFO.print("Finished initialisation");
     }

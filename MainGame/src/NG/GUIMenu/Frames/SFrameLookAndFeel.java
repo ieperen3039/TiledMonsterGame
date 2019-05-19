@@ -1,7 +1,7 @@
 package NG.GUIMenu.Frames;
 
+import NG.GUIMenu.GUIPainter;
 import NG.GUIMenu.NGFonts;
-import NG.GUIMenu.ScreenOverlay;
 import NG.Mods.InitialisationMod;
 import org.joml.Vector2ic;
 
@@ -35,21 +35,15 @@ public interface SFrameLookAndFeel extends InitialisationMod {
     void drawImage(Vector2ic pos, Vector2ic dim, Path file) throws IOException;
 
     /**
-     * Draw a rectangle on the top of the screen with the given height
-     * @param height height of the bar in pixels
-     */
-    void drawToolbar(int height);
-
-    /**
      * sets the LF to draw with the specified painter
      * @param painter a new, fresh Painter instance
      */
-    void setPainter(ScreenOverlay.Painter painter);
+    void setPainter(GUIPainter painter);
 
     /**
      * @return the used painter instance
      */
-    ScreenOverlay.Painter getPainter();
+    GUIPainter getPainter();
 
     enum Alignment {
         LEFT, CENTER, RIGHT,
@@ -63,15 +57,17 @@ public interface SFrameLookAndFeel extends InitialisationMod {
         ICON_BUTTON_ACTIVE, ICON_BUTTON_INACTIVE,
         /** The top panel of a dropdown menu. */
         DROP_DOWN_HEAD_CLOSED, DROP_DOWN_HEAD_OPEN,
-        /** The background of the options as visible when a dropdown menu is opened. */
-        DROP_DOWN_OPTION_FIELD,
+        /** The background of some elements. */
+        DROP_DOWN_OPTION_FIELD, SCROLL_BAR_BACKGROUND, TOOLBAR_BACKGROUND,
         /** The background of a frame */
-        FRAME_BODY,
+        PANEL,
         /** the bar on top of a frame carrying the title */
         FRAME_HEADER,
         /** An area with text that hints the user that the text can be changed. */
         INPUT_FIELD,
         /** A marking to indicate that e.g. a textfield is selected. */
-        SELECTION, SCROLL_BAR_DRAG_ELEMENT, SCROLL_BAR_BACKGROUND,
+        SELECTION,
+        /** the drag bar element of a scrollbar */
+        SCROLL_BAR_DRAG_ELEMENT,
     }
 }

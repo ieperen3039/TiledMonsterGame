@@ -1,8 +1,8 @@
 package NG.Camera;
 
 import NG.Engine.Game;
-import NG.GUIMenu.Frames.SFrameManager;
-import NG.GUIMenu.SToolBar;
+import NG.GUIMenu.Components.SToolBar;
+import NG.GUIMenu.Frames.FrameManagerImpl;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.KeyPressListener;
 import NG.InputHandling.KeyReleaseListener;
@@ -76,8 +76,8 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
         int corrMouseYPos = this.mouseYPos;
         int corrMouseXPos = this.mouseXPos;
 
-        if (game.has(SFrameManager.class)) {
-            SToolBar tb = game.get(SFrameManager.class).getToolBar();
+        if (game.has(FrameManagerImpl.class)) {
+            SToolBar tb = game.get(FrameManagerImpl.class).getToolBar();
 
             if (tb != null) {
                 int th = tb.getHeight();
@@ -217,8 +217,6 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     public void keyReleased(int keyCode) {
         switch (KeyBinding.get(keyCode)) {
             case CAMERA_LEFT:
-                cameraRotation = NOT;
-                break;
             case CAMERA_RIGHT:
                 cameraRotation = NOT;
                 break;

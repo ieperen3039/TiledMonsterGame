@@ -3,10 +3,9 @@ package NG;
 import NG.Camera.Camera;
 import NG.DataStructures.Generic.Color4f;
 import NG.Engine.Version;
-import NG.GUIMenu.Frames.Components.*;
-import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Components.*;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GUIMenu.Menu.MainMenu;
-import NG.GUIMenu.SToolBar;
 import NG.GameMap.*;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
@@ -98,7 +97,7 @@ public class MapEditor {
                 .add(gl -> game.get(TileMap.class).draw(gl))
         ;
 
-        GUIManager gui = game.get(GUIManager.class);
+        FrameGUIManager gui = game.get(FrameGUIManager.class);
         SToolBar files = getFileToolbar();
         gui.setToolBar(files);
 
@@ -234,7 +233,7 @@ public class MapEditor {
     private void createNew() {
         SFrame newMapFrame = new SFrame("New Map Settings", 200, 200, true);
         MapGeneratorMod generator = new SimpleMapGenerator(Toolbox.random.nextInt());
-        GUIManager gui = game.get(GUIManager.class);
+        FrameGUIManager gui = game.get(FrameGUIManager.class);
 
         // collect map generator properties
         Map<String, Integer> properties = generator.getProperties();

@@ -10,9 +10,9 @@ import NG.CollisionDetection.BoundingBox;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
-import NG.GUIMenu.Frames.Components.SFrame;
-import NG.GUIMenu.Frames.Components.SPanel;
-import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Components.SFrame;
+import NG.GUIMenu.Components.SPanel;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterSoul;
@@ -110,7 +110,7 @@ public abstract class MonsterEntity implements Entity {
                 controller.getStatisticsPanel(buttonHeight)
         ));
         frame.pack();
-        game.get(GUIManager.class).addFrame(frame);
+        game.get(FrameGUIManager.class).addFrame(frame);
     }
 
     @Override

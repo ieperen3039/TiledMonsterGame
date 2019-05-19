@@ -21,7 +21,7 @@ public class Associator<T extends Storable> implements Storable {
     /** fraction of association lost per new association */
     private static final float ASSOCIATION_REDUCTION = 0.01f;
     /** function that determine the 'growth' of an association when an earlier association is known */
-    private static final BiFunction<Float, Float, Float> ASSOCIATION_FUNCTION = (prev, add) -> (prev + add);
+    private static final BiFunction<Float, Float, Float> ASSOCIATION_FUNCTION = Float::sum;
 
     /** the class type where this associator is mapping to */
     private Class<T> mapClass;

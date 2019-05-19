@@ -4,7 +4,6 @@ import NG.Camera.Camera;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Rendering.GLFWWindow;
-import NG.Settings.Settings;
 import org.joml.Math;
 import org.joml.*;
 
@@ -287,7 +286,6 @@ public final class Vectors {
     public static void windowCoordToRay(Game game, int xSc, int ySc, Vector3f origin, Vector3f direction) {
         GLFWWindow window = game.get(GLFWWindow.class);
         Camera camera = game.get(Camera.class);
-        boolean isometric = game.get(Settings.class).ISOMETRIC_VIEW;
 
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
@@ -301,7 +299,7 @@ public final class Vectors {
     /**
      * compute a rotation that rotates positive x to the given direction.
      * @param targetDirection the direction that the resulting rotation should map X to.
-     * @return a rotation on the z and y axis, such that the vector (1, 0, 0) will point to the {@code targetDirection}
+     * @return a rotation on the z and y axis, such that the vector (1, 0, 0) is transformed to the {@code targetDirection}
      */
     public static Quaternionf getPitchYawRotation(Vector3fc targetDirection) {
         Quaternionf rot = new Quaternionf();

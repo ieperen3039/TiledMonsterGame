@@ -7,7 +7,8 @@ import NG.Engine.AbstractGameLoop;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
 import NG.Engine.GameTimer;
-import NG.GUIMenu.ScreenOverlay;
+import NG.GUIMenu.GUIPainter;
+import NG.GUIMenu.NVGOverlay;
 import NG.GameMap.GameMap;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.Rendering.Lights.GameLights;
@@ -37,7 +38,7 @@ import static org.lwjgl.opengl.GL11.*;
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public class RenderLoop extends AbstractGameLoop implements GameAspect {
-    private final ScreenOverlay overlay;
+    private final NVGOverlay overlay;
     private Game game;
     private Map<ShaderProgram, RenderBundle> renders;
     private Pointer arrowPointer;
@@ -52,11 +53,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
      */
     public RenderLoop(int targetFPS) {
         super("Renderloop", targetFPS);
-        overlay = new ScreenOverlay();
+        overlay = new NVGOverlay();
         renders = new HashMap<>();
 
         arrowPointer = new Pointer();
-        timeObserver = new TimeObserver(targetFPS / 4, false);
+        timeObserver = new TimeObserver((targetFPS / 4) + 1, true);
     }
 
     public void init(Game game) throws IOException {
@@ -139,17 +140,18 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     @Override
     protected void update(float deltaTime) {
+        timeObserver.startNewLoop();
+
         // current time
         game.get(GameTimer.class).updateRenderTime();
-        timeObserver.startNewLoop();
 
         // camera
         game.get(Camera.class).updatePosition(deltaTime); // real-time deltatime
 
-        timeObserver.startTiming("Lights");
+        timeObserver.startTiming("ShadowMaps");
         GameLights lights = game.get(GameLights.class);
         lights.renderShadowMaps();
-        timeObserver.endTiming("Lights");
+        timeObserver.endTiming("ShadowMaps");
 
         GLFWWindow window = game.get(GLFWWindow.class);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -176,9 +178,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         // loop clean
         Toolbox.checkGLError();
         if (window.shouldClose()) stopLoop();
+
+        timeObserver.startTiming("Loop Overhead");
     }
 
-    public void addHudItem(Consumer<ScreenOverlay.Painter> draw) {
+    public void addHudItem(Consumer<GUIPainter> draw) {
         overlay.addHudItem(draw);
     }
 
@@ -197,7 +201,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             uiShader.initialize(game);
             Camera viewpoint = new StaticCamera(new Vector3f(0, 0, 3), Vectors.newZeroVector(), Vectors.newXVector());
 
-            SGL tgl = new SceneShaderGL(uiShader, texture.getWidth(), texture.getHeight(), viewpoint, true);
+            SGL tgl = new SceneShaderGL(uiShader, texture.getWidth(), texture.getHeight(), viewpoint);
 
             uiShader.setPointLight(Vectors.Z, Color4f.WHITE, 0.8f);
             ((TextureShader) uiShader).setTexture(texture);
@@ -208,6 +212,10 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         uiShader.unbind();
         window.printScreen(Directory.screenshots, fileName, GL_BACK);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
+    public SceneShader getUIShader() {
+        return uiShader;
     }
 
     private class Pointer {

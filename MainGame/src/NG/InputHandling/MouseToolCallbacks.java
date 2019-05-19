@@ -3,7 +3,7 @@ package NG.InputHandling;
 import NG.DataStructures.Tracked.TrackedFloat;
 import NG.Engine.Game;
 import NG.Engine.GameAspect;
-import NG.GUIMenu.Frames.GUIManager;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
@@ -81,7 +81,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
             return false;
         }
 
-        return !game.get(GUIManager.class).covers(pos.x, pos.y);
+        return !game.get(FrameGUIManager.class).covers(pos.x, pos.y);
     }
 
     @Override
