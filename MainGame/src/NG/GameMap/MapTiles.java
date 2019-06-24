@@ -41,9 +41,9 @@ public class MapTiles {
                 String hitboxFile = elts[1];
                 String texture = elts[2];
 
-                EnumSet<Properties> properties = EnumSet.noneOf(Properties.class);
+                EnumSet<TileProperties> properties = EnumSet.noneOf(TileProperties.class);
                 for (int i = 3; i < elts.length; i++) {
-                    properties.add(Properties.valueOf(elts[i]));
+                    properties.add(TileProperties.valueOf(elts[i]));
                 }
 
                 Path meshPath = folder.resolve(meshFile);
@@ -53,7 +53,7 @@ public class MapTiles {
                 registerTile(meshFile, meshPath, hitboxPath, texturePath, properties, sourceSet);
 
             } catch (Exception ex) {
-                Logger.ERROR.print("Error on line " + lineNr + " of file " + path + ":\n", ex);
+                throw new IOException("Error on line " + lineNr + " of file " + path + ": \n" + ex, ex);
             }
         }
     }
@@ -111,7 +111,7 @@ public class MapTiles {
      * @param sourceSet   the tile set where this tile is part of, or null if this is a custom tile.
      */
     public static MapTile registerTile(
-            String name, Path meshPath, Path hitboxPath, Path texturePath, EnumSet<Properties> properties,
+            String name, Path meshPath, Path hitboxPath, Path texturePath, EnumSet<TileProperties> properties,
             TileThemeSet sourceSet
     ) throws IOException {
         // ensure uniqueness in mesh

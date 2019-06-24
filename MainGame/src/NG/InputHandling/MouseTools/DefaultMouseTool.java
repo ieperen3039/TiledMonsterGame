@@ -1,12 +1,13 @@
 package NG.InputHandling.MouseTools;
 
+import NG.Actions.ActionJump;
+import NG.Actions.ActionWalk;
 import NG.Actions.Commands.CommandSelection;
-import NG.Actions.Commands.CommandWalk;
 import NG.Camera.Camera;
 import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
-import NG.Entities.ProjectilePowerBall;
+import NG.Entities.Projectiles.ProjectilePowerBall;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Frames.FrameGUIManager;
@@ -98,11 +99,15 @@ public class DefaultMouseTool implements MouseTool {
         if (selected != null) {
             MonsterSoul controller = selected.getController();
             Logger.DEBUG.print("Clicked at " + Vectors.toString(position) + " with " + controller + " selected");
-            Vector2i coord = game.get(GameMap.class).getCoordinate(position);
+
+            GameMap gameMap = game.get(GameMap.class);
+            Vector2i coord = gameMap.getCoordinate(position);
+            gameMap.setHighlights(coord);
 
             CommandSelection commandSelector = new CommandSelection(coord, new Player(), controller,
-                    CommandWalk.provider(),
-                    ProjectilePowerBall.command(game)
+                    CommandSelection.actionCommand("Walk", ActionWalk::new),
+                    ProjectilePowerBall.fireCommand(game),
+                    CommandSelection.actionCommand("Jump", ActionJump::new)
             );
 
             if (selectionFrame == null || selectionFrame.isDisposed()) {
@@ -110,16 +115,15 @@ public class DefaultMouseTool implements MouseTool {
                 game.get(FrameGUIManager.class).addFrame(selectionFrame);
             }
 
-            selectionFrame.setMainPanel(commandSelector.asComponent());
+            selectionFrame.setMainPanel(commandSelector.asComponent(100, 50));
             selectionFrame.pack();
             selectionFrame.setVisible(true);
-            game.get(GameMap.class).setHighlights(coord);
 
             int height = selectionFrame.getHeight();
             int width = selectionFrame.getWidth();
-            Vector2i newPos = new Vector2i(xSc - width / 2, ySc - (height + 100)); // for y, top is 0
-            if (newPos.y < 0) { // TODO better placement
-                newPos.set(xSc - width / 2, ySc + 100);
+            Vector2i newPos = new Vector2i(xSc - width - 100, ySc - height / 2); // for y, top is 0
+            if (newPos.x < 0) { // TODO better placement
+                newPos.set(xSc + 100, ySc - height / 2);
             }
 
             selectionFrame.setPosition(newPos);

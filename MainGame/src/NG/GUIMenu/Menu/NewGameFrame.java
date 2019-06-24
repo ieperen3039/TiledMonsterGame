@@ -145,7 +145,7 @@ public class NewGameFrame extends SFrame implements Runnable {
         }
 
         modLoader.initMods(targets);
-        TileThemeSet.PLAIN.load();
+        TileThemeSet.BASE.load();
         game.get(GameMap.class).generateNew(generatorMod);
 
         MainMenu.centerCamera(game.get(Camera.class), game.get(GameMap.class));

@@ -69,11 +69,11 @@ public abstract class MonsterSoul implements Living, Storable {
         this.associationStimuli = new Associator<>(Type.class, ATTENTION_SIZE, ASSOCIATION_SIZE);
         this.actionAssociator = new Associator<>(CType.class, ATTENTION_SIZE, 4);
 
+        this.monsterName = soulDescription.name;
         this.importance = soulDescription.importance;
         this.stimulusEffects = soulDescription.stimulusEffects;
         this.emotionValues = soulDescription.emotionValues;
         this.emotions = soulDescription.emotions;
-        this.monsterName = soulDescription.name;
 
         this.stats = new EntityStatistics(100);
         this.hitpoints = stats.hitPoints;

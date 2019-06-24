@@ -1,7 +1,9 @@
 package NG.GUIMenu.Menu;
 
+import NG.Actions.ActionIdle;
+import NG.Actions.ActionJump;
 import NG.Actions.Commands.Command;
-import NG.Actions.Commands.CommandWalk;
+import NG.Actions.Commands.CommandSelection;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;
@@ -56,7 +58,7 @@ import static NG.Rendering.Shapes.GenericShapes.CUBE;
  */
 public class MainMenu extends SFrame {
     public static final int BUTTON_MIN_WIDTH = 300;
-    public static final int BUTTON_MIN_HEIGHT = 50;
+    public static final int BUTTON_MIN_HEIGHT = 40;
     private static final int NOF_ENTITIES = 4 * 4 * 4;
 
     private final Game overworld;
@@ -137,7 +139,7 @@ public class MainMenu extends SFrame {
             state.cleanup();
             state.init(overworld);
 
-            TileThemeSet.PLAIN.load();
+            TileThemeSet.BASE.load();
 
             // random map
             int seed = Math.abs(Toolbox.random.nextInt());
@@ -162,8 +164,12 @@ public class MainMenu extends SFrame {
             MonsterEntity cow = monsterSoul.getAsEntity(overworld, position, Vectors.X);
             state.addEntity(cow);
 
-            // give it some command
-            Command command = new CommandWalk(new Player(), monsterSoul, new Vector2i(position.x + 1, position.y + 1));
+            Command command = CommandSelection.actionCommand("", (game, startPosition, target) -> new ActionIdle(startPosition, 2))
+                    .create(new Player(), monsterSoul, new Vector2i());
+            monsterSoul.accept(command);
+
+            command = CommandSelection.actionCommand("", ActionJump::new)
+                    .create(new Player(), monsterSoul, new Vector2i(position.x + 2, position.y + 2));
             monsterSoul.accept(command);
 
             /* --- END SECTION --- */

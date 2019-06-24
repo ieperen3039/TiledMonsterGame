@@ -79,8 +79,14 @@ public class TimeObserver {
     private void endTiming() {
         long currentTime = System.nanoTime();
 
-        int diff = Math.toIntExact(currentTime - currentStart);
-        thisLoopMeasures.merge(currentMeasure, diff, Integer::sum);
+        long value = currentTime - currentStart;
+        int current = thisLoopMeasures.getOrDefault(currentMeasure, 0);
+        if (value + current < Integer.MAX_VALUE) {
+            thisLoopMeasures.put(currentMeasure, (int) value + current);
+
+        } else {
+            thisLoopMeasures.put(currentMeasure, Integer.MAX_VALUE);
+        }
 
         currentMeasure = NONE;
         currentStart = currentTime;

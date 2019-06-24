@@ -30,9 +30,6 @@ public class CommandWalk extends Command {
         GameMap map = game.get(GameMap.class);
 
         Vector2i beginCoord = map.getCoordinate(beginPosition);
-        if (beginPosition.z() > map.getHeightAt(beginCoord)) {
-            return new ActionJump(beginPosition, map.getPosition(beginCoord), walkSpeed);
-        }
 
         Iterator<Vector2i> path = map
                 .findPath(beginCoord, target, walkSpeed, 0.1f)
@@ -42,18 +39,13 @@ public class CommandWalk extends Command {
             Vector3fc tgtPos = map.getPosition(beginCoord);
             if (Vectors.almostEqual(tgtPos, beginPosition)) return null; // already there
 
+            if (beginPosition.z() > map.getHeightAt(beginCoord)) {
+                return new ActionJump(beginPosition, map.getPosition(beginCoord), walkSpeed);
+            }
             return new ActionWalk(game, beginPosition, beginCoord, walkSpeed);
         }
 
         return new ActionWalk(game, beginPosition, path.next(), walkSpeed);
     }
 
-    public static CommandSelection.CommandProvider provider() {
-        return new CommandSelection.CommandProvider("Walk") {
-            @Override
-            public Command create(Living source, Living receiver, Vector2ic target) {
-                return new CommandWalk(receiver, receiver, target);
-            }
-        };
-    }
 }

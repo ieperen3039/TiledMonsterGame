@@ -1,7 +1,7 @@
 package NG.GameEvent;
 
 import NG.Engine.Game;
-import NG.Entities.Projectile;
+import NG.Entities.Projectiles.Projectile;
 import NG.Rendering.Lights.GameState;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;

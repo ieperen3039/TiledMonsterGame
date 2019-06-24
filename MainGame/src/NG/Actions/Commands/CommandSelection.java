@@ -1,11 +1,14 @@
 package NG.Actions.Commands;
 
+import NG.Actions.EntityAction;
+import NG.Engine.Game;
 import NG.GUIMenu.Components.SButton;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SPanel;
 import NG.Living.Living;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
+import org.joml.Vector3fc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,18 +45,6 @@ public class CommandSelection {
     }
 
     /**
-     * adds another command to this selection. Accepts lambda functions.
-     */
-    public void addProvider(String name, CommandCreator elt) {
-        providers.add(new CommandProvider(name) {
-            @Override
-            public Command create(Living source, Living receiver, Vector2ic target) {
-                return elt.create(source, receiver, target);
-            }
-        });
-    }
-
-    /**
      * @return a list of the names of commands that can be chosen. Only these can be accepted by {@link
      * #activate(String)}
      */
@@ -81,13 +72,13 @@ public class CommandSelection {
         return false;
     }
 
-    public SComponent asComponent() {
+    public SComponent asComponent(int buttonWidth, int buttonHeight) {
         SPanel panel = new SPanel(1, providers.size());
 
         Vector2i pos = new Vector2i(0, -1);
         for (CommandProvider provider : providers) {
             panel.add(
-                    new SButton(provider.name, () -> accept(provider), 200, 60),
+                    new SButton(provider.name, () -> accept(provider), buttonWidth, buttonHeight),
                     pos.add(0, 1)
             );
         }
@@ -101,15 +92,41 @@ public class CommandSelection {
         controller.accept(command);
     }
 
-    public static abstract class CommandProvider implements CommandCreator {
+
+    /**
+     * @return an action command. Takes a lambda function for creating an action, and generates commands that try to
+     * execute the given action exactly once..
+     */
+    public static CommandProvider actionCommand(String name, ActionCreator action) {
+        return new CommandSelection.CommandProvider(name) {
+            @Override
+            public Command create(Living source, Living receiver, Vector2ic target) {
+                return new Command(source, receiver) {
+                    boolean hasFired = false;
+
+                    @Override
+                    public EntityAction getAction(Game game, Vector3fc startPosition, float gameTime) {
+                        if (hasFired) return null;
+                        hasFired = true;
+
+                        return action.create(game, startPosition, target);
+                    }
+                };
+            }
+        };
+    }
+
+    public interface ActionCreator {
+        EntityAction create(Game game, Vector3fc startPosition, Vector2ic target);
+    }
+
+    public static abstract class CommandProvider {
         public final String name;
 
         public CommandProvider(String name) {
             this.name = name;
         }
-    }
 
-    private interface CommandCreator {
-        Command create(Living source, Living receiver, Vector2ic target);
+        public abstract Command create(Living source, Living receiver, Vector2ic target);
     }
 }

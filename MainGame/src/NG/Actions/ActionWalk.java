@@ -6,6 +6,8 @@ import NG.GameMap.GameMap;
 import NG.Tools.Vectors;
 import org.joml.*;
 
+import java.lang.Math;
+
 import static NG.Animations.BodyAnimation.WALK_CYCLE;
 
 /**
@@ -19,6 +21,15 @@ public class ActionWalk implements EntityAction {
     protected final float duration;
     private final UniversalAnimation animation;
     private Game game;
+
+    /**
+     * @param game          the current game instance
+     * @param startPosition the exact position where to start walking
+     * @param endCoord      target coordinate where to walk to
+     */
+    public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord) {
+        this(game, startPosition, endCoord, 1f);
+    }
 
     /**
      * @param game       the current game instance
@@ -39,7 +50,7 @@ public class ActionWalk implements EntityAction {
     public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord, float walkSpeed) {
         this.game = game;
         GameMap map = game.get(GameMap.class);
-        assert map.getHeightAt(startPosition.x(), startPosition.y()) == startPosition.z() :
+        assert Math.abs(map.getHeightAt(startPosition.x(), startPosition.y()) - startPosition.z()) < 1e-3f :
                 String.format("Start position is not on the ground: %s should have z = %s",
                         Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));
 

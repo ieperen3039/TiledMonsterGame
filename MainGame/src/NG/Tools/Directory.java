@@ -52,6 +52,12 @@ public enum Directory {
         return getPath(path).toFile();
     }
 
+    public File getFileMakeParents(String... path) {
+        File file = getPath(path).toFile();
+        file.getParentFile().mkdirs();
+        return file;
+    }
+
     public Path getPath(String... path) {
         Path pathBuilder = directory;
         for (String s : path) {

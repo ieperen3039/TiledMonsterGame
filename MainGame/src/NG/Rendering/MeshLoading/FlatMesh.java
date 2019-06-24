@@ -248,7 +248,7 @@ public class FlatMesh extends AbstractMesh {
     }
 
     private static void readFaceVertex(Face face, List<? extends Vector3fc> posList, int faceNumber, float[] posArr) {
-        assert face.size() == 3;
+        assert face.size() == 3 : "Face is not a triangle";
 
         int vectorIndex = faceNumber * 3;
         for (int i = 0; i < 3; i++) {
@@ -259,7 +259,7 @@ public class FlatMesh extends AbstractMesh {
     private static void readFaceNormals(
             Face face, List<? extends Vector3fc> normList, int faceNumber, float[] normArr
     ) {
-        assert face.size() == 3;
+        assert face.size() == 3 : "Face is not a triangle";
 
         int vectorIndex = faceNumber * 3;
         for (int i = 0; i < 3; i++) {
@@ -268,7 +268,7 @@ public class FlatMesh extends AbstractMesh {
     }
 
     private static void readFaceColors(Face face, List<Color4f> colorList, int faceNumber, float[] colorArr) {
-        assert face.size() == 3;
+        assert face.size() == 3 : "Face is not a triangle";
 
         int vectorIndex = faceNumber * 3;
         for (int i = 0; i < 3; i++) {

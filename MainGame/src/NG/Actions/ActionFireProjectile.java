@@ -5,8 +5,8 @@ import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
 import NG.Entities.MonsterEntity;
-import NG.Entities.Projectile;
-import NG.Entities.ProjectilePowerBall;
+import NG.Entities.Projectiles.Projectile;
+import NG.Entities.Projectiles.ProjectilePowerBall;
 import NG.GameEvent.Event;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.ProjectileSpawnEvent;
@@ -23,6 +23,7 @@ import org.joml.Vector3fc;
 // TODO find appropriate action
 public class ActionFireProjectile implements EntityAction {
     private static final float aniFireMoment = 0.5f;
+    private static final float JUMP_GRAVITY = Settings.GRAVITY_CONSTANT / 2;
     protected final Vector3fc startEnd;
     protected final float duration;
 
@@ -60,7 +61,7 @@ public class ActionFireProjectile implements EntityAction {
 
     @Override
     public Vector3f getPositionAt(float timeSinceStart) {
-        if (timeSinceStart < 0 || timeSinceStart > 0) return new Vector3f(startEnd);
+        if (timeSinceStart <= 0 || timeSinceStart >= duration) return new Vector3f(startEnd);
 
         float fraction = Math.max(Toolbox.interpolate(-.1f, 1f, timeSinceStart / duration), 0);
         float x = duration * fraction; // NOT timeSinceStart
@@ -68,7 +69,7 @@ public class ActionFireProjectile implements EntityAction {
         return new Vector3f(
                 startEnd.x(), startEnd.y(),
                 // z = -Fg x^2 + a x ; a = Fg * duration ; (result of z(duration) = 0)
-                -Settings.GRAVITY_CONSTANT * x * x + Settings.GRAVITY_CONSTANT * duration * x
+                -JUMP_GRAVITY * x * x + JUMP_GRAVITY * duration * x + startEnd.z()
         );
     }
 

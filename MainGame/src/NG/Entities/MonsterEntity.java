@@ -6,7 +6,6 @@ import NG.Actions.EntityAction;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.Animations.SkeletonBone;
-import NG.CollisionDetection.BoundingBox;
 import NG.DataStructures.Generic.Pair;
 import NG.Engine.Game;
 import NG.Engine.GameTimer;
@@ -131,9 +130,6 @@ public abstract class MonsterEntity implements Entity {
     public EntityAction getActionAt(float gameTime) {
         return currentActions.getActionAt(gameTime).left;
     }
-
-    @Override
-    public abstract BoundingBox hitbox();
 
     @Override
     public void collideWith(Object other, float collisionTime) {

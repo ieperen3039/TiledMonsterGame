@@ -11,7 +11,7 @@ import java.nio.file.Path;
  */
 public enum TileThemeSet {
     // general purpose tiles
-    PLAIN("Plain", "tileSetPlain.txt");
+    BASE("Hitbox", "tileSetHitbox.txt");
 
     private final Path path;
     private boolean isLoaded = false;

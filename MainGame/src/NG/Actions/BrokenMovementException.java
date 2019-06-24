@@ -18,8 +18,8 @@ public class BrokenMovementException extends RuntimeException {
         super(String.format(
                 "Action %s does not follow %s (%s != %s)",
                 second, first,
-                Vectors.toString(first.getPositionAt(relativeTime)),
-                Vectors.toString(second.getStartPosition())
+                Vectors.toString(second.getStartPosition()),
+                Vectors.toString(first.getPositionAt(relativeTime))
         ));
     }
 }

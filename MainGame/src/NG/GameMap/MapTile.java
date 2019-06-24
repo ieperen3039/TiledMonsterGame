@@ -38,7 +38,7 @@ public class MapTile {
     public final String name;
     public final int tileID;
     public final MapTiles.RotationFreeFit fit;
-    public final EnumSet<Properties> properties;
+    public final EnumSet<TileProperties> properties;
     public final int baseHeight; // height of the middle part, the height the user stands on
     public final TileThemeSet sourceSet;
 
@@ -61,7 +61,7 @@ public class MapTile {
      */
     MapTile(
             String name, MeshFile meshFile, Shape hitbox, Path texture, int[] heights,
-            int baseHeight, EnumSet<Properties> properties, TileThemeSet sourceSet
+            int baseHeight, EnumSet<TileProperties> properties, TileThemeSet sourceSet
     ) {
         this.name = name;
         this.texturePath = texture;
@@ -86,7 +86,7 @@ public class MapTile {
         this.sourceSet = null;
         this.tileID = nextIdentity++;
         this.fit = MapTiles.createRFF(1, 1, 1, 1);// pp, pn, nn, np
-        this.properties = EnumSet.noneOf(Properties.class);
+        this.properties = EnumSet.noneOf(TileProperties.class);
         this.heights = new int[]{1, 1, 1, 1, 1, 1, 1, 1};
         this.baseHeight = 1;
 

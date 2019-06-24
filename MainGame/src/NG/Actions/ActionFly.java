@@ -33,7 +33,7 @@ public class ActionFly implements EntityAction {
 
     @Override
     public Vector3f getPositionAt(float timeSinceStart) {
-        if (timeSinceStart < 0) return new Vector3f(start);
+        if (timeSinceStart <= 0) return new Vector3f(start);
         float fraction = timeSinceStart / duration;
         return new Vector3f(start).lerp(end, fraction);
     }

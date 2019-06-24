@@ -122,25 +122,15 @@ public class MapEditor {
     private void loadTiles() {
         int result = showDialog(loadTileDialog);
         if (result != JFileChooser.APPROVE_OPTION) return;
-        File[] selectedFiles = loadTileDialog.getSelectedFiles();
-        int[] inc = new int[]{0};
+        File file = loadTileDialog.getSelectedFile();
 
-        int nrOfFiles = selectedFiles.length;
-        if (nrOfFiles > 0) {
-            Supplier<String> progressBar = () -> "Loading tile " + inc[0] + "/" + nrOfFiles;
-            Logger.printOnline(progressBar);
+        Logger.DEBUG.print("Loading tiles...");
 
-            for (File file : selectedFiles) {
-                try {
-                    inc[0]++;
-                    MapTiles.readTileSetFile(null, file.toPath());
+        try {
+            MapTiles.readTileSetFile(null, file.toPath());
 
-                } catch (IOException ex) {
-                    Logger.ERROR.print(ex);
-                }
-            }
-
-            Logger.removeOnlinePrint(progressBar);
+        } catch (IOException ex) {
+            errorDialog(ex);
         }
     }
 
@@ -264,7 +254,7 @@ public class MapEditor {
             generator.setXSize(xSize + 1); // heightmap is 1 larger
             generator.setYSize(ySize + 1);
 
-            TileThemeSet.PLAIN.load();
+            TileThemeSet.BASE.load();
 
             blockMap.generateNew(generator);
             TileMap tileMap = game.get(TileMap.class);

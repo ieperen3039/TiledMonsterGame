@@ -1,0 +1,11 @@
+# Basic set of tiles.
+
+# Each line must have the following structure:
+# <mesh-filename> [hitbox-filename] [texture-filename] [properties...]
+# Where properties is a summation of properties this tile has
+# Any element not given must be replaced with a single dash '-', except for the properties field
+# If no specific hitbox is required, use a dash. The plain set will be used instead
+# The set of properties may change over time
+# Empty lines or lines starting with # are ignored
+
+testTileFlat.obj ../Hitbox/tile00000.obj -

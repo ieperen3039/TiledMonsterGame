@@ -7,9 +7,13 @@ import NG.Tools.Logger;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static NG.Settings.Settings.TILE_SIZE_Z;
@@ -20,28 +24,43 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
 public class BaseTileGenerator {
     public static void main(String[] args) throws IOException {
         Set<Integer> got = new HashSet<>();
+        List<String> tileNames = new ArrayList<>();
 
-        int i = 0;
+
+        Path dir = Directory.mapTileModels.getPath("Hitbox");
+        dir.toFile().mkdirs();
+
         int pp = 0;
-        for (int pn = 0; pn <= 4; pn++) {
+        for (int pn = 0; pn <= 3; pn++) {
             for (int nn = 0; nn <= 4; nn++) {
-                for (int np = 0; np <= 4; np++) {
+                for (int np = 0; np <= 3; np++) {
                     int id = MapTiles.rotationFreeBits(pp, pn, nn, np);
                     if (got.contains(id)) continue;
                     got.add(id);
 
-                    createTile(pp, pn, nn, np, 0f, "-l");
-                    i++;
-                    createTile(pp, pn, nn, np, 1f, "-h");
-                    i++;
+                    createAndAddTile(tileNames, dir, pp, pn, nn, np, 0f);
+
+                    createAndAddTile(tileNames, dir, pp, pn, nn, np, 1f);
                 }
             }
         }
 
-        Logger.INFO.print("Written " + i + " files");
+        writeDescriptor(tileNames, dir.resolve("tileSetHitbox.txt"), "");
+
+        Logger.INFO.print("Generated " + tileNames.size() + " tiles");
     }
 
-    public static void createTile(int pp, int pn, int nn, int np, float centerBias, String postfix) throws IOException {
+    public static void createAndAddTile(List<String> tileNames, Path dir, int pp, int pn, int nn, int np, float v)
+            throws IOException {
+        CustomShape tileLow = createTile(pp, pn, nn, np, v);
+
+        String tileLowName = String.format("tile%d%d%d%d%d.obj", pp, pn, nn, np, (int) v);
+        tileLow.toMeshFile().writeOBJFile(dir.resolve(tileLowName).toFile());
+
+        tileNames.add(tileLowName);
+    }
+
+    public static CustomShape createTile(int pp, int pn, int nn, int np, float centerBias) throws IOException {
         CustomShape frame = new CustomShape(new Vector3f(0, 0, 1));
 
         Vector3f ppb = new Vector3f(1, 1, 0);
@@ -87,15 +106,31 @@ public class BaseTileGenerator {
         frame.addTriangle(pmt, mmt, mpt);
         frame.addTriangle(mpt, mmt, nmt);
 
-        write(frame, String.format("plain%d%d%d%d%s.obj", pp, pn, nn, np, postfix));
+        return frame;
     }
 
     private static int getMid(int a, int b) {
         return (int) ((a + b) * 0.5f);
     }
 
-    private static void write(CustomShape frame, String name) throws IOException {
-        Path path = Directory.mapTileModels.getPath("Plain", name);
-        frame.toMeshFile().writeOBJFile(path.toFile());
+    private static void writeDescriptor(List<String> names, Path resolve, String properties)
+            throws FileNotFoundException {
+        PrintWriter writer = new PrintWriter(resolve.toFile());
+
+        writer.print("# Basic set of tiles.\n\n" +
+                "# Each line must have the following structure:\n" +
+                "# <mesh-filename> [hitbox-filename] [texture-filename] [properties...]\n" +
+                "# Where properties is a summation of properties this tile has\n" +
+                "# Any element not given must be replaced with a single dash '-', except for the properties field\n" +
+                "# If no specific hitbox is required, use a dash. The plain set will be used instead\n" +
+                "# The set of properties may change over time\n" +
+                "# Empty lines or lines starting with # are ignored\n\n"
+        );
+
+        for (String file : names) {
+            writer.println(file + " - - " + properties);
+        }
+
+        writer.close();
     }
 }
