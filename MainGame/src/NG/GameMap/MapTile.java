@@ -222,6 +222,7 @@ public class MapTile {
          * @return fraction t of (origin + direction * t), or Float.POSITIVE_INFINITY if it does not hit.
          */
         public float intersectFraction(Vector2fc tilePosition, Vector3fc origin, Vector3fc dir) {
+            // apply position and rotation elements of the tile
             // translation
             Vector3f localOrigin = new Vector3f(
                     origin.x() - tilePosition.x(),

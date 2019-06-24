@@ -4,6 +4,8 @@ import NG.CollisionDetection.BoundingBox;
 import NG.Engine.GameTimer;
 import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Settings.Settings;
+import NG.Tools.Logger;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -87,7 +89,27 @@ public interface Entity {
         float intersect = map.gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos), 1);
         if (intersect == 1) return;
 
+        // collision found
         float collisionTime = startTime + intersect * (endTime - startTime);
+        Vector3fc midPos = getPositionAt(collisionTime);
+
+        // only accept if the found position is sufficiently close to a checked point
+        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK_SQ) {
+            intersect = map.gridMapIntersection(startPos, new Vector3f(midPos).sub(startPos), 1);
+
+            if (intersect < 1) {
+                collisionTime = startTime + intersect * (collisionTime - startTime);
+                endPos = midPos;
+
+            } else { // wrong half, repeat with other half
+                intersect = map.gridMapIntersection(midPos, new Vector3f(endPos).sub(midPos), 1);
+                collisionTime = collisionTime + intersect * (endTime - collisionTime);
+                startPos = midPos;
+            }
+
+            Logger.WARN.print(startPos.distanceSquared(endPos));
+        }
+
         collideWith(map, collisionTime);
     }
 }

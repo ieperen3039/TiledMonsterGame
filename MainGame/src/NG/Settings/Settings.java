@@ -20,6 +20,7 @@ public class Settings {
     public static final float TILE_SIZE = 2f;
     public static final float TILE_SIZE_Z = 0.5f;
     public static final float GRAVITY_CONSTANT = 5f; // 9,81
+    public static final float MIN_COLLISION_CHECK_SQ = 1e-6f; // squared
 
     // video settings
     public static final float FOV = (float) Math.toRadians(30);

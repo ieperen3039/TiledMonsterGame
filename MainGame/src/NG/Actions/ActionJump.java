@@ -5,6 +5,7 @@ import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
 import NG.Settings.Settings;
+import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
@@ -53,6 +54,8 @@ public class ActionJump implements EntityAction {
             b = -((ay - by) + (a * bx * bx)) / (bx);
             c = (ay * bx) / (bx);
         }
+
+        Logger.WARN.print(duration, getPositionAt(duration));
     }
 
     @Override
