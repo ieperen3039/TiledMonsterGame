@@ -112,11 +112,12 @@ public abstract class AbstractGameLoop extends Thread {
             }
 
         } catch (Exception ex) {
-            Logger.ERROR.print(this + " has Crashed! " + ex);
+            Logger.ERROR.print(this + " has Crashed! " + ex.getClass());
             exceptionHandler(ex);
 
         } catch (AssertionError ae) {
             Logger.ERROR.print(this + " has triggered and Assertion: " + ae.getMessage());
+            exceptionHandler(new Exception(ae));
 
         } finally {
             Logger.removeOnlinePrint(tickCounter);

@@ -5,7 +5,6 @@ import NG.Engine.GameTimer;
 import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Settings.Settings;
-import NG.Tools.Logger;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -81,7 +80,6 @@ public interface Entity {
      */
     void collideWith(Object other, float collisionTime);
 
-    @SuppressWarnings("Duplicates")
     default void checkMapCollision(GameMap map, float startTime, float endTime) {
         Vector3fc startPos = getPositionAt(startTime);
         Vector3fc endPos = getPositionAt(endTime);
@@ -106,8 +104,6 @@ public interface Entity {
                 collisionTime = collisionTime + intersect * (endTime - collisionTime);
                 startPos = midPos;
             }
-
-            Logger.WARN.print(startPos.distanceSquared(endPos));
         }
 
         collideWith(map, collisionTime);

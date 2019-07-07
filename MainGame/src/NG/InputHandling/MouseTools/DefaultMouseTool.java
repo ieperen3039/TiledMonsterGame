@@ -1,8 +1,8 @@
 package NG.InputHandling.MouseTools;
 
 import NG.Actions.ActionJump;
-import NG.Actions.ActionWalk;
 import NG.Actions.Commands.CommandSelection;
+import NG.Actions.Commands.CommandWalk;
 import NG.Camera.Camera;
 import NG.Engine.Game;
 import NG.Entities.Entity;
@@ -105,7 +105,7 @@ public class DefaultMouseTool implements MouseTool {
             gameMap.setHighlights(coord);
 
             CommandSelection commandSelector = new CommandSelection(coord, new Player(), controller,
-                    CommandSelection.actionCommand("Walk", ActionWalk::new),
+                    CommandWalk.walkCommand(),
                     ProjectilePowerBall.fireCommand(game),
                     CommandSelection.actionCommand("Jump", ActionJump::new)
             );
@@ -115,7 +115,7 @@ public class DefaultMouseTool implements MouseTool {
                 game.get(FrameGUIManager.class).addFrame(selectionFrame);
             }
 
-            selectionFrame.setMainPanel(commandSelector.asComponent(100, 50));
+            selectionFrame.setMainPanel(commandSelector.asComponent(80, 40));
             selectionFrame.pack();
             selectionFrame.setVisible(true);
 
@@ -123,7 +123,7 @@ public class DefaultMouseTool implements MouseTool {
             int width = selectionFrame.getWidth();
             Vector2i newPos = new Vector2i(xSc - width - 100, ySc - height / 2); // for y, top is 0
             if (newPos.x < 0) { // TODO better placement
-                newPos.set(xSc + 100, ySc - height / 2);
+                newPos.set(xSc + 200, ySc - height / 2);
             }
 
             selectionFrame.setPosition(newPos);

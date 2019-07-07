@@ -16,7 +16,6 @@ import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 
@@ -137,7 +136,6 @@ public abstract class MonsterEntity implements Entity {
         if (other instanceof GameMap) {
             Pair<EntityAction, Float> actionAt = currentActions.getActionAt(collisionTime);
             EntityAction action = actionAt.left;
-            Logger.WARN.print(actionAt, action.getPositionAt(actionAt.right));
 
             if (!action.hasWorldCollision()) return;
         }

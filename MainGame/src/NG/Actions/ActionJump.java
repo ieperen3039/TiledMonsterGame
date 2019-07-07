@@ -5,7 +5,6 @@ import NG.Animations.UniversalAnimation;
 import NG.Engine.Game;
 import NG.GameMap.GameMap;
 import NG.Settings.Settings;
-import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
@@ -36,8 +35,7 @@ public class ActionJump implements EntityAction {
     public ActionJump(Vector3fc startPosition, Vector3fc endPosition, float jumpSpeed) {
         this.start = startPosition;
         this.end = endPosition;
-        float distance = startPosition.distance(endPosition); // not entirely true, as this does not take z into account
-        this.duration = jumpDuration(jumpSpeed, distance);
+        this.duration = jumpDuration(jumpSpeed, startPosition, endPosition);
 
         // relative
         float ay = startPosition.z();
@@ -55,7 +53,9 @@ public class ActionJump implements EntityAction {
             c = (ay * bx) / (bx);
         }
 
-        Logger.WARN.print(duration, getPositionAt(duration));
+        assert getPositionAt(duration).equals(endPosition, 1 / 128f) :
+                String.format("%s | %s | %s | %s", startPosition, endPosition, duration, getPositionAt(duration));
+
     }
 
     @Override
@@ -68,7 +68,8 @@ public class ActionJump implements EntityAction {
         return true;
     }
 
-    public static float jumpDuration(float jumpSpeed, float distance) {
+    public static float jumpDuration(float jumpSpeed, Vector3fc startPosition, Vector3fc endPosition) {
+        float distance = startPosition.distance(endPosition); // not entirely true, as this does not take z into account
         return (distance == 0 ? 0 : (jumpSpeed / distance)) + 1;
     }
 
@@ -76,7 +77,7 @@ public class ActionJump implements EntityAction {
     public Vector3f getPositionAt(float timeSinceStart) {
         if (timeSinceStart <= 0) return new Vector3f(start);
 
-        float fraction = Math.max(Toolbox.interpolate(-.5f, 1f, timeSinceStart / duration), 0);
+        float fraction = Math.max(Toolbox.interpolate(-.3f, 1f, timeSinceStart / duration), 0);
         float x = duration * fraction; // NOT timeSinceStart
 
         return new Vector3f(

@@ -28,7 +28,7 @@ public class ActionWalk implements EntityAction {
      * @param endCoord      target coordinate where to walk to
      */
     public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord) {
-        this(game, startPosition, endCoord, 1f);
+        this(game, startPosition, endCoord, 3f);
     }
 
     /**
@@ -57,7 +57,7 @@ public class ActionWalk implements EntityAction {
         start = new Vector3f(startPosition);
         end = map.getPosition(endCoord);
         startToEnd = new Vector2f(end.x() - startPosition.x(), end.y() - startPosition.y());
-        duration = walkSpeed / (start.distance(end));
+        duration = (start.distance(end)) / walkSpeed;
         animation = WALK_CYCLE;
     }
 

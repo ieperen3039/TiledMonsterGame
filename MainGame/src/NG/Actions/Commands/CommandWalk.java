@@ -19,8 +19,8 @@ import java.util.Iterator;
 public class CommandWalk extends Command {
     private final Vector2ic target;
 
-    public CommandWalk(Living source, Living target, Vector2ic position) {
-        super(source, target);
+    public CommandWalk(Living source, Living receiver, Vector2ic position) {
+        super(source, receiver);
         this.target = new Vector2i(position);
     }
 
@@ -48,4 +48,12 @@ public class CommandWalk extends Command {
         return new ActionWalk(game, beginPosition, path.next(), walkSpeed);
     }
 
+    public static CommandSelection.CommandProvider walkCommand() {
+        return new CommandSelection.CommandProvider("Walk") {
+            @Override
+            public Command create(Living source, Living receiver, Vector2ic target) {
+                return new CommandWalk(source, receiver, target);
+            }
+        };
+    }
 }

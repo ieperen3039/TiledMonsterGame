@@ -365,10 +365,17 @@ public final class Toolbox {
     }
 
     /**
-     * computes the hamming distance between string a and b as: {@code LCSLength(X[1..m], Y[1..n]) C = array(0..m, 0..n)
-     * for i := 1..m for j := 1..n if X[i] = Y[j] C[i,j] := C[i-1,j-1] + 1 else C[i,j] := max(C[i,j-1], C[i-1,j]) return
-     * C[m,n] }
+     * computes the longest common substring of string a and b
      */
+    // LCSLength(X[1..m], Y[1..n])
+    //  C = array(0..m, 0..n)
+    //  for i := 1..m
+    //      for j := 1..n
+    //          if X[i] = Y[j]
+    //              C[i,j] := C[i-1,j-1] + 1
+    //          else
+    //              C[i,j] := max(C[i,j-1], C[i-1,j])
+    //  return C[m,n]
     public static int hammingDistance(String a, String b) {
         int m = a.length();
         int n = b.length();
@@ -409,7 +416,7 @@ public final class Toolbox {
     }
 
     public static float interpolate(float a, float b, float fraction) {
-        return (Math.abs(b - a) * fraction) + a;
+        return ((b - a) * fraction) + a;
     }
 
     public static void display(Exception e) {
