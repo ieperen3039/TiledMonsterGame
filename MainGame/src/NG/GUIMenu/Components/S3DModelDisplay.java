@@ -2,8 +2,8 @@ package NG.GUIMenu.Components;
 
 import NG.Camera.Camera;
 import NG.Camera.StaticCamera;
+import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.MatrixStack.SGL;

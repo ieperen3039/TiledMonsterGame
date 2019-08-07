@@ -1,4 +1,4 @@
-package NG.Engine;
+package NG.Core;
 
 import NG.GameMap.GameMap;
 import NG.Storable;

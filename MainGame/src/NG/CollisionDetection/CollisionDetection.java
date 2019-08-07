@@ -2,11 +2,15 @@ package NG.CollisionDetection;
 
 import NG.DataStructures.Generic.AveragingQueue;
 import NG.DataStructures.Generic.ConcurrentArrayList;
+import NG.DataStructures.Generic.Pair;
 import NG.DataStructures.Generic.PairList;
 import NG.Entities.Entity;
+import NG.Entities.MovingEntity;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
+import org.joml.AABBf;
 import org.joml.RayAabIntersection;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.*;
@@ -21,17 +25,18 @@ import java.util.stream.IntStream;
  */
 public class CollisionDetection {
     private static final int MAX_COLLISION_ITERATIONS = 5;
+    private static final int INSERTION_SORT_BOUND = 64;
+
     private CollisionEntity[] xLowerSorted;
     private CollisionEntity[] yLowerSorted;
     private CollisionEntity[] zLowerSorted;
 
-    private AveragingQueue avgCollision;
-    private float previousTime = 0f;
-    private WorldCollisionObject world;
+    private AveragingQueue avgCollisions;
 
-    private Collection<Entity> entityList;
-    private Collection<Entity> newEntities;
-    private static final int INSERTION_SORT_BOUND = 64;
+    private Collection<Entity> staticEntities;
+    private Collection<MovingEntity> dynamicEntities;
+    private Collection<MovingEntity> newEntities;
+    private float previousTime;
 
     /**
      * @see #CollisionDetection(Collection)
@@ -42,26 +47,27 @@ public class CollisionDetection {
 
     /**
      * Collects the given entities and allows collision and phisics calculations to influence these entities
-     * @param entities a list of fixed entities. Entities in this collection should not move, but if they do, dynamic
-     *                 objects might phase through when moving in opposite direction. Apart from this case, the
-     *                 collision detection still functions.
+     * @param staticEntities a list of fixed entities. Entities in this collection should not move, but if they do,
+     *                       dynamic objects might phase through when moving in opposite direction. Apart from this
+     *                       case, the collision detection still functions.
      */
-    public CollisionDetection(Collection<Entity> entities) {
-        this.entityList = new CopyOnWriteArrayList<>();
+    public CollisionDetection(Collection<Entity> staticEntities) {
+        this.staticEntities = Collections.unmodifiableCollection(staticEntities);
+        this.dynamicEntities = new CopyOnWriteArrayList<>();
         this.newEntities = new ConcurrentArrayList<>();
 
         Logger.printOnline(() ->
-                String.format("Collision pair count average: %1.01f", avgCollision.average())
+                String.format("Collision pair count average: %1.01f", avgCollisions.average())
         );
 
-        int nOfEntities = entities.size();
+        int nOfEntities = staticEntities.size();
         xLowerSorted = new CollisionEntity[nOfEntities];
         yLowerSorted = new CollisionEntity[nOfEntities];
         zLowerSorted = new CollisionEntity[nOfEntities];
 
-        populate(entities, xLowerSorted, yLowerSorted, zLowerSorted);
+        populate(staticEntities, xLowerSorted, yLowerSorted, zLowerSorted);
 
-        avgCollision = new AveragingQueue(5);
+        avgCollisions = new AveragingQueue(5);
     }
 
     /**
@@ -69,13 +75,12 @@ public class CollisionDetection {
      * respectively)
      */
     private void populate(
-            Collection<Entity> entities,
+            Collection<? extends Entity> entities,
             CollisionEntity[] xLowerSorted, CollisionEntity[] yLowerSorted, CollisionEntity[] zLowerSorted
     ) {
         int i = 0;
         for (Entity entity : entities) {
             CollisionEntity asCollisionEntity = new CollisionEntity(entity);
-            asCollisionEntity.update(previousTime);
             xLowerSorted[i] = asCollisionEntity;
             yLowerSorted[i] = asCollisionEntity;
             zLowerSorted[i] = asCollisionEntity;
@@ -94,15 +99,17 @@ public class CollisionDetection {
         }
     }
 
-    public void processCollisions(float currentTime) {
-        if (currentTime == previousTime) return;
+    /**
+     * @param gameTime the time of the next game-tick
+     */
+    public void processCollisions(float gameTime) {
 
         /** -- clean and restore invariants -- */
 
         // remove disposed entities
         List<Entity> removeEntities = new ArrayList<>();
 
-        for (Entity e : entityList) {
+        for (Entity e : dynamicEntities) {
             if (e.isDisposed()) {
                 removeEntities.add(e);
             }
@@ -116,80 +123,97 @@ public class CollisionDetection {
         // add new entities
         newEntities.removeIf(Entity::isDisposed);
         if (!newEntities.isEmpty()) {
-            entityList.addAll(newEntities);
+            dynamicEntities.addAll(newEntities);
             mergeNewEntities(newEntities);
             newEntities.clear();
         }
 
         // update representation
         for (CollisionEntity entity : entityArray()) {
-            entity.update(currentTime);
+            entity.update(gameTime);
         }
-
 
         /** -- analyse the collisions -- */
-
-        // world collisions
-        for (Entity e : entityList) {
-            world.checkCollision(e, previousTime, currentTime);
-        }
 
         /* As a single collision may result in a previously not-intersecting pair to collide,
          * we shouldn't re-use the getIntersectingPairs method nor reduce by non-collisions.
          * On the other hand, we may assume collisions of that magnitude appear seldom
          */
-        PairList<Entity, Entity> pairs = getIntersectingPairs();
+        PairList<CollisionEntity, CollisionEntity> pairs = getIntersectingPairs();
 
         IntStream.range(0, pairs.size())
                 .parallel()
                 .forEach(n -> {
                     int checksLeft = MAX_COLLISION_ITERATIONS;
-                    Entity left = pairs.left(n);
-                    Entity right = pairs.right(n);
+                    CollisionEntity left = pairs.left(n);
+                    CollisionEntity right = pairs.right(n);
 
                     boolean didCollide;
                     do {
-                        didCollide = checkCollisionPair(left, right, previousTime, currentTime);
+                        didCollide = checkCollisionPair(left, right, gameTime);
                     } while (didCollide && (--checksLeft > 0));
                 });
 
-        previousTime = currentTime;
+        previousTime = gameTime;
     }
 
 
     /**
-     * @param alpha     one entity
-     * @param beta      another entity
-     * @param startTime first moment in time to consider (inclusive)
-     * @param endTime   last moment in time to consider (exclusive)
+     * @param alpha    one entity
+     * @param beta     another entity
+     * @param gameTime the time of the next game-tick
      * @return true iff these pairs indeed collided before endTime
      */
-    private boolean checkCollisionPair(Entity alpha, Entity beta, float startTime, float endTime) {
-        if (!alpha.canCollideWith(beta) || !beta.canCollideWith(alpha)) return false;
+    private boolean checkCollisionPair(CollisionEntity alpha, CollisionEntity beta, float gameTime) {
+        Entity a = alpha.entity;
+        Entity b = beta.entity;
 
+        assert !a.canCollideWith(b) && !b.canCollideWith(a);
         // this may change with previous collisions
-        if (alpha.isDisposed() || beta.isDisposed() || alpha == beta) return false;
+        if (a.isDisposed() || b.isDisposed() || a == b) return false;
 
-        BoundingBox aBox = alpha.hitbox();
-        Vector3fc aPos = alpha.getPositionAt(startTime);
-        Vector3fc aMove = alpha.getPositionAt(endTime).sub(aPos);
-
-        BoundingBox bBox = beta.hitbox();
-        Vector3fc bPos = beta.getPositionAt(startTime);
-        Vector3fc bMove = beta.getPositionAt(endTime).sub(bPos);
-
-        float aFrac = aBox.relativeCollisionFraction(aPos, aMove, bBox, bPos, bMove);
-        float bFrac = bBox.relativeCollisionFraction(bPos, bMove, aBox, aPos, aMove);
+        float bFrac = checkAtoB(alpha, b, gameTime);
+        float aFrac = checkAtoB(beta, a, gameTime);
 
         float hitFrac = Math.min(aFrac, bFrac);
         if (hitFrac == 1) return false;
 
-        float collisionTime = startTime + hitFrac * (endTime - startTime);
+        float collisionTime = previousTime + hitFrac * (previousTime - gameTime);
 
-        alpha.collideWith(beta, collisionTime);
-        beta.collideWith(alpha, collisionTime);
+        /*
+         Note: if en entity collides with many entities in one tick, it will affect and be affected by all the
+         entities it would collide with, even if the first deflects it. A solution is complex and expensive.
+         */
+        a.collideWith(b, collisionTime);
+        b.collideWith(a, collisionTime);
 
         return true;
+    }
+
+    /**
+     * checks whether {@code moving} collides with {@code receiving}
+     * @param moving   an object holding an entity
+     * @param receiver another entity
+     * @param gameTime
+     * @return 1 if moving does not hit the receiver, otherwise a value t [0 ... 1) such that {@code origin + t *
+     * direction}
+     */
+    private float checkAtoB(CollisionEntity moving, Entity receiver, float gameTime) {
+        List<Vector3f> prev = moving.prevPoints;
+        List<Vector3f> next = moving.nextPoints;
+
+        float bFrac = 1;
+        for (int i = 0; i < prev.size(); i++) {
+            Vector3f origin = next.get(i);
+            Vector3f direction = new Vector3f(prev.get(i)).sub(origin);
+            float intersection = receiver.getIntersection(origin, direction, gameTime);
+
+            if (intersection < bFrac) {
+                bFrac = intersection;
+            }
+        }
+
+        return bFrac;
     }
 
     /**
@@ -197,7 +221,7 @@ public class CollisionDetection {
      * ground, but not an object with itself. One pair does not occur the other way around.
      * @return a collection of pairs of objects that are close to each other
      */
-    private PairList<Entity, Entity> getIntersectingPairs() {
+    private PairList<CollisionEntity, CollisionEntity> getIntersectingPairs() {
         Toolbox.insertionSort(xLowerSorted, CollisionEntity::xLower);
         Toolbox.insertionSort(yLowerSorted, CollisionEntity::yLower);
         Toolbox.insertionSort(zLowerSorted, CollisionEntity::zLower);
@@ -209,7 +233,7 @@ public class CollisionDetection {
 
         // initialize id values to correspond to the array
         for (int i = 0; i < nrOfEntities; i++) {
-            entityArray[i].setId(i);
+            entityArray[i].id = i;
         }
 
         AdjacencyMatrix adjacencies = new AdjacencyMatrix(nrOfEntities, 3);
@@ -220,14 +244,310 @@ public class CollisionDetection {
 
         int nrOfElts = adjacencies.nrOfFoundElements();
 
-        PairList<Entity, Entity> allEntityPairs = new PairList<>(nrOfElts);
+        PairList<CollisionEntity, CollisionEntity> allEntityPairs = new PairList<>(nrOfElts);
         adjacencies.forEach((i, j) -> allEntityPairs.add(
-                entityArray[i].entity, entityArray[j].entity
+                entityArray[i], entityArray[j]
         ));
 
-        avgCollision.add(nrOfElts);
+        avgCollisions.add(nrOfElts);
         return allEntityPairs;
     }
+
+    /**
+     * iterating over the sorted array, increase the value of all pairs that have coinciding intervals
+     * @param adjacencyMatrix the matrix where the pairs are marked using entity id's
+     * @param sortedArray     an array sorted increasingly on the lower mapping
+     * @param lower           a function that maps to the lower value of the interval of the entity
+     * @param upper           a function that maps an entity to its upper interval
+     */
+    protected void checkOverlap(
+            AdjacencyMatrix adjacencyMatrix, CollisionEntity[] sortedArray, Function<CollisionEntity, Float> lower,
+            Function<CollisionEntity, Float> upper
+    ) {
+        // INVARIANT:
+        // all items i where i.lower < source.lower, are already added to the matrix
+
+        int nOfItems = sortedArray.length;
+        for (int i = 0; i < (nOfItems - 1); i++) {
+            CollisionEntity subject = sortedArray[i];
+
+            // increases the checks count of every source with index less than i, with position less than the given minimum
+            int j = i + 1;
+            CollisionEntity target = sortedArray[j++];
+
+            // while the lowerbound of target is less than the upperbound of our subject
+            while (lower.apply(target) <= upper.apply(subject)) {
+                if (subject.entity.canCollideWith(target.entity) && target.entity.canCollideWith(subject.entity)) {
+                    adjacencyMatrix.add(target.id, subject.id);
+                }
+
+                if (j == nOfItems) break;
+                target = sortedArray[j++];
+            }
+        }
+    }
+
+    public void addEntities(Collection<MovingEntity> entities) {
+        newEntities.addAll(entities);
+    }
+
+    public void addEntity(MovingEntity entity) {
+        assert (!dynamicEntities.contains(entity)) : entity;
+        assert (!newEntities.contains(entity)) : entity;
+
+        newEntities.add(entity);
+    }
+
+    /**
+     * calculates the first entity hit by the given ray
+     * @param origin the origin of the ray
+     * @param dir    the direction of the ray
+     * @return Left: the first entity hit by the ray, or null if no entity is hit.
+     * <p>
+     * Right: the fraction t such that {@code origin + t * dir} gives the point of collision with this entity. Undefined
+     * if {@code left == null}
+     */
+    public Pair<Entity, Float> rayTrace(Vector3fc origin, Vector3fc dir) {
+        assert testInvariants();
+
+        RayAabIntersection sect = new RayAabIntersection(origin.x(), origin.y(), origin.z(), dir.x(), dir.y(), dir.z());
+
+        float fraction = Float.MAX_VALUE;
+        Entity suspect = null;
+
+        for (CollisionEntity elt : entityArray()) {
+            boolean collide = sect.test(
+                    elt.xLower(), elt.yLower(), elt.zLower(),
+                    elt.xUpper(), elt.yUpper(), elt.zUpper()
+            );
+            if (!collide) continue;
+
+            Entity entity = elt.entity;
+
+            float f = entity.getHitbox().intersectRay(origin, dir);
+            if (f < fraction) {
+                fraction = f;
+                suspect = entity;
+            }
+        }
+
+        return new Pair<>(suspect, fraction);
+    }
+
+    private void mergeNewEntities(Collection<MovingEntity> newEntities) {
+        int nOfNewEntities = newEntities.size();
+        if (nOfNewEntities <= 0) return;
+
+        CollisionEntity[] newXSort = new CollisionEntity[nOfNewEntities];
+        CollisionEntity[] newYSort = new CollisionEntity[nOfNewEntities];
+        CollisionEntity[] newZSort = new CollisionEntity[nOfNewEntities];
+
+        populate(newEntities, newXSort, newYSort, newZSort);
+
+        xLowerSorted = Toolbox.mergeArrays(xLowerSorted, newXSort, CollisionEntity::xLower);
+        yLowerSorted = Toolbox.mergeArrays(yLowerSorted, newYSort, CollisionEntity::yLower);
+        zLowerSorted = Toolbox.mergeArrays(zLowerSorted, newZSort, CollisionEntity::zLower);
+    }
+
+    /**
+     * Remove the selected entities off the entity lists in a robust way. Entities that did not exist are ignored, and
+     * doubles are also accepted.
+     * @param targets a collection of entities to be removed
+     */
+    private void deleteEntities(Collection<Entity> targets) {
+        xLowerSorted = deleteAll(targets, xLowerSorted);
+        yLowerSorted = deleteAll(targets, yLowerSorted);
+        zLowerSorted = deleteAll(targets, zLowerSorted);
+
+        dynamicEntities.removeAll(targets);
+    }
+
+    private CollisionEntity[] deleteAll(Collection<Entity> targets, CollisionEntity[] array) {
+        int xi = 0;
+        for (int i = 0; i < array.length; i++) {
+            Entity entity = array[i].entity;
+            if ((entity != null) && targets.contains(entity)) {
+                continue;
+            }
+            array[xi++] = array[i];
+        }
+        return Arrays.copyOf(array, xi);
+    }
+
+    /**
+     * @return an array of the entities, backed by any local representation. Should only be used for querying, otherwise
+     * it must be cloned
+     */
+    private CollisionEntity[] entityArray() {
+        return xLowerSorted;
+    }
+
+    public Collection<Entity> getEntityList() {
+        Collection<Entity> list = new ArrayList<>(staticEntities);
+        list.addAll(dynamicEntities);
+        list.addAll(newEntities);
+        return list;
+    }
+
+    public boolean contains(Entity entity) {
+        if (staticEntities.contains(entity)) return true;
+
+        if (entity instanceof MovingEntity) {
+            return dynamicEntities.contains(entity) || newEntities.contains(entity);
+        }
+        return false;
+    }
+
+    public void forEach(Consumer<Entity> action) {
+        for (Entity e : staticEntities) {
+            action.accept(e);
+        }
+        for (Entity e : dynamicEntities) {
+            action.accept(e);
+        }
+        for (Entity e : newEntities) {
+            action.accept(e);
+        }
+    }
+
+    public void cleanup() {
+        xLowerSorted = new CollisionEntity[0];
+        yLowerSorted = new CollisionEntity[0];
+        zLowerSorted = new CollisionEntity[0];
+
+        for (Entity e : staticEntities) {
+            e.dispose();
+        }
+        staticEntities.clear();
+
+        for (Entity e : dynamicEntities) {
+            e.dispose();
+        }
+        dynamicEntities.clear();
+
+        for (Entity e : newEntities) {
+            e.dispose();
+        }
+        newEntities.clear();
+    }
+
+    protected static class CollisionEntity {
+        public final Entity entity;
+        public int id;
+
+        public List<Vector3f> nextPoints;
+        public List<Vector3f> prevPoints;
+
+        private BoundingBox nextBoundingBox;
+        private AABBf hitbox; // combined of both states
+
+        public CollisionEntity(Entity source) {
+            this.entity = source;
+            prevPoints = new ArrayList<>();
+        }
+
+        public void update(float gameTime) {
+            entity.update(gameTime);
+
+            List<Vector3f> buffer = prevPoints;
+            prevPoints = nextPoints;
+            nextPoints = entity.getShapePoints(buffer, gameTime);
+
+            Vector3fc nextPos = entity.getPositionAt(gameTime);
+            BoundingBox prevBoundingBox = nextBoundingBox;
+            nextBoundingBox = entity.getHitbox().move(nextPos);
+
+            hitbox = prevBoundingBox.union(nextBoundingBox);
+        }
+
+        public float xUpper() {
+            return hitbox.maxX;
+        }
+
+        public float yUpper() {
+            return hitbox.maxY;
+        }
+
+        public float zUpper() {
+            return hitbox.maxZ;
+        }
+
+        public float xLower() {
+            return hitbox.minX;
+        }
+
+        public float yLower() {
+            return hitbox.minY;
+        }
+
+        public float zLower() {
+            return hitbox.minZ;
+        }
+
+        @Override
+        public String toString() {
+            return entity.toString();
+        }
+    }
+
+    /**
+     * tracks how often pairs of integers are added, and allows querying whether a given pair has been added at least a
+     * given number of times.
+     */
+    private static class AdjacencyMatrix {
+        // this map is indexed using the entity id values, with i > j
+        // if (adjacencyMatrix[i][j] == n) then entityArray[i] and entityArray[j] have n coordinates with coinciding intervals
+        Map<Integer, Map<Integer, Integer>> relations;
+        Map<Integer, Set<Integer>> found;
+        private int depth;
+
+        /**
+         * @param nrOfElements maximum value that can be added
+         * @param depth        how many times a number must be added to trigger {@link #has(int, int)}. For 3-coordinate
+         *                     matching, use 3
+         */
+        public AdjacencyMatrix(int nrOfElements, int depth) {
+            relations = new HashMap<>(nrOfElements);
+            found = new HashMap<>();
+            this.depth = depth;
+        }
+
+        public void add(int i, int j) {
+            if (j > i) {
+                int t = i;
+                i = j;
+                j = t;
+            }
+
+            Map<Integer, Integer> firstSide = relations.computeIfAbsent(i, HashMap::new);
+            int newValue = firstSide.getOrDefault(j, 0) + 1;
+            if (newValue == depth) {
+                found.computeIfAbsent(i, HashSet::new).add(j);
+            }
+            firstSide.put(j, newValue);
+        }
+
+        public boolean has(int i, int j) {
+            return found.containsKey(i) && found.get(i).contains(j);
+        }
+
+        public void forEach(BiConsumer<Integer, Integer> action) {
+            for (Integer i : found.keySet()) {
+                for (Integer j : found.get(i)) {
+                    action.accept(i, j);
+                }
+            }
+        }
+
+        public int nrOfFoundElements() {
+            int count = 0;
+            for (Set<Integer> integers : found.values()) {
+                count += integers.size();
+            }
+            return count;
+        }
+    }
+
 
     /**
      * tests whether the invariants holds. Throws an error if any of the arrays is not correctly sorted or any other
@@ -304,291 +624,5 @@ public class CollisionDetection {
         }
 
         return true;
-    }
-
-    /**
-     * iterating over the sorted array, increase the value of all pairs that have coinciding intervals
-     * @param adjacencyMatrix the matrix where the pairs are marked using entity id's
-     * @param sortedArray     an array sorted increasingly on the lower mapping
-     * @param lower           a function that maps to the lower value of the interval of the entity
-     * @param upper           a function that maps an entity to its upper interval
-     */
-    protected void checkOverlap(
-            AdjacencyMatrix adjacencyMatrix, CollisionEntity[] sortedArray, Function<CollisionEntity, Float> lower,
-            Function<CollisionEntity, Float> upper
-    ) {
-        // INVARIANT:
-        // all items i where i.lower < source.lower, are already added to the matrix
-
-        int nOfItems = sortedArray.length;
-        for (int i = 0; i < (nOfItems - 1); i++) {
-            CollisionEntity subject = sortedArray[i];
-
-            // increases the checks count of every source with index less than i, with position less than the given minimum
-            int j = i + 1;
-            CollisionEntity target = sortedArray[j++];
-
-            // while the lowerbound of target is less than the upperbound of our subject
-            while (lower.apply(target) <= upper.apply(subject)) {
-                adjacencyMatrix.add(target.id, subject.id);
-
-                if (j == nOfItems) break;
-                target = sortedArray[j++];
-            }
-        }
-    }
-
-    public void addEntities(Collection<? extends Entity> entities) {
-        newEntities.addAll(entities);
-    }
-
-    public void addEntity(Entity entity) {
-        assert (!entityList.contains(entity)) : entity;
-        assert (!newEntities.contains(entity)) : entity;
-
-        newEntities.add(entity);
-    }
-
-    /**
-     * calculates the entity hit by the given ray
-     * @param origin the origin of the ray
-     * @param dir    the direction of the ray
-     * @return the first entity hit by the ray, or null if no entity is hit.
-     */
-    public Entity rayTrace(Vector3fc origin, Vector3fc dir) {
-        if (entityList.isEmpty()) return null;
-        assert testInvariants();
-
-        RayAabIntersection sect = new RayAabIntersection(origin.x(), origin.y(), origin.z(), dir.x(), dir.y(), dir.z());
-
-        float fraction = Float.MAX_VALUE;
-        Entity suspect = null;
-
-        for (CollisionEntity elt : entityArray()) {
-            boolean collide = sect.test(
-                    elt.xLower(), elt.yLower(), elt.zLower(),
-                    elt.xUpper(), elt.yUpper(), elt.zUpper()
-            );
-            if (!collide) continue;
-
-            Entity entity = elt.entity;
-
-            float f = entity.hitbox().intersectMovement(origin, dir);
-            if (f < fraction) {
-                fraction = f;
-                suspect = entity;
-            }
-        }
-
-        return suspect;
-    }
-
-    private void mergeNewEntities(Collection<Entity> newEntities) {
-        int nOfNewEntities = newEntities.size();
-        if (nOfNewEntities <= 0) return;
-
-        CollisionEntity[] newXSort = new CollisionEntity[nOfNewEntities];
-        CollisionEntity[] newYSort = new CollisionEntity[nOfNewEntities];
-        CollisionEntity[] newZSort = new CollisionEntity[nOfNewEntities];
-
-        populate(newEntities, newXSort, newYSort, newZSort);
-
-        xLowerSorted = Toolbox.mergeArrays(xLowerSorted, newXSort, CollisionEntity::xLower);
-        yLowerSorted = Toolbox.mergeArrays(yLowerSorted, newYSort, CollisionEntity::yLower);
-        zLowerSorted = Toolbox.mergeArrays(zLowerSorted, newZSort, CollisionEntity::zLower);
-    }
-
-    /**
-     * Remove the selected entities off the entity lists in a robust way. Entities that did not exist are ignored, and
-     * doubles are also accepted.
-     * @param targets a collection of entities to be removed
-     */
-    private void deleteEntities(Collection<Entity> targets) {
-        xLowerSorted = deleteAll(targets, xLowerSorted);
-        yLowerSorted = deleteAll(targets, yLowerSorted);
-        zLowerSorted = deleteAll(targets, zLowerSorted);
-
-        entityList.removeAll(targets);
-    }
-
-    private CollisionEntity[] deleteAll(Collection<Entity> targets, CollisionEntity[] array) {
-        int xi = 0;
-        for (int i = 0; i < array.length; i++) {
-            Entity entity = array[i].entity;
-            if ((entity != null) && targets.contains(entity)) {
-                continue;
-            }
-            array[xi++] = array[i];
-        }
-        return Arrays.copyOf(array, xi);
-    }
-
-    /**
-     * @return an array of the entities, backed by any local representation. Should only be used for querying, otherwise
-     * it must be cloned
-     */
-    private CollisionEntity[] entityArray() {
-        return xLowerSorted;
-    }
-
-    public Collection<Entity> getEntityList() {
-        Collection<Entity> list = new ArrayList<>(entityList);
-        list.addAll(newEntities);
-        return list;
-    }
-
-    public boolean contains(Entity entity) {
-        return entityList.contains(entity) || newEntities.contains(entity);
-    }
-
-    public void forEach(Consumer<Entity> action) {
-        for (Entity e : entityList) {
-            action.accept(e);
-        }
-        for (Entity e : newEntities) {
-            action.accept(e);
-        }
-    }
-
-    public void cleanup() {
-        xLowerSorted = new CollisionEntity[0];
-        yLowerSorted = new CollisionEntity[0];
-        zLowerSorted = new CollisionEntity[0];
-
-        for (Entity e : entityList) {
-            e.dispose();
-        }
-        for (Entity e : newEntities) {
-            e.dispose();
-        }
-
-        entityList.clear();
-        newEntities.clear();
-    }
-
-    public void setWorld(WorldCollisionObject world) {
-        this.world = world;
-    }
-
-
-    protected class CollisionEntity {
-        public final Entity entity;
-        public int id;
-
-        private BoundingBox range;
-        private float x;
-        private float y;
-        private float z;
-
-        public CollisionEntity(Entity source) {
-            this.entity = source;
-            this.range = entity.hitbox();
-        }
-
-        public void update(float time) {
-            Vector3fc middle = entity.getPositionAt(time);
-            x = middle.x();
-            y = middle.y();
-            z = middle.z();
-        }
-
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public float xUpper() {
-            return x + range.maxX;
-        }
-
-        public float yUpper() {
-            return y + range.maxY;
-        }
-
-        public float zUpper() {
-            return z + range.maxZ;
-        }
-
-        public float xLower() {
-            return x - range.minX;
-        }
-
-        public float yLower() {
-            return y - range.minY;
-        }
-
-        public float zLower() {
-            return z - range.minZ;
-        }
-
-        @Override
-        public String toString() {
-            return entity.toString();
-        }
-    }
-
-    /**
-     * tracks how often pairs of integers are added, and allows querying whether a given pair has been added at least a
-     * given number of times.
-     */
-    private class AdjacencyMatrix {
-        // this matrix is indexed using the entity id values, with i > j
-        // if (adjacencyMatrix[i][j] == n) then entityArray[i] and entityArray[j] have n coordinates with coinciding intervals
-        Map<Integer, Map<Integer, Integer>> relations;
-        Map<Integer, Set<Integer>> found;
-        private int depth;
-
-        public AdjacencyMatrix(int nrOfElements, int depth) {
-            relations = new HashMap<>(nrOfElements);
-            found = new HashMap<>();
-            this.depth = depth;
-        }
-
-        public void add(int i, int j) {
-            if (j > i) {
-                int t = i;
-                i = j;
-                j = t;
-            }
-
-            Map<Integer, Integer> firstSide = relations.computeIfAbsent(i, HashMap::new);
-            int newValue = firstSide.getOrDefault(j, 0) + 1;
-            if (newValue == depth) {
-                found.computeIfAbsent(i, HashSet::new).add(j);
-            }
-            firstSide.put(j, newValue);
-        }
-
-        public boolean has(int i, int j) {
-            return found.containsKey(i) && found.get(i).contains(j);
-        }
-
-        public void forEach(BiConsumer<Integer, Integer> action) {
-            for (Integer i : found.keySet()) {
-                for (Integer j : found.get(i)) {
-                    action.accept(i, j);
-                }
-            }
-        }
-
-        public int nrOfFoundElements() {
-            int count = 0;
-            for (Set<Integer> integers : found.values()) {
-                count += integers.size();
-            }
-            return count;
-        }
-    }
-
-    /**
-     * an interface for checking masses of entities against.
-     */
-    public interface WorldCollisionObject {
-        /**
-         * Calculates at what moment of the given interval there is a collision between the entity and this object.
-         * @param e         the entity to check
-         * @param startTime the begin of the interval, in seconds game time
-         * @param endTime   the end of the interval, in seconds game time
-         */
-        void checkCollision(Entity e, float startTime, float endTime);
     }
 }

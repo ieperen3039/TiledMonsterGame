@@ -2,11 +2,11 @@ package NG.Rendering;
 
 import NG.Camera.Camera;
 import NG.Camera.StaticCamera;
+import NG.Core.AbstractGameLoop;
+import NG.Core.Game;
+import NG.Core.GameAspect;
+import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.AbstractGameLoop;
-import NG.Engine.Game;
-import NG.Engine.GameAspect;
-import NG.Engine.GameTimer;
 import NG.GUIMenu.GUIPainter;
 import NG.GUIMenu.NVGOverlay;
 import NG.GameMap.GameMap;
@@ -111,7 +111,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
             GameMap map = game.get(GameMap.class);
             Vector3f result;
-            float t = map.gridMapIntersection(origin, direction, 1);
+            float t = map.gridMapIntersection(origin, direction);
             if (t == 1) {
                 result = null;
             } else {

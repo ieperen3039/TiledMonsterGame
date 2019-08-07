@@ -4,7 +4,6 @@ Class-Path: MainGame.jar
             lib/jackson-annotations-2.5.4.jar
             lib/jackson-core-2.5.4.jar
             lib/jackson-databind-2.5.4.jar
-            lib/jars.txt
             lib/joml-1.9.14.jar
             lib/lwjgl-3.2.2-natives-linux.jar
             lib/lwjgl-3.2.2-natives-windows.jar

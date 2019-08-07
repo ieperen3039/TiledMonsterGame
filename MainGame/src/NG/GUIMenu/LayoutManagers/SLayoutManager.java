@@ -67,4 +67,9 @@ public interface SLayoutManager {
      * @see #add(SComponent, Object)
      */
     Class<?> getPropertyClass();
+
+    /**
+     * remove all elements from this layout
+     */
+    void clear();
 }

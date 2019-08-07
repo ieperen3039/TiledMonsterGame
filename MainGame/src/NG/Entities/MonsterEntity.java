@@ -6,18 +6,17 @@ import NG.Actions.EntityAction;
 import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.Animations.SkeletonBone;
+import NG.CollisionDetection.BoundingBox;
+import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
 import NG.GUIMenu.Components.SFrame;
-import NG.GUIMenu.Components.SPanel;
-import NG.GUIMenu.Frames.FrameGUIManager;
-import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterSoul;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.util.Map;
 
@@ -100,16 +99,8 @@ public abstract class MonsterEntity implements Entity {
     }
 
     @Override
-    public void onClick(int button) {
-        if (frame != null) frame.dispose();
-        int buttonHeight = MainMenu.BUTTON_MIN_HEIGHT;
-
-        frame = new SFrame("Entity " + this);
-        frame.setMainPanel(SPanel.column(
-                controller.getStatisticsPanel(buttonHeight)
-        ));
-        frame.pack();
-        game.get(FrameGUIManager.class).addFrame(frame);
+    public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
+        return new BoundingBox(getHitbox(), getPositionAt(gameTime)).intersectRay(origin, direction);
     }
 
     @Override
@@ -132,7 +123,7 @@ public abstract class MonsterEntity implements Entity {
     }
 
     @Override
-    public void collideWith(Object other, float collisionTime) {
+    public void collideWith(Entity other, float collisionTime) {
         if (other instanceof GameMap) {
             Pair<EntityAction, Float> actionAt = currentActions.getActionAt(collisionTime);
             EntityAction action = actionAt.left;

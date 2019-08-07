@@ -1,7 +1,7 @@
 package NG.Actions.Commands;
 
 import NG.Actions.EntityAction;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.GUIMenu.Components.SButton;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SPanel;

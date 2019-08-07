@@ -45,7 +45,7 @@ public class GLFWWindow {
     private int height;
     private boolean fullScreen = false;
     private boolean mouseIsCaptured;
-    private List<Runnable> sizeChangeListeners = new ArrayList<>();
+    private List<ResizeListener> sizeChangeListeners = new ArrayList<>();
     private Thread glContext;
 
     public GLFWWindow(String title, Settings settings, boolean resizable) {
@@ -146,7 +146,7 @@ public class GLFWWindow {
             glfwSetFramebufferSizeCallback(newWindow, (window, newWidth, newHeight) -> {
                 this.width = newWidth;
                 this.height = newHeight;
-                sizeChangeListeners.forEach(Runnable::run);
+                sizeChangeListeners.forEach(l -> l.onChange(newWidth, newHeight));
             });
         }
 
@@ -380,7 +380,7 @@ public class GLFWWindow {
         glfwSetCharCallback(window, input);
     }
 
-    public void addSizeChangeListener(Runnable listener) {
+    public void addResizeListener(ResizeListener listener) {
         sizeChangeListeners.add(listener);
     }
 
@@ -398,6 +398,10 @@ public class GLFWWindow {
 
     public static Settings defaultSettings() {
         return new Settings(false, false, 1, false, 800, 600, false, 60, false);
+    }
+
+    public interface ResizeListener {
+        void onChange(int width, int height);
     }
 
     public static class Settings {

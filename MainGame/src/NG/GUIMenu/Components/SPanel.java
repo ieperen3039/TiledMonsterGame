@@ -120,7 +120,10 @@ public class SPanel extends SContainer {
         this(0, 0, cols, rows, false, false);
     }
 
-    /** creates a new panel with the given components on a row */
+    /**
+     * creates a new panel with the given components on a row
+     * @see #column(boolean, boolean, SComponent...)
+     */
     public static SPanel column(SComponent... components) {
         SPanel newPanel = new SPanel(1, components.length);
         newPanel.border = false;
@@ -132,7 +135,21 @@ public class SPanel extends SContainer {
         return newPanel;
     }
 
-    /** creates a new panel with the given components in a column */
+    /**
+     * create a new panel with the given components in a column
+     * @param hzGrow     whether this panel wants horizontal growth
+     * @param vtGrow     whether this panel wants vertical growth
+     * @param components the components to put in a column, top to bottom
+     * @return the new panel
+     */
+    public static SPanel column(boolean hzGrow, boolean vtGrow, SComponent... components) {
+        SPanel column = column(components);
+        column.setGrowthPolicy(hzGrow, vtGrow);
+        return column;
+    }
+
+    /** creates a new panel with the given components in a row
+     * @see #row(boolean, boolean, SComponent...) */
     public static SPanel row(SComponent... components) {
         SPanel newPanel = new SPanel(components.length, 1);
         newPanel.border = false;
@@ -142,6 +159,19 @@ public class SPanel extends SContainer {
         }
 
         return newPanel;
+    }
+
+    /**
+     * create a new panel with the given components in a row
+     * @param hzGrow     whether this panel wants horizontal growth
+     * @param vtGrow     whether this panel wants vertical growth
+     * @param components the components to put in a row, top to bottom
+     * @return the new panel
+     */
+    public static SPanel row(boolean hzGrow, boolean vtGrow, SComponent... components) {
+        SPanel row = row(components);
+        row.setGrowthPolicy(hzGrow, vtGrow);
+        return row;
     }
 
     public void setBorderVisible(boolean doVisible) {
@@ -159,12 +189,12 @@ public class SPanel extends SContainer {
     }
 
     @Override
-    public void draw(SFrameLookAndFeel lookFeel, Vector2ic screenPosition) {
+    public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         assert getWidth() > 0 && getHeight() > 0 :
                 String.format("Non-positive dimensions of %s: width = %d, height = %d", this, getWidth(), getHeight());
 
-        if (border) lookFeel.draw(PANEL, screenPosition, dimensions);
-        drawChildren(lookFeel, screenPosition);
+        if (border) design.draw(PANEL, screenPosition, dimensions);
+        drawChildren(design, screenPosition);
     }
 
     @Override

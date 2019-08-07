@@ -1,8 +1,7 @@
 package NG.Animations;
 
-import NG.CollisionDetection.BoundingBox;
-import NG.Engine.GameTimer;
-import NG.Entities.Entity;
+import NG.Core.GameTimer;
+import NG.Entities.Dummy;
 import NG.Entities.RobotMonster;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
@@ -41,7 +40,7 @@ public interface PartialAnimation extends Storable {
     Set<SkeletonBone> getDomain();
 
     /** an entity that plays a given animation using a robot mesh */
-    class Demonstrator implements Entity {
+    class Demonstrator extends Dummy {
         private static final Map<SkeletonBone, BoneElement> ROBOT_MESH_MAP = RobotMonster.getRobotMeshMap();
         private final GameTimer timer;
 
@@ -49,10 +48,8 @@ public interface PartialAnimation extends Storable {
         private UniversalAnimation ani;
         private BodyModel model;
         private float startTime = 0;
-        private boolean isDisposed;
 
         public Demonstrator(UniversalAnimation ani, BodyModel model, GameTimer timer) {
-            isDisposed = false;
             this.timer = timer;
 
             setModel(model);
@@ -65,10 +62,6 @@ public interface PartialAnimation extends Storable {
             model.draw(gl, this, ROBOT_MESH_MAP, ani, aniTime);
         }
 
-        @Override
-        public void update(float gameTime) {
-        }
-
         public void setPosition(Vector3fc position) {
             this.position.set(position);
         }
@@ -78,20 +71,6 @@ public interface PartialAnimation extends Storable {
             return position;
         }
 
-        @Override
-        public void onClick(int button) {
-        }
-
-        @Override
-        public void dispose() {
-            isDisposed = true;
-        }
-
-        @Override
-        public boolean isDisposed() {
-            return isDisposed;
-        }
-
         public void setAnimation(UniversalAnimation ani) {
             this.ani = ani;
         }
@@ -99,16 +78,6 @@ public interface PartialAnimation extends Storable {
         public void setModel(BodyModel model) {
             this.model = model;
             this.startTime = timer.getRendertime();
-        }
-
-        @Override
-        public BoundingBox hitbox() {
-            return new BoundingBox(0, 0, 0, 0, 0, 0);
-        }
-
-        @Override
-        public void collideWith(Object other, float collisionTime) {
-
         }
     }
 }

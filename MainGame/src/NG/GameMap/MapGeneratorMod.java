@@ -1,6 +1,6 @@
 package NG.GameMap;
 
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.Mods.Mod;
 
 import java.util.Map;

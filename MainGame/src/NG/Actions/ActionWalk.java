@@ -1,7 +1,7 @@
 package NG.Actions;
 
 import NG.Animations.UniversalAnimation;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.GameMap.GameMap;
 import NG.Tools.Vectors;
 import org.joml.*;
@@ -50,6 +50,7 @@ public class ActionWalk implements EntityAction {
     public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord, float walkSpeed) {
         this.game = game;
         GameMap map = game.get(GameMap.class);
+
         assert Math.abs(map.getHeightAt(startPosition.x(), startPosition.y()) - startPosition.z()) < 1e-3f :
                 String.format("Start position is not on the ground: %s should have z = %s",
                         Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));

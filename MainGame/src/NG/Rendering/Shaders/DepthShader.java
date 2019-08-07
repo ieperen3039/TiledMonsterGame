@@ -1,7 +1,7 @@
 package NG.Rendering.Shaders;
 
+import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
 import NG.Entities.Entity;
 import NG.Rendering.Lights.DirectionalLight;
 import NG.Rendering.MatrixStack.AbstractSGL;

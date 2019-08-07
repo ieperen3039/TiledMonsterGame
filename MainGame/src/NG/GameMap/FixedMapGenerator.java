@@ -1,6 +1,6 @@
 package NG.GameMap;
 
-import NG.Engine.Version;
+import NG.Core.Version;
 
 import java.util.Collections;
 import java.util.Map;

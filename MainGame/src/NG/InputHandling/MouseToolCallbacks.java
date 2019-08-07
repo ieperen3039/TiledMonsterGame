@@ -1,9 +1,9 @@
 package NG.InputHandling;
 
+import NG.Core.Game;
+import NG.Core.GameAspect;
 import NG.DataStructures.Tracked.TrackedFloat;
-import NG.Engine.Game;
-import NG.Engine.GameAspect;
-import NG.GUIMenu.Frames.FrameGUIManager;
+import NG.GUIMenu.HUDManager;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
@@ -14,6 +14,7 @@ import org.lwjgl.glfw.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -81,7 +82,11 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
             return false;
         }
 
-        return !game.get(FrameGUIManager.class).covers(pos.x, pos.y);
+        List<HUDManager> overlays = game.getAll(HUDManager.class);
+        for (HUDManager hud : overlays) {
+            if (hud.covers(pos.x, pos.y)) return false;
+        }
+        return true;
     }
 
     @Override

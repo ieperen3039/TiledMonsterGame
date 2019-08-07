@@ -1,7 +1,7 @@
 package NG.Rendering.Lights;
 
+import NG.Core.GameAspect;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.GameAspect;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import org.joml.Vector3fc;

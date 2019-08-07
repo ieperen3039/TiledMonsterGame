@@ -1,8 +1,8 @@
 package NG.Rendering.Lights;
 
 import NG.Camera.Camera;
+import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
 import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.DepthShader;

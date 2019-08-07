@@ -1,9 +1,8 @@
 package NG.Entities.Projectiles;
 
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
+import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.Entities.Entity;
-import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3fc;
 
@@ -66,11 +65,6 @@ public abstract class Projectile implements Entity {
     protected abstract void drawProjectile(SGL gl, float renderTime);
 
     @Override
-    public void onClick(int button) {
-
-    }
-
-    @Override
     public void dispose() {
         isDisposed = true;
     }
@@ -86,26 +80,9 @@ public abstract class Projectile implements Entity {
     }
 
     @Override
-    public void collideWith(Object other, float collisionTime) {
-        assert !(other instanceof Entity) || canCollideWith((Entity) other);
+    public void collideWith(Entity other, float collisionTime) {
+        assert other == null || canCollideWith(other);
         dispose();
-    }
-
-    @Override
-    public void checkMapCollision(GameMap map, float startTime, float endTime) {
-        if (endTime < spawnTime) return;
-
-        if (startTime < spawnTime) {
-            startTime = spawnTime;
-        }
-
-        Vector3fc startPos = getPositionAt(startTime);
-        Vector3fc movement = getPositionAt(endTime).sub(startPos);
-        float minIntersect = map.intersectFractionBoundingBox(hitbox(), startPos, movement, 1);
-        if (minIntersect == 1) return;
-
-        float collisionTime = startTime + minIntersect * (endTime - startTime);
-        collideWith(map, collisionTime);
     }
 
     protected float getSpawnTime() {

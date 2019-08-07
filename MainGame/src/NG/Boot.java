@@ -1,6 +1,6 @@
 package NG;
 
-import NG.Engine.MonsterGame;
+import NG.Core.MonsterGame;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 

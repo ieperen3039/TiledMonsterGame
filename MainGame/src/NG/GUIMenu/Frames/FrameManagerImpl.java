@@ -1,23 +1,20 @@
 package NG.GUIMenu.Frames;
 
-import NG.Engine.Game;
-import NG.Engine.Version;
+import NG.Core.Game;
+import NG.Core.Version;
 import NG.GUIMenu.BaseLF;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.HUD.HUDManager;
+import NG.GUIMenu.HUDManager;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseScrollListener;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Tools.Logger;
 import org.joml.Vector2ic;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * Objects of this class can manage an in-game window system that is behaviourally similar to classes in the {@link
@@ -70,6 +67,24 @@ public class FrameManagerImpl implements FrameGUIManager {
         if (toolBar != null) {
             toolBar.draw(lookAndFeel, null);
         }
+    }
+
+    @Override
+    public boolean removeElement(SComponent component) {
+        if (component instanceof SFrame) {
+            ((SFrame) component).dispose();
+            return true;
+        }
+
+        Optional<SComponent> optParent = component.getParent();
+        if (optParent.isPresent()) {
+            SComponent parent = optParent.get();
+            if (parent instanceof SFrame) {
+                ((SFrame) parent).dispose();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -185,25 +200,29 @@ public class FrameManagerImpl implements FrameGUIManager {
 
     @Override
     public boolean checkMouseClick(MouseTool tool, final int xSc, final int ySc) {
-        SComponent component = getComponentAt(xSc, ySc);
+        SComponent component;
 
-        if (component != null) {
-            tool.apply(component, xSc, ySc);
-            return true;
+        // check modal dialogues
+        if (modalComponent != null) {
+            SComponent tgt = this.modalComponent;
+            modalComponent = null;
+
+            return HUDManager.applyOnComponent(tool, xSc, ySc, tgt);
+
+        } else {
+            component = getComponentAt(xSc, ySc);
+
+            if (component != null) {
+                tool.apply(component, xSc, ySc);
+                return true;
+            }
         }
 
         return false;
     }
 
-    /** clears modalComponent status */
-    private SComponent getComponentAt(int xSc, int ySc) {
-        // check modal dialogues
-        if (modalComponent != null) {
-            SComponent target = modalComponent;
-            modalComponent = null;
-            if (HUDManager.componentContains(target, xSc, ySc)) return target;
-        }
-
+    @Override
+    public SComponent getComponentAt(int xSc, int ySc) {
         // check toolbar
         if (toolBar != null) {
             if (toolBar.contains(xSc, ySc)) {

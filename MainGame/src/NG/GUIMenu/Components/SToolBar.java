@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
 import NG.InputHandling.MouseRelativeClickListener;
@@ -104,9 +104,9 @@ public class SToolBar extends SContainer implements MouseReleaseListener, MouseR
     }
 
     @Override
-    public void validateLayout() {
+    public void doValidateLayout() {
         setSize(game.get(GLFWWindow.class).getWidth(), TOOL_BAR_HEIGHT);
-        super.validateLayout();
+        super.doValidateLayout();
     }
 
     @Override

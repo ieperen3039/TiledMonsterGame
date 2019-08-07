@@ -10,6 +10,7 @@ import org.joml.Vector2ic;
  */
 public class SScrollableList extends SContainer {
     private final SScrollBar scroller;
+    private LimitedVisibilityLayout layout;
 
     public SScrollableList(int nrOfShownElts, SComponent... elements) {
         this(nrOfShownElts, new LimitedVisibilityLayout(nrOfShownElts, 0, true), elements);
@@ -19,6 +20,7 @@ public class SScrollableList extends SContainer {
             int nrOfShownElts, LimitedVisibilityLayout layout, SComponent... elements
     ) {
         super(layout);
+        this.layout = layout;
 
         for (SComponent element : elements) {
             add(element, null);
@@ -26,7 +28,7 @@ public class SScrollableList extends SContainer {
 
         scroller = new SScrollBar(elements.length, nrOfShownElts);
         scroller.addListener(value -> {
-            layout.setAsFirstVisible(value);
+            this.layout.setAsFirstVisible(value);
             invalidateLayout();
         });
     }
@@ -43,10 +45,8 @@ public class SScrollableList extends SContainer {
     }
 
     @Override
-    public void validateLayout() {
-        if (layoutIsValid()) return;
-
-        super.validateLayout();
+    public void doValidateLayout() {
+        super.doValidateLayout();
 
         ComponentBorder border = getLayoutBorder();
         scroller.setSize(0, getHeight() - border.top - border.bottom);
@@ -58,6 +58,11 @@ public class SScrollableList extends SContainer {
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         scroller.draw(design, new Vector2i(screenPosition).add(scroller.position));
         drawChildren(design, screenPosition);
+    }
+
+    public void setNrOfVisible(int value) {
+        layout.setNrOfVisible(value);
+        invalidateLayout();
     }
 
     @Override

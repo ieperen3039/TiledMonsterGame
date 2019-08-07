@@ -1,6 +1,6 @@
 package NG.GameMap;
 
-import NG.Engine.Version;
+import NG.Core.Version;
 import org.joml.Vector2ic;
 
 import java.util.Collections;

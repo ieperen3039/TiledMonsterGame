@@ -2,7 +2,7 @@ package NG.Actions;
 
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.GameMap.GameMap;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;

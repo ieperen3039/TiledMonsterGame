@@ -1,8 +1,8 @@
 package NG.Mods;
 
-import NG.Engine.Game;
-import NG.Engine.GameAspect;
-import NG.Engine.Version;
+import NG.Core.Game;
+import NG.Core.GameAspect;
+import NG.Core.Version;
 
 /**
  * The default class that every mod of this game should implement. This class must have a no-arg constructor which is

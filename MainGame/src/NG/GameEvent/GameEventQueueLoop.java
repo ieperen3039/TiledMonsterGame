@@ -1,8 +1,8 @@
 package NG.GameEvent;
 
-import NG.Engine.AbstractGameLoop;
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
+import NG.Core.AbstractGameLoop;
+import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.Rendering.Lights.GameState;
 import NG.Storable;
 

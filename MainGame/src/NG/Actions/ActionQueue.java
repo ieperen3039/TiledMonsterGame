@@ -1,7 +1,7 @@
 package NG.Actions;
 
+import NG.Core.Game;
 import NG.DataStructures.Generic.Pair;
-import NG.Engine.Game;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;

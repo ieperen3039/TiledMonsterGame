@@ -1,8 +1,8 @@
 package NG.Particles;
 
-import NG.Engine.Game;
-import NG.Engine.GameAspect;
-import NG.Engine.GameTimer;
+import NG.Core.Game;
+import NG.Core.GameAspect;
+import NG.Core.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 
 import java.util.ArrayList;

@@ -6,8 +6,8 @@
 package NG.Rendering.Lights;
 
 
+import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
 import NG.Rendering.Shaders.ShaderException;
 import NG.Rendering.Shaders.ShadowMap;
 import NG.Settings.Settings;

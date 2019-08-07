@@ -20,6 +20,9 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
  * @author Geert van Ieperen. Created on 22-9-2018.
  */
 public class SButton extends SComponent implements MouseReleaseListener, MouseRelativeClickListener {
+    public static final int BUTTON_MIN_WIDTH = 250;
+    public static final int BUTTON_MIN_HEIGHT = 30;
+
     private Collection<Runnable> leftClickListeners = new ArrayList<>();
     private Collection<Runnable> rightClickListeners = new ArrayList<>();
     private final int minHeight;
@@ -30,26 +33,42 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
     /**
      * a button with no associated action (a dead button)
-     * @param text      the text of the button
-     * @param width  the minimal width of this buttion, which {@link NG.GUIMenu.LayoutManagers.SLayoutManager}s
-     *                  should respect
-     * @param height the minimal height of this button.
+     * @param text the text of the button
+     * @see #addLeftClickListener(Runnable)
+     */
+    public SButton(String text) {
+        this(text, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
+    }
+
+    /**
+     * a button with a basic associated action
+     * @param text   the text of the button
+     * @param action the action that is executed upon (releasing a) left click
+     */
+    public SButton(String text, Runnable action) {
+        this(text, action, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT);
+    }
+
+    /**
+     * a button with no associated action (a dead button)
+     * @param text   the text of the button
+     * @param width  the minimal width of this button
+     * @param height the minimal height of this button
      * @see #addLeftClickListener(Runnable)
      */
     public SButton(String text, int width, int height) {
         this.minHeight = height;
         this.minWidth = width;
-        setSize(width, height);
         setText(text);
+        setSize(width, height);
     }
 
     /**
      * a button with a basic associated action
-     * @param text      the text of the button
-     * @param action    the action that is executed upon (releasing a) left click
-     * @param width  the minimal width of this buttion, which {@link NG.GUIMenu.LayoutManagers.SLayoutManager}s
-     *                  should respect
-     * @param height the minimal height of this button.
+     * @param text   the text of the button
+     * @param action the action that is executed upon (releasing a) left click
+     * @param width  the minimal width of this button
+     * @param height the minimal height of this button
      */
     public SButton(String text, Runnable action, int width, int height) {
         this(text, width, height);
@@ -61,9 +80,8 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
      * @param text         the text of the button
      * @param onLeftClick  the action that is executed upon (releasing a) left click
      * @param onRightClick the action that is executed upon (releasing a) right click
-     * @param width     the minimal width of this buttion, which {@link NG.GUIMenu.LayoutManagers.SLayoutManager}s
-     *                     should respect
-     * @param height    the minimal height of this button.
+     * @param width        the minimal width of this button
+     * @param height       the minimal height of this button
      */
     public SButton(String text, Runnable onLeftClick, Runnable onRightClick, int width, int height) {
         this(text, onLeftClick, width, height);
@@ -106,6 +124,7 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
         } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
             rightClickListeners.forEach(Runnable::run);
+
         } else {
             Logger.DEBUG.print("button clicked with " + button + " which has no action");
         }

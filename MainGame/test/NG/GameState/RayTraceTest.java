@@ -2,9 +2,9 @@ package NG.GameState;
 
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
-import NG.Engine.Game;
-import NG.Engine.GameService;
-import NG.Engine.Version;
+import NG.Core.Game;
+import NG.Core.GameService;
+import NG.Core.Version;
 import NG.Entities.Entity;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Frames.FrameGUIManager;

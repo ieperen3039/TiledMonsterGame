@@ -1,12 +1,13 @@
 package NG.Entities;
 
 import NG.CollisionDetection.BoundingBox;
-import NG.Engine.GameTimer;
-import NG.GameMap.GameMap;
+import NG.Core.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Settings.Settings;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An entity is anything that is in the world, excluding the ground itself. Particles and other purely visual elements.
@@ -38,14 +39,6 @@ public interface Entity {
     Vector3f getPositionAt(float currentTime);
 
     /**
-     * Executes when the user clicks on this entity. When {@code button == GLFW_LEFT_MOUSE_BUTTON} is clicked, an {@link
-     * NG.GUIMenu.Components.SFrame} with information or settings of this Entity is usually opened, and when
-     * {@code button == GLFW_RIGHT_MOUSE_BUTTON} is clicked, the 'active' state of this entity may toggle.
-     * @param button the button that is clicked as defined in {@link NG.InputHandling.MouseRelativeClickListener}
-     */
-    void onClick(int button);
-
-    /**
      * Marks the track piece to be invalid, such that the {@link #isDisposed()} method returns true.
      */
     void dispose();
@@ -58,7 +51,53 @@ public interface Entity {
     /**
      * @return the relative (local-space) bounding box of this entity
      */
-    BoundingBox hitbox();
+    BoundingBox getHitbox();
+
+    /**
+     * given a point on position {@code origin} and a direction of {@code direction}, calculates the fraction t in [0
+     * ... 1] such that (origin + direction * t) is the first point on this entity
+     * @param origin    the origin of the line
+     * @param direction the direction and extend of the line
+     * @param gameTime
+     * @return the value t such that (origin + direction * t) is the first point on this entity, or 1 if it does not
+     * hit.
+     */
+    float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime);
+
+    /**
+     * returns the points of the shape of this entity at the given moment in time
+     * @param gameTime the moment when to retrieve this entity's points
+     * @return a list of the exact wolrd-positions of the vertices of the shape of this object. Changes in the list are
+     * not reflected in this object.
+     */
+    default List<Vector3f> getShapePoints(float gameTime) {
+        return getShapePoints(new ArrayList<>(), gameTime);
+    }
+
+    /**
+     * returns the points of the shape of this entity at the given moment in time, and store the result in the vectors
+     * of dest.
+     * @param dest     a list of vectors. If the result requires more or less elements, this parameter may be ignored.
+     * @param gameTime the moment when to retrieve this entity's points
+     * @return a list of the exact world-positions of the vertices of the shape of this object. Changes in the list are
+     * not reflected in this object.
+     */
+    default List<Vector3f> getShapePoints(List<Vector3f> dest, float gameTime) {
+        if (dest.size() != 8) {
+            dest = new ArrayList<>(8);
+            for (int i = 0; i < 8; i++) {
+                dest.add(new Vector3f());
+            }
+        }
+
+        Vector3f pos = getPositionAt(gameTime);
+        int i = 0;
+        for (Vector3f corner : new BoundingBox(getHitbox(), pos).corners()) {
+            dest.get(i).set(corner);
+            i++;
+        }
+        return dest;
+    }
 
     /**
      * @param other another entity
@@ -66,7 +105,7 @@ public interface Entity {
      * entity should also not respond on a collision with this.
      */
     default boolean canCollideWith(Entity other) {
-        return other != this;
+        return (other != this && other instanceof MovingEntity);
     }
 
     /**
@@ -78,34 +117,6 @@ public interface Entity {
      * @param other         another entity
      * @param collisionTime the moment of collision
      */
-    void collideWith(Object other, float collisionTime);
+    void collideWith(Entity other, float collisionTime);
 
-    default void checkMapCollision(GameMap map, float startTime, float endTime) {
-        Vector3fc startPos = getPositionAt(startTime);
-        Vector3fc endPos = getPositionAt(endTime);
-
-        float intersect = map.gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos), 1);
-        if (intersect == 1) return;
-
-        // collision found
-        float collisionTime = startTime + intersect * (endTime - startTime);
-        Vector3fc midPos = getPositionAt(collisionTime);
-
-        // only accept if the found position is sufficiently close to a checked point
-        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK_SQ) {
-            intersect = map.gridMapIntersection(startPos, new Vector3f(midPos).sub(startPos), 1);
-
-            if (intersect < 1) {
-                collisionTime = startTime + intersect * (collisionTime - startTime);
-                endPos = midPos;
-
-            } else { // wrong half, repeat with other half
-                intersect = map.gridMapIntersection(midPos, new Vector3f(endPos).sub(midPos), 1);
-                collisionTime = collisionTime + intersect * (endTime - collisionTime);
-                startPos = midPos;
-            }
-        }
-
-        collideWith(map, collisionTime);
-    }
 }

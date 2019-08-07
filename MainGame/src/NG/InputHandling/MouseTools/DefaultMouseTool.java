@@ -4,13 +4,13 @@ import NG.Actions.ActionJump;
 import NG.Actions.Commands.CommandSelection;
 import NG.Actions.Commands.CommandWalk;
 import NG.Camera.Camera;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.Entities.Projectiles.ProjectilePowerBall;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
-import NG.GUIMenu.Frames.FrameGUIManager;
+import NG.GUIMenu.HUDManager;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
@@ -32,9 +32,9 @@ import org.lwjgl.glfw.GLFW;
  * <dt>UI elements:</dt>
  * <dd>components are activated when clicked on, drag and release listeners are respected</dd>
  * <dt>Entities:</dt>
- * <dd>entities activate their {@link Entity#onClick(int)} function when clicked on</dd>
+ * <dd>The entity gets selected</dd>
  * <dt>Map:</dt>
- * <dd>Currently, the clicked position is printed to the debug output</dd>
+ * <dd>If an entity is selected, open an action menu</dd>
  * </dl>
  * @author Geert van Ieperen. Created on 26-11-2018.
  */
@@ -90,16 +90,14 @@ public class DefaultMouseTool implements MouseTool {
         } else {
             selected = null;
         }
-
-        entity.onClick(button);
     }
 
     @Override
     public void apply(Vector3fc position, int xSc, int ySc) {
         if (selected != null) {
-            MonsterSoul controller = selected.getController();
-            Logger.DEBUG.print("Clicked at " + Vectors.toString(position) + " with " + controller + " selected");
+            Logger.DEBUG.print("Clicked at " + Vectors.toString(position) + " with " + selected + " selected");
 
+            MonsterSoul controller = selected.getController();
             GameMap gameMap = game.get(GameMap.class);
             Vector2i coord = gameMap.getCoordinate(position);
             gameMap.setHighlights(coord);
@@ -112,7 +110,7 @@ public class DefaultMouseTool implements MouseTool {
 
             if (selectionFrame == null || selectionFrame.isDisposed()) {
                 selectionFrame = new SFrame("Command " + controller);
-                game.get(FrameGUIManager.class).addFrame(selectionFrame);
+                game.get(HUDManager.class).addElement(selectionFrame);
             }
 
             selectionFrame.setMainPanel(commandSelector.asComponent(80, 40));
@@ -159,7 +157,7 @@ public class DefaultMouseTool implements MouseTool {
     public void onClick(int button, int x, int y) {
         setButton(button);
 
-        if (game.get(FrameGUIManager.class).checkMouseClick(this, x, y)) return;
+        if (game.get(HUDManager.class).checkMouseClick(this, x, y)) return;
 
 //        // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
 //        y = game.get(GLFWWindow.class).getHeight() - y;
@@ -175,7 +173,7 @@ public class DefaultMouseTool implements MouseTool {
     @Override
     public void onScroll(float value) {
         Vector2i pos = game.get(GLFWWindow.class).getMousePosition();
-        FrameGUIManager gui = game.get(FrameGUIManager.class);
+        HUDManager gui = game.get(HUDManager.class);
         if (gui.checkMouseScroll(pos.x, pos.y, value)) return;
 
         game.get(Camera.class).onScroll(value);

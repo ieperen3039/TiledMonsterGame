@@ -181,6 +181,15 @@ public class GridLayoutManager implements SLayoutManager {
         return Vector2ic.class;
     }
 
+    @Override
+    public void clear() {
+        for (int x = 0; x < xElts; x++) {
+            for (int y = 0; y < yElts; y++) {
+                grid[x][y] = null;
+            }
+        }
+    }
+
     /**
      * calculates the positions of the elements in one dimension, relative to (0, 0)
      * @param minSizes  an array with all minimum sizes

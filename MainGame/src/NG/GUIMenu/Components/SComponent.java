@@ -37,23 +37,31 @@ public abstract class SComponent {
      * sets the layout validity flag of this component and all of its parents to false.
      */
     protected void invalidateLayout() {
-        layoutIsValid = false;
-        if (parent != null) parent.invalidateLayout();
+        if (layoutIsValid) {
+            layoutIsValid = false;
+            if (parent != null) parent.invalidateLayout();
+        }
     }
 
     /**
      * restores the validity of the layout of this component.
-     * <p>
-     * The order of validating is top-down as follows: - The component sets its own position and size - the component
-     * validates its children
+     * @see #doValidateLayout()
      */
-    public void validateLayout() {
+    public final void validateLayout() {
+        if (!layoutIsValid) {
+            doValidateLayout();
+            layoutIsValid = true;
+        }
+    }
+
+    /**
+     * set the validity of this component and all of its children
+     */
+    protected void doValidateLayout() {
         dimensions.set(
                 Math.max(dimensions.x, minWidth()),
                 Math.max(dimensions.y, minHeight())
         );
-
-        layoutIsValid = true;
     }
 
     /**
@@ -202,7 +210,7 @@ public abstract class SComponent {
         }
     }
 
-    Optional<SComponent> getParent() {
+    public Optional<SComponent> getParent() {
         return Optional.ofNullable(parent);
     }
 

@@ -25,6 +25,14 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
     private List<Runnable> stateChangeListeners = new ArrayList<>();
 
     /**
+     * Create a button with the given properties, starting disabled
+     * @param text the displayed text
+     */
+    public SToggleButton(String text) {
+        this(text, SButton.BUTTON_MIN_WIDTH, SButton.BUTTON_MIN_HEIGHT);
+    }
+
+    /**
      * Create a button with the given properties
      * @param text         the displayed text
      * @param minWidth     the minimal width of this button, which {@link NG.GUIMenu.LayoutManagers.SLayoutManager}s
@@ -48,6 +56,15 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
      */
     public SToggleButton(String text, int minWidth, int minHeight) {
         this(text, minWidth, minHeight, false);
+    }
+
+    /**
+     * Create a button with the given properties, starting disabled and with the given listener
+     * @param text                the displayed text
+     * @param stateChangeListener upon change, this action is activated with the current state as argument
+     */
+    public SToggleButton(String text, Consumer<Boolean> stateChangeListener) {
+        this(text, SButton.BUTTON_MIN_WIDTH, SButton.BUTTON_MIN_HEIGHT, stateChangeListener);
     }
 
     /**

@@ -1,4 +1,4 @@
-package NG.Engine;
+package NG.Core;
 
 import NG.DataStructures.Generic.AveragingQueue;
 import NG.Tools.Logger;

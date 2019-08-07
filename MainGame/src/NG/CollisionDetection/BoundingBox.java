@@ -20,14 +20,16 @@ public class BoundingBox extends AABBf {
     /**
      * moves this bounding box by adding the given vector to its components
      * @param displacement a vector describing the movement
+     * @return this
      */
-    public void move(Vector3fc displacement) {
+    public BoundingBox move(Vector3fc displacement) {
         minX += displacement.x();
         minY += displacement.y();
         minZ += displacement.z();
         maxX += displacement.x();
         maxY += displacement.y();
         maxZ += displacement.z();
+        return this;
     }
 
     /**
@@ -37,7 +39,7 @@ public class BoundingBox extends AABBf {
      * @return fraction t of the nearest intersection, such that 0 <= t, and t = {@link Float#POSITIVE_INFINITY} if the
      * ray does not hit.
      */
-    public float intersectMovement(Vector3fc origin, Vector3fc dir) {
+    public float intersectRay(Vector3fc origin, Vector3fc dir) {
         Vector2f result = new Vector2f();
 
         boolean doIntersect = Intersectionf.intersectRayAab(
@@ -72,7 +74,7 @@ public class BoundingBox extends AABBf {
         for (Vector3f origin : corners()) {
             origin.add(relativePos);
 
-            float f = other.intersectMovement(origin, relativeMove);
+            float f = other.intersectRay(origin, relativeMove);
             if (f < min) min = f;
         }
 

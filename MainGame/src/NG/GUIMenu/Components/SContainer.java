@@ -41,8 +41,8 @@ public abstract class SContainer extends SComponent {
     public static SContainer singleton(SComponent target) {
         final SContainer c = new SContainer(new SingleElementLayout()) {
             @Override
-            public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-                drawChildren(design, screenPosition);
+            public void draw(SFrameLookAndFeel design, Vector2ic offset) {
+                drawChildren(design, offset);
             }
         };
         c.add(target, null);
@@ -68,7 +68,7 @@ public abstract class SContainer extends SComponent {
      * removes a component from this container
      * @param comp the component that should be added to this component first.
      */
-    public void removeComponent(SComponent comp) {
+    public void removeCompoment(SComponent comp) {
         layout.remove(comp);
         invalidateLayout();
     }
@@ -84,6 +84,7 @@ public abstract class SContainer extends SComponent {
 
     @Override
     public SComponent getComponentAt(int xRel, int yRel) {
+        validateLayout();
         for (SComponent component : children()) {
             if (component.isVisible() && component.contains(xRel, yRel)) {
                 xRel -= component.getX();
@@ -109,9 +110,7 @@ public abstract class SContainer extends SComponent {
     }
 
     @Override
-    public void validateLayout() {
-        if (layoutIsValid()) return;
-
+    public void doValidateLayout() {
         // first restructure this container
         layout.recalculateProperties();
 
@@ -127,14 +126,12 @@ public abstract class SContainer extends SComponent {
             child.validateLayout();
         }
 
-        super.validateLayout();
+        super.doValidateLayout();
     }
 
     /**
-     * Gives the desired border sizes for this container, as (lesser x, lesser y, greater x, greater y)
-     * @return a vector with the border sizes as (x1, y1, x2, y2).
-     * @see #invalidateLayout()
-     */ // TODO replacement
+     * Gives the desired border sizes for this container
+     */
     protected ComponentBorder getLayoutBorder() {
         return new ComponentBorder(4);
     }

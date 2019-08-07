@@ -1,6 +1,6 @@
 package NG.Camera;
 
-import NG.Engine.GameAspect;
+import NG.Core.GameAspect;
 import NG.InputHandling.MouseScrollListener;
 import NG.Settings.Settings;
 import org.joml.Matrix4f;

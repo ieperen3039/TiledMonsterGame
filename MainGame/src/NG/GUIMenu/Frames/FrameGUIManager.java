@@ -4,8 +4,7 @@ import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.HUD.HUDManager;
-import org.joml.Vector2ic;
+import NG.GUIMenu.HUDManager;
 
 /**
  * A class that manages frames of a game. New {@link SFrame} objects can be added using {@link #addFrame(SFrame)}
@@ -51,16 +50,7 @@ public interface FrameGUIManager extends HUDManager {
     SToolBar getToolBar();
 
     @Override
-    default void addComponent(SComponent component, Vector2ic pos) {
-        if (!(component instanceof SFrame)) {
-            component = new SFrame(component.toString(), component);
-        }
-
-        addFrame((SFrame) component, pos.x(), pos.y());
-    }
-
-    @Override
-    default void addComponent(SComponent component) {
+    default void addElement(SComponent component) {
         if (!(component instanceof SFrame)) {
             component = new SFrame(component.toString(), component);
         }

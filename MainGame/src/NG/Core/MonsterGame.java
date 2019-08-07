@@ -1,13 +1,12 @@
-package NG.Engine;
+package NG.Core;
 
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
-import NG.CollisionDetection.DynamicState;
+import NG.CollisionDetection.PhysicsEngine;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Entity;
-import NG.GUIMenu.Frames.FrameGUIManager;
-import NG.GUIMenu.Frames.FrameManagerImpl;
-import NG.GUIMenu.HUD.HUDManager;
+import NG.GUIMenu.HUD.MonsterHud;
+import NG.GUIMenu.HUDManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventQueueLoop;
@@ -47,12 +46,12 @@ import java.util.*;
  */
 public class MonsterGame implements ModLoader {
     public static final Version GAME_VERSION = new Version(0, 4);
+    private final HUDManager hud;
     private Splash splashWindow;
 
     private final RenderLoop renderer;
     private final GLFWWindow window;
     private final MouseToolCallbacks inputHandler;
-    private final FrameGUIManager frameManager;
     private MainMenu mainMenu;
 
     private Game pocketGame;
@@ -61,7 +60,6 @@ public class MonsterGame implements ModLoader {
 
     private List<Mod> allMods;
     private List<Mod> activeMods = Collections.emptyList();
-    private List<Mod> permanentMods;
 
     public MonsterGame() throws IOException {
         Logger.DEBUG.print("Showing splash...");
@@ -77,31 +75,31 @@ public class MonsterGame implements ModLoader {
 
         renderer = new RenderLoop(settings.TARGET_FPS);
         inputHandler = new MouseToolCallbacks();
-        frameManager = new FrameManagerImpl();
+        hud = new MonsterHud();
 
-        GameMap pocketMap = new EmptyMap();
-        GameService pocketGame = createWorld("pocket", mainThreadName, settings, pocketMap);
+        GameService pocketGame = createWorld("pocket", mainThreadName, settings);
+        pocketGame.add(new EmptyMap());
         this.pocketGame = pocketGame;
 
-        GameMap worldMap = new TileMap(Settings.CHUNK_SIZE);
-        GameService worldGame = createWorld("world", mainThreadName, settings, worldMap);
+        GameService worldGame = createWorld("world", mainThreadName, settings);
+        worldGame.add(new TileMap(Settings.CHUNK_SIZE));
         this.worldGame = worldGame;
 
         combinedGame = new Game.Multiplexer(0, worldGame, pocketGame);
         Logger.printOnline(() -> "Current view: " + (combinedGame.current() == 0 ? "World" : "Pocket"));
     }
 
-    private GameService createWorld(String name, String mainThreadName, Settings settings, GameMap pocketMap) {
+    private GameService createWorld(String name, String mainThreadName, Settings settings) {
         Camera camera = new TycoonFixedCamera(new Vector3f(), 10, 10);
         EventLoop eventLoop = new GameEventQueueLoop(name + " Loop", settings.TARGET_TPS);
-        GameState gameState = new DynamicState();
+        GameState gameState = new PhysicsEngine();
         GameLights lights = new SingleShadowMapLights();
         GameParticles particles = new GameParticles();
         GameTimer timer = new GameTimer(settings.RENDER_DELAY);
 
         return new GameService(GAME_VERSION, mainThreadName,
-                eventLoop, gameState, pocketMap, lights, camera, particles, timer,
-                settings, window, renderer, inputHandler, frameManager
+                eventLoop, gameState, lights, camera, particles, timer,
+                settings, window, renderer, inputHandler, hud
         );
     }
 
@@ -115,7 +113,6 @@ public class MonsterGame implements ModLoader {
         // init all fields
         renderer.init(combinedGame);
         inputHandler.init(combinedGame);
-        frameManager.init(combinedGame);
         pocketGame.init();
         worldGame.init();
 
@@ -134,17 +131,16 @@ public class MonsterGame implements ModLoader {
                 .add(gl -> combinedGame.get(GameParticles.class).draw(gl));
 
         // GUIs
-        renderer.addHudItem(painter -> combinedGame.getAll(HUDManager.class).forEach(m -> m.draw(painter)));
-
+        renderer.addHudItem(painter -> combinedGame.get(HUDManager.class).draw(painter));
         mainMenu = new MainMenu(worldGame, pocketGame, this, renderer::stopLoop);
-        frameManager.addFrame(mainMenu);
+        hud.addElement(mainMenu);
 
         Logger.DEBUG.print("Installing optional elements...");
 
         // hitboxes
         renderer.renderSequence(null)
                 .add(gl -> {
-                    if (combinedGame.get(Settings.class).RENDER_HITBOXES) return;
+                    if (!combinedGame.get(Settings.class).RENDER_HITBOXES) return;
 
                     Collection<Entity> entities = combinedGame.get(GameState.class).entities();
                     Toolbox.drawHitboxes(gl, entities, combinedGame.get(GameTimer.class).getGametime());
@@ -181,9 +177,6 @@ public class MonsterGame implements ModLoader {
         Logger.DEBUG.print("Loading mods...");
 
         allMods = JarModReader.loadMods(Directory.mods);
-        permanentMods = JarModReader.filterInitialisationMods(allMods, combinedGame);
-
-        initMods(permanentMods);
 
         Logger.DEBUG.print("Initial world setup...");
 
@@ -231,7 +224,7 @@ public class MonsterGame implements ModLoader {
         splashWindow = null;
         // show main menu
         mainMenu.setVisible(true);
-//        mainMenu.testWorld(); // immediately start test world, for debugging purposes
+        mainMenu.testWorld(); // immediately start test world, for debugging purposes
         window.open();
         renderer.run();
 
@@ -251,7 +244,6 @@ public class MonsterGame implements ModLoader {
         Logger.INFO.print("Starting game...");
 
         mainMenu.setVisible(false);
-        frameManager.setToolBar(mainMenu.getToolBar(combinedGame));
 
         pocketGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::unPause);
         worldGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::unPause);
@@ -265,7 +257,6 @@ public class MonsterGame implements ModLoader {
         pocketGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::pause);
         worldGame.getAll(GameEventQueueLoop.class).forEach(AbstractGameLoop::pause);
 
-        frameManager.setToolBar(null);
         cleanMods();
         mainMenu.setVisible(true);
 
@@ -294,8 +285,6 @@ public class MonsterGame implements ModLoader {
     }
 
     private void cleanup() {
-        permanentMods.forEach(Mod::cleanup);
-
         pocketGame.cleanup();
         worldGame.cleanup();
 

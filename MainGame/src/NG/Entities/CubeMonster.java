@@ -4,9 +4,9 @@ import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.Animations.SkeletonBone;
 import NG.CollisionDetection.BoundingBox;
+import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
 import NG.Living.MonsterSoul;
 import NG.Living.SoulDescription;
 import NG.Rendering.Material;
@@ -112,7 +112,7 @@ public class CubeMonster extends MonsterSoul {
         }
 
         @Override
-        public BoundingBox hitbox() {
+        public BoundingBox getHitbox() {
             return hitbox;
         }
 

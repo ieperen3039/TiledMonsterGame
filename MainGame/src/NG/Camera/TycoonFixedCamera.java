@@ -1,6 +1,6 @@
 package NG.Camera;
 
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.Frames.FrameManagerImpl;
 import NG.InputHandling.KeyMouseCallbacks;
@@ -21,7 +21,7 @@ import static NG.Camera.TycoonFixedCamera.MoveDirection.*;
  * @author Geert van Ieperen. Created on 18-11-2018.
  */
 public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPressListener, KeyReleaseListener {
-    private static final int SCREEN_MOVE_MINIMUM_PIXELS = 100;
+    private static final int SCREEN_MOVE_BORDER_SIZE = 20;
     private static final float ZOOM_SPEED_LIMIT = 0.03f;
     private static final float ROTATION_MODIFIER = 1f;
     private static final float MOVE_SPEED = 0.5f;
@@ -63,9 +63,9 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     @Override
     public void updatePosition(float deltaTime) {
         // prevent overshooting when camera is not updated.
-        if (deltaTime > 1f || !game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
-            return;
-        }
+        if (deltaTime > 0.5f) return;
+
+//        if (!game.get(KeyMouseCallbacks.class).mouseIsOnMap()) return;
 
         Vector3f eyeDir = new Vector3f(eyeOffset);
         GLFWWindow window = game.get(GLFWWindow.class);
@@ -99,14 +99,14 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
         }
 
         // x movement
-        if (corrMouseXPos < SCREEN_MOVE_MINIMUM_PIXELS) {
+        if (corrMouseXPos < SCREEN_MOVE_BORDER_SIZE) {
             float value = positionToMovement(corrMouseXPos) * deltaTime;
             eyeDir.normalize(value).cross(getUpVector());
             focus.add(eyeDir.x, eyeDir.y, 0);
 
         } else {
             int xInv = width - corrMouseXPos;
-            if (xInv < SCREEN_MOVE_MINIMUM_PIXELS) {
+            if (xInv < SCREEN_MOVE_BORDER_SIZE) {
                 float value = positionToMovement(xInv) * deltaTime;
                 eyeDir.normalize(value).cross(getUpVector());
                 focus.sub(eyeDir.x, eyeDir.y, 0);
@@ -115,14 +115,14 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
 
         eyeDir.set(eyeOffset);
         // y movement
-        if (corrMouseYPos < SCREEN_MOVE_MINIMUM_PIXELS) {
+        if (corrMouseYPos < SCREEN_MOVE_BORDER_SIZE) {
             float value = positionToMovement(corrMouseYPos) * deltaTime;
             eyeDir.normalize(value);
             focus.sub(eyeDir.x, eyeDir.y, 0);
 
         } else {
             int yInv = height - corrMouseYPos;
-            if (yInv < SCREEN_MOVE_MINIMUM_PIXELS) {
+            if (yInv < SCREEN_MOVE_BORDER_SIZE) {
                 float value = positionToMovement(yInv) * deltaTime;
                 eyeDir.normalize(value);
                 focus.add(eyeDir.x, eyeDir.y, 0);
@@ -197,8 +197,8 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
      * @return how fast the camera should move in the direction
      */
     protected float positionToMovement(int pixels) {
-        if (pixels >= SCREEN_MOVE_MINIMUM_PIXELS) return 0;
-        return (SCREEN_MOVE_MINIMUM_PIXELS - pixels) * eyeOffset.length() * MOVE_SPEED * (1f / SCREEN_MOVE_MINIMUM_PIXELS);
+        if (pixels >= SCREEN_MOVE_BORDER_SIZE) return 0;
+        return (SCREEN_MOVE_BORDER_SIZE - pixels) * eyeOffset.length() * MOVE_SPEED * (1f / SCREEN_MOVE_BORDER_SIZE);
     }
 
     @Override

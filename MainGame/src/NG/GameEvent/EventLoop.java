@@ -1,6 +1,6 @@
 package NG.GameEvent;
 
-import NG.Engine.GameAspect;
+import NG.Core.GameAspect;
 
 /**
  * @author Geert van Ieperen created on 18-4-2019.

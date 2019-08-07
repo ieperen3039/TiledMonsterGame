@@ -1,8 +1,8 @@
 package NG.Tools;
 
 import NG.Camera.Camera;
+import NG.Core.Game;
 import NG.DataStructures.Generic.Pair;
-import NG.Engine.Game;
 import NG.Rendering.GLFWWindow;
 import org.joml.Math;
 import org.joml.*;
@@ -305,11 +305,14 @@ public final class Vectors {
         Quaternionf rot = new Quaternionf();
         float y = targetDirection.y();
         float x = targetDirection.x();
-        float xAng = (float) Math.atan2(y, x);
-        rot.rotateZ(xAng);
+
         float xComp = x * x + y * y;
-        float zAng = (float) Math.atan2(targetDirection.z(), xComp);
-        rot.rotateY(zAng);
+        float pitch = (float) Math.atan2(targetDirection.z(), xComp);
+        rot.rotateY(pitch);
+
+        float yaw = (float) Math.atan2(y, x);
+        rot.rotateZ(yaw);
+
         return rot;
     }
 

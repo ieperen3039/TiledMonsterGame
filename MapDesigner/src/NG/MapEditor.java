@@ -1,8 +1,8 @@
 package NG;
 
 import NG.Camera.Camera;
+import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Version;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GUIMenu.Menu.MainMenu;

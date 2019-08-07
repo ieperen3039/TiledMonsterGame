@@ -41,6 +41,10 @@ class SScrollBar extends SComponent {
      * @param current the output value to start with
      */
     public SScrollBar(int minimum, int maximum, int current) {
+        assert maximum > minimum;
+        assert current >= minimum;
+        assert current <= maximum;
+
         this.currentInd = current;
         this.maximumInd = maximum;
         this.minimumInd = minimum;
@@ -57,8 +61,8 @@ class SScrollBar extends SComponent {
     }
 
     public SScrollBar(int totalElts, int shownElts) {
-        this(0, totalElts - shownElts, 0);
-        this.barSizeFraction = (float) shownElts / totalElts;
+        this(0, Math.max(1, totalElts - shownElts), 0);
+        this.barSizeFraction = Math.max(1, (float) shownElts / totalElts);
     }
 
     public void addListener(SScrollBarListener listener) {
@@ -87,9 +91,7 @@ class SScrollBar extends SComponent {
     }
 
     @Override
-    public void validateLayout() {
-        if (layoutIsValid()) return;
-
+    public void doValidateLayout() {
         scrollUp.validateLayout();
 
         positionDragbar(dragBarOffsetFraction);
@@ -98,7 +100,7 @@ class SScrollBar extends SComponent {
         scrollDown.setPosition(0, getHeight() - SCROLL_BUTTON_SIZE);
         scrollDown.validateLayout();
 
-        super.validateLayout();
+        super.doValidateLayout();
     }
 
     private void positionDragbar(float fraction) {

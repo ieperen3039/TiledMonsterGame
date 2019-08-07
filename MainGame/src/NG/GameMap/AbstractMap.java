@@ -1,12 +1,14 @@
 package NG.GameMap;
 
 import NG.CollisionDetection.BoundingBox;
-import NG.Engine.Game;
+import NG.Core.Game;
+import NG.Entities.StaticEntity;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.lang.Math;
+import java.util.List;
 
 import static NG.Settings.Settings.TILE_SIZE;
 
@@ -16,7 +18,11 @@ import static NG.Settings.Settings.TILE_SIZE;
  * of different magnitude than an equivalent position.
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
-public abstract class AbstractMap implements GameMap {
+public abstract class AbstractMap extends StaticEntity implements GameMap {
+    private boolean isDisposed = false;
+
+    public AbstractMap() {
+    }
 
     @Override
     public int getHeightAt(Vector2ic position) {
@@ -38,7 +44,7 @@ public abstract class AbstractMap implements GameMap {
         Vector3f direction = new Vector3f();
         Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
 
-        float t = gridMapIntersection(origin, direction, 1);
+        float t = this.getIntersection(origin, direction, 0);
         if (t == 1) return false;
 
         Vector3f position = new Vector3f(direction).mul(t).add(origin);
@@ -53,7 +59,7 @@ public abstract class AbstractMap implements GameMap {
         for (Vector3f corner : hitbox.corners()) {
             corner.add(origin);
 
-            float newIntersect = gridMapIntersection(corner, direction, maximum);
+            float newIntersect = this.getIntersection(corner, direction, 0);
             if (newIntersect < maximum) maximum = newIntersect;
         }
 
@@ -61,8 +67,8 @@ public abstract class AbstractMap implements GameMap {
     }
 
     @Override
-    public float gridMapIntersection(Vector3fc origin, Vector3fc direction, float maximum) {
-        if (direction.x() == 0 && direction.y() == 0) return maximum;
+    public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
+        if (direction.x() == 0 && direction.y() == 0) return 1;
 
         Vector2ic size = getSize();
 
@@ -77,10 +83,10 @@ public abstract class AbstractMap implements GameMap {
                 size.x() - 1, size.y() - 1, 1,
                 worldClip
         );
-        if (!isOnWorld) return maximum;
+        if (!isOnWorld) return 1;
 
         float adjMin = Math.max(worldClip.x, 0);
-        float adjMax = Math.min(worldClip.y, maximum);
+        float adjMax = Math.min(worldClip.y, 1);
 
         coordPos.add(new Vector2f(coordDir).mul(adjMin));
         coordDir.mul(adjMax - adjMin);
@@ -93,7 +99,7 @@ public abstract class AbstractMap implements GameMap {
             Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
 
             if (secFrac == null) {
-                return maximum;
+                return 1;
 
             } else if (secFrac >= 0 && secFrac < 1) {
                 return secFrac;
@@ -103,7 +109,13 @@ public abstract class AbstractMap implements GameMap {
             lineTraverse = nextCoordinate(xCoord, yCoord, coordPos, coordDir, 1);
         }
 
-        return maximum;
+        return 1;
+    }
+
+    @Override
+    public List<Vector3f> getShapePoints(List<Vector3f> dest, float gameTime) {
+        dest.clear(); // returning all points is expensive and can be left out
+        return dest;
     }
 
     /**
@@ -170,5 +182,11 @@ public abstract class AbstractMap implements GameMap {
         if (yIntersect <= xIntersect) next.add(0, (yIsPos ? 1 : -1));
 
         return next;
+    }
+
+    @Override
+    public BoundingBox getHitbox() {
+        Vector2ic size = getSize();
+        return new BoundingBox(0, 0, Float.NEGATIVE_INFINITY, size.x(), size.y(), Float.POSITIVE_INFINITY);
     }
 }

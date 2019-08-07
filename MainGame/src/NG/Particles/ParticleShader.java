@@ -1,8 +1,8 @@
 package NG.Particles;
 
 import NG.Camera.Camera;
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
+import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.Entities.Entity;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.MatrixStack.AbstractSGL;

@@ -1,8 +1,8 @@
 package NG.GameEvent;
 
-import NG.Engine.Game;
-import NG.Engine.GameAspect;
-import NG.Engine.GameTimer;
+import NG.Core.Game;
+import NG.Core.GameAspect;
+import NG.Core.GameTimer;
 import NG.Tools.Logger;
 
 import java.util.PriorityQueue;

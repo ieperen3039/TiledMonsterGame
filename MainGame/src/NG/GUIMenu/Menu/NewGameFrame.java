@@ -1,9 +1,9 @@
 package NG.GUIMenu.Menu;
 
 import NG.Camera.Camera;
+import NG.Core.Game;
+import NG.Core.ModLoader;
 import NG.DataStructures.Generic.PairList;
-import NG.Engine.Game;
-import NG.Engine.ModLoader;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.GameMap;
@@ -12,7 +12,6 @@ import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.Mods.Mod;
 import NG.Rendering.RenderLoop;
-import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector2i;
 
@@ -22,9 +21,7 @@ import java.util.List;
 /**
  * @author Geert van Ieperen. Created on 21-11-2018.
  */
-public class NewGameFrame extends SFrame implements Runnable {
-    private final SDropDown generatorSelector;
-    private final List<MapGeneratorMod> generators;
+public class NewGameFrame extends SFrame {
     private final SDropDown xSizeSelector;
     private final SDropDown ySizeSelector;
     private final PairList<SToggleButton, Mod> toggleList;
@@ -68,7 +65,7 @@ public class NewGameFrame extends SFrame implements Runnable {
             Vector2i pos = new Vector2i(0, -1);
             for (Mod mod : modList) {
                 if (mod instanceof MapGeneratorMod) continue;
-                SToggleButton button = new SToggleButton(mod.getModName(), MainMenu.BUTTON_MIN_WIDTH, MainMenu.BUTTON_MIN_HEIGHT);
+                SToggleButton button = new SToggleButton(mod.getModName());
                 button.setGrowthPolicy(true, false);
                 toggleList.add(button, mod);
                 modPanel.add(button, pos.add(0, 1));
@@ -76,82 +73,51 @@ public class NewGameFrame extends SFrame implements Runnable {
             mainPanel.add(modPanel, mpos.add(0, 1));
         }
 
-        // generator selection
-        generators = new ArrayList<>();
-        List<String> generatorNames = new ArrayList<>();
-
-        for (Mod m : modList) {
-            if (m instanceof MapGeneratorMod) {
-                MapGeneratorMod generator = (MapGeneratorMod) m;
-                generators.add(generator);
-
-                String modName = m.getModName();
-                generatorNames.add(modName);
-            }
-        }
-
-        if (!generatorNames.isEmpty()) {
-            generatorSelector = new SDropDown(this.game.get(FrameGUIManager.class), generatorNames);
-            mainPanel.add(generatorSelector, mpos.add(0, 1));
-        } else {
-            generatorSelector = new SDropDown(game.get(FrameGUIManager.class), 0, "Default Implementation");
-        }
-
         // generate button
         mainPanel.add(new SFiller(0, 50), mpos.add(0, 1));
-        SButton generate = new SButton("Generate", MainMenu.BUTTON_MIN_WIDTH, MainMenu.BUTTON_MIN_HEIGHT);
+        SButton generate = new SButton("Generate");
         mainPanel.add(generate, mpos.add(0, 1));
 
         setMainPanel(mainPanel);
         pack();
 
         // start game action
-        generate.addLeftClickListener(this);
+        generate.addLeftClickListener(this::generate);
     }
 
-    public void run() {
-        notice.setText("Generating new terrain...");
+    private void generate() {
+        int seed = Math.abs(Toolbox.random.nextInt());
+        notice.setText("Generating new terrain with seed " + seed);
 
-        // get and install map generator
-        MapGeneratorMod generatorMod;
-        int selected = generatorSelector.getSelectedIndex();
-        if (generators.isEmpty()) {
-            int seed = Math.abs(Toolbox.random.nextInt());
-            generatorMod = new SimpleMapGenerator(seed);
-        } else {
-            generatorMod = generators.get(selected);
-        }
+        SimpleMapGenerator generator = new SimpleMapGenerator(seed);
 
         // initialize generator
-        generatorMod.init(game);
+        generator.init(game);
         int xSize = Integer.parseInt(xSizeSelector.getSelected());
         int ySize = Integer.parseInt(ySizeSelector.getSelected());
-        generatorMod.setXSize(xSize);
-        generatorMod.setYSize(ySize);
+        generator.setXSize(xSize);
+        generator.setYSize(ySize);
 
         // install selected mods
         List<Mod> targets = new ArrayList<>();
         for (int i = 0; i < toggleList.size(); i++) {
             if (toggleList.left(i).getState()) {
                 Mod mod = toggleList.right(i);
-
-                if (mod instanceof MapGeneratorMod) {
-                    Logger.ASSERT.print("map generator mod found in modlist");
-
-                } else {
-                    targets.add(mod);
-                }
+                targets.add(mod);
             }
         }
-
         modLoader.initMods(targets);
-        TileThemeSet.BASE.load();
-        game.get(GameMap.class).generateNew(generatorMod);
 
-        MainMenu.centerCamera(game.get(Camera.class), game.get(GameMap.class));
+        // generate map
+        TileThemeSet.BASE.load();
+        GameMap map = game.get(GameMap.class);
+        map.generateNew(generator);
+
+        // set visual elements
+        MainMenu.centerCamera(game.get(Camera.class), map);
         game.get(RenderLoop.class).setArrowVisibility(true);
 
-        // start
+        // start game
         modLoader.startGame();
         this.setVisible(false);
     }

@@ -2,7 +2,7 @@ package NG.Actions.Commands;
 
 import NG.Actions.ActionFireProjectile;
 import NG.Actions.EntityAction;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.Entities.MonsterEntity;
 import NG.Entities.Projectiles.Projectile;
 import NG.Living.Living;

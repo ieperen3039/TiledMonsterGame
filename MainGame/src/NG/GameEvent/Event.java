@@ -1,7 +1,7 @@
 package NG.GameEvent;
 
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
+import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.Living.Stimulus;
 import NG.Living.Type;
 import NG.Tools.Logger;

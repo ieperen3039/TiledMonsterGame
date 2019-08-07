@@ -3,7 +3,7 @@ package NG.Actions.Commands;
 import NG.Actions.ActionJump;
 import NG.Actions.ActionWalk;
 import NG.Actions.EntityAction;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.GameMap.GameMap;
 import NG.Living.Living;
 import NG.Tools.Vectors;

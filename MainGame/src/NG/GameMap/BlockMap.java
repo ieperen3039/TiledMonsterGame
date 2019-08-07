@@ -1,8 +1,8 @@
 package NG.GameMap;
 
 import NG.Camera.Camera;
+import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
@@ -147,7 +147,7 @@ public class BlockMap extends AbstractMap {
         Camera camera = game.get(Camera.class);
         Vector3fc eye = camera.getEye();
         Vector3fc viewDir = camera.vectorToFocus();
-        float fraction = gridMapIntersection(eye, viewDir, 1f);
+        float fraction = gridMapIntersection(eye, viewDir);
         Vector3fc focus = new Vector3f(viewDir).mul(fraction).add(eye);
         float radius = viewDir.length() / TILE_SIZE + 10;
 

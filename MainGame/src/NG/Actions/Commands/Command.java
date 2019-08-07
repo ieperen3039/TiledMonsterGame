@@ -1,8 +1,8 @@
 package NG.Actions.Commands;
 
 import NG.Actions.EntityAction;
+import NG.Core.Game;
 import NG.DataStructures.Direction;
-import NG.Engine.Game;
 import NG.Entities.MonsterEntity;
 import NG.Living.*;
 import org.joml.Vector2ic;

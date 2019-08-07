@@ -1,7 +1,7 @@
 package NG.Camera;
 
 
-import NG.Engine.Game;
+import NG.Core.Game;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 

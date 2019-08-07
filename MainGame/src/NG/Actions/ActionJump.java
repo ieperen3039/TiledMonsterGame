@@ -2,7 +2,7 @@ package NG.Actions;
 
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.GameMap.GameMap;
 import NG.Settings.Settings;
 import NG.Tools.Toolbox;
@@ -70,7 +70,7 @@ public class ActionJump implements EntityAction {
 
     public static float jumpDuration(float jumpSpeed, Vector3fc startPosition, Vector3fc endPosition) {
         float distance = startPosition.distance(endPosition); // not entirely true, as this does not take z into account
-        return (distance == 0 ? 0 : (jumpSpeed / distance)) + 1;
+        return (distance < 1 / 128f ? 0 : (jumpSpeed / distance)) + 1;
     }
 
     @Override

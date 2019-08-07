@@ -1,18 +1,21 @@
 package NG.GameMap;
 
 import NG.CollisionDetection.BoundingBox;
-import NG.Engine.GameAspect;
+import NG.Core.GameAspect;
+import NG.Entities.Entity;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Settings.Settings;
 import NG.Storable;
 import org.joml.*;
 
+import java.lang.Math;
 import java.util.Collection;
 
 /**
  * @author Geert van Ieperen created on 5-5-2019.
  */
-public interface GameMap extends GameAspect, MouseToolListener, Storable {
+public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable {
     /**
      * generate a map using the provided generator. This method can be run in a separate thread
      * @param mapGenerator the generator to use for this map.
@@ -117,10 +120,11 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
      * calculates the lowest fraction t such that (origin + direction * t) lies on this map, for 0 <= t < maximum.
      * @param origin    a local origin of a ray
      * @param direction the direction of the ray
-     * @param maximum   the maximum value of t
      * @return fraction t of (origin + direction * t), or maximum if it does not hit.
      */
-    float gridMapIntersection(Vector3fc origin, Vector3fc direction, float maximum);
+    default float gridMapIntersection(Vector3fc origin, Vector3fc direction) {
+        return getIntersection(origin, direction, 0);
+    }
 
     /**
      * calculates the lowest fraction t such that 0 <= t <= maximum, and such that that the hitbox can move (t * direction)
@@ -134,6 +138,35 @@ public interface GameMap extends GameAspect, MouseToolListener, Storable {
     float intersectFractionBoundingBox(
             BoundingBox hitbox, Vector3fc origin, Vector3fc direction, float maximum
     );
+
+    default void checkCollision(Entity entity, float startTime, float endTime) {
+        Vector3fc startPos = entity.getPositionAt(startTime);
+        Vector3fc endPos = entity.getPositionAt(endTime);
+
+        float intersect = gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
+        if (intersect == 1) return;
+
+        // collision found
+        float collisionTime = startTime + intersect * (endTime - startTime);
+        Vector3fc midPos = entity.getPositionAt(collisionTime);
+
+        // only accept if the found position is sufficiently close to a checked point
+        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK_SQ) {
+            intersect = gridMapIntersection(startPos, new Vector3f(midPos).sub(startPos));
+
+            if (intersect < 1) {
+                collisionTime = startTime + intersect * (collisionTime - startTime);
+                endPos = midPos;
+
+            } else { // wrong half, repeat with other half
+                intersect = gridMapIntersection(midPos, new Vector3f(endPos).sub(midPos));
+                collisionTime = collisionTime + intersect * (endTime - collisionTime);
+                startPos = midPos;
+            }
+        }
+
+        entity.collideWith(this, collisionTime);
+    }
 
     interface ChangeListener {
         /** is called when the map is changed */

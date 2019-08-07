@@ -1,6 +1,6 @@
 package NG.Rendering.Shaders;
 
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.Rendering.MatrixStack.SGL;
 
 import java.io.FileInputStream;

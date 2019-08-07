@@ -1,4 +1,4 @@
-package NG.Engine;
+package NG.Core;
 
 /**
  * A class of which a game usually only needs one of. The constructor of these methods should not accept any other

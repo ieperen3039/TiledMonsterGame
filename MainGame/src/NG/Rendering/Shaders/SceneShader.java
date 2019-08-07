@@ -1,8 +1,8 @@
 package NG.Rendering.Shaders;
 
 import NG.Camera.Camera;
+import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;

@@ -2,8 +2,8 @@ package NG.Actions;
 
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
+import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.Entities.MonsterEntity;
 import NG.Entities.Projectiles.Projectile;
 import NG.Entities.Projectiles.ProjectilePowerBall;

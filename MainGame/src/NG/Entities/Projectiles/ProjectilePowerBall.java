@@ -4,8 +4,9 @@ import NG.Actions.Commands.Command;
 import NG.Actions.Commands.CommandAttack;
 import NG.Actions.Commands.CommandSelection;
 import NG.CollisionDetection.BoundingBox;
+import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
+import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
 import NG.Living.Living;
@@ -74,7 +75,9 @@ public class ProjectilePowerBall extends Projectile {
     }
 
     @Override
-    public void collideWith(Object other, float collisionTime) {
+    public void collideWith(Entity other, float collisionTime) {
+        super.collideWith(other, collisionTime);
+
         game.get(GameParticles.class).add(Particles.explosion(
                 getPositionAt(collisionTime), Vectors.O,
                 new Color4f(1, 0, 0),
@@ -82,8 +85,6 @@ public class ProjectilePowerBall extends Projectile {
                 (int) (game.get(Settings.class).PARTICLE_MODIFIER * Particles.EXPLOSION_BASE_DENSITY),
                 Particles.FIRE_LINGER_TIME, POWER
         ));
-
-        super.collideWith(other, collisionTime);
     }
 
     @Override
@@ -115,7 +116,12 @@ public class ProjectilePowerBall extends Projectile {
     }
 
     @Override
-    public BoundingBox hitbox() {
+    public BoundingBox getHitbox() {
         return boundingBox;
+    }
+
+    @Override
+    public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
+        return 0;
     }
 }

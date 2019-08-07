@@ -1,6 +1,6 @@
 package NG.GameMap;
 
-import NG.Engine.GameTimer;
+import NG.Core.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
 
 import java.io.DataInputStream;

@@ -9,8 +9,8 @@ import org.joml.Vector2ic;
 import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.PANEL;
 
 /**
- * A Frame object similar to {@link javax.swing.JFrame} objects. The {@link #setMainPanel(SComponent)} can be used for
- * full control over the contents of the SFrame.
+ * A Frame object similar to {@link javax.swing.JFrame} objects. The {@link #setMainPanel(SComponent)} can be used to
+ * control over the contents of the SFrame.
  * @author Geert van Ieperen. Created on 20-9-2018.
  */
 public class SFrame extends SContainer {
@@ -159,10 +159,8 @@ public class SFrame extends SContainer {
     }
 
     @Override
-    public void validateLayout() {
-        if (layoutIsValid()) return;
-
-        super.validateLayout();
+    public void doValidateLayout() {
+        super.doValidateLayout();
         upperBar.setSize(getWidth(), FRAME_TITLE_BAR_SIZE);
         upperBar.validateLayout();
     }

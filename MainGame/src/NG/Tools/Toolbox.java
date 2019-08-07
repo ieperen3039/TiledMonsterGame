@@ -128,7 +128,7 @@ public final class Toolbox {
             {
                 Vector3f position = e.getPositionAt(gameTime);
                 gl.translate(position);
-                BoundingBox h = e.hitbox();
+                BoundingBox h = e.getHitbox();
                 gl.scale(h.maxX - h.minX / 2, h.maxY - h.minY / 2, h.maxZ - h.minZ / 2);
                 gl.render(GenericShapes.CUBE, e);
             }

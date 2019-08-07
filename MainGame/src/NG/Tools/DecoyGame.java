@@ -2,11 +2,11 @@ package NG.Tools;
 
 import NG.Camera.TycoonFixedCamera;
 import NG.CollisionDetection.DynamicState;
+import NG.Core.GameAspect;
+import NG.Core.GameService;
+import NG.Core.GameTimer;
+import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.GameAspect;
-import NG.Engine.GameService;
-import NG.Engine.GameTimer;
-import NG.Engine.Version;
 import NG.GUIMenu.Frames.FrameManagerImpl;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;

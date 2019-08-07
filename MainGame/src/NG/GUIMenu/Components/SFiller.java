@@ -33,4 +33,9 @@ public class SFiller extends SComponent {
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
     }
+
+    @Override
+    public SComponent getComponentAt(int xRel, int yRel) {
+        return null;
+    }
 }

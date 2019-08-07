@@ -1,8 +1,8 @@
 package NG.GUIMenu;
 
+import NG.Core.Game;
+import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
-import NG.Engine.Version;
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
 import NG.Tools.Logger;
 import org.joml.Vector2i;

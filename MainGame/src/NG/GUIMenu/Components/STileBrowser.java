@@ -65,10 +65,8 @@ public class STileBrowser extends SContainer {
     }
 
     @Override
-    public void validateLayout() {
-        if (layoutIsValid()) return;
-
-        super.validateLayout();
+    public void doValidateLayout() {
+        super.doValidateLayout();
 
         // use original layout border for side buttons instead
         ComponentBorder supBorder = super.getLayoutBorder();

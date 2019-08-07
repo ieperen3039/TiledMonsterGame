@@ -132,6 +132,7 @@ public class LimitedVisibilityLayout implements SLayoutManager {
     private boolean isInBounds(int newInd) {
         if (newInd >= 0) {
             int nrOfTotalElts = elements.size();
+            if (nrOfTotalElts == 0) return true;
             if (nrOfTotalElts < nrOfVisibleElts && newInd < nrOfTotalElts) return true;
             return newInd <= (nrOfTotalElts - nrOfVisibleElts);
         }
@@ -193,5 +194,11 @@ public class LimitedVisibilityLayout implements SLayoutManager {
     @Override
     public Class<?> getPropertyClass() {
         return Integer.class;
+    }
+
+    @Override
+    public void clear() {
+        elements.clear();
+        currentInd = 0;
     }
 }

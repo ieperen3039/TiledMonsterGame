@@ -4,6 +4,7 @@ import NG.CollisionDetection.BoundingBox;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 /**
  * @author Geert van Ieperen created on 9-1-2019.
@@ -47,11 +48,6 @@ public class Cube implements Entity {
     }
 
     @Override
-    public void onClick(int button) {
-        dispose();
-    }
-
-    @Override
     public void dispose() {
         isDisposed = true;
     }
@@ -67,12 +63,17 @@ public class Cube implements Entity {
     }
 
     @Override
-    public BoundingBox hitbox() {
+    public BoundingBox getHitbox() {
         return boundingBox;
     }
 
     @Override
-    public void collideWith(Object other, float collisionTime) {
+    public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
+        return 0;
+    }
+
+    @Override
+    public void collideWith(Entity other, float collisionTime) {
 
     }
 }

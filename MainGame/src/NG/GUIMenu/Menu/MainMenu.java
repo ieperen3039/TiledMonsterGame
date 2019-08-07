@@ -9,16 +9,17 @@ import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;
 import NG.Animations.RobotMeshes;
 import NG.Camera.Camera;
+import NG.Core.Game;
+import NG.Core.GameTimer;
+import NG.Core.ModLoader;
 import NG.DataStructures.Generic.Color4f;
-import NG.Engine.Game;
-import NG.Engine.GameTimer;
-import NG.Engine.ModLoader;
 import NG.Entities.Cube;
 import NG.Entities.CubeMonster;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
+import NG.GUIMenu.HUDManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
@@ -57,8 +58,6 @@ import static NG.Rendering.Shapes.GenericShapes.CUBE;
  * @author Geert van Ieperen. Created on 28-9-2018.
  */
 public class MainMenu extends SFrame {
-    public static final int BUTTON_MIN_WIDTH = 300;
-    public static final int BUTTON_MIN_HEIGHT = 40;
     private static final int NOF_ENTITIES = 4 * 4 * 4;
 
     private final Game overworld;
@@ -75,13 +74,13 @@ public class MainMenu extends SFrame {
         setMainPanel(SPanel.row(
                 new SFiller(),
                 SPanel.column(
-                        new SButton("Start new game", this::showNewGamePanel, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("Start Testworld", this::testWorld, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("Animation Tester", this::animationDisplay, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("Particle Tester", this::particles, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
-                        new SButton("GUI Tester", this::gui, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT),
+                        new SButton("Start new game", this::showNewGamePanel),
+                        new SButton("Start Testworld", this::testWorld),
+                        new SButton("Animation Tester", this::animationDisplay),
+                        new SButton("Particle Tester", this::particles),
+                        new SButton("GUI Tester", this::gui),
                         new SFiller(),
-                        new SButton("Exit game", exitGameAction, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                        new SButton("Exit game", exitGameAction)
                 ),
                 new SFiller()
         ));
@@ -101,7 +100,7 @@ public class MainMenu extends SFrame {
                         new SButton("Robot Torso", () -> demoS3DModel = RobotMeshes.ROBOT_TORSO, 150, 150)
                 )
         ));
-        overworld.get(FrameGUIManager.class).addFrame(newFrame);
+        overworld.get(HUDManager.class).addElement(newFrame);
     }
 
     private void drawCube(SGL gl) {
@@ -118,14 +117,14 @@ public class MainMenu extends SFrame {
         overworld.get(RenderLoop.class).setArrowVisibility(false);
 
         targetGUI.addFrame(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
-                new STextArea("MR. TORGUE APPROVES", BUTTON_MIN_HEIGHT),
+                new STextArea("MR. TORGUE APPROVES", SButton.BUTTON_MIN_HEIGHT),
                 new SButton("BOOM", () -> {
                     ParticleCloud cloud = Particles.explosion(
                             Vectors.O, Vectors.O, Color4f.RED, Color4f.ORANGE,
                             50_000, 5f, 10f
                     );
                     overworld.get(GameParticles.class).add(cloud);
-                }, BUTTON_MIN_WIDTH, BUTTON_MIN_HEIGHT)
+                })
         )));
     }
 
@@ -164,7 +163,7 @@ public class MainMenu extends SFrame {
             MonsterEntity cow = monsterSoul.getAsEntity(overworld, position, Vectors.X);
             state.addEntity(cow);
 
-            Command command = CommandSelection.actionCommand("", (game, startPosition, target) -> new ActionIdle(startPosition, 2))
+            Command command = CommandSelection.actionCommand("", (game, startPosition, target) -> new ActionIdle(startPosition, 1))
                     .create(new Player(), monsterSoul, new Vector2i());
             monsterSoul.accept(command);
 
@@ -232,7 +231,7 @@ public class MainMenu extends SFrame {
         SDropDown modelSelection = new SDropDown(targetGUI, baseMode.ordinal(), Toolbox.toStringArray(models));
         PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.get(GameTimer.class));
 
-        targetGUI.addFrame(new SFrame("Animations", BUTTON_MIN_WIDTH, 0)
+        targetGUI.addFrame(new SFrame("Animations", SButton.BUTTON_MIN_WIDTH, 0)
                 .setMainPanel(SPanel.column(
                         animationSelection,
                         modelSelection
@@ -262,7 +261,7 @@ public class MainMenu extends SFrame {
     private void showNewGamePanel() {
         SFrame newGameFrame = new NewGameFrame(overworld, modLoader);
         newGameFrame.setVisible(true);
-        overworld.get(FrameGUIManager.class).addFrame(newGameFrame);
+        overworld.get(HUDManager.class).addElement(newGameFrame);
     }
 
     public SToolBar getToolBar(Game game) {

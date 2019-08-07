@@ -5,7 +5,7 @@ import NG.Animations.BoneElement;
 import NG.Animations.RobotMeshes;
 import NG.Animations.SkeletonBone;
 import NG.CollisionDetection.BoundingBox;
-import NG.Engine.Game;
+import NG.Core.Game;
 import NG.Living.MonsterSoul;
 import NG.Living.SoulDescription;
 import org.joml.Vector2i;
@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
+ * Not how you are supposed to build monsters
  * @author Geert van Ieperen created on 6-3-2019.
  */
 public class RobotMonster extends MonsterSoul {
@@ -47,7 +48,7 @@ public class RobotMonster extends MonsterSoul {
         }
 
         @Override
-        public BoundingBox hitbox() {
+        public BoundingBox getHitbox() {
             return new BoundingBox(-1, -1, 0, 1, 1, 2);
         }
     }
