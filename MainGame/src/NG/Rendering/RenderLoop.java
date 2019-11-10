@@ -218,7 +218,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         return uiShader;
     }
 
-    private class Pointer {
+    private static class Pointer {
         private static final float SIZE = 2;
         private Vector3f midSquare;
         private Vector3f exact;
@@ -240,15 +240,13 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                 gl.translate(exactNegate);
 
                 gl.translate(midSquare);
-                gl.translate(0, 0, 2 + SIZE);
-                gl.scale(SIZE, SIZE, -SIZE);
 
                 if (gl.getShader() instanceof MaterialShader) {
                     MaterialShader mShader = (MaterialShader) gl.getShader();
-                    mShader.setMaterial(Material.ROUGH, Color4f.WHITE);
+                    mShader.setMaterial(Material.ROUGH, Color4f.BLUE);
                 }
 
-                gl.render(GenericShapes.ARROW, null);
+                gl.render(GenericShapes.SELECTION, null);
             }
             gl.popMatrix();
         }

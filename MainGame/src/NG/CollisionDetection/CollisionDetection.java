@@ -5,7 +5,9 @@ import NG.DataStructures.Generic.ConcurrentArrayList;
 import NG.DataStructures.Generic.Pair;
 import NG.DataStructures.Generic.PairList;
 import NG.Entities.Entity;
+import NG.Entities.MonsterEntity;
 import NG.Entities.MovingEntity;
+import NG.GameMap.GameMap;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.AABBf;
@@ -37,6 +39,7 @@ public class CollisionDetection {
     private Collection<MovingEntity> dynamicEntities;
     private Collection<MovingEntity> newEntities;
     private float previousTime;
+    private WorldCollisionObject world;
 
     /**
      * @see #CollisionDetection(Collection)
@@ -52,7 +55,7 @@ public class CollisionDetection {
      *                       case, the collision detection still functions.
      */
     public CollisionDetection(Collection<Entity> staticEntities) {
-        this.staticEntities = Collections.unmodifiableCollection(staticEntities);
+        this.staticEntities = staticEntities;
         this.dynamicEntities = new CopyOnWriteArrayList<>();
         this.newEntities = new ConcurrentArrayList<>();
 
@@ -135,6 +138,11 @@ public class CollisionDetection {
 
         /** -- analyse the collisions -- */
 
+        // world collisions
+        for (CollisionEntity e : entityArray()) {
+            world.checkCollision(e.entity, previousTime, gameTime);
+        }
+
         /* As a single collision may result in a previously not-intersecting pair to collide,
          * we shouldn't re-use the getIntersectingPairs method nor reduce by non-collisions.
          * On the other hand, we may assume collisions of that magnitude appear seldom
@@ -157,6 +165,9 @@ public class CollisionDetection {
         previousTime = gameTime;
     }
 
+    public void setWorld(WorldCollisionObject world) {
+        this.world = world;
+    }
 
     /**
      * @param alpha    one entity
@@ -171,6 +182,14 @@ public class CollisionDetection {
         assert !a.canCollideWith(b) && !b.canCollideWith(a);
         // this may change with previous collisions
         if (a.isDisposed() || b.isDisposed() || a == b) return false;
+
+        // special case for maps
+        if (a instanceof MonsterEntity && b instanceof GameMap) {
+            return mapCollision(gameTime, a, (GameMap) b);
+
+        } else if (a instanceof GameMap && b instanceof MonsterEntity) {
+            return mapCollision(gameTime, b, (GameMap) a);
+        }
 
         float bFrac = checkAtoB(alpha, b, gameTime);
         float aFrac = checkAtoB(beta, a, gameTime);
@@ -187,6 +206,15 @@ public class CollisionDetection {
         a.collideWith(b, collisionTime);
         b.collideWith(a, collisionTime);
 
+        return true;
+    }
+
+    private boolean mapCollision(float gameTime, Entity a, GameMap map) {
+        float hitFrac = map.checkCollision(a, previousTime, gameTime);
+        if (hitFrac == 1) return false;
+
+        float collisionTime = previousTime + hitFrac * (previousTime - gameTime);
+        a.collideWith(map, collisionTime);
         return true;
     }
 
@@ -449,15 +477,26 @@ public class CollisionDetection {
         public void update(float gameTime) {
             entity.update(gameTime);
 
-            List<Vector3f> buffer = prevPoints;
-            prevPoints = nextPoints;
-            nextPoints = entity.getShapePoints(buffer, gameTime);
+            if (nextBoundingBox == null) {
+                nextPoints = entity.getShapePoints(gameTime);
+                prevPoints = entity.getShapePoints(gameTime);
 
-            Vector3fc nextPos = entity.getPositionAt(gameTime);
-            BoundingBox prevBoundingBox = nextBoundingBox;
-            nextBoundingBox = entity.getHitbox().move(nextPos);
+                Vector3fc nextPos = entity.getPositionAt(gameTime);
+                nextBoundingBox = entity.getHitbox().move(nextPos);
+                hitbox = nextBoundingBox;
 
-            hitbox = prevBoundingBox.union(nextBoundingBox);
+            } else {
+                List<Vector3f> buffer = prevPoints;
+
+                prevPoints = nextPoints;
+                nextPoints = entity.getShapePoints(buffer, gameTime);
+
+                Vector3fc nextPos = entity.getPositionAt(gameTime);
+                BoundingBox prevBoundingBox = nextBoundingBox;
+                nextBoundingBox = entity.getHitbox().move(nextPos);
+
+                hitbox = prevBoundingBox.union(nextBoundingBox);
+            }
         }
 
         public float xUpper() {
@@ -548,6 +587,18 @@ public class CollisionDetection {
         }
     }
 
+    /**
+     * an interface for checking masses of entities against.
+     */
+    public interface WorldCollisionObject {
+        /**
+         * Calculates at what moment of the given interval there is a collision between the entity and this object.
+         * @param e         the entity to check
+         * @param startTime the begin of the interval, in seconds game time
+         * @param endTime   the end of the interval, in seconds game time
+         */
+        void checkCollision(Entity e, float startTime, float endTime);
+    }
 
     /**
      * tests whether the invariants holds. Throws an error if any of the arrays is not correctly sorted or any other

@@ -11,12 +11,11 @@ import NG.Animations.RobotMeshes;
 import NG.Camera.Camera;
 import NG.Core.Game;
 import NG.Core.GameTimer;
-import NG.Core.ModLoader;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Cube;
 import NG.Entities.CubeMonster;
-import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
+import NG.Entities.MovingEntity;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GUIMenu.HUDManager;
@@ -28,6 +27,7 @@ import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
+import NG.Mods.ModLoader;
 import NG.Particles.GameParticles;
 import NG.Particles.ParticleCloud;
 import NG.Particles.Particles;
@@ -203,7 +203,7 @@ public class MainMenu extends SFrame {
             for (int y = 0; y < cbrtc; y++) {
                 for (int z = 0; z < cbrtc; z++) {
                     Vector3f pos = new Vector3f(x, y, z).mul(spacing);
-                    Entity cube = new Cube(pos);
+                    MovingEntity cube = new Cube(pos);
                     overworld.get(GameState.class).addEntity(cube);
                     if (--i == 0) break cubing;
                 }

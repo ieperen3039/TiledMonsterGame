@@ -1,7 +1,7 @@
-package NG.Core;
+package NG.Mods;
 
-import NG.Mods.InitialisationMod;
-import NG.Mods.Mod;
+import NG.Core.Game;
+import NG.Core.Version;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 

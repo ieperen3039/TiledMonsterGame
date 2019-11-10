@@ -19,8 +19,6 @@ import static NG.Settings.Settings.TILE_SIZE;
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
 public abstract class AbstractMap extends StaticEntity implements GameMap {
-    private boolean isDisposed = false;
-
     public AbstractMap() {
     }
 

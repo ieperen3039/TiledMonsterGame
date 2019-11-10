@@ -6,6 +6,7 @@ import NG.Actions.Commands.CommandSelection;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
+import NG.Effects.DamageType;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
@@ -30,8 +31,10 @@ public class ProjectilePowerBall extends Projectile {
     private static final GenericShapes mesh = GenericShapes.ICOSAHEDRON;
     private static final int POWER = 10;
     private static final float HITBOX_SCALAR = 0.3f;
+    private static final int BASE_DAMAGE = 100;
     private final float speed;
     private final BoundingBox boundingBox;
+    private final DamageType damageType;
     private float size;
 
     private Vector3fc startPosition;
@@ -39,9 +42,12 @@ public class ProjectilePowerBall extends Projectile {
     private float duration;
 
     public ProjectilePowerBall(Game game, Object source, Vector2ic endCoordinate, float speed, float size) {
-        this(game, source, game.get(GameMap.class)
-                .getPosition(endCoordinate)
-                .add(0, 0, size * HITBOX_SCALAR), speed, size);
+        this(
+                game, source,
+                game.get(GameMap.class)
+                        .getPosition(endCoordinate)
+                        .add(0, 0, size * HITBOX_SCALAR),
+                speed, size);
     }
 
     public ProjectilePowerBall(Game game, Object source, Vector3fc endPosition, float speed, float size) {
@@ -51,6 +57,7 @@ public class ProjectilePowerBall extends Projectile {
         float boxSize = size * HITBOX_SCALAR;
         this.boundingBox = new BoundingBox(-boxSize, -boxSize, -boxSize, boxSize, boxSize, boxSize);
         this.endPosition = new Vector3f(endPosition);
+        damageType = DamageType.NORMAL;
     }
 
     @Override
@@ -76,7 +83,11 @@ public class ProjectilePowerBall extends Projectile {
 
     @Override
     public void collideWith(Entity other, float collisionTime) {
-        super.collideWith(other, collisionTime);
+        if (other instanceof MonsterEntity) {
+            MonsterEntity monster = (MonsterEntity) other;
+
+            monster.applyDamage(BASE_DAMAGE, damageType);
+        }
 
         game.get(GameParticles.class).add(Particles.explosion(
                 getPositionAt(collisionTime), Vectors.O,
@@ -85,6 +96,7 @@ public class ProjectilePowerBall extends Projectile {
                 (int) (game.get(Settings.class).PARTICLE_MODIFIER * Particles.EXPLOSION_BASE_DENSITY),
                 Particles.FIRE_LINGER_TIME, POWER
         ));
+        dispose();
     }
 
     @Override

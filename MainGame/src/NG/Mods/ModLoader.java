@@ -1,6 +1,4 @@
-package NG.Core;
-
-import NG.Mods.Mod;
+package NG.Mods;
 
 import java.util.List;
 

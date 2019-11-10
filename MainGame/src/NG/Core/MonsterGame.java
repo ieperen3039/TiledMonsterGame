@@ -5,7 +5,7 @@ import NG.Camera.TycoonFixedCamera;
 import NG.CollisionDetection.PhysicsEngine;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Entity;
-import NG.GUIMenu.HUD.MonsterHud;
+import NG.GUIMenu.Frames.FrameManagerImpl;
 import NG.GUIMenu.HUDManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameEvent.EventLoop;
@@ -15,7 +15,9 @@ import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseToolCallbacks;
+import NG.Mods.JarModReader;
 import NG.Mods.Mod;
+import NG.Mods.ModLoader;
 import NG.Particles.GameParticles;
 import NG.Particles.ParticleShader;
 import NG.Rendering.GLFWWindow;
@@ -75,7 +77,8 @@ public class MonsterGame implements ModLoader {
 
         renderer = new RenderLoop(settings.TARGET_FPS);
         inputHandler = new MouseToolCallbacks();
-        hud = new MonsterHud();
+//        hud = new MonsterHud();
+        hud = new FrameManagerImpl();
 
         GameService pocketGame = createWorld("pocket", mainThreadName, settings);
         pocketGame.add(new EmptyMap());

@@ -1,7 +1,7 @@
 package NG.Tools;
 
 import NG.Camera.TycoonFixedCamera;
-import NG.CollisionDetection.DynamicState;
+import NG.CollisionDetection.PhysicsEngine;
 import NG.Core.GameAspect;
 import NG.Core.GameService;
 import NG.Core.GameTimer;
@@ -36,7 +36,7 @@ public class DecoyGame extends GameService {
         add(new FrameManagerImpl());
         add(new TileMap(Settings.CHUNK_SIZE));
         add(new TycoonFixedCamera(new Vector3f(), 0, 10));
-        add(new DynamicState());
+        add(new PhysicsEngine());
 
         renderloop.addHudItem(get(FrameManagerImpl.class)::draw);
         get(GameLights.class).addDirectionalLight(new Vector3f(1, -1.5f, 2), Color4f.WHITE, 0.5f);

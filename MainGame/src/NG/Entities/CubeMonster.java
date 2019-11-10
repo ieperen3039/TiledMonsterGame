@@ -7,12 +7,12 @@ import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
+import NG.Effects.DamageType;
 import NG.Living.MonsterSoul;
 import NG.Living.SoulDescription;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
-import NG.Tools.Toolbox;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -20,6 +20,7 @@ import org.joml.Vector3fc;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -67,7 +68,7 @@ public class CubeMonster extends MonsterSoul {
         public Entity(
                 Game game, Vector2i initialCoordinate, Vector3fc faceDirection, CubeMonster controller
         ) {
-            super(game, initialCoordinate, controller);
+            super(game, initialCoordinate, controller, 1000, new EnumMap<>(DamageType.class), BodyModel.CUBE, boneMap);
 
             float gametime = game.get(GameTimer.class).getGametime();
             Vector3f eyeDir = new Vector3f(faceDirection);
@@ -102,16 +103,6 @@ public class CubeMonster extends MonsterSoul {
         }
 
         @Override
-        protected BodyModel bodyModel() {
-            return BodyModel.CUBE;
-        }
-
-        @Override
-        protected Map<SkeletonBone, BoneElement> getBoneMapping() {
-            return boneMap;
-        }
-
-        @Override
         public BoundingBox getHitbox() {
             return hitbox;
         }
@@ -127,8 +118,7 @@ public class CubeMonster extends MonsterSoul {
         }
     }
 
-    private class CubeElement extends BoneElement {
-        private static final int ELEVATION = 3;
+    private static class CubeElement extends BoneElement {
         private final float size;
 
         CubeElement(float size) {
@@ -140,9 +130,6 @@ public class CubeMonster extends MonsterSoul {
         public void draw(SGL gl, NG.Entities.Entity entity) {
             gl.pushMatrix();
             {
-                gl.translate(0, 0, ELEVATION);
-                Toolbox.drawAxisFrame(gl);
-                gl.translate(0, 0, size - ELEVATION);
                 gl.scale(size);
                 super.draw(gl, entity);
             }

@@ -24,9 +24,11 @@ public enum GenericShapes implements Mesh, Shape {
     INV_CUBE("general", "inverseCube.obj"),
     CUBE("general", "cube.obj"),
     TEXTURED_QUAD("general", "quad.obj"),
+    SELECTION("general", "selection.obj"),
 
     /** a quad of size 2x2 on the xy plane */
-    QUAD(makeSingleQuad());
+    QUAD(makeSingleQuad()),
+    ;
 
     private MeshFile pars;
     private Mesh mesh = null;

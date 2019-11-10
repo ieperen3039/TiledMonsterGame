@@ -139,12 +139,12 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable
             BoundingBox hitbox, Vector3fc origin, Vector3fc direction, float maximum
     );
 
-    default void checkCollision(Entity entity, float startTime, float endTime) {
+    default float checkCollision(Entity entity, float startTime, float endTime) {
         Vector3fc startPos = entity.getPositionAt(startTime);
         Vector3fc endPos = entity.getPositionAt(endTime);
 
         float intersect = gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
-        if (intersect == 1) return;
+        if (intersect == 1) return 1;
 
         // collision found
         float collisionTime = startTime + intersect * (endTime - startTime);
@@ -165,7 +165,7 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable
             }
         }
 
-        entity.collideWith(this, collisionTime);
+        return intersect;
     }
 
     interface ChangeListener {

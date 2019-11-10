@@ -2,7 +2,6 @@ package NG.GUIMenu.Menu;
 
 import NG.Camera.Camera;
 import NG.Core.Game;
-import NG.Core.ModLoader;
 import NG.DataStructures.Generic.PairList;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
@@ -11,6 +10,7 @@ import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.Mods.Mod;
+import NG.Mods.ModLoader;
 import NG.Rendering.RenderLoop;
 import NG.Tools.Toolbox;
 import org.joml.Vector2i;

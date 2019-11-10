@@ -9,7 +9,7 @@ import org.joml.Vector3fc;
 /**
  * @author Geert van Ieperen created on 9-1-2019.
  */
-public class Cube implements Entity {
+public class Cube implements MovingEntity {
     private static final float SIZE = 1;
     private static int nr = 0;
     private final int id;

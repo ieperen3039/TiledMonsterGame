@@ -9,15 +9,22 @@ import NG.Animations.SkeletonBone;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Core.GameTimer;
+import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.Pair;
+import NG.Effects.DamageType;
 import NG.GUIMenu.Components.SFrame;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterSoul;
+import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Rendering.Shaders.MaterialShader;
+import NG.Rendering.Shaders.ShaderProgram;
+import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -25,21 +32,35 @@ import java.util.Map;
  * including the {@link MonsterSoul} or identity of the monster.
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public abstract class MonsterEntity implements Entity {
+public abstract class MonsterEntity implements MovingEntity {
     protected final Game game;
-    private final MonsterSoul controller;
     /** the current actions that are executed */
     public final ActionQueue currentActions;
+    public final MonsterSoul controller;
+    public final int maxHitpoints;
+
+    private final BodyModel bodyModel;
+    private final Map<SkeletonBone, BoneElement> boneMapping;
+    private int hitpoints; // let's say 1000 is the standard
 
     private boolean isDisposed;
     private SFrame frame;
     private EntityAction previousAction; // only in rendering
+    private EnumMap<DamageType, Float> resistances;
 
-    public MonsterEntity(Game game, Vector2i initialPosition, MonsterSoul controller) {
+    public MonsterEntity(
+            Game game, Vector2i initialPosition, MonsterSoul controller, int hitpoints,
+            EnumMap<DamageType, Float> resistances, BodyModel bodyModel, Map<SkeletonBone, BoneElement> boneMapping
+    ) {
         this.game = game;
         this.controller = controller;
+        this.maxHitpoints = hitpoints;
+        this.hitpoints = hitpoints;
+        this.resistances = resistances;
         this.currentActions = new ActionQueue(game, initialPosition);
         previousAction = new ActionIdle(game, initialPosition);
+        this.bodyModel = bodyModel;
+        this.boneMapping = boneMapping;
     }
 
     @Override
@@ -58,9 +79,23 @@ public abstract class MonsterEntity implements Entity {
             gl.translate(action.getPositionAt(timeSinceStart));
             gl.rotate(action.getRotationAt(timeSinceStart));
 
-            bodyModel().draw(gl, this, getBoneMapping(), timeSinceStart, action, previousAction);
+            gl.pushMatrix();
+            {
+                bodyModel.draw(gl, this, boneMapping, timeSinceStart, action, previousAction);
+            }
+            gl.popMatrix();
+
+            ShaderProgram shader = gl.getShader();
+            if (shader instanceof MaterialShader) {
+                gl.translate(0, 0, getHitbox().maxZ + 1);
+                gl.scale(1, 1, -1);
+                float health = (float) hitpoints / maxHitpoints;
+                ((MaterialShader) shader).setMaterial(Material.ROUGH, new Color4f(health, 1 - health, 0));
+                gl.render(GenericShapes.ARROW, this);
+            }
         }
         gl.popMatrix();
+
 
         if (action != previousAction) previousAction = action;
     }
@@ -70,21 +105,19 @@ public abstract class MonsterEntity implements Entity {
         float lastActionEnd = currentActions.lastActionEnd();
         if (gameTime >= lastActionEnd) {
             EntityAction next = controller.getNextAction(lastActionEnd);
-            currentActions.insert(next, gameTime);
+            currentActions.insert(next, lastActionEnd);
         }
 
         controller.update(gameTime);
     }
 
-    /**
-     * @return the root bone of this entity's skeleton
-     */
-    protected abstract BodyModel bodyModel();
+    public void applyDamage(int damage, DamageType type) {
+        hitpoints -= damage * resistances.getOrDefault(type, 1f);
+    }
 
-    /**
-     * @return a mapping of bones from the bones of {@link #bodyModel()} to implementations.
-     */
-    protected abstract Map<SkeletonBone, BoneElement> getBoneMapping();
+    public int getHitpoints() {
+        return hitpoints;
+    }
 
     /**
      * @return the {@link NG.Living.Living} that controls this entity.

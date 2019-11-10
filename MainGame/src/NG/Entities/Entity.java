@@ -83,9 +83,11 @@ public interface Entity {
      * not reflected in this object.
      */
     default List<Vector3f> getShapePoints(List<Vector3f> dest, float gameTime) {
-        if (dest.size() != 8) {
-            dest = new ArrayList<>(8);
-            for (int i = 0; i < 8; i++) {
+        if (dest.size() > 8) {
+            dest.clear();
+        }
+        if (dest.size() < 8) {
+            for (int i = dest.size(); i < 8; i++) {
                 dest.add(new Vector3f());
             }
         }
@@ -118,5 +120,4 @@ public interface Entity {
      * @param collisionTime the moment of collision
      */
     void collideWith(Entity other, float collisionTime);
-
 }

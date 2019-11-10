@@ -3,13 +3,14 @@ package NG.Entities.Projectiles;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.Entities.Entity;
+import NG.Entities.MovingEntity;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3fc;
 
 /**
  * @author Geert van Ieperen created on 2-4-2019.
  */
-public abstract class Projectile implements Entity {
+public abstract class Projectile implements MovingEntity {
     protected final Game game;
     private float spawnTime = Float.MAX_VALUE;
     private Object source;
@@ -77,12 +78,6 @@ public abstract class Projectile implements Entity {
     @Override
     public boolean canCollideWith(Entity other) {
         return other != this && other != source;
-    }
-
-    @Override
-    public void collideWith(Entity other, float collisionTime) {
-        assert other == null || canCollideWith(other);
-        dispose();
     }
 
     protected float getSpawnTime() {

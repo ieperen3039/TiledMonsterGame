@@ -2,6 +2,7 @@ package NG.Animations;
 
 import NG.Core.GameTimer;
 import NG.Entities.Dummy;
+import NG.Entities.MovingEntity;
 import NG.Entities.RobotMonster;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
@@ -40,7 +41,7 @@ public interface PartialAnimation extends Storable {
     Set<SkeletonBone> getDomain();
 
     /** an entity that plays a given animation using a robot mesh */
-    class Demonstrator extends Dummy {
+    class Demonstrator extends Dummy implements MovingEntity {
         private static final Map<SkeletonBone, BoneElement> ROBOT_MESH_MAP = RobotMonster.getRobotMeshMap();
         private final GameTimer timer;
 
