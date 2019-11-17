@@ -247,7 +247,7 @@ public class BlockMap extends AbstractMap {
     public Collection<Vector2i> findPath(
             Vector2ic source, Vector2ic target, float walkSpeed, float climbSpeed
     ) {
-        return new AStar(source, target, xSize - 1, ySize - 1) {
+        return new AStar(source, target, 0, 0, xSize - 1, ySize - 1) {
             @Override
             public float distanceAdjacent(int x1, int y1, int x2, int y2) {
                 int dx = x1 - x2;

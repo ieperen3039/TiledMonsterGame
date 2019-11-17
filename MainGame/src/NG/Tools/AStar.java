@@ -20,12 +20,16 @@ public abstract class AStar implements Callable<Iterable<Vector2i>> {
     private final Map<Integer, Map<Integer, ANode>> openSet = new HashMap<>();
     private final Map<Integer, Set<Integer>> closedSet = new HashMap<>();
     private final ANode srcNode;
+    private final int xMin;
+    private final int yMin;
 
-    public AStar(Vector2ic source, Vector2ic target, int xMax, int yMax) {
+    public AStar(Vector2ic source, Vector2ic target, int xMin, int yMin, int xMax, int yMax) {
         this.target = new Vector2i(target);
         this.xMax = xMax;
         this.yMax = yMax;
-        srcNode = new ANode(source);
+        this.xMin = xMin;
+        this.yMin = yMin;
+        this.srcNode = new ANode(source);
 
         HashMap<Integer, ANode> sourceSet = new HashMap<>();
         sourceSet.put(srcNode.y, srcNode);
@@ -65,17 +69,7 @@ public abstract class AStar implements Callable<Iterable<Vector2i>> {
             node = node.source; // all nodes but srcNode have a source
         }
 
-        return new AbstractCollection<>() {
-            @Override
-            public Iterator<Vector2i> iterator() {
-                return new PathIterator(path);
-            }
-
-            @Override
-            public int size() {
-                return path.size();
-            }
-        };
+        return new Path(path);
     }
 
     /**
@@ -85,7 +79,7 @@ public abstract class AStar implements Callable<Iterable<Vector2i>> {
      * @param y        the y coordinate of the neighbour of this node
      */
     public void checkNode(ANode previous, int x, int y) {
-        if (x < 0 || y < 0 || x > xMax || y > yMax) return;
+        if (x < xMin || y < yMin || x > xMax || y > yMax) return;
 
         if (inClosedSet(x, y)) return;
 
@@ -195,31 +189,37 @@ public abstract class AStar implements Callable<Iterable<Vector2i>> {
         }
     }
 
-    /** an inverse iterator, as the source-node is at the end */
-    private class PathIterator implements Iterator<Vector2i> {
-        private int i;
+    private class Path extends AbstractCollection<Vector2i> {
         private List<ANode> path;
 
-        public PathIterator(List<ANode> path) {
+        public Path(List<ANode> path) {
             this.path = path;
-            this.i = path.size();
         }
 
         @Override
-        public boolean hasNext() {
-            return i > 0;
+        public int size() {
+            return path.size();
         }
 
         @Override
-        public Vector2i next() {
-            i--;
-            ANode tgt = path.get(i); // exclusive path.size() and inclusive 0
-            return new Vector2i(tgt.x, tgt.y);
-        }
+        public Iterator<Vector2i> iterator() {
+            return new Iterator<>() {
+                private int i = path.size();
 
-        @Override
-        public void remove() {
-            path.remove(i);
+                @Override
+                public boolean hasNext() {
+                    return i > 0;
+                }
+
+                @Override
+                public Vector2i next() {
+                    i--;
+                    ANode tgt = path.get(i); // exclusive path.size() and inclusive 0
+                    return new Vector2i(tgt.x, tgt.y);
+                }
+            };
         }
     }
+
+    ;
 }

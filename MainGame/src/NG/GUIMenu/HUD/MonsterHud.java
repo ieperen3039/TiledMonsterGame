@@ -29,7 +29,6 @@ public class MonsterHud extends SimpleHUD {
         textBox = new SComponentArea(TEXT_BOX_HEIGHT, TEXT_BOX_HEIGHT);
         textBox.setGrowthPolicy(true, false);
         teamSelection = new SScrollableList(1, new SPanel());
-        teamSelection.setVisible(false);
 
         textBox.show(new SPanel());
 

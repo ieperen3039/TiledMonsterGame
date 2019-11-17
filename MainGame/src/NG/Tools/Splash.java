@@ -1,9 +1,5 @@
 package NG.Tools;
 
-/**
- * @author Geert van Ieperen created on 4-5-2019.
- */
-
 import NG.Settings.Settings;
 
 import javax.imageio.ImageIO;
@@ -13,10 +9,9 @@ import java.io.File;
 
 /**
  * a splash image that can be shown and disposed.
+ * @author Geert van Ieperen created on 4-5-2019.
  */
 public class Splash extends Frame implements Runnable {
-
-    // TODO better splash image
     private static final String SPLASH_IMAGE = "SplashImage.png";
 
     public Splash() {
@@ -28,8 +23,7 @@ public class Splash extends Frame implements Runnable {
             setImage(this, splashImage);
 
         } catch (Exception e) {
-            Logger.ERROR.print("Could not load splash image " + file);
-            e.printStackTrace();
+            Logger.ERROR.print("Could not load splash image " + file, e);
             setSize(new Dimension(500, 300));
         }
 

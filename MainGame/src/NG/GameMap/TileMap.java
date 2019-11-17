@@ -411,7 +411,7 @@ public class TileMap extends AbstractMap {
         int xMax = (xChunks * chunkSize) - 1;
         int yMax = (yChunks * chunkSize) - 1;
 
-        return new AStar(beginPosition, target, xMax, yMax) {
+        return new AStar(beginPosition, target, 0, 0, xMax, yMax) {
             @Override
             public float distanceAdjacent(int x1, int y1, int x2, int y2) {
                 // the total duration of this movement

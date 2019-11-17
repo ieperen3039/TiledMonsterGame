@@ -23,8 +23,8 @@ public class BaseLF implements SFrameLookAndFeel {
     private static final int INDENT = 5;
     private static final int BUTTON_INDENT = 8;
     private static final int STROKE_WIDTH = 2;
-    private static final int TEXT_SIZE_REGULAR = 24;
-    private static final int TEXT_SIZE_LARGE = 28;
+    private static final int TEXT_SIZE_REGULAR = 18;
+    private static final int TEXT_SIZE_LARGE = 24;
 
     private static final Color4f TEXT_COLOR = Color4f.BLACK;
     private static final Color4f PANEL_COLOR = Color4f.WHITE;
