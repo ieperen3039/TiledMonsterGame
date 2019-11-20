@@ -6,7 +6,6 @@ import NG.Animations.RobotMeshes;
 import NG.Animations.SkeletonBone;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
-import NG.Effects.DamageType;
 import NG.Living.MonsterSoul;
 import NG.Living.SoulDescription;
 import org.joml.Vector2i;
@@ -14,7 +13,6 @@ import org.joml.Vector3fc;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -36,7 +34,7 @@ public class RobotMonster extends MonsterSoul {
 
     private class Entity extends MonsterEntity {
         public Entity(Game game, Vector2i initialPosition) {
-            super(game, initialPosition, RobotMonster.this, 1000, new EnumMap<>(DamageType.class), BodyModel.ANTHRO, boneMap);
+            super(game, initialPosition, RobotMonster.this, BodyModel.ANTHRO, boneMap);
         }
 
         @Override

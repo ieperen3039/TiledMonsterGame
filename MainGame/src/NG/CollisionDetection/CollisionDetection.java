@@ -42,10 +42,10 @@ public class CollisionDetection {
     private WorldCollisionObject world;
 
     /**
-     * @see #CollisionDetection(Collection)
+     * @see #CollisionDetection(Collection, float)
      */
     public CollisionDetection(Entity... entities) {
-        this(Arrays.asList(entities));
+        this(Arrays.asList(entities), 0);
     }
 
     /**
@@ -53,8 +53,9 @@ public class CollisionDetection {
      * @param staticEntities a list of fixed entities. Entities in this collection should not move, but if they do,
      *                       dynamic objects might phase through when moving in opposite direction. Apart from this
      *                       case, the collision detection still functions.
+     * @param gameTime
      */
-    public CollisionDetection(Collection<Entity> staticEntities) {
+    public CollisionDetection(Collection<Entity> staticEntities, float gameTime) {
         this.staticEntities = staticEntities;
         this.dynamicEntities = new CopyOnWriteArrayList<>();
         this.newEntities = new ConcurrentArrayList<>();
@@ -68,7 +69,7 @@ public class CollisionDetection {
         yLowerSorted = new CollisionEntity[nOfEntities];
         zLowerSorted = new CollisionEntity[nOfEntities];
 
-        populate(staticEntities, xLowerSorted, yLowerSorted, zLowerSorted);
+        populate(staticEntities, gameTime, xLowerSorted, yLowerSorted, zLowerSorted);
 
         avgCollisions = new AveragingQueue(5);
     }
@@ -78,12 +79,12 @@ public class CollisionDetection {
      * respectively)
      */
     private void populate(
-            Collection<? extends Entity> entities,
+            Collection<? extends Entity> entities, float gameTime,
             CollisionEntity[] xLowerSorted, CollisionEntity[] yLowerSorted, CollisionEntity[] zLowerSorted
     ) {
         int i = 0;
         for (Entity entity : entities) {
-            CollisionEntity asCollisionEntity = new CollisionEntity(entity);
+            CollisionEntity asCollisionEntity = new CollisionEntity(entity, gameTime);
             xLowerSorted[i] = asCollisionEntity;
             yLowerSorted[i] = asCollisionEntity;
             zLowerSorted[i] = asCollisionEntity;
@@ -127,7 +128,7 @@ public class CollisionDetection {
         newEntities.removeIf(Entity::isDisposed);
         if (!newEntities.isEmpty()) {
             dynamicEntities.addAll(newEntities);
-            mergeNewEntities(newEntities);
+            mergeNewEntities(newEntities, gameTime);
             newEntities.clear();
         }
 
@@ -362,7 +363,7 @@ public class CollisionDetection {
         return new Pair<>(suspect, fraction);
     }
 
-    private void mergeNewEntities(Collection<MovingEntity> newEntities) {
+    private void mergeNewEntities(Collection<MovingEntity> newEntities, float gameTime) {
         int nOfNewEntities = newEntities.size();
         if (nOfNewEntities <= 0) return;
 
@@ -370,7 +371,7 @@ public class CollisionDetection {
         CollisionEntity[] newYSort = new CollisionEntity[nOfNewEntities];
         CollisionEntity[] newZSort = new CollisionEntity[nOfNewEntities];
 
-        populate(newEntities, newXSort, newYSort, newZSort);
+        populate(newEntities, gameTime, newXSort, newYSort, newZSort);
 
         xLowerSorted = Toolbox.mergeArrays(xLowerSorted, newXSort, CollisionEntity::xLower);
         yLowerSorted = Toolbox.mergeArrays(yLowerSorted, newYSort, CollisionEntity::yLower);
@@ -469,9 +470,10 @@ public class CollisionDetection {
         private BoundingBox nextBoundingBox;
         private AABBf hitbox; // combined of both states
 
-        public CollisionEntity(Entity source) {
+        public CollisionEntity(Entity source, float gameTime) {
             this.entity = source;
             prevPoints = new ArrayList<>();
+            update(gameTime);
         }
 
         public void update(float gameTime) {

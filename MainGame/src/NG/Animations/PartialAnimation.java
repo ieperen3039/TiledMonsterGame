@@ -4,6 +4,7 @@ import NG.Core.GameTimer;
 import NG.Entities.Dummy;
 import NG.Entities.MovingEntity;
 import NG.Entities.RobotMonster;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import org.joml.Matrix4fc;
@@ -79,6 +80,11 @@ public interface PartialAnimation extends Storable {
         public void setModel(BodyModel model) {
             this.model = model;
             this.startTime = timer.getRendertime();
+        }
+
+        @Override
+        public void collideWith(GameMap map, float collisionTime) {
+
         }
     }
 }

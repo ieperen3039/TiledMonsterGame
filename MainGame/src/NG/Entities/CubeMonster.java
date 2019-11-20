@@ -7,7 +7,6 @@ import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
-import NG.Effects.DamageType;
 import NG.Living.MonsterSoul;
 import NG.Living.SoulDescription;
 import NG.Rendering.Material;
@@ -20,7 +19,7 @@ import org.joml.Vector3fc;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.EnumMap;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -34,7 +33,7 @@ public class CubeMonster extends MonsterSoul {
 
     public CubeMonster(File description) throws IOException {
         super(new SoulDescription(description));
-        boneMap = Map.of(BodyModel.CUBE.getBone("cube_root"),
+        boneMap = Collections.singletonMap(BodyModel.CUBE.getBone("cube_root"),
                 new CubeElement(HALF_SIZE)
         );
     }
@@ -68,7 +67,7 @@ public class CubeMonster extends MonsterSoul {
         public Entity(
                 Game game, Vector2i initialCoordinate, Vector3fc faceDirection, CubeMonster controller
         ) {
-            super(game, initialCoordinate, controller, 1000, new EnumMap<>(DamageType.class), BodyModel.CUBE, boneMap);
+            super(game, initialCoordinate, controller, BodyModel.CUBE, boneMap);
 
             float gametime = game.get(GameTimer.class).getGametime();
             Vector3f eyeDir = new Vector3f(faceDirection);
@@ -116,6 +115,7 @@ public class CubeMonster extends MonsterSoul {
             float rotationSpeedRS = 0.1f;
             targetFace = new Pair<>(direction, gametime + angle / rotationSpeedRS);
         }
+
     }
 
     private static class CubeElement extends BoneElement {

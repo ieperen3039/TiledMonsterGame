@@ -1,6 +1,7 @@
 package NG.Entities;
 
 import NG.CollisionDetection.BoundingBox;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector3f;
@@ -68,12 +69,17 @@ public class Cube implements MovingEntity {
     }
 
     @Override
+    public void collideWith(Entity other, float collisionTime) {
+
+    }
+
+    @Override
     public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
         return 0;
     }
 
     @Override
-    public void collideWith(Entity other, float collisionTime) {
+    public void collideWith(GameMap map, float collisionTime) {
 
     }
 }

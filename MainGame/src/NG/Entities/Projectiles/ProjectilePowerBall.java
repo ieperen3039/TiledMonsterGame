@@ -3,10 +3,10 @@ package NG.Entities.Projectiles;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.CommandAttack;
 import NG.Actions.Commands.CommandSelection;
+import NG.Attacks.DamageType;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.Effects.DamageType;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
@@ -57,7 +57,7 @@ public class ProjectilePowerBall extends Projectile {
         float boxSize = size * HITBOX_SCALAR;
         this.boundingBox = new BoundingBox(-boxSize, -boxSize, -boxSize, boxSize, boxSize, boxSize);
         this.endPosition = new Vector3f(endPosition);
-        damageType = DamageType.NORMAL;
+        damageType = DamageType.PHYSICAL;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class ProjectilePowerBall extends Projectile {
         if (other instanceof MonsterEntity) {
             MonsterEntity monster = (MonsterEntity) other;
 
-            monster.applyDamage(BASE_DAMAGE, damageType);
+            monster.controller.applyDamage(damageType, BASE_DAMAGE, collisionTime);
         }
 
         game.get(GameParticles.class).add(Particles.explosion(
@@ -97,6 +97,11 @@ public class ProjectilePowerBall extends Projectile {
                 Particles.FIRE_LINGER_TIME, POWER
         ));
         dispose();
+    }
+
+    @Override
+    public void collideWith(GameMap map, float collisionTime) {
+
     }
 
     @Override

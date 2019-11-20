@@ -12,7 +12,7 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 5-4-2019.
  */
 public class CommandAttack extends Command {
-    private static final float DURATION = 1.5f;
+    private static final float DURATION = 1f;
     private final MonsterEntity entity;
     private Projectile elt;
 
@@ -24,10 +24,6 @@ public class CommandAttack extends Command {
 
     @Override
     public EntityAction getAction(Game game, Vector3fc startPosition, float gameTime) {
-        if (elt.isLaunched()) {
-            return null;
-        } else {
-            return new ActionFireProjectile(game, entity, elt, gameTime, DURATION);
-        }
+        return elt.isLaunched() ? null : new ActionFireProjectile(game, entity, elt, gameTime, DURATION);
     }
 }
