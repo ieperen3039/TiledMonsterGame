@@ -448,10 +448,10 @@ public class TileMap extends AbstractMap {
 
                 } else {
                     // TODO allow diagonal tracing
-                    Logger.WARN.print(String.format(
+                    Logger.WARN.printf(
                             "Pathfinding (%s) asked for non-adjacent tiles (%d, %d) (%d, %d)",
                             getClass(), x1, y1, x2, y2
-                    ));
+                    );
 
                     return Float.POSITIVE_INFINITY;
                 }
@@ -467,10 +467,6 @@ public class TileMap extends AbstractMap {
         MapTile.Instance tileData = getTileData(xCoord, yCoord);
 
         if (tileData == null) {
-            Logger.WARN.print(String.format(
-                    "%s is not on the map",
-                    Vectors.asVectorString(xCoord, yCoord)
-            ));
             return null;
 
         } else {

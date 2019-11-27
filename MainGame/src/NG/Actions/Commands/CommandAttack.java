@@ -1,6 +1,6 @@
 package NG.Actions.Commands;
 
-import NG.Actions.ActionFireProjectile;
+import NG.Actions.Attacks.ActionFireProjectile;
 import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.Entities.MonsterEntity;

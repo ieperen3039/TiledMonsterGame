@@ -4,6 +4,7 @@ import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Entities.StaticEntity;
 import NG.InputHandling.MouseTools.MouseTool;
+import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
 
@@ -77,14 +78,15 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         boolean isOnWorld = Intersectionf.intersectRayAab(
                 coordPos.x, coordPos.y, 0,
                 coordDir.x, coordDir.y, 0,
-                1, 1, -1,
+                0, 0, -1,
                 size.x() - 1, size.y() - 1, 1,
                 worldClip
         );
-        if (!isOnWorld) return 1;
 
         float adjMin = Math.max(worldClip.x, 0);
         float adjMax = Math.min(worldClip.y, 1);
+
+        if (adjMax == adjMin) return 1;
 
         coordPos.add(new Vector2f(coordDir).mul(adjMin));
         coordDir.mul(adjMax - adjMin);
@@ -178,6 +180,10 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
 
         if (xIntersect <= yIntersect) next.add((xIsPos ? 1 : -1), 0);
         if (yIntersect <= xIntersect) next.add(0, (yIsPos ? 1 : -1));
+
+        if (next.x < 0 | next.y < 0) {
+            Logger.ASSERT.print(xCoord, yCoord, xIntersect, yIntersect, direction);
+        }
 
         return next;
     }

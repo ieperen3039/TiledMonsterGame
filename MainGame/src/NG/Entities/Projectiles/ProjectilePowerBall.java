@@ -1,9 +1,9 @@
 package NG.Entities.Projectiles;
 
+import NG.Actions.Attacks.DamageType;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.CommandAttack;
 import NG.Actions.Commands.CommandSelection;
-import NG.Attacks.DamageType;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;

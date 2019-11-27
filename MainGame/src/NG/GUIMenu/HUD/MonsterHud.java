@@ -1,12 +1,20 @@
 package NG.GUIMenu.HUD;
 
+import NG.Core.Game;
 import NG.GUIMenu.BaseLF;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.GUIPainter;
 import NG.GUIMenu.SimpleHUD;
+import NG.GameMap.GameMap;
+import NG.GameMap.MiniMapTexture;
+import NG.Living.MonsterSoul;
+import NG.Living.Player;
+import NG.Rendering.Textures.GenericTextures;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Geert van Ieperen created on 15-7-2019.
@@ -18,20 +26,27 @@ public class MonsterHud extends SimpleHUD {
 
     private final List<SComponent> freeFloatingElements = new ArrayList<>();
 
+    private Map<MonsterSoul, SPanel> teamPanels = new HashMap<>();
+
     private SComponent minimap;
     private SComponentArea textBox;
     private SScrollableList teamSelection;
 
     public MonsterHud() {
         super(new BaseLF());
+    }
 
-        minimap = new SPanel(UI_MAP_SIZE, UI_MAP_SIZE, false);
-        textBox = new SComponentArea(TEXT_BOX_HEIGHT, TEXT_BOX_HEIGHT);
+    @Override
+    public void init(Game game) throws Exception {
+        super.init(game);
+
+        MiniMapTexture mapTexture = new MiniMapTexture(game.get(GameMap.class));
+        minimap = new STexturedPanel(mapTexture, false);
+        textBox = new SComponentArea(10, TEXT_BOX_HEIGHT);
         textBox.setGrowthPolicy(true, false);
         teamSelection = new SScrollableList(1, new SPanel());
-        teamSelection.setVisible(false);
 
-        textBox.show(new SPanel());
+//        textBox.show(new SPanel());
 
         display(
                 SPanel.row(
@@ -52,6 +67,16 @@ public class MonsterHud extends SimpleHUD {
 
     @Override
     public void draw(GUIPainter painter) {
+        for (MonsterSoul soul : game.get(Player.class).team) {
+            SPanel panel = teamPanels.get(soul);
+            if (panel == null) {
+                panel = getMonsterPanel(soul);
+                teamSelection.add(panel, null);
+            }
+
+            // fill panel
+        }
+
         freeFloatingElements.forEach(e -> e.draw(lookAndFeel, e.getPosition()));
         super.draw(painter);
     }
@@ -86,12 +111,24 @@ public class MonsterHud extends SimpleHUD {
         }
 
         // TODO more efficient implementation
-        return getComponentAt(xSc, ySc) != null;
+        SComponent component = getComponentAt(xSc, ySc);
+        return component != null && !(component instanceof SFiller);
     }
 
     @Override
     public void cleanup() {
         freeFloatingElements.clear();
         super.cleanup();
+    }
+
+    private SPanel getMonsterPanel(MonsterSoul soul) {
+        SProgressBar healthBar = new SProgressBar(0, 0, () -> ((float) soul.getHitpoints() / soul.stats.hitPoints));
+        return SPanel.row(
+                new STexturedPanel(GenericTextures.CHECKER, true),
+                SPanel.column(
+                        healthBar,
+                        new STextArea(soul.toString(), 0)
+                )
+        );
     }
 }

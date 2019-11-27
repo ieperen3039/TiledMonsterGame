@@ -5,7 +5,7 @@ import NG.Camera.TycoonFixedCamera;
 import NG.CollisionDetection.PhysicsEngine;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Entity;
-import NG.GUIMenu.Frames.FrameManagerImpl;
+import NG.GUIMenu.HUD.MonsterHud;
 import NG.GUIMenu.HUDManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameEvent.EventLoop;
@@ -15,6 +15,7 @@ import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseToolCallbacks;
+import NG.Living.Player;
 import NG.Mods.JarModReader;
 import NG.Mods.Mod;
 import NG.Mods.ModLoader;
@@ -73,18 +74,19 @@ public class MonsterGame implements ModLoader {
 
         // these are not GameAspects, and thus the init() rule does not apply.
         Settings settings = new Settings();
+        Player thePlayer = new Player(); // read from save file
         window = new GLFWWindow(Settings.GAME_NAME, new GLFWWindow.Settings(settings), true);
 
         renderer = new RenderLoop(settings.TARGET_FPS);
         inputHandler = new MouseToolCallbacks();
-//        hud = new MonsterHud();
-        hud = new FrameManagerImpl();
+        hud = new MonsterHud();
+//        hud = new FrameManagerImpl();
 
-        GameService pocketGame = createWorld("pocket", mainThreadName, settings);
+        GameService pocketGame = createWorld("pocket", mainThreadName, settings, thePlayer);
         pocketGame.add(new EmptyMap());
         this.pocketGame = pocketGame;
 
-        GameService worldGame = createWorld("world", mainThreadName, settings);
+        GameService worldGame = createWorld("world", mainThreadName, settings, thePlayer);
         worldGame.add(new TileMap(Settings.CHUNK_SIZE));
         this.worldGame = worldGame;
 
@@ -92,7 +94,7 @@ public class MonsterGame implements ModLoader {
         Logger.printOnline(() -> "Current view: " + (combinedGame.current() == 0 ? "World" : "Pocket"));
     }
 
-    private GameService createWorld(String name, String mainThreadName, Settings settings) {
+    private GameService createWorld(String name, String mainThreadName, Settings settings, Player thePlayer) {
         Camera camera = new TycoonFixedCamera(new Vector3f(), 10, 10);
         EventLoop eventLoop = new GameEventQueueLoop(name + " Loop", settings.TARGET_TPS);
         GameState gameState = new PhysicsEngine();
@@ -102,7 +104,7 @@ public class MonsterGame implements ModLoader {
 
         return new GameService(GAME_VERSION, mainThreadName,
                 eventLoop, gameState, lights, camera, particles, timer,
-                settings, window, renderer, inputHandler, hud
+                settings, window, renderer, inputHandler, hud, thePlayer
         );
     }
 
