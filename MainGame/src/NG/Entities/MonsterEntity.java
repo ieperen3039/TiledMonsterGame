@@ -11,11 +11,13 @@ import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.Pair;
-import NG.Effects.DamageType;
 import NG.GUIMenu.Components.SFrame;
+import NG.GUIMenu.Components.SPanel;
+import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterSoul;
-import NG.Rendering.Material;
+import NG.Particles.GameParticles;
+import NG.Particles.Particles;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
@@ -24,8 +26,9 @@ import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.util.EnumMap;
 import java.util.Map;
+
+import static NG.GUIMenu.Components.SButton.BUTTON_MIN_HEIGHT;
 
 /**
  * the generic class of all {@code MonsterEntity} entities. This is only the physical representation of the entity, NOT
@@ -37,26 +40,20 @@ public abstract class MonsterEntity implements MovingEntity {
     /** the current actions that are executed */
     public final ActionQueue currentActions;
     public final MonsterSoul controller;
-    public final int maxHitpoints;
 
     private final BodyModel bodyModel;
     private final Map<SkeletonBone, BoneElement> boneMapping;
-    private int hitpoints; // let's say 1000 is the standard
 
     private boolean isDisposed;
     private SFrame frame;
     private EntityAction previousAction; // only in rendering
-    private EnumMap<DamageType, Float> resistances;
 
     public MonsterEntity(
-            Game game, Vector2i initialPosition, MonsterSoul controller, int hitpoints,
-            EnumMap<DamageType, Float> resistances, BodyModel bodyModel, Map<SkeletonBone, BoneElement> boneMapping
+            Game game, Vector2i initialPosition, MonsterSoul controller,
+            BodyModel bodyModel, Map<SkeletonBone, BoneElement> boneMapping
     ) {
         this.game = game;
         this.controller = controller;
-        this.maxHitpoints = hitpoints;
-        this.hitpoints = hitpoints;
-        this.resistances = resistances;
         this.currentActions = new ActionQueue(game, initialPosition);
         previousAction = new ActionIdle(game, initialPosition);
         this.bodyModel = bodyModel;
@@ -89,8 +86,6 @@ public abstract class MonsterEntity implements MovingEntity {
             if (shader instanceof MaterialShader) {
                 gl.translate(0, 0, getHitbox().maxZ + 1);
                 gl.scale(1, 1, -1);
-                float health = (float) hitpoints / maxHitpoints;
-                ((MaterialShader) shader).setMaterial(Material.ROUGH, new Color4f(health, 1 - health, 0));
                 gl.render(GenericShapes.ARROW, this);
             }
         }
@@ -111,14 +106,6 @@ public abstract class MonsterEntity implements MovingEntity {
         controller.update(gameTime);
     }
 
-    public void applyDamage(int damage, DamageType type) {
-        hitpoints -= damage * resistances.getOrDefault(type, 1f);
-    }
-
-    public int getHitpoints() {
-        return hitpoints;
-    }
-
     /**
      * @return the {@link NG.Living.Living} that controls this entity.
      */
@@ -129,6 +116,17 @@ public abstract class MonsterEntity implements MovingEntity {
     @Override
     public Vector3f getPositionAt(float currentTime) {
         return currentActions.getPositionAt(currentTime);
+    }
+
+    public void onClick(int button) {
+        if (frame != null) frame.dispose();
+
+        frame = new SFrame("Entity " + this);
+        frame.setMainPanel(SPanel.column(
+                controller.getStatisticsPanel(BUTTON_MIN_HEIGHT)
+        ));
+        frame.pack();
+        game.get(FrameGUIManager.class).addFrame(frame);
     }
 
     @Override
@@ -157,14 +155,23 @@ public abstract class MonsterEntity implements MovingEntity {
 
     @Override
     public void collideWith(Entity other, float collisionTime) {
-        if (other instanceof GameMap) {
-            Pair<EntityAction, Float> actionAt = currentActions.getActionAt(collisionTime);
-            EntityAction action = actionAt.left;
+        EntityAction nextAction = controller.getNextAction(collisionTime);
+        currentActions.insert(nextAction, collisionTime);
+    }
 
-            if (!action.hasWorldCollision()) return;
-        }
+    @Override
+    public void collideWith(GameMap map, float collisionTime) {
+        EntityAction action = currentActions.getActionAt(collisionTime).left;
+        if (!action.hasWorldCollision()) return;
 
         EntityAction nextAction = controller.getNextAction(collisionTime);
         currentActions.insert(nextAction, collisionTime);
+    }
+
+    public void eventDeath(float time) {
+        this.dispose();
+        game.get(GameParticles.class).add(
+                Particles.explosion(getPositionAt(time), Color4f.RED, 10)
+        );
     }
 }

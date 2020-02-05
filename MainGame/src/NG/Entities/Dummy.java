@@ -1,6 +1,7 @@
 package NG.Entities;
 
 import NG.CollisionDetection.BoundingBox;
+import NG.GameMap.GameMap;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -38,6 +39,11 @@ public abstract class Dummy implements Entity {
     }
 
     public void collideWith(Entity other, float collisionTime) {
+
+    }
+
+    @Override
+    public void collideWith(GameMap map, float collisionTime) {
 
     }
 }

@@ -1,5 +1,6 @@
 package NG.Entities;
 
+import NG.GameMap.GameMap;
 import org.joml.Vector3f;
 
 /**
@@ -16,6 +17,11 @@ public abstract class StaticEntity implements Entity {
     @Override
     public void collideWith(Entity other, float collisionTime) {
         // play sound?
+    }
+
+    @Override
+    public void collideWith(GameMap map, float collisionTime) {
+
     }
 
     @Override

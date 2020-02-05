@@ -4,6 +4,7 @@ import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 /**
@@ -263,5 +264,12 @@ public class Color4f {
         colorBuffer.put(green);
         colorBuffer.put(blue);
         colorBuffer.put(alpha);
+    }
+
+    public void put(ByteBuffer colorBuffer) {
+        colorBuffer.put((byte) (red * 255));
+        colorBuffer.put((byte) (green * 255));
+        colorBuffer.put((byte) (blue * 255));
+        colorBuffer.put((byte) (alpha * 255));
     }
 }

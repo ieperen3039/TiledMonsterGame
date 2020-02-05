@@ -1,6 +1,7 @@
 package NG.Living;
 
 import NG.Actions.ActionIdle;
+import NG.Actions.Attacks.DamageType;
 import NG.Actions.BrokenMovementException;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.Command.CType;
@@ -21,10 +22,7 @@ import org.joml.Vector3fc;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Geert van Ieperen created on 4-2-2019.
@@ -36,6 +34,8 @@ public abstract class MonsterSoul implements Living, Storable {
     private static final int ASSOCIATION_SIZE = 10;
     private static final int ACTION_CONSIDERATION_SIZE = 4;
     private static final int PREDICITON_BRANCH_SIZE = 4;
+
+    public final EntityStatistics stats;
 
     private final Emotion.ECollection emotions;
     private final Associator<Type> associationStimuli;
@@ -52,13 +52,15 @@ public abstract class MonsterSoul implements Living, Storable {
     private String monsterName;
 
     private int hitpoints;
-    private EntityStatistics stats;
 
     private Living commandFocus = this;
     private float focusRelevance = 0;
 
     private ArrayDeque<Command> plan;
     private volatile Command executionTarget;
+
+    private List<Effect> effects;
+    private float lastUpdateTime = 0;
 
     /**
      * read a monster description from the given file
@@ -123,7 +125,12 @@ public abstract class MonsterSoul implements Living, Storable {
     }
 
     public void update(float gametime) {
+        float deltaTime = gametime - lastUpdateTime;
+
+        effects.forEach(effect -> effect.apply(gametime, deltaTime));
         emotions.process(gametime);
+
+        lastUpdateTime = gametime;
     }
 
     @Override
@@ -283,6 +290,29 @@ public abstract class MonsterSoul implements Living, Storable {
                 new SNamedValue("Health points", () -> hitpoints, buttonHeight),
                 new SNamedValue("Happiness", () -> String.format("%1.02f", emotions.calculateJoy(emotionValues)), buttonHeight)
         );
+    }
+
+    public void addEffect(Effect effect){
+        effects.add(effect);
+    }
+
+    interface Effect {
+        void apply(float currentTime, float deltaTime);
+    }
+
+    public void applyDamage(DamageType type, float power, float time) {
+        float multiplier = 1 / stats.getDefenceOf(type);
+        hitpoints -= (multiplier * power);
+
+        if (hitpoints <= 0) {
+            hitpoints = 0;
+            entity.eventDeath(time);
+        }
+        entity = null;
+    }
+
+    public int getHitpoints() {
+        return hitpoints;
     }
 
     @Override

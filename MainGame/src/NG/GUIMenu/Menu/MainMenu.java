@@ -1,9 +1,5 @@
 package NG.GUIMenu.Menu;
 
-import NG.Actions.ActionIdle;
-import NG.Actions.ActionJump;
-import NG.Actions.Commands.Command;
-import NG.Actions.Commands.CommandSelection;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;
@@ -14,7 +10,6 @@ import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Cube;
 import NG.Entities.CubeMonster;
-import NG.Entities.MonsterEntity;
 import NG.Entities.MovingEntity;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
@@ -51,6 +46,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.Collection;
+import java.util.List;
 
 import static NG.Rendering.Shapes.GenericShapes.CUBE;
 
@@ -159,17 +155,16 @@ public class MainMenu extends SFrame {
 
             // add a default entity
             Vector2i position = gameMap.getCoordinate(cameraFocus);
-            MonsterSoul monsterSoul = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            MonsterEntity cow = monsterSoul.getAsEntity(overworld, position, Vectors.X);
-            state.addEntity(cow);
+            MonsterSoul monsterSoul1 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            state.addEntity(monsterSoul1.getAsEntity(overworld, position, Vectors.X));
+            MonsterSoul monsterSoul2 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            state.addEntity(monsterSoul2.getAsEntity(overworld, position.add(2, 0), Vectors.X));
+            MonsterSoul monsterSoul3 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            state.addEntity(monsterSoul3.getAsEntity(overworld, position.add(2, 0), Vectors.X));
 
-            Command command = CommandSelection.actionCommand("", (game, startPosition, target) -> new ActionIdle(startPosition, 1))
-                    .create(new Player(), monsterSoul, new Vector2i());
-            monsterSoul.accept(command);
-
-            command = CommandSelection.actionCommand("", ActionJump::new)
-                    .create(new Player(), monsterSoul, new Vector2i(position.x + 2, position.y + 2));
-            monsterSoul.accept(command);
+            List<MonsterSoul> team = overworld.get(Player.class).team;
+            team.add(monsterSoul1);
+            team.add(monsterSoul2);
 
             /* --- END SECTION --- */
 
@@ -278,7 +273,7 @@ public class MainMenu extends SFrame {
         return toolBar;
     }
 
-    private class AStartTestMouseTool extends DefaultMouseTool {
+    private static class AStartTestMouseTool extends DefaultMouseTool {
         Vector2i first;
 
         public AStartTestMouseTool(Game game) {

@@ -1,5 +1,6 @@
-package NG.Actions;
+package NG.Actions.Attacks;
 
+import NG.Actions.EntityAction;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
@@ -22,7 +23,7 @@ import org.joml.Vector3fc;
  */
 public class ActionFireProjectile implements EntityAction {
     private static final float aniFireMoment = 0.5f;
-    private static final float JUMP_GRAVITY = Settings.GRAVITY_CONSTANT / 2;
+    private static final float JUMP_GRAVITY = Settings.GRAVITY_CONSTANT;
     protected final Vector3fc startEnd;
     protected final float duration;
 

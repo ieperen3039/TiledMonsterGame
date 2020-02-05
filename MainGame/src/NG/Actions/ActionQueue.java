@@ -121,7 +121,7 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         if (isEmpty()) return null;
 
         lockQueueEdit.lock();
-        var pair = new Pair<>(actions.poll(), startTimes.poll());
+        Pair<EntityAction, Float> pair = new Pair<>(actions.poll(), startTimes.poll());
         lockQueueEdit.unlock();
         return pair;
     }

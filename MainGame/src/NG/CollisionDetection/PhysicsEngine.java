@@ -142,7 +142,7 @@ public class PhysicsEngine implements GameState {
             if (entity == null) continue;
             list.add(entity);
         }
-        entityList = new CollisionDetection(list);
+        entityList = new CollisionDetection(list, 0);
     }
 
     @Override

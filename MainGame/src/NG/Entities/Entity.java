@@ -2,6 +2,7 @@ package NG.Entities;
 
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.GameTimer;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -112,7 +113,8 @@ public interface Entity {
 
     /**
      * process a collision with the other entity, happening at collisionTime. The other entity will be called with this
-     * same function, as {@code other.collideWith(this, collisionTime)}.
+     * same function, as {@code other.collideWith(this, collisionTime)}. This function should take care of dealing damage
+     * and applying effects.
      * <p>
      * Should not be called if either {@code this.}{@link #canCollideWith(Entity) canCollideWith}{@code (other)} or
      * {@code other.}{@link #canCollideWith(Entity) canCollideWith}{@code (this)}
@@ -120,4 +122,12 @@ public interface Entity {
      * @param collisionTime the moment of collision
      */
     void collideWith(Entity other, float collisionTime);
+
+    /**
+     * process a collision with the map, happening at collisionTime.
+     * @param map         the map
+     * @param collisionTime the moment of collision
+     */
+    void collideWith(GameMap map, float collisionTime);
+
 }
