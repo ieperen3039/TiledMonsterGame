@@ -230,12 +230,13 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
             Iterator<Float> times = startTimes.descendingIterator();
             Iterator<EntityAction> things = actions.descendingIterator();
 
-            do {
-                prevStart = times.next();
+            prevStart = times.next();
+            while (prevStart > startTime) {
                 times.remove();
                 things.next();
                 things.remove();
-            } while (prevStart > startTime);
+                prevStart = times.next();
+            }
             previous = things.next();
         }
 

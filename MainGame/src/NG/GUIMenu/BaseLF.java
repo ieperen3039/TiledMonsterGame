@@ -8,8 +8,6 @@ import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.EnumSet;
 
 import static NG.GUIMenu.GUIPainter.Alignment.*;
@@ -171,11 +169,6 @@ public class BaseLF implements SFrameLookAndFeel {
                 );
                 break;
         }
-    }
-
-    @Override
-    public void drawImage(Vector2ic pos, Vector2ic dim, Path file) throws IOException {
-        hud.image(file, pos.x(), pos.y(), dim.x(), dim.y(), 1f);
     }
 
     @Override

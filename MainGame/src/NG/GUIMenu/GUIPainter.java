@@ -3,7 +3,6 @@ package NG.GUIMenu;
 import NG.DataStructures.Generic.Color4f;
 import org.joml.Vector2i;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
@@ -98,10 +97,18 @@ public interface GUIPainter {
     /** for debugging purposes. Prints the given text in the upper left corner of the screen */
     void printRoll(String text);
 
-    void image(Path filename, int x, int y, int width, int height, float alpha) throws IOException;
-
     /**
      * executes the action outside the GUI rendering context
      */
     void render(Runnable action);
+
+    /**
+     * create an nvg image based on a texture
+     * @return
+     */
+    int createImage(int textureID, int w, int h);
+
+    int createImage(Path filePath, int imageFlags);
+
+    void drawImage(int imageID, int x, int y, int width, int height);
 }

@@ -110,13 +110,15 @@ public class MainMenu extends SFrame {
 
     private void particles() {
         FrameGUIManager targetGUI = overworld.get(FrameGUIManager.class);
+        Vector3fc center = overworld.get(Camera.class).getEye();
+
         overworld.get(RenderLoop.class).setArrowVisibility(false);
 
         targetGUI.addFrame(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
                 new STextArea("MR. TORGUE APPROVES", SButton.BUTTON_MIN_HEIGHT),
                 new SButton("BOOM", () -> {
                     ParticleCloud cloud = Particles.explosion(
-                            Vectors.O, Vectors.O, Color4f.RED, Color4f.ORANGE,
+                            center, Vectors.O, Color4f.RED, Color4f.ORANGE,
                             50_000, 5f, 10f
                     );
                     overworld.get(GameParticles.class).add(cloud);

@@ -2,7 +2,6 @@ package NG.GUIMenu;
 
 import NG.DataStructures.Generic.Color4f;
 import NG.Tools.Logger;
-import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -344,11 +343,6 @@ public final class NVGOverlay {
         }
 
         @Override
-        public void image(Path filename, int x, int y, int width, int height, float alpha) throws IOException {
-            image(filename, x, y, width, height, 0f, alpha, NVG_IMAGE_GENERATE_MIPMAPS);
-        }
-
-        @Override
         public void render(Runnable action) {
             nvgEndFrame(vg);
             glEnable(GL_DEPTH_TEST);
@@ -361,25 +355,24 @@ public final class NVGOverlay {
             restoreColors();
         }
 
-        private void image(Path fileName, int x, int y, int width, int height, float angle, float alpha, int imageFlags)
-                throws IOException {
-            int img = getImage(fileName, imageFlags);
-            NVGPaint p = nvgImagePattern(vg, x, y, width, height, angle, img, alpha, paint);
+        @Override
+        public int createImage(int textureID, int w, int h) {
+            return nvglCreateImageFromHandle(vg, textureID, w, h, 0);
+        }
+
+        @Override
+        public int createImage(Path filePath, int imageFlags) {
+            return nvgCreateImage(vg, filePath.toString(), imageFlags);
+        }
+
+        @Override
+        public void drawImage(int imageID, int x, int y, int width, int height) {
+            NVGPaint p = nvgImagePattern(vg, x, y, width, height, 0, imageID, 1, paint);
 
             rectangle(x, y, width, height);
 
             nvgFillPaint(vg, p);
             nvgFill(vg);
-        }
-
-        private int getImage(Path filePath, int imageFlags) throws IOException {
-            if (imageBuffer.containsKey(filePath)) {
-                return imageBuffer.get(filePath);
-            }
-            ByteBuffer image = Toolbox.toByteBuffer(filePath);
-            int img = nvgCreateImageMem(vg, imageFlags, image);
-            imageBuffer.put(filePath, img);
-            return img;
         }
 
     }

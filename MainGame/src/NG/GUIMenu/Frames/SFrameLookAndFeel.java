@@ -5,9 +5,6 @@ import NG.GUIMenu.NGFonts;
 import NG.Mods.InitialisationMod;
 import org.joml.Vector2ic;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
 /**
  * a stateless mapping from abstract descriptions to drawings in NanoVG
  * @author Geert van Ieperen. Created on 20-9-2018.
@@ -24,15 +21,6 @@ public interface SFrameLookAndFeel extends InitialisationMod {
     void drawText(
             Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, Alignment align
     );
-
-    /**
-     * draw a button with an image on it. The image should be scaled uniformly to fit the button
-     * @param pos  upper left position of the button
-     * @param dim  dimension of the button
-     * @param file a path to the file containing the icon to display
-     * @throws IOException if the file could not be found or accessed
-     */
-    void drawImage(Vector2ic pos, Vector2ic dim, Path file) throws IOException;
 
     /**
      * sets the LF to draw with the specified painter

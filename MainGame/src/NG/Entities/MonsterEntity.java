@@ -55,7 +55,7 @@ public abstract class MonsterEntity implements MovingEntity {
         this.game = game;
         this.controller = controller;
         this.currentActions = new ActionQueue(game, initialPosition);
-        previousAction = new ActionIdle(game, initialPosition);
+        this.previousAction = new ActionIdle(game, initialPosition);
         this.bodyModel = bodyModel;
         this.boneMapping = boneMapping;
     }
