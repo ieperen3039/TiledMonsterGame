@@ -11,8 +11,6 @@ import org.joml.*;
 import java.lang.Math;
 import java.util.List;
 
-import static NG.Settings.Settings.TILE_SIZE;
-
 /**
  * An object that represents the world where all other entities stand on. This includes both the graphical and the
  * physical representation. The map considers a difference between coordinates and position, in that a coordinate may be
@@ -70,47 +68,89 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         if (direction.x() == 0 && direction.y() == 0) return 1;
 
         Vector2ic size = getSize();
-
-        Vector2f coordPos = new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE); // possible off-by-one errors are fixed by worldClip
-        Vector2f coordDir = new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE); // also scale this vector
+        Vector2f coordPos = getCoordPosf(origin);
+        Vector2f coordDir = getCoordDirf(direction);
 
         Vector2f worldClip = new Vector2f();
         boolean isOnWorld = Intersectionf.intersectRayAab(
                 coordPos.x, coordPos.y, 0,
                 coordDir.x, coordDir.y, 0,
                 0, 0, -1,
-                size.x() - 1, size.y() - 1, 1,
+                size.x(), size.y(), 1,
                 worldClip
         );
 
-        float adjMin = Math.max(worldClip.x, 0);
-        float adjMax = Math.min(worldClip.y, 1);
+        if (!isOnWorld) return 1;
 
-        if (adjMax == adjMin) return 1;
+        if (worldClip.x > 0) {
+            coordPos.add(coordDir.mul(worldClip.x));
+            // round these toward zero
+            coordPos.x = (int) coordPos.x;
+            coordPos.y = (int) coordPos.y;
+            coordDir.normalize(); // for good habit
+        }
 
-        coordPos.add(new Vector2f(coordDir).mul(adjMin));
-        coordDir.mul(adjMax - adjMin);
-        Vector2i lineTraverse = new Vector2i((int) coordPos.x, (int) coordPos.y);
+        int xCoord = (int) Math.floor(coordPos.x);
+        int yCoord = (int) Math.floor(coordPos.y);
 
-        while (lineTraverse != null) {
-            int xCoord = lineTraverse.x;
-            int yCoord = lineTraverse.y;
+        { // check this tile before setting up voxel ray casting
+            Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
+            if (secFrac >= 0 && secFrac < 1) {
+                return secFrac;
+            }
+        }
 
+        boolean xIsPos = direction.x() > 0;
+        boolean yIsPos = direction.y() > 0;
+
+        final int dx = (xIsPos ? 1 : -1);
+        final int dy = (yIsPos ? 1 : -1);
+
+        float xIntersect = Intersectionf.intersectRayPlane(
+                coordPos.x(), coordPos.y(), 0, coordDir.x(), coordDir.y(), 0,
+                xCoord + dx, yCoord + dy, 0, (xIsPos ? -1 : 1), 0, 0,
+                1e-3f
+        );
+        float yIntersect = Intersectionf.intersectRayPlane(
+                coordPos.x(), coordPos.y(), 0, coordDir.x(), coordDir.y(), 0,
+                xCoord + dx, yCoord + dy, 0, 0, (yIsPos ? -1 : 1), 0,
+                1e-3f
+        );
+
+        float tMaxX = xIntersect;
+        float tMaxY = yIntersect;
+
+        final float dtx = (direction.y() == 0 ? Float.POSITIVE_INFINITY : (direction.x() / direction.y()));
+        final float dty = (direction.x() == 0 ? Float.POSITIVE_INFINITY : (direction.y() / direction.x()));
+
+        while (xCoord > 0 && yCoord > 0 && xCoord < size.x() && yCoord < size.y()) {
             Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
 
             if (secFrac == null) {
+                Logger.ASSERT.printf("got (%d, %d) which is out of bounds", xCoord, yCoord);
                 return 1;
 
             } else if (secFrac >= 0 && secFrac < 1) {
                 return secFrac;
             }
 
-            // no luck, try next coordinate
-            lineTraverse = nextCoordinate(xCoord, yCoord, coordPos, coordDir, 1);
+            if (tMaxX < tMaxY) {
+                tMaxX = tMaxX + dtx;
+                xCoord = xCoord + dx;
+            } else {
+                tMaxY = tMaxY + dty;
+                yCoord = yCoord + dy;
+            }
         }
 
         return 1;
     }
+
+    /** returns the floating-point transformation to coordinates */
+    protected abstract Vector2f getCoordDirf(Vector3fc direction);
+
+    /** returns the floating-point transformation to coordinates */
+    protected abstract Vector2f getCoordPosf(Vector3fc origin);
 
     @Override
     public List<Vector3f> getShapePoints(List<Vector3f> dest, float gameTime) {
@@ -128,65 +168,6 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
      * null if the given coordinate is not on the map.
      */
     abstract Float getTileIntersect(Vector3fc origin, Vector3fc direction, int xCoord, int yCoord);
-
-    /**
-     * assuming you are at (xCoord, yCoord), computes the next coordinate hit by the given ray
-     * @param xCoord    the current x coordinate
-     * @param yCoord    the current y coordinate
-     * @param origin    the origin of the ray
-     * @param direction the direction of the ray
-     * @return the next coordinate hit by the ray. If the previous coordinate was not hit by the ray, return a
-     * coordinate closer to the ray than this one (will eventually return coordinates on the ray)
-     */
-    public static Vector2i nextCoordinate(
-            int xCoord, int yCoord, Vector2fc origin, Vector2fc direction, float maximum
-    ) {
-        boolean xIsPos = direction.x() > 0;
-        boolean yIsPos = direction.y() > 0;
-
-        if (direction.x() == 0) {
-            int yNext = yCoord + (yIsPos ? 1 : -1);
-            if ((yNext - origin.y()) / direction.y() > maximum) { // a = o + d * maximum; maximum = (a - o) / d
-                return null;
-            } else {
-                return new Vector2i(xCoord, yNext);
-            }
-
-        } else if (direction.y() == 0) {
-            int xNext = xCoord + (xIsPos ? 1 : -1);
-            if ((xNext - origin.x()) / direction.x() > maximum) {
-                return null;
-            } else {
-                return new Vector2i(xNext, yCoord);
-            }
-        }
-
-        float xIntersect = Intersectionf.intersectRayPlane(
-                origin.x(), origin.y(), 0, direction.x(), direction.y(), 0,
-                (xIsPos ? xCoord + 1 : xCoord), yCoord, 0, (xIsPos ? -1 : 1), 0, 0,
-                1e-3f
-        );
-        float yIntersect = Intersectionf.intersectRayPlane(
-                origin.x(), origin.y(), 0, direction.x(), direction.y(), 0,
-                xCoord, (yIsPos ? yCoord + 1 : yCoord), 0, 0, (yIsPos ? -1 : 1), 0,
-                1e-3f
-        );
-
-        if (xIntersect >= maximum && yIntersect >= maximum) {
-            return null;
-        }
-
-        Vector2i next = new Vector2i(xCoord, yCoord);
-
-        if (xIntersect <= yIntersect) next.add((xIsPos ? 1 : -1), 0);
-        if (yIntersect <= xIntersect) next.add(0, (yIsPos ? 1 : -1));
-
-        if (next.x < 0 | next.y < 0) {
-            Logger.ASSERT.print(xCoord, yCoord, xIntersect, yIntersect, direction);
-        }
-
-        return next;
-    }
 
     @Override
     public BoundingBox getHitbox() {

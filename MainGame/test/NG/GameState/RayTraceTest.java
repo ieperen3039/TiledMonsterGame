@@ -118,7 +118,7 @@ public class RayTraceTest {
         int width = game.get(GLFWWindow.class).getWidth();
         int height = game.get(GLFWWindow.class).getHeight();
 
-        Matrix4f proj = game.get(Camera.class).getViewProjection(width / height);
+        Matrix4f proj = game.get(Camera.class).getViewProjection((float) width / height);
 
         int[] viewport = {0, 0, width, height};
         Vector3f screen = proj.project(original, viewport, new Vector3f());

@@ -285,4 +285,14 @@ public class BlockMap extends AbstractMap {
 
         return doIntersect ? result.x : Float.POSITIVE_INFINITY;
     }
+
+    @Override
+    protected Vector2f getCoordDirf(Vector3fc direction) {
+        return new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE);
+    }
+
+    @Override
+    protected Vector2f getCoordPosf(Vector3fc origin) {
+        return new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
+    }
 }

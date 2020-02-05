@@ -228,6 +228,16 @@ public class TileMap extends AbstractMap {
         };
     }
 
+    @Override
+    protected Vector2f getCoordDirf(Vector3fc direction) {
+        return new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE);
+    }
+
+    @Override
+    protected Vector2f getCoordPosf(Vector3fc origin) {
+        return new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
+    }
+
     public static Matrix4f getViewProjection(Game game, Camera camera) {
         GLFWWindow window = game.get(GLFWWindow.class);
         boolean doIsometric = game.get(Settings.class).ISOMETRIC_VIEW;

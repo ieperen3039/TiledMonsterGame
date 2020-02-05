@@ -3,16 +3,15 @@ package NG.GameMap;
 import NG.Core.Game;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
-import org.joml.Vector2i;
-import org.joml.Vector2ic;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
+import org.joml.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+
+import static NG.Settings.Settings.TILE_SIZE;
 
 /**
  * an empty map that does absolutely nothing at all
@@ -102,5 +101,15 @@ public class EmptyMap extends AbstractMap {
 
     public EmptyMap(DataInputStream in) {
 
+    }
+
+    @Override
+    protected Vector2f getCoordDirf(Vector3fc direction) {
+        return new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE);
+    }
+
+    @Override
+    protected Vector2f getCoordPosf(Vector3fc origin) {
+        return new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
     }
 }
