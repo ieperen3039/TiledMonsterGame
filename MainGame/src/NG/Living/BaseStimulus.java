@@ -18,7 +18,7 @@ public enum BaseStimulus implements Type {
     ANNOYANCE,
 
     /** environmental auditory stimuli */
-    FOOTSTEP, EXPLOSION, RUMBLE,
+    FOOTSTEP, EXPLOSION, RUMBLE, SHOUT,
 
     /** environmental visual stimuli */
     FLASH,
