@@ -10,33 +10,34 @@ import org.joml.Vector2ic;
 public class STexturedPanel extends SComponent {
     private final Texture texture;
 
-    private int x;
-    private int y;
     private int width;
     private int height;
+    private int nvgTextID = -1;
 
-    public STexturedPanel(Texture texture, int width, int height, int x, int y) {
+    /**
+     * create a textured panel with the given minimum size. The texture is stretched to match the given dimensions.
+     * @param texture the texture to show
+     * @param width   minimum width in pixels
+     * @param height  minimum height in pixels
+     */
+    public STexturedPanel(Texture texture, int width, int height) {
         this.texture = texture;
         this.width = width;
         this.height = height;
-        this.x = x;
-        this.y = y;
         setGrowthPolicy(false, false);
     }
 
+    /**
+     * create a textured panel with the minimum resolution of the original texture
+     * @param texture the texture to show
+     * @param growthPolicy the growth policy. When false, the texture will not grow past the original resolution of the texture.
+     */
     public STexturedPanel(Texture texture, boolean growthPolicy) {
         this.texture = texture;
         width = texture.getWidth();
         height = texture.getHeight();
-        x = 0;
-        y = 0;
 
         setGrowthPolicy(growthPolicy, growthPolicy);
-    }
-
-    public void setPosition(int x, int y){
-        this.x = x;
-        this.y = y;
     }
 
     @Override
@@ -51,6 +52,11 @@ public class STexturedPanel extends SComponent {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        // TODO pull from home
+        if (nvgTextID == -1) {
+            nvgTextID = design.getPainter()
+                    .createImageFromTexture(texture.getID(), texture.getWidth(), texture.getHeight());
+        }
+
+        design.getPainter().drawImage(nvgTextID, screenPosition.x(), screenPosition.y(), width, height);
     }
 }

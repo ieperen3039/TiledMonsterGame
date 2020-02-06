@@ -45,4 +45,9 @@ public enum GenericTextures implements Texture {
     public int getHeight() {
         return tex.getHeight();
     }
+
+    @Override
+    public int getID() {
+        return tex.getID();
+    }
 }

@@ -82,6 +82,11 @@ public class FileTexture implements Texture {
         return height;
     }
 
+    @Override
+    public int getID() {
+        return id;
+    }
+
     public static FileTexture get(File file) throws IOException {
         if (!file.exists()) throw new FileNotFoundException("Texture file does not exists: " + file);
 

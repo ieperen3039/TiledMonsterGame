@@ -155,7 +155,7 @@ class SScrollBar extends SComponent {
     }
 
     private int getDragBarSpace() {
-        return getHeight() - 2 * SCROLL_BUTTON_SIZE;
+        return Math.max(getHeight() - 2 * SCROLL_BUTTON_SIZE, 0);
     }
 
     public int getIndex() {

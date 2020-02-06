@@ -356,8 +356,8 @@ public final class NVGOverlay {
         }
 
         @Override
-        public int createImage(int textureID, int w, int h) {
-            return nvglCreateImageFromHandle(vg, textureID, w, h, 0);
+        public int createImageFromTexture(int textureID, int w, int h) {
+            return nvglCreateImageFromHandle(vg, textureID, w, h, NVG_IMAGE_NEAREST);
         }
 
         @Override
@@ -367,12 +367,15 @@ public final class NVGOverlay {
 
         @Override
         public void drawImage(int imageID, int x, int y, int width, int height) {
+            nvgStrokeWidth(vg, 0);
             NVGPaint p = nvgImagePattern(vg, x, y, width, height, 0, imageID, 1, paint);
 
             rectangle(x, y, width, height);
 
             nvgFillPaint(vg, p);
             nvgFill(vg);
+
+            restoreColors();
         }
 
     }

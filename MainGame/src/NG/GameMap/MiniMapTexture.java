@@ -57,6 +57,10 @@ public class MiniMapTexture implements Texture {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, xSize, ySize, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
     }
 
+    public void update() {
+
+    }
+
     @Override
     public void bind(int sampler) {
         glActiveTexture(sampler);
@@ -76,5 +80,10 @@ public class MiniMapTexture implements Texture {
     @Override
     public int getHeight() {
         return target.getSize().y();
+    }
+
+    @Override
+    public int getID() {
+        return id;
     }
 }

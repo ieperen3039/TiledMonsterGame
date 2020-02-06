@@ -16,4 +16,6 @@ public interface Texture {
     int getWidth();
 
     int getHeight();
+
+    int getID();
 }

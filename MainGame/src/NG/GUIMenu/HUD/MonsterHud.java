@@ -10,6 +10,7 @@ import NG.GameMap.MiniMapTexture;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.Textures.GenericTextures;
+import NG.Tools.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,13 +39,16 @@ public class MonsterHud extends SimpleHUD {
 
     @Override
     public void init(Game game) throws Exception {
+        if (this.game != null) return;
         super.init(game);
 
         MiniMapTexture mapTexture = new MiniMapTexture(game.get(GameMap.class));
-        minimap = new STexturedPanel(mapTexture, false);
+        minimap = new STexturedPanel(GenericTextures.CHECKER, UI_MAP_SIZE, UI_MAP_SIZE);
+
         textBox = new SComponentArea(10, TEXT_BOX_HEIGHT);
         textBox.setGrowthPolicy(true, false);
         teamSelection = new SScrollableList(1, new SPanel());
+        Logger.printOnline(() -> "Team members: " + game.get(Player.class).team.size());
 
 //        textBox.show(new SPanel());
 
@@ -67,14 +71,13 @@ public class MonsterHud extends SimpleHUD {
 
     @Override
     public void draw(GUIPainter painter) {
-        for (MonsterSoul soul : game.get(Player.class).team) {
-            SPanel panel = teamPanels.get(soul);
+        for (MonsterSoul monster : game.get(Player.class).team) {
+            SPanel panel = teamPanels.get(monster);
             if (panel == null) {
-                panel = getMonsterPanel(soul);
+                panel = getMonsterPanel(monster);
                 teamSelection.add(panel, null);
+                teamPanels.put(monster, panel);
             }
-
-            // fill panel
         }
 
         freeFloatingElements.forEach(e -> e.draw(lookAndFeel, e.getPosition()));

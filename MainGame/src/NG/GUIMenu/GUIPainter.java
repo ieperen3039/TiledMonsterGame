@@ -103,12 +103,20 @@ public interface GUIPainter {
     void render(Runnable action);
 
     /**
-     * create an nvg image based on a texture
-     * @return
+     * create an image based on a texture
+     * @return the nvg id
      */
-    int createImage(int textureID, int w, int h);
+    int createImageFromTexture(int textureID, int w, int h);
 
+    /**
+     * create an image based on file location
+     * @return the nvg id
+     */
     int createImage(Path filePath, int imageFlags);
 
+    /**
+     * draws a previously created nvg image
+     * @param imageID the id of the image to draw, obtained from either createImage or createImageFromTexture
+     */
     void drawImage(int imageID, int x, int y, int width, int height);
 }

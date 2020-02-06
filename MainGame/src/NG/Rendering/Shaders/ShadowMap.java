@@ -78,6 +78,11 @@ public class ShadowMap implements Texture {
         return resolution;
     }
 
+    @Override
+    public int getID() {
+        return depthMap;
+    }
+
     public int getResolution() {
         return resolution;
     }
