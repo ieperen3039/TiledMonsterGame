@@ -2,19 +2,14 @@ package NG.GameEvent;
 
 import NG.Core.Game;
 import NG.Core.GameTimer;
-import NG.Living.Stimulus;
-import NG.Living.Type;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
-import org.joml.Vector3fc;
-
-import static NG.Living.BaseStimulus.UNKNOWN;
 
 /**
  * a generic event that happens on a predetermined time. Triggering of the event should result in a stimulus being
  * broadcasted.
  */
-public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
+public abstract class Event implements Comparable<Event>, Runnable {
     protected final float eventTime;
 
     /**
@@ -73,16 +68,6 @@ public abstract class Event implements Comparable<Event>, Runnable, Stimulus {
         @Override
         public String toString() {
             return getClass().getSimpleName() + " " + id;
-        }
-
-        @Override
-        public Type getType() {
-            return UNKNOWN;
-        }
-
-        @Override
-        public float getMagnitude(Vector3fc position) {
-            return 0;
         }
     }
 }

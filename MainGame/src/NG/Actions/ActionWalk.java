@@ -1,5 +1,6 @@
 package NG.Actions;
 
+import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
 import NG.GameMap.GameMap;
@@ -7,8 +8,6 @@ import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.lang.Math;
-
-import static NG.Animations.BodyAnimation.WALK_CYCLE;
 
 /**
  * A linear movement from point A to point B, where A and B are adjacent
@@ -59,7 +58,7 @@ public class ActionWalk implements EntityAction {
         end = map.getPosition(endCoord);
         startToEnd = new Vector2f(end.x() - startPosition.x(), end.y() - startPosition.y());
         duration = (start.distance(end)) / walkSpeed;
-        animation = WALK_CYCLE;
+        animation = BodyAnimation.WALK_CYCLE;
     }
 
     @Override

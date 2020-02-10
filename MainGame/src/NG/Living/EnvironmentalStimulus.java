@@ -8,7 +8,7 @@ import java.util.Objects;
  * @author Geert van Ieperen created on 23-2-2019.
  */
 public class EnvironmentalStimulus implements Stimulus {
-    private final Type type;
+    private final StimulusType type;
     private final Vector3fc position;
     private final float magnitude;
 
@@ -16,7 +16,7 @@ public class EnvironmentalStimulus implements Stimulus {
      * create a stimulus with the given parameters
      * @param magnitude the magnitude on one unit distance.
      */
-    protected EnvironmentalStimulus(Type type, Vector3fc position, float magnitude) {
+    protected EnvironmentalStimulus(StimulusType type, Vector3fc position, float magnitude) {
         this.type = type;
         this.position = position;
         this.magnitude = magnitude;

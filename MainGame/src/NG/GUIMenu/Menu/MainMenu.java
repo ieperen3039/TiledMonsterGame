@@ -9,7 +9,6 @@ import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Cube;
-import NG.Entities.CubeMonster;
 import NG.Entities.MovingEntity;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
@@ -20,8 +19,6 @@ import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
-import NG.Living.MonsterSoul;
-import NG.Living.Player;
 import NG.Mods.ModLoader;
 import NG.Particles.GameParticles;
 import NG.Particles.ParticleCloud;
@@ -36,7 +33,6 @@ import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Settings.Settings;
-import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -46,7 +42,6 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.Collection;
-import java.util.List;
 
 import static NG.Rendering.Shapes.GenericShapes.CUBE;
 
@@ -155,18 +150,18 @@ public class MainMenu extends SFrame {
 
             /* --- DEBUG SECTION --- */
 
-            // add a default entity
-            Vector2i position = gameMap.getCoordinate(cameraFocus);
-            MonsterSoul monsterSoul1 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            state.addEntity(monsterSoul1.getAsEntity(overworld, position, Vectors.X));
-            MonsterSoul monsterSoul2 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            state.addEntity(monsterSoul2.getAsEntity(overworld, position.add(2, 0), Vectors.X));
-            MonsterSoul monsterSoul3 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            state.addEntity(monsterSoul3.getAsEntity(overworld, position.add(2, 0), Vectors.X));
-
-            List<MonsterSoul> team = overworld.get(Player.class).team;
-            team.add(monsterSoul1);
-            team.add(monsterSoul2);
+//            // add a default entity
+//            Vector2i position = gameMap.getCoordinate(cameraFocus);
+//            MonsterSoul monsterSoul1 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+//            state.addEntity(monsterSoul1.getAsEntity(overworld, position, Vectors.X));
+//            MonsterSoul monsterSoul2 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+//            state.addEntity(monsterSoul2.getAsEntity(overworld, position.add(2, 0), Vectors.X));
+//            MonsterSoul monsterSoul3 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+//            state.addEntity(monsterSoul3.getAsEntity(overworld, position.add(2, 0), Vectors.X));
+//
+//            List<MonsterSoul> team = overworld.get(Player.class).team;
+//            team.add(monsterSoul1);
+//            team.add(monsterSoul2);
 
             /* --- END SECTION --- */
 

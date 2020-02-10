@@ -28,19 +28,20 @@ public class MonsterMindSimple extends MonsterMind {
     }
 
     @Override
-    protected void update(float gametime) {
+    protected void update(float gameTime) {
         switch (fearLevel) {
             case 0: // wander aimlessly
-                if (gametime > timeUntilRandomMovement) {
+                if (gameTime > timeUntilRandomMovement) {
+                    if (executionTarget == null) {
+                        Vector3f ePos = owner.entity().getPositionAt(gameTime);
+                        Vector2i tgt = game.get(GameMap.class).getCoordinate(ePos);
+                        tgt.add(rng.nextInt(5) - 2, rng.nextInt(5) - 2);
+                        CommandWalk walk = new CommandWalk(owner, owner, tgt, gameTime);
 
+                        queueCommand(game, walk, owner.entity());
+                    }
 
-                    Vector3f ePos = owner.entity().getPositionAt(gametime);
-                    Vector2i tgt = game.get(GameMap.class).getCoordinate(ePos);
-                    tgt.add(rng.nextInt(5) - 2, rng.nextInt(5) - 2);
-                    CommandWalk walk = new CommandWalk(owner, owner, tgt);
-
-                    queueCommand(game, walk, owner.entity());
-                    timeUntilRandomMovement += rng.nextFloat() * 5;
+                    timeUntilRandomMovement += rng.nextFloat() * 20;
                 }
                 break;
 
@@ -57,7 +58,7 @@ public class MonsterMindSimple extends MonsterMind {
 
     @Override
     public void accept(Stimulus stimulus, Game game) {
-        Type rawType = stimulus.getType();
+        StimulusType rawType = stimulus.getType();
         BaseStimulus type;
 
         if (rawType instanceof BaseStimulus) {
@@ -68,8 +69,8 @@ public class MonsterMindSimple extends MonsterMind {
 
         switch (type) {
             case DAMAGE:
-                if (fearLevel < 2) {
-                    fearLevel = 3;
+                if (fearLevel < 1) {
+                    fearLevel = 3; // OH SHIT
                 } else {
                     fearLevel = 2;
                 }
@@ -94,7 +95,7 @@ public class MonsterMindSimple extends MonsterMind {
                 break;
 
             case DEATH:
-                fearLevel = 3; // OH SHIT
+                fearLevel = 3;
 
             default:
                 Logger.ASSERT.print("invalid enum " + type);

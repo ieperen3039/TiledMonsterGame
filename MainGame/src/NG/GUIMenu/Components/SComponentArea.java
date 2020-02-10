@@ -13,12 +13,12 @@ public class SComponentArea extends SContainer {
     private static final SFiller FILLER = new SFiller();
     private int width;
     private int height;
-    private boolean hidden = true;
 
     public SComponentArea(int width, int height) {
         super(new SingleElementLayout());
         this.width = width;
         this.height = height;
+        setVisible(false);
     }
 
     /**
@@ -26,7 +26,7 @@ public class SComponentArea extends SContainer {
      */
     public void hide() {
         add(FILLER, null);
-        hidden = true;
+        setVisible(true);
     }
 
     public void show(SComponent element) {
@@ -35,7 +35,7 @@ public class SComponentArea extends SContainer {
         assert element.minHeight() < getHeight() : getHeight();
 
         add(element, null);
-        hidden = false;
+        setVisible(false);
     }
 
     @Override
@@ -50,7 +50,6 @@ public class SComponentArea extends SContainer {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        if (hidden) return;
         drawChildren(design, screenPosition);
     }
 }

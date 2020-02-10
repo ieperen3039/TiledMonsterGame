@@ -5,6 +5,7 @@ import NG.Actions.Commands.CommandSelection;
 import NG.Actions.Commands.CommandWalk;
 import NG.Camera.Camera;
 import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.Entities.Projectiles.ProjectilePowerBall;
@@ -98,14 +99,15 @@ public class DefaultMouseTool implements MouseTool {
             Logger.DEBUG.print("Clicked at " + Vectors.toString(position) + " with " + selected + " selected");
 
             MonsterSoul controller = selected.getController();
+            float gameTime = game.get(GameTimer.class).getGametime();
             GameMap gameMap = game.get(GameMap.class);
             Vector2i coord = gameMap.getCoordinate(position);
             gameMap.setHighlights(coord);
 
             CommandSelection commandSelector = new CommandSelection(coord, game.get(Player.class), controller,
-                    CommandWalk.walkCommand(),
+                    CommandWalk.walkCommand(gameTime),
                     ProjectilePowerBall.fireCommand(game),
-                    CommandSelection.actionCommand("Jump", ActionJump::new)
+                    CommandSelection.actionCommand("Jump", ActionJump::new, gameTime)
             );
 
             if (selectionFrame == null || selectionFrame.isDisposed()) {

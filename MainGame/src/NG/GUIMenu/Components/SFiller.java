@@ -38,4 +38,9 @@ public class SFiller extends SComponent {
     public SComponent getComponentAt(int xRel, int yRel) {
         return null;
     }
+
+    @Override
+    public boolean contains(int x, int y) {
+        return false; // special case, a filler object can be used as a 'no-UI' area
+    }
 }

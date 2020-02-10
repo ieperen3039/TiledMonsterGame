@@ -13,7 +13,6 @@ import NG.Rendering.Textures.Texture;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import org.joml.AABBf;
-import org.joml.Vector2fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -75,7 +74,6 @@ public class MapTile {
         this.heights = heights;
         this.meshFile = meshFile;
         this.shape = hitbox;
-        // the order is important
     }
 
     /** basic tile */
@@ -216,31 +214,21 @@ public class MapTile {
         /**
          * calculates the fraction t such that (origin + direction * t) lies on this tile, or Float.POSITIVE_INFINITY if
          * it does not hit.
-         * @param tilePosition the real position of this tile in the xy-plane
-         * @param origin       a local origin of a ray
-         * @param dir          the direction of the ray
+         * @param localOrigin origin relative to this tile, will be modified
+         * @param direction          the direction of the ray
          * @return fraction t of (origin + direction * t), or Float.POSITIVE_INFINITY if it does not hit.
          */
-        public float intersectFraction(Vector2fc tilePosition, Vector3fc origin, Vector3fc dir) {
-            // apply position and rotation elements of the tile
-            // translation
-            Vector3f localOrigin = new Vector3f(
-                    origin.x() - tilePosition.x(),
-                    origin.y() - tilePosition.y(),
-                    origin.z() - offset * TILE_SIZE_Z
-            );
-
+        public float intersectFraction(Vector3f localOrigin, Vector3fc direction) {
             boolean doIntersect = type.shape.getBoundingBox().testRay(
                     localOrigin.x, localOrigin.y, localOrigin.z,
-                    dir.x(), dir.y(), dir.z()
+                    direction.x(), direction.y(), direction.z()
             );
-
             if (!doIntersect) {
                 return Float.POSITIVE_INFINITY;
             }
 
             // rotation
-            Vector3f localDirection = new Vector3f(dir);
+            Vector3f localDirection = new Vector3f(direction);
             for (byte i = 0; i < rotation; i++) {
                 //noinspection SuspiciousNameCombination
                 localOrigin.set(localOrigin.y, -localOrigin.x, localOrigin.z);

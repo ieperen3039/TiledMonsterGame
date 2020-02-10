@@ -7,7 +7,7 @@ import java.io.IOException;
  * A base set of stimuli
  * @author Geert van Ieperen created on 23-2-2019.
  */
-public enum BaseStimulus implements Type {
+public enum BaseStimulus implements StimulusType {
     /** negative status stimuli */
     DAMAGE, DEATH,
 

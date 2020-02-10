@@ -1,8 +1,8 @@
 package NG.Actions;
 
 import NG.Animations.UniversalAnimation;
-import NG.Living.Stimulus;
 import NG.Tools.Vectors;
+import org.joml.Math;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -11,7 +11,7 @@ import org.joml.Vector3fc;
  * An immutable action with a fixed start position, end position, animation and duration.
  * @author Geert van Ieperen created on 12-2-2019.
  */
-public interface EntityAction extends Stimulus {
+public interface EntityAction {
 
     /**
      * calculates the position of this action, at the given time after the start of this action
@@ -53,11 +53,6 @@ public interface EntityAction extends Stimulus {
      */
     boolean hasWorldCollision();
 
-    @Override
-    default float getMagnitude(Vector3fc otherPosition) {
-        return 1;
-    }
-
     /**
      * @return the animation that is played when executing this action
      */
@@ -71,7 +66,12 @@ public interface EntityAction extends Stimulus {
     default Quaternionf getRotationAt(float timeSinceStart) {
         Vector3f startPosition = getPositionAt(0);
         Vector3f endPosition = getPositionAt(duration());
-        Vector3f relativeMovement = endPosition.sub(startPosition);
-        return Vectors.getPitchYawRotation(relativeMovement);
+        Quaternionf rot = new Quaternionf();
+        float dx = endPosition.x - startPosition.x;
+        float dy = endPosition.y - startPosition.y;
+        float yaw = (float) Math.atan2(dy, dx);
+        rot.rotateZ(yaw);
+
+        return rot;
     }
 }

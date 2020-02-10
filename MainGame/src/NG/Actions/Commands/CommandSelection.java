@@ -6,6 +6,7 @@ import NG.GUIMenu.Components.SButton;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SPanel;
 import NG.Living.Living;
+import NG.Living.MonsterSoul;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
@@ -22,18 +23,18 @@ public class CommandSelection {
     private Living source;
 
     private List<CommandProvider> providers = new ArrayList<>();
-    private Living controller;
+    private MonsterSoul target;
 
     /**
      * @param position   position where the command is targeted to.
      * @param source     the Living that is planning to create a command (the player)
-     * @param controller the living that is going to receive this command
+     * @param target the entity that is going to receive this command
      * @param providers  the possible commands that may be chosen
      */
-    public CommandSelection(Vector2ic position, Living source, Living controller, CommandProvider... providers) {
+    public CommandSelection(Vector2ic position, Living source, MonsterSoul target, CommandProvider... providers) {
         this.position = position;
         this.source = source;
-        this.controller = controller;
+        this.target = target;
         this.providers.addAll(Arrays.asList(providers));
     }
 
@@ -87,9 +88,9 @@ public class CommandSelection {
     }
 
     private void accept(CommandProvider provider) {
-        Command command = provider.create(source, controller, position);
+        Command command = provider.create(source, target, position);
         if (command == null) return;
-        controller.accept(command);
+        target.command(command);
     }
 
 
@@ -97,11 +98,11 @@ public class CommandSelection {
      * @return an action command. Takes a lambda function for creating an action, and generates commands that try to
      * execute the given action exactly once..
      */
-    public static CommandProvider actionCommand(String name, ActionCreator action) {
+    public static CommandProvider actionCommand(String name, ActionCreator action, float gameTime) {
         return new CommandSelection.CommandProvider(name) {
             @Override
             public Command create(Living source, Living receiver, Vector2ic target) {
-                return new Command(source, receiver) {
+                return new Command(source, receiver, gameTime) {
                     boolean hasFired = false;
 
                     @Override

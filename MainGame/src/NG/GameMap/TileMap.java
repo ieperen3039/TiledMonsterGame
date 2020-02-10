@@ -86,7 +86,6 @@ public class TileMap extends AbstractMap {
     }
 
 
-
     @Override
     public int getHeightAt(int x, int y) {
         int cx = x / chunkSize;
@@ -110,6 +109,17 @@ public class TileMap extends AbstractMap {
     }
 
     @Override
+    protected Vector2f getCoordPosf(Vector3fc origin) {
+        return new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
+    }
+
+    @Override
+    protected Vector2f getCoordDirf(Vector3fc direction) {
+        return new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE);
+    }
+
+
+    @Override
     public Vector3f getPosition(int x, int y) {
         return new Vector3f(
                 (x + 0.5f) * TILE_SIZE, // middle of the tile
@@ -126,10 +136,14 @@ public class TileMap extends AbstractMap {
         if (tile == null) return 0;
 
         float rayStartHeight = tile.type.getBoundingBox().maxZ + tile.offset * TILE_SIZE_Z + 1;
+        final Vector3f origin = new Vector3f(x, y, rayStartHeight);
+
         float f = tile.intersectFraction(
-                new Vector2f((ix + 0.5f) * TILE_SIZE, (iy + 0.5f) * TILE_SIZE),
-                new Vector3f(x, y, rayStartHeight),
-                new Vector3f(0, 0, -1)
+                new Vector3f(
+                        origin.x() - (ix + 0.5f) * TILE_SIZE,
+                        origin.y() - (iy + 0.5f) * TILE_SIZE,
+                        origin.z() - tile.offset * TILE_SIZE_Z
+                ), new Vector3f(0, 0, -1)
         );
 
         return rayStartHeight - f;
@@ -226,16 +240,6 @@ public class TileMap extends AbstractMap {
                 return floats;
             }
         };
-    }
-
-    @Override
-    protected Vector2f getCoordDirf(Vector3fc direction) {
-        return new Vector2f(direction.x() / TILE_SIZE, direction.y() / TILE_SIZE);
-    }
-
-    @Override
-    protected Vector2f getCoordPosf(Vector3fc origin) {
-        return new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
     }
 
     public static Matrix4f getViewProjection(Game game, Camera camera) {
@@ -475,13 +479,14 @@ public class TileMap extends AbstractMap {
     @Override
     public Float getTileIntersect(Vector3fc origin, Vector3fc direction, int xCoord, int yCoord) {
         MapTile.Instance tileData = getTileData(xCoord, yCoord);
+        if (tileData == null) return null;
 
-        if (tileData == null) {
-            return null;
+        Vector3f localOrigin = new Vector3f(origin).sub(
+                (xCoord + 0.5f) * TILE_SIZE,
+                (yCoord + 0.5f) * TILE_SIZE,
+                tileData.offset * TILE_SIZE_Z
+        );
 
-        } else {
-            Vector2f tilePosition = new Vector2f((xCoord + 0.5f) * TILE_SIZE, (yCoord + 0.5f) * TILE_SIZE);
-            return tileData.intersectFraction(tilePosition, origin, direction);
-        }
+        return tileData.intersectFraction(localOrigin, direction);
     }
 }

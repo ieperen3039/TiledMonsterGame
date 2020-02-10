@@ -296,26 +296,6 @@ public final class Vectors {
         projection.unprojectRay(winCoords, viewport, origin, direction);
     }
 
-    /**
-     * compute a rotation that rotates positive x to the given direction.
-     * @param targetDirection the direction that the resulting rotation should map X to.
-     * @return a rotation on the z and y axis, such that the vector (1, 0, 0) is transformed to the {@code targetDirection}
-     */
-    public static Quaternionf getPitchYawRotation(Vector3fc targetDirection) {
-        Quaternionf rot = new Quaternionf();
-        float y = targetDirection.y();
-        float x = targetDirection.x();
-
-        float xComp = x * x + y * y;
-        float pitch = (float) Math.atan2(targetDirection.z(), xComp);
-        rot.rotateY(pitch);
-
-        float yaw = (float) Math.atan2(y, x);
-        rot.rotateZ(yaw);
-
-        return rot;
-    }
-
     public static Vector2i toVector2i(Vector3ic coordinate) {
         return new Vector2i(coordinate.x(), coordinate.y());
     }

@@ -9,15 +9,11 @@ import java.util.List;
  * @author Geert van Ieperen created on 4-2-2019.
  */
 public class Player implements Living {
+    private final MonsterEntity playerEntity = null;
     public List<MonsterSoul> team = new ArrayList<>();
 
     @Override
-    public void accept(Stimulus stimulus) {
-        // popup?
-    }
-
-    @Override
     public MonsterEntity entity() {
-        return null;
+        return playerEntity;
     }
 }

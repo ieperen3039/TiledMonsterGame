@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
  * @author Geert van Ieperen created on 7-4-2019.
  */
 public class SoulDescription {
-    public Map<Type, Float> importance = new HashMap<>();
-    public Map<Type, Emotion.Translation> stimulusEffects = new HashMap<>();
+    public Map<StimulusType, Float> importance = new HashMap<>();
+    public Map<StimulusType, Emotion.Translation> stimulusEffects = new HashMap<>();
     public Emotion.ECollection emotions = null;
     public EnumMap<Emotion, Float> emotionValues = new EnumMap<>(Emotion.class);
 
@@ -61,7 +61,7 @@ public class SoulDescription {
             if (line.isEmpty() || line.charAt(0) == '#') continue;
             String[] elts = Toolbox.WHITESPACE_PATTERN.split(line.trim());
 
-            Type slt = Stimulus.getByName(elts[0]);
+            StimulusType slt = Stimulus.getByName(elts[0]);
             float value = Float.parseFloat(elts[1]);
             importance.put(slt, value);
 

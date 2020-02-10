@@ -115,7 +115,7 @@ public class MonsterHud extends SimpleHUD {
 
         // TODO more efficient implementation
         SComponent component = getComponentAt(xSc, ySc);
-        return component != null && !(component instanceof SFiller);
+        return component != null && component.isVisible() && !(component instanceof SFiller);
     }
 
     @Override

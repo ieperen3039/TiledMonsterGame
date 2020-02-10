@@ -69,11 +69,6 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
-    public float getMagnitude(Vector3fc otherPosition) {
-        return 0;
-    }
-
-    @Override
     public UniversalAnimation getAnimation() {
         return BodyAnimation.BASE_POSE; // TODO make a real idle animation
     }

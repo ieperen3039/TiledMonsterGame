@@ -135,6 +135,13 @@ public class SPanel extends SContainer {
         return newPanel;
     }
 
+    @Override
+    public SComponent getComponentAt(int xRel, int yRel) {
+        SComponent base = super.getComponentAt(xRel, yRel);
+        if (!border && base == this) return null;
+        return base;
+    }
+
     /**
      * create a new panel with the given components in a column
      * @param hzGrow     whether this panel wants horizontal growth

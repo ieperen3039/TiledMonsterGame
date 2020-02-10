@@ -4,11 +4,12 @@ import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Entities.StaticEntity;
 import NG.InputHandling.MouseTools.MouseTool;
+import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.lang.Math;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,6 +41,7 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         Vector3f origin = new Vector3f();
         Vector3f direction = new Vector3f();
         Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
+        direction.normalize(Settings.Z_FAR - Settings.Z_NEAR);
 
         float t = this.getIntersection(origin, direction, 0);
         if (t == 1) return false;
@@ -84,35 +86,33 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
 
         if (worldClip.x > 0) {
             coordPos.add(coordDir.mul(worldClip.x));
-            // round these toward zero
-            coordPos.x = (int) coordPos.x;
-            coordPos.y = (int) coordPos.y;
-            coordDir.normalize(); // for good habit
-        }
 
-        int xCoord = (int) Math.floor(coordPos.x);
-        int yCoord = (int) Math.floor(coordPos.y);
-
-        { // check this tile before setting up voxel ray casting
-            Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
+        } else {
+            // check this tile before setting up voxel ray casting
+            Float secFrac = getTileIntersect(origin, direction, (int) coordPos.x, (int) coordPos.y);
             if (secFrac >= 0 && secFrac < 1) {
                 return secFrac;
             }
         }
 
-        boolean xIsPos = direction.x() > 0;
-        boolean yIsPos = direction.y() > 0;
+        int xCoord = (int) coordPos.x;
+        int yCoord = (int) coordPos.y;
+
+        boolean xIsPos = coordDir.x > 0;
+        boolean yIsPos = coordDir.y > 0;
 
         final int dx = (xIsPos ? 1 : -1);
         final int dy = (yIsPos ? 1 : -1);
 
+        coordDir.normalize();
+
         float xIntersect = Intersectionf.intersectRayPlane(
-                coordPos.x(), coordPos.y(), 0, coordDir.x(), coordDir.y(), 0,
+                coordPos.x, coordPos.y, 0, coordDir.x, coordDir.y, 0,
                 xCoord + dx, yCoord + dy, 0, (xIsPos ? -1 : 1), 0, 0,
                 1e-3f
         );
         float yIntersect = Intersectionf.intersectRayPlane(
-                coordPos.x(), coordPos.y(), 0, coordDir.x(), coordDir.y(), 0,
+                coordPos.x, coordPos.y, 0, coordDir.x, coordDir.y, 0,
                 xCoord + dx, yCoord + dy, 0, 0, (yIsPos ? -1 : 1), 0,
                 1e-3f
         );
@@ -120,10 +120,13 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         float tMaxX = xIntersect;
         float tMaxY = yIntersect;
 
-        final float dtx = (direction.y() == 0 ? Float.POSITIVE_INFINITY : (direction.x() / direction.y()));
-        final float dty = (direction.x() == 0 ? Float.POSITIVE_INFINITY : (direction.y() / direction.x()));
+        final float dtx = (coordDir.x() == 0 ? Float.POSITIVE_INFINITY : (1f / coordDir.x));
+        final float dty = (coordDir.y() == 0 ? Float.POSITIVE_INFINITY : (1f / coordDir.y));
 
-        while (xCoord > 0 && yCoord > 0 && xCoord < size.x() && yCoord < size.y()) {
+        List<Vector2i> coords = new ArrayList<>();
+
+        while (xCoord >= 0 && yCoord >= 0 && xCoord < size.x() && yCoord < size.y()) {
+            coords.add(new Vector2i(xCoord, yCoord));
             Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
 
             if (secFrac == null) {
@@ -131,6 +134,7 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
                 return 1;
 
             } else if (secFrac >= 0 && secFrac < 1) {
+                setHighlights(coords.toArray(new Vector2ic[0]));
                 return secFrac;
             }
 
@@ -143,6 +147,7 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
             }
         }
 
+        setHighlights(coords.toArray(new Vector2ic[0]));
         return 1;
     }
 

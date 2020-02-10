@@ -1,6 +1,7 @@
 package NG.Living;
 
 import NG.Actions.Attacks.DamageType;
+import NG.Actions.Commands.Command;
 import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.Core.GameTimer;
@@ -73,9 +74,12 @@ public abstract class MonsterSoul implements Living {
         lastUpdateTime = gametime;
     }
 
-    @Override
-    public void accept(Stimulus stimulus) {
+    public void signal(Stimulus stimulus) {
         mind.accept(stimulus, game);
+    }
+
+    public void command(Command command) {
+        mind.queueCommand(game, command, entity);
     }
 
     public void addEffect(Effect effect) {

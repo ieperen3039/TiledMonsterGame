@@ -106,19 +106,14 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         if (game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
             Vector3f origin = new Vector3f();
             Vector3f direction = new Vector3f();
-
             Vectors.windowCoordToRay(game, xPos, yPos, origin, direction);
+            direction.normalize(Settings.Z_FAR - Settings.Z_NEAR);
 
             GameMap map = game.get(GameMap.class);
-            Vector3f result;
             float t = map.gridMapIntersection(origin, direction);
-            if (t == 1) {
-                result = null;
-            } else {
-                result = new Vector3f(direction).mul(t).add(origin);
-            }
-            Vector3f position = result;
-            if (position == null) return;
+            if (t == 1) return;
+
+            Vector3f position = new Vector3f(direction).mul(t).add(origin);
 
             Vector2i coordinate = map.getCoordinate(position);
             Vector3f midSquare = map.getPosition(coordinate);

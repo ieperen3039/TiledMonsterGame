@@ -6,6 +6,7 @@ import NG.Actions.Commands.CommandAttack;
 import NG.Actions.Commands.CommandSelection;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
@@ -127,7 +128,8 @@ public class ProjectilePowerBall extends Projectile {
                 Vector3f targetPosition = game.get(GameMap.class).getPosition(target);
                 Projectile prj = new ProjectilePowerBall(game, receiver, targetPosition, 2, 0.5f);
 
-                return new CommandAttack(source, entity, prj);
+                float gametime = game.get(GameTimer.class).getGametime();
+                return new CommandAttack(source, entity, prj, gametime);
             }
         };
     }
