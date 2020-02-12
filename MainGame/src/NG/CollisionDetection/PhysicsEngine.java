@@ -1,6 +1,7 @@
 package NG.CollisionDetection;
 
 import NG.Core.Game;
+import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
 import NG.Entities.MovingEntity;
@@ -87,8 +88,8 @@ public class PhysicsEngine implements GameState {
     }
 
     @Override
-    public Pair<Entity, Float> getEntityByRay(Vector3fc origin, Vector3fc dir) {
-        return entityList.rayTrace(origin, dir);
+    public Pair<Entity, Float> getEntityByRay(Vector3fc origin, Vector3fc dir, float gameTime) {
+        return entityList.rayTrace(origin, dir, gameTime);
     }
 
     @Override
@@ -108,7 +109,8 @@ public class PhysicsEngine implements GameState {
             Vector3f direction = new Vector3f();
             Vectors.windowCoordToRay(game, xSc, ySc, origin, direction);
 
-            entity = entityList.rayTrace(origin, direction).left;
+            float gameTime = game.get(GameTimer.class).getGametime();
+            entity = entityList.rayTrace(origin, direction, gameTime).left;
         }
 
         if (entity == null) return false;

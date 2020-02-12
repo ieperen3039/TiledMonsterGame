@@ -49,11 +49,12 @@ public interface GameState extends GameAspect, Storable, MouseToolListener {
      * checks which entity is hit by the given ray
      * @param origin the origin of the ray
      * @param dir    the direction of the ray
+     * @param gameTime time of check
      * @return Left: the first entity hit by the ray, or null if no entity is hit.
      * <p>
      * Right: the fraction t such that {@code origin + t * dir} gives the point of collision with this entity.
      */
-    Pair<Entity, Float> getEntityByRay(Vector3fc origin, Vector3fc dir);
+    Pair<Entity, Float> getEntityByRay(Vector3fc origin, Vector3fc dir, float gameTime);
 
     /**
      * @return an unmodifiable view of the entities in this game state

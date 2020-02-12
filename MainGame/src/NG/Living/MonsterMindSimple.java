@@ -2,6 +2,8 @@ package NG.Living;
 
 import NG.Actions.Commands.CommandWalk;
 import NG.Core.Game;
+import NG.Core.GameTimer;
+import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
@@ -16,29 +18,35 @@ import java.util.Random;
 public class MonsterMindSimple extends MonsterMind {
     private float timeUntilRandomMovement;
     private Random rng = new Random();
-    private Game game;
+    private Vector2i POI;
 
     // fearLevel = [0 ... 3] with 0 = none and 3 = flee
     private int fearLevel = 0;
 
-    public MonsterMindSimple(Game game, MonsterSoul owner, float gameTime) {
+    public MonsterMindSimple(MonsterSoul owner) {
         super(owner);
-        this.timeUntilRandomMovement = gameTime;
-        this.game = game;
+    }
+
+    @Override
+    void init(MonsterEntity entityToControl, Game game) {
+        super.init(entityToControl, game);
+        this.timeUntilRandomMovement = game.get(GameTimer.class).getGametime() + (rng.nextFloat() * 20);
     }
 
     @Override
     protected void update(float gameTime) {
+        if (game == null) return;
+
         switch (fearLevel) {
             case 0: // wander aimlessly
                 if (gameTime > timeUntilRandomMovement) {
                     if (executionTarget == null) {
-                        Vector3f ePos = owner.entity().getPositionAt(gameTime);
+                        Vector3f ePos = entity.getPositionAt(gameTime);
                         Vector2i tgt = game.get(GameMap.class).getCoordinate(ePos);
                         tgt.add(rng.nextInt(5) - 2, rng.nextInt(5) - 2);
                         CommandWalk walk = new CommandWalk(owner, owner, tgt, gameTime);
 
-                        queueCommand(game, walk, owner.entity());
+                        queueCommand(game, walk);
                     }
 
                     timeUntilRandomMovement += rng.nextFloat() * 20;
@@ -57,7 +65,7 @@ public class MonsterMindSimple extends MonsterMind {
     }
 
     @Override
-    public void accept(Stimulus stimulus, Game game) {
+    public void accept(Stimulus stimulus) {
         StimulusType rawType = stimulus.getType();
         BaseStimulus type;
 

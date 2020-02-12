@@ -1,10 +1,7 @@
 package NG.Living;
 
 import NG.Actions.Attacks.DamageType;
-import NG.Actions.Commands.Command;
-import NG.Actions.EntityAction;
 import NG.Core.Game;
-import NG.Core.GameTimer;
 import NG.Entities.EntityStatistics;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Components.SNamedValue;
@@ -40,30 +37,24 @@ public abstract class MonsterSoul implements Living {
 
         this.effects = new ArrayList<>();
         this.stats = new EntityStatistics(100);
+        this.mind = new MonsterMindSimple(this);
         this.hitpoints = stats.hitPoints;
     }
 
     public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
         this.game = game;
-        this.mind = new MonsterMindSimple(game, this, game.get(GameTimer.class).getGametime());
 
         if (entity != null) {
             entity.dispose();
         }
 
-        return entity = getNewEntity(game, coordinate, direction);
+        entity = getNewEntity(game, coordinate, direction);
+        mind.init(entity, game);
+
+        return entity;
     }
 
     protected abstract MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction);
-
-    /**
-     * computes which action should be executed at the given time
-     * @param gameTime the start time of the next action
-     * @return the action planned by this entity, or null if nothing is planned
-     */
-    public EntityAction getNextAction(float gameTime) {
-        return mind.getNextAction(gameTime, game, entity);
-    }
 
     public void update(float gametime) {
         float deltaTime = gametime - lastUpdateTime;
@@ -72,14 +63,6 @@ public abstract class MonsterSoul implements Living {
         mind.update(gametime);
 
         lastUpdateTime = gametime;
-    }
-
-    public void signal(Stimulus stimulus) {
-        mind.accept(stimulus, game);
-    }
-
-    public void command(Command command) {
-        mind.queueCommand(game, command, entity);
     }
 
     public void addEffect(Effect effect) {
@@ -115,6 +98,10 @@ public abstract class MonsterSoul implements Living {
     @Override
     public MonsterEntity entity() {
         return entity;
+    }
+
+    public MonsterMind mind() {
+        return mind;
     }
 
     interface Effect {

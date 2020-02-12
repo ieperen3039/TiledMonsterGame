@@ -104,7 +104,7 @@ public class DefaultMouseTool implements MouseTool {
             Vector2i coord = gameMap.getCoordinate(position);
             gameMap.setHighlights(coord);
 
-            CommandSelection commandSelector = new CommandSelection(coord, game.get(Player.class), controller,
+            CommandSelection commandSelector = new CommandSelection(game, game.get(Player.class), controller, coord,
                     CommandWalk.walkCommand(gameTime),
                     ProjectilePowerBall.fireCommand(game),
                     CommandSelection.actionCommand("Jump", ActionJump::new, gameTime)

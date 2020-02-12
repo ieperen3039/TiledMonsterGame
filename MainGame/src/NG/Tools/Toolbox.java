@@ -1,13 +1,12 @@
 package NG.Tools;
 
-import NG.CollisionDetection.BoundingBox;
 import NG.DataStructures.Generic.Color4f;
-import NG.Entities.Entity;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
+import org.joml.AABBf;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -120,20 +119,17 @@ public final class Toolbox {
         gl.popMatrix();
     }
 
-    public static void drawHitboxes(SGL gl, Collection<Entity> targets, float gameTime) {
+    public static void drawHitboxes(SGL gl, Collection<? extends AABBf> targets) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        for (Entity e : targets) {
+        for (AABBf h : targets) {
             gl.pushMatrix();
             {
-                Vector3f position = e.getPositionAt(gameTime);
-                gl.translate(position);
-                BoundingBox h = e.getHitbox();
+                gl.translate((h.maxX + h.minX) / 2, (h.maxY + h.minY) / 2, (h.maxZ + h.minZ) / 2);
                 gl.scale((h.maxX - h.minX) / 2, (h.maxY - h.minY) / 2, (h.maxZ - h.minZ) / 2);
-                gl.render(GenericShapes.CUBE, e);
+                gl.render(GenericShapes.CUBE, null);
             }
             gl.popMatrix();
-
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

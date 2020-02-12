@@ -21,17 +21,23 @@ import java.util.List;
 public class CommandSelection {
     private Vector2ic position;
     private Living source;
+    private Game game;
 
     private List<CommandProvider> providers = new ArrayList<>();
     private MonsterSoul target;
 
     /**
-     * @param position   position where the command is targeted to.
+     * @param game
      * @param source     the Living that is planning to create a command (the player)
      * @param target the entity that is going to receive this command
+     * @param position   position where the command is targeted to.
      * @param providers  the possible commands that may be chosen
      */
-    public CommandSelection(Vector2ic position, Living source, MonsterSoul target, CommandProvider... providers) {
+    public CommandSelection(
+            Game game, Living source, MonsterSoul target, Vector2ic position,
+            CommandProvider... providers
+    ) {
+        this.game = game;
         this.position = position;
         this.source = source;
         this.target = target;
@@ -90,7 +96,7 @@ public class CommandSelection {
     private void accept(CommandProvider provider) {
         Command command = provider.create(source, target, position);
         if (command == null) return;
-        target.command(command);
+        target.mind().queueCommand(game, command);
     }
 
 

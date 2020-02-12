@@ -9,12 +9,23 @@ import java.util.Iterator;
  */
 public class BoundingBox extends AABBf {
     public BoundingBox(AABBf source, Vector3fc displacement) {
-        super(source);
-        move(displacement);
+        float x = displacement.x();
+        float y = displacement.y();
+        float z = displacement.z();
+        this.minX = source.minX + x;
+        this.minY = source.minY + y;
+        this.minZ = source.minZ + z;
+        this.maxX = source.maxX + x;
+        this.maxY = source.maxY + y;
+        this.maxZ = source.maxZ + z;
     }
 
     public BoundingBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
         super(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public BoundingBox() {
+        super();
     }
 
     /**
@@ -22,14 +33,8 @@ public class BoundingBox extends AABBf {
      * @param displacement a vector describing the movement
      * @return this
      */
-    public BoundingBox move(Vector3fc displacement) {
-        minX += displacement.x();
-        minY += displacement.y();
-        minZ += displacement.z();
-        maxX += displacement.x();
-        maxY += displacement.y();
-        maxZ += displacement.z();
-        return this;
+    public BoundingBox getMoved(Vector3fc displacement) {
+        return new BoundingBox(this, displacement);
     }
 
     /**

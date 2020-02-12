@@ -74,6 +74,7 @@ public abstract class SimpleHUD implements HUDManager {
         }
 
         lookAndFeel.setPainter(painter);
+        mainPanel.validateLayout();
         mainPanel.draw(lookAndFeel, new Vector2i(0, 0));
     }
 

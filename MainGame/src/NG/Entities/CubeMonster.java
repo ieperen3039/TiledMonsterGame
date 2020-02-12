@@ -78,6 +78,7 @@ public class CubeMonster extends MonsterSoul {
             gl.pushMatrix();
             {
                 gl.scale(size);
+                gl.translate(0, 0, 1);
                 super.draw(gl, entity);
             }
             gl.popMatrix();

@@ -60,6 +60,7 @@ public class CollisionDetection {
         this.dynamicEntities = new CopyOnWriteArrayList<>();
         this.newEntities = new ConcurrentArrayList<>();
 
+        avgCollisions = new AveragingQueue(5);
         Logger.printOnline(() ->
                 String.format("Collision pair count average: %1.01f", avgCollisions.average())
         );
@@ -70,8 +71,6 @@ public class CollisionDetection {
         zLowerSorted = new CollisionEntity[nOfEntities];
 
         populate(staticEntities, gameTime, xLowerSorted, yLowerSorted, zLowerSorted);
-
-        avgCollisions = new AveragingQueue(5);
     }
 
     /**
@@ -84,6 +83,7 @@ public class CollisionDetection {
     ) {
         int i = 0;
         for (Entity entity : entities) {
+            assert entity != null;
             CollisionEntity asCollisionEntity = new CollisionEntity(entity, gameTime);
             xLowerSorted[i] = asCollisionEntity;
             yLowerSorted[i] = asCollisionEntity;
@@ -106,7 +106,7 @@ public class CollisionDetection {
     /**
      * @param gameTime the time of the next game-tick
      */
-    public void processCollisions(float gameTime) {
+    public synchronized void processCollisions(float gameTime) {
 
         /** -- clean and restore invariants -- */
 
@@ -153,14 +153,9 @@ public class CollisionDetection {
         IntStream.range(0, pairs.size())
                 .parallel()
                 .forEach(n -> {
-                    int checksLeft = MAX_COLLISION_ITERATIONS;
                     CollisionEntity left = pairs.left(n);
                     CollisionEntity right = pairs.right(n);
-
-                    boolean didCollide;
-                    do {
-                        didCollide = checkCollisionPair(left, right, gameTime);
-                    } while (didCollide && (--checksLeft > 0));
+                    checkCollisionPair(left, right, gameTime);
                 });
 
         previousTime = gameTime;
@@ -180,7 +175,7 @@ public class CollisionDetection {
         Entity a = alpha.entity;
         Entity b = beta.entity;
 
-        assert !a.canCollideWith(b) && !b.canCollideWith(a);
+        assert a.canCollideWith(b) && b.canCollideWith(a);
         // this may change with previous collisions
         if (a.isDisposed() || b.isDisposed() || a == b) return false;
 
@@ -331,12 +326,13 @@ public class CollisionDetection {
      * calculates the first entity hit by the given ray
      * @param origin the origin of the ray
      * @param dir    the direction of the ray
+     * @param gameTime
      * @return Left: the first entity hit by the ray, or null if no entity is hit.
      * <p>
      * Right: the fraction t such that {@code origin + t * dir} gives the point of collision with this entity. Undefined
      * if {@code left == null}
      */
-    public Pair<Entity, Float> rayTrace(Vector3fc origin, Vector3fc dir) {
+    public Pair<Entity, Float> rayTrace(Vector3fc origin, Vector3fc dir, float gameTime) {
         assert testInvariants();
 
         RayAabIntersection sect = new RayAabIntersection(origin.x(), origin.y(), origin.z(), dir.x(), dir.y(), dir.z());
@@ -353,7 +349,7 @@ public class CollisionDetection {
 
             Entity entity = elt.entity;
 
-            float f = entity.getHitbox().intersectRay(origin, dir);
+            float f = entity.getHitbox().getMoved(entity.getPositionAt(gameTime)).intersectRay(origin, dir);
             if (f < fraction) {
                 fraction = f;
                 suspect = entity;
@@ -439,7 +435,7 @@ public class CollisionDetection {
         }
     }
 
-    public void cleanup() {
+    public synchronized void cleanup() {
         xLowerSorted = new CollisionEntity[0];
         yLowerSorted = new CollisionEntity[0];
         zLowerSorted = new CollisionEntity[0];
@@ -484,7 +480,7 @@ public class CollisionDetection {
                 prevPoints = entity.getShapePoints(gameTime);
 
                 Vector3fc nextPos = entity.getPositionAt(gameTime);
-                nextBoundingBox = entity.getHitbox().move(nextPos);
+                nextBoundingBox = entity.getHitbox().getMoved(nextPos);
                 hitbox = nextBoundingBox;
 
             } else {
@@ -495,7 +491,7 @@ public class CollisionDetection {
 
                 Vector3fc nextPos = entity.getPositionAt(gameTime);
                 BoundingBox prevBoundingBox = nextBoundingBox;
-                nextBoundingBox = entity.getHitbox().move(nextPos);
+                nextBoundingBox = entity.getHitbox().getMoved(nextPos);
 
                 hitbox = prevBoundingBox.union(nextBoundingBox);
             }

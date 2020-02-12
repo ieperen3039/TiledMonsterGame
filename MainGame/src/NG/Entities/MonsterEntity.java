@@ -15,6 +15,7 @@ import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SPanel;
 import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.GameMap;
+import NG.Living.MonsterMind;
 import NG.Living.MonsterSoul;
 import NG.Particles.GameParticles;
 import NG.Particles.Particles;
@@ -99,7 +100,7 @@ public abstract class MonsterEntity implements MovingEntity {
     public void update(float gameTime) {
         float lastActionEnd = currentActions.lastActionEnd();
         if (gameTime >= lastActionEnd) {
-            EntityAction next = controller.getNextAction(lastActionEnd);
+            EntityAction next = controller.mind().getNextAction(lastActionEnd, game, controller.entity());
             currentActions.insert(next, lastActionEnd);
         }
 
@@ -155,7 +156,8 @@ public abstract class MonsterEntity implements MovingEntity {
 
     @Override
     public void collideWith(Entity other, float collisionTime) {
-        EntityAction nextAction = controller.getNextAction(collisionTime);
+        MonsterMind mind = controller.mind();
+        EntityAction nextAction = mind.reactCollision(game, other, collisionTime);
         currentActions.insert(nextAction, collisionTime);
     }
 
@@ -164,7 +166,7 @@ public abstract class MonsterEntity implements MovingEntity {
         EntityAction action = currentActions.getActionAt(collisionTime).left;
         if (!action.hasWorldCollision()) return;
 
-        EntityAction nextAction = controller.getNextAction(collisionTime);
+        EntityAction nextAction = controller.mind().getNextAction(collisionTime, game, controller.entity());
         currentActions.insert(nextAction, collisionTime);
     }
 

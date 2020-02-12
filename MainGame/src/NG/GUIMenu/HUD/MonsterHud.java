@@ -80,7 +80,11 @@ public class MonsterHud extends SimpleHUD {
             }
         }
 
-        freeFloatingElements.forEach(e -> e.draw(lookAndFeel, e.getPosition()));
+        for (SComponent e : freeFloatingElements) {
+            e.validateLayout();
+            e.draw(lookAndFeel, e.getPosition());
+        }
+
         super.draw(painter);
     }
 

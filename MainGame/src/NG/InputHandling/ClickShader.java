@@ -43,7 +43,6 @@ import static org.lwjgl.opengl.GL20.*;
 public class ClickShader implements ShaderProgram {
     private static final Path VERTEX_PATH = Directory.shaders.getPath("Click", "click.vert");
     private static final Path FRAGMENT_PATH = Directory.shaders.getPath("Click", "click.frag");
-    private static final ClickShader shader = null;
     private final Map<String, Integer> uniforms;
 
     private ArrayList<Entity> mapping;
@@ -57,7 +56,7 @@ public class ClickShader implements ShaderProgram {
 
         this.programId = glCreateProgram();
         if (this.programId == 0) {
-            throw new ShaderException("OpenGL error: Could not create Shader");
+            throw new ShaderException("OpenGL error: Could not create click-shader");
         }
 
         try {
@@ -72,6 +71,7 @@ public class ClickShader implements ShaderProgram {
             }
         } catch (IOException e) {
             Logger.ERROR.print(e);
+            throw new ShaderException("IO error: Could not create click-shader");
         }
 
         link();
@@ -270,7 +270,6 @@ public class ClickShader implements ShaderProgram {
 
                 unbind();
 
-                // extract information
                 GLFWWindow window = game.get(GLFWWindow.class);
                 int windowHeight = window.getHeight();
 

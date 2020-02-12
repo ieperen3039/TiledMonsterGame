@@ -2,9 +2,9 @@ package NG.Core;
 
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
+import NG.CollisionDetection.BoundingBox;
 import NG.CollisionDetection.PhysicsEngine;
 import NG.DataStructures.Generic.Color4f;
-import NG.Entities.Entity;
 import NG.GUIMenu.HUD.MonsterHud;
 import NG.GUIMenu.HUDManager;
 import NG.GUIMenu.Menu.MainMenu;
@@ -41,6 +41,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -147,8 +148,12 @@ public class MonsterGame implements ModLoader {
                 .add(gl -> {
                     if (!combinedGame.get(Settings.class).RENDER_HITBOXES) return;
 
-                    Collection<Entity> entities = combinedGame.get(GameState.class).entities();
-                    Toolbox.drawHitboxes(gl, entities, combinedGame.get(GameTimer.class).getGametime());
+                    float gametime = combinedGame.get(GameTimer.class).getGametime();
+                    List<BoundingBox> boxes = combinedGame.get(GameState.class)
+                            .entities().stream()
+                            .map(e -> e.getHitbox().getMoved(e.getPositionAt(gametime)))
+                            .collect(Collectors.toList());
+                    Toolbox.drawHitboxes(gl, boxes);
                 });
 
         // clickshader

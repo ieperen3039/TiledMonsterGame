@@ -9,7 +9,6 @@ import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -123,10 +122,8 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         final float dtx = (coordDir.x() == 0 ? Float.POSITIVE_INFINITY : (1f / coordDir.x));
         final float dty = (coordDir.y() == 0 ? Float.POSITIVE_INFINITY : (1f / coordDir.y));
 
-        List<Vector2i> coords = new ArrayList<>();
 
         while (xCoord >= 0 && yCoord >= 0 && xCoord < size.x() && yCoord < size.y()) {
-            coords.add(new Vector2i(xCoord, yCoord));
             Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
 
             if (secFrac == null) {
@@ -134,7 +131,6 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
                 return 1;
 
             } else if (secFrac >= 0 && secFrac < 1) {
-                setHighlights(coords.toArray(new Vector2ic[0]));
                 return secFrac;
             }
 
@@ -147,7 +143,6 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
             }
         }
 
-        setHighlights(coords.toArray(new Vector2ic[0]));
         return 1;
     }
 

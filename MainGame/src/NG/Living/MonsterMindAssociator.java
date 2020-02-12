@@ -1,10 +1,8 @@
 package NG.Living;
 
 import NG.Actions.Commands.Command;
-import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.PairList;
-import NG.Entities.MonsterEntity;
 
 import java.util.ArrayDeque;
 import java.util.EnumMap;
@@ -44,8 +42,7 @@ public class MonsterMindAssociator extends MonsterMind {
     }
 
     @Override
-    public void accept(Stimulus stimulus, Game game) {
-        MonsterEntity entity = owner.entity();
+    public void accept(Stimulus stimulus) {
         float gametime = game.get(GameTimer.class).getGametime();
         StimulusType sType = stimulus.getType();
         float realMagnitude = stimulus.getMagnitude(entity.getPositionAt(gametime));
@@ -97,7 +94,7 @@ public class MonsterMindAssociator extends MonsterMind {
 
         // otherwise, execute action
         Command command = best.generateNew(entity, stimulus, gametime);
-        queueCommand(game, command, entity);
+        queueCommand(game, command);
     }
 
     /**
