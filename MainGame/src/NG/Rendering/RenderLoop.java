@@ -42,7 +42,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private Game game;
     private Map<ShaderProgram, RenderBundle> renders;
     private Pointer arrowPointer;
-    private boolean arrowIsVisible = false;
+    private boolean cursorIsVisible = true;
     private SceneShader uiShader;
 
     private TimeObserver timeObserver;
@@ -119,16 +119,19 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
             Vector3f midSquare = map.getPosition(coordinate);
 
             arrowPointer.setPosition(position, midSquare);
+            arrowPointer.isVisible = true;
 
-            if (arrowIsVisible && game.get(Settings.class).HIDE_POINTER_ON_MAP) {
+            if (cursorIsVisible && game.get(Settings.class).HIDE_CURSOR_ON_MAP) {
                 window.setCursorMode(CursorMode.HIDDEN_FREE);
-                arrowIsVisible = false;
+                cursorIsVisible = false;
             }
 
         } else {
-            if (!arrowIsVisible) {
+            arrowPointer.isVisible = false;
+
+            if (!cursorIsVisible) {
                 window.setCursorMode(CursorMode.VISIBLE);
-                arrowIsVisible = true;
+                cursorIsVisible = true;
             }
         }
     }

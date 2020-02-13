@@ -7,6 +7,7 @@ import NG.InputHandling.MouseTools.MouseTool;
 import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
+import org.joml.Math;
 import org.joml.*;
 
 import java.util.List;
@@ -18,6 +19,9 @@ import java.util.List;
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
 public abstract class AbstractMap extends StaticEntity implements GameMap {
+
+    public static final float EPSILON = 1f / (1 << 16);
+
     public AbstractMap() {
     }
 
@@ -66,25 +70,37 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
 
     @Override
     public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
-        if (direction.x() == 0 && direction.y() == 0) return 1;
+        // edge case, direction == (0, 0, dz)
+        if (direction.x() == 0 && direction.y() == 0) {
+            Vector2i coord = getCoordinate(origin);
+            Float sect = getTileIntersect(origin, direction, coord.x, coord.y);
+            if (sect == null || sect < 0 || sect > 1) {
+                return 1;
+            } else {
+                return sect;
+            }
+        }
 
         Vector2ic size = getSize();
         Vector2f coordPos = getCoordPosf(origin);
-        Vector2f coordDir = getCoordDirf(direction);
+        Vector2f coordDir = getCoordDirf(direction).normalize();
 
         Vector2f worldClip = new Vector2f();
         boolean isOnWorld = Intersectionf.intersectRayAab(
                 coordPos.x, coordPos.y, 0,
                 coordDir.x, coordDir.y, 0,
                 0, 0, -1,
-                size.x(), size.y(), 1,
+                size.x() - 0.5f, size.y() - 0.5f, 1,
                 worldClip
         );
 
         if (!isOnWorld) return 1;
 
         if (worldClip.x > 0) {
-            coordPos.add(coordDir.mul(worldClip.x));
+            coordPos.add(new Vector2f(coordDir).mul(worldClip.x));
+            // negate rounding errors
+            coordPos.x = Math.round(coordPos.x);
+            coordPos.y = Math.round(coordPos.y);
 
         } else {
             // check this tile before setting up voxel ray casting
@@ -94,34 +110,29 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
             }
         }
 
-        int xCoord = (int) coordPos.x;
-        int yCoord = (int) coordPos.y;
-
         boolean xIsPos = coordDir.x > 0;
         boolean yIsPos = coordDir.y > 0;
+
+        // next t of x border
+        float pointX = xIsPos ? Math.ceil(coordPos.x) : Math.floor(coordPos.x);
+        float normalX = (xIsPos ? -1 : 1);
+        float denomX = normalX * coordDir.x;
+        float tNextX = (denomX > EPSILON) ? 0.0f : ((pointX - coordPos.x) * normalX) / denomX;
+
+        // next t of y border
+        float pointY = yIsPos ? Math.ceil(coordPos.y) : Math.floor(coordPos.y);
+        float normalY = (yIsPos ? -1 : 1);
+        float denomY = normalY * coordDir.y;
+        float tNextY = (denomY > EPSILON) ? 0.0f : ((pointY - coordPos.y) * normalY) / denomY;
+
+        int xCoord = (int) coordPos.x;
+        int yCoord = (int) coordPos.y;
 
         final int dx = (xIsPos ? 1 : -1);
         final int dy = (yIsPos ? 1 : -1);
 
-        coordDir.normalize();
-
-        float xIntersect = Intersectionf.intersectRayPlane(
-                coordPos.x, coordPos.y, 0, coordDir.x, coordDir.y, 0,
-                xCoord + dx, yCoord + dy, 0, (xIsPos ? -1 : 1), 0, 0,
-                1e-3f
-        );
-        float yIntersect = Intersectionf.intersectRayPlane(
-                coordPos.x, coordPos.y, 0, coordDir.x, coordDir.y, 0,
-                xCoord + dx, yCoord + dy, 0, 0, (yIsPos ? -1 : 1), 0,
-                1e-3f
-        );
-
-        float tMaxX = xIntersect;
-        float tMaxY = yIntersect;
-
-        final float dtx = (coordDir.x() == 0 ? Float.POSITIVE_INFINITY : (1f / coordDir.x));
-        final float dty = (coordDir.y() == 0 ? Float.POSITIVE_INFINITY : (1f / coordDir.y));
-
+        final float dtx = (coordDir.x() == 0 ? Float.POSITIVE_INFINITY : (dx / coordDir.x));
+        final float dty = (coordDir.y() == 0 ? Float.POSITIVE_INFINITY : (dy / coordDir.y));
 
         while (xCoord >= 0 && yCoord >= 0 && xCoord < size.x() && yCoord < size.y()) {
             Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
@@ -134,11 +145,11 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
                 return secFrac;
             }
 
-            if (tMaxX < tMaxY) {
-                tMaxX = tMaxX + dtx;
+            if (tNextX < tNextY) {
+                tNextX = tNextX + dtx;
                 xCoord = xCoord + dx;
             } else {
-                tMaxY = tMaxY + dty;
+                tNextY = tNextY + dty;
                 yCoord = yCoord + dy;
             }
         }

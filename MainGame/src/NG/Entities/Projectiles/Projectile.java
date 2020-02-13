@@ -13,12 +13,12 @@ import org.joml.Vector3fc;
 public abstract class Projectile implements MovingEntity {
     protected final Game game;
     private float spawnTime = Float.MAX_VALUE;
-    private Object source;
+    private Entity source;
 
     private boolean isDisposed = false;
     private boolean isLaunched = false;
 
-    public Projectile(Game game, Object source) {
+    public Projectile(Game game, Entity source) {
         this.game = game;
         this.source = source;
     }

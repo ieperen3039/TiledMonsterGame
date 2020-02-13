@@ -31,7 +31,7 @@ import org.joml.Vector3fc;
 public class ProjectilePowerBall extends Projectile {
     private static final GenericShapes mesh = GenericShapes.ICOSAHEDRON;
     private static final int POWER = 10;
-    private static final float HITBOX_SCALAR = 0.3f;
+    private static final float HITBOX_SCALAR = 0.4f;
     private static final int BASE_DAMAGE = 100;
     private final float speed;
     private final BoundingBox boundingBox;
@@ -42,7 +42,7 @@ public class ProjectilePowerBall extends Projectile {
     private Vector3fc endPosition;
     private float duration;
 
-    public ProjectilePowerBall(Game game, Object source, Vector2ic endCoordinate, float speed, float size) {
+    public ProjectilePowerBall(Game game, Entity source, Vector2ic endCoordinate, float speed, float size) {
         this(
                 game, source,
                 game.get(GameMap.class)
@@ -51,7 +51,7 @@ public class ProjectilePowerBall extends Projectile {
                 speed, size);
     }
 
-    public ProjectilePowerBall(Game game, Object source, Vector3fc endPosition, float speed, float size) {
+    public ProjectilePowerBall(Game game, Entity source, Vector3fc endPosition, float speed, float size) {
         super(game, source);
         this.speed = speed;
         this.size = size;
@@ -90,19 +90,23 @@ public class ProjectilePowerBall extends Projectile {
             monster.controller.applyDamage(damageType, BASE_DAMAGE, collisionTime);
         }
 
-        game.get(GameParticles.class).add(Particles.explosion(
-                getPositionAt(collisionTime), Vectors.O,
-                new Color4f(1, 0, 0),
-                new Color4f(0.5f, 0, 0),
-                (int) (game.get(Settings.class).PARTICLE_MODIFIER * Particles.EXPLOSION_BASE_DENSITY),
-                Particles.FIRE_LINGER_TIME, POWER
-        ));
-        dispose();
+        explode(collisionTime);
     }
 
     @Override
     public void collideWith(GameMap map, float collisionTime) {
+        explode(collisionTime);
+    }
 
+    private void explode(float collisionTime) {
+        game.get(GameParticles.class).add(Particles.explosion(
+                getPositionAt(collisionTime), Vectors.O,
+                new Color4f(1, 0, 0),
+                new Color4f(0.5f, 0.2f, 0),
+                (int) (game.get(Settings.class).PARTICLE_MODIFIER * Particles.EXPLOSION_BASE_DENSITY),
+                Particles.FIRE_LINGER_TIME, POWER
+        ));
+        dispose();
     }
 
     @Override
@@ -126,7 +130,7 @@ public class ProjectilePowerBall extends Projectile {
                 if (entity == null) return null;
 
                 Vector3f targetPosition = game.get(GameMap.class).getPosition(target);
-                Projectile prj = new ProjectilePowerBall(game, receiver, targetPosition, 2, 0.5f);
+                Projectile prj = new ProjectilePowerBall(game, entity, targetPosition, 5, 0.5f);
 
                 float gametime = game.get(GameTimer.class).getGametime();
                 return new CommandAttack(source, entity, prj, gametime);

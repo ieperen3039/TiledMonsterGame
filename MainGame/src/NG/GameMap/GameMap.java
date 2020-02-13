@@ -46,7 +46,7 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable
     int getHeightAt(int x, int y);
 
     /**
-     * maps a real position to the nearest coordinate.
+     * maps a real position to the nearest coordinate. This coordinate may not exist.
      * @param position a position in real space
      * @return the coordinate that is closest to the given position.
      * @see #getCoordinate(Vector3fc)
