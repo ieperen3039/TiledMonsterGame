@@ -11,7 +11,7 @@ import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
 import NG.Mods.Mod;
 import NG.Mods.ModLoader;
-import NG.Rendering.RenderLoop;
+import NG.Rendering.Pointer;
 import NG.Tools.Toolbox;
 import org.joml.Vector2i;
 
@@ -115,7 +115,7 @@ public class NewGameFrame extends SFrame {
 
         // set visual elements
         MainMenu.centerCamera(game.get(Camera.class), map);
-        game.get(RenderLoop.class).setArrowVisibility(true);
+        game.get(Pointer.class).setVisible(true);
 
         // start game
         modLoader.startGame();

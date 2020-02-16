@@ -9,19 +9,19 @@ import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.GUIMenu.GUIPainter;
 import NG.GUIMenu.NVGOverlay;
-import NG.GameMap.GameMap;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
-import NG.Rendering.Shaders.*;
+import NG.Rendering.Shaders.PhongShader;
+import NG.Rendering.Shaders.SceneShader;
+import NG.Rendering.Shaders.ShaderProgram;
+import NG.Rendering.Shaders.TextureShader;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Rendering.Textures.Texture;
 import NG.Settings.Settings;
 import NG.Tools.*;
-import org.joml.Vector2i;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
@@ -41,8 +41,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
     private final NVGOverlay overlay;
     private Game game;
     private Map<ShaderProgram, RenderBundle> renders;
-    private Pointer arrowPointer;
-    private boolean cursorIsVisible = true;
     private SceneShader uiShader;
 
     private TimeObserver timeObserver;
@@ -56,30 +54,23 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         overlay = new NVGOverlay();
         renders = new HashMap<>();
 
-        arrowPointer = new Pointer();
         timeObserver = new TimeObserver((targetFPS / 4) + 1, true);
     }
 
     public void init(Game game) throws IOException {
         if (this.game != null) return;
         this.game = game;
-        Settings settings = game.get(Settings.class);
 
-        overlay.init(settings.ANTIALIAS_LEVEL);
+        overlay.init(game.get(Settings.class).ANTIALIAS_LEVEL);
         overlay.addHudItem((hud) -> {
-            if (settings.DEBUG_SCREEN) {
+            if (game.get(Settings.class).DEBUG_SCREEN) {
                 Logger.putOnlinePrint(hud::printRoll);
             }
         });
 
         uiShader = new PhongShader();
-        renderSequence(uiShader)
-                .add(game.get(GameLights.class)::draw)
-                .add(arrowPointer::draw);
 
-        KeyMouseCallbacks input = game.get(KeyMouseCallbacks.class);
-        input.addMousePositionListener(this::updateArrow);
-        input.addKeyPressListener(k -> {
+        game.get(KeyMouseCallbacks.class).addKeyPressListener(k -> {
             if (k == GLFW.GLFW_KEY_PERIOD) {
                 Logger.DEBUG.print("\n" + timeObserver.resultsTable());
             }
@@ -94,46 +85,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
      */
     public RenderBundle renderSequence(ShaderProgram shader) {
         return renders.computeIfAbsent(shader == null ? uiShader : shader, RenderBundle::new);
-    }
-
-    public void setArrowVisibility(boolean doVisible) {
-        arrowPointer.isVisible = doVisible;
-    }
-
-    private void updateArrow(int xPos, int yPos) {
-        GLFWWindow window = game.get(GLFWWindow.class);
-
-        if (game.get(KeyMouseCallbacks.class).mouseIsOnMap()) {
-            Vector3f origin = new Vector3f();
-            Vector3f direction = new Vector3f();
-            Vectors.windowCoordToRay(game, xPos, yPos, origin, direction);
-            direction.normalize(Settings.Z_FAR - Settings.Z_NEAR);
-
-            GameMap map = game.get(GameMap.class);
-            float t = map.gridMapIntersection(origin, direction);
-            if (t == 1) return;
-
-            Vector3f position = new Vector3f(direction).mul(t).add(origin);
-
-            Vector2i coordinate = map.getCoordinate(position);
-            Vector3f midSquare = map.getPosition(coordinate);
-
-            arrowPointer.setPosition(position, midSquare);
-            arrowPointer.isVisible = true;
-
-            if (cursorIsVisible && game.get(Settings.class).HIDE_CURSOR_ON_MAP) {
-                window.setCursorMode(CursorMode.HIDDEN_FREE);
-                cursorIsVisible = false;
-            }
-
-        } else {
-            arrowPointer.isVisible = false;
-
-            if (!cursorIsVisible) {
-                window.setCursorMode(CursorMode.VISIBLE);
-                cursorIsVisible = true;
-            }
-        }
     }
 
     @Override
@@ -214,46 +165,6 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     public SceneShader getUIShader() {
         return uiShader;
-    }
-
-    private static class Pointer {
-        private static final float SIZE = 2;
-        private Vector3f midSquare;
-        private Vector3f exact;
-        private Vector3f exactNegate;
-        private boolean isVisible;
-
-        private Pointer() {
-            this.midSquare = new Vector3f();
-            this.exact = new Vector3f();
-            this.exactNegate = new Vector3f();
-        }
-
-        public void draw(SGL gl) {
-            if (!isVisible) return;
-            gl.pushMatrix();
-            {
-                gl.translate(exact);
-                Toolbox.draw3DPointer(gl);
-                gl.translate(exactNegate);
-
-                gl.translate(midSquare);
-
-                if (gl.getShader() instanceof MaterialShader) {
-                    MaterialShader mShader = (MaterialShader) gl.getShader();
-                    mShader.setMaterial(Material.ROUGH, Color4f.BLUE);
-                }
-
-                gl.render(GenericShapes.SELECTION, null);
-            }
-            gl.popMatrix();
-        }
-
-        public void setPosition(Vector3fc position, Vector3fc midSquare) {
-            this.midSquare.set(midSquare);
-            this.exact.set(position);
-            this.exactNegate = exact.negate(exactNegate);
-        }
     }
 
     public class RenderBundle {

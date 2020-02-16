@@ -9,9 +9,7 @@ import NG.Camera.Camera;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
-import NG.Entities.Cube;
 import NG.Entities.CubeMonster;
-import NG.Entities.MovingEntity;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GUIMenu.HUDManager;
@@ -36,6 +34,7 @@ import NG.Rendering.RenderLoop;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
+import NG.Rendering.TilePointer;
 import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
@@ -55,7 +54,6 @@ import static NG.Rendering.Shapes.GenericShapes.CUBE;
  * @author Geert van Ieperen. Created on 28-9-2018.
  */
 public class MainMenu extends SFrame {
-    private static final int NOF_ENTITIES = 4 * 4 * 4;
 
     private final Game overworld;
     private final Game pocketworld;
@@ -113,7 +111,7 @@ public class MainMenu extends SFrame {
         FrameGUIManager targetGUI = overworld.get(FrameGUIManager.class);
         Vector3fc center = overworld.get(Camera.class).getEye();
 
-        overworld.get(RenderLoop.class).setArrowVisibility(false);
+        overworld.get(TilePointer.class).setVisible(false);
 
         targetGUI.addFrame(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
                 new STextArea("MR. TORGUE APPROVES", SButton.BUTTON_MIN_HEIGHT),
@@ -152,7 +150,7 @@ public class MainMenu extends SFrame {
 
             // set camera to middle of map
             Vector3f cameraFocus = centerCamera(overworld.get(Camera.class), gameMap);
-            overworld.get(RenderLoop.class).setArrowVisibility(true);
+            overworld.get(TilePointer.class).setVisible(true);
 
             /* --- DEBUG SECTION --- */
 
@@ -195,32 +193,6 @@ public class MainMenu extends SFrame {
         return cameraFocus;
     }
 
-    private void entityCloud() {
-        final int spacing = 100 / NOF_ENTITIES + 5;
-        int cbrtc = (int) Math.ceil(Math.cbrt(NOF_ENTITIES));
-
-        int i = NOF_ENTITIES;
-        cubing:
-        for (int x = 0; x < cbrtc; x++) {
-            for (int y = 0; y < cbrtc; y++) {
-                for (int z = 0; z < cbrtc; z++) {
-                    Vector3f pos = new Vector3f(x, y, z).mul(spacing);
-                    MovingEntity cube = new Cube(pos);
-                    overworld.get(GameState.class).addEntity(cube);
-                    if (--i == 0) break cubing;
-                }
-            }
-        }
-
-        Camera cam = overworld.get(Camera.class);
-        Vector3f cameraEye = new Vector3f(cbrtc, cbrtc, cbrtc).mul(spacing).add(10, 10, 10);
-        cam.set(Vectors.O, cameraEye);
-
-        overworld.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
-
-        modLoader.startGame();
-    }
-
     private void animationDisplay() {
         BodyModel[] models = BodyModel.values();
         BodyAnimation[] animations = BodyAnimation.values();
@@ -244,9 +216,8 @@ public class MainMenu extends SFrame {
         modelSelection.addStateChangeListener(i -> demonstrator.setModel(models[i]));
 
 
-        RenderLoop renderer = overworld.get(RenderLoop.class);
-        renderer.setArrowVisibility(false);
-        renderer.renderSequence(null)
+        overworld.get(TilePointer.class).setVisible(false);
+        overworld.get(RenderLoop.class).renderSequence(null)
                 .add(gl -> {
                     gl.translate(-1, -1, 0);
                     Toolbox.drawAxisFrame(gl);

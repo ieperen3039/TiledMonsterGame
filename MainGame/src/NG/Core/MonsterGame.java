@@ -25,9 +25,11 @@ import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.Lights.GameState;
 import NG.Rendering.Lights.SingleShadowMapLights;
+import NG.Rendering.Pointer;
 import NG.Rendering.RenderLoop;
 import NG.Rendering.Shaders.BlinnPhongShader;
 import NG.Rendering.Shaders.WorldBPShader;
+import NG.Rendering.TilePointer;
 import NG.Settings.KeyBinding;
 import NG.Settings.Settings;
 import NG.Storable;
@@ -64,6 +66,7 @@ public class MonsterGame implements ModLoader {
 
     private List<Mod> allMods;
     private List<Mod> activeMods = Collections.emptyList();
+    private final Pointer pointer;
 
     public MonsterGame() throws IOException {
         Logger.DEBUG.print("Showing splash...");
@@ -82,6 +85,7 @@ public class MonsterGame implements ModLoader {
         inputHandler = new MouseToolCallbacks();
         hud = new MonsterHud();
 //        hud = new FrameManagerImpl();
+        pointer = new TilePointer();
 
         GameService pocketGame = createWorld("pocket", mainThreadName, settings, thePlayer);
         pocketGame.add(new EmptyMap());
@@ -105,7 +109,7 @@ public class MonsterGame implements ModLoader {
 
         return new GameService(GAME_VERSION, mainThreadName,
                 eventLoop, gameState, lights, camera, particles, timer,
-                settings, window, renderer, inputHandler, hud, thePlayer
+                settings, window, renderer, inputHandler, hud, pointer, thePlayer
         );
     }
 
@@ -135,6 +139,9 @@ public class MonsterGame implements ModLoader {
         // particles
         renderer.renderSequence(new ParticleShader())
                 .add(gl -> combinedGame.get(GameParticles.class).draw(gl));
+        // pointer
+        renderer.renderSequence(null)
+                .add(gl -> combinedGame.get(TilePointer.class).draw(gl));
 
         // GUIs
         renderer.addHudItem(painter -> combinedGame.get(HUDManager.class).draw(painter));
