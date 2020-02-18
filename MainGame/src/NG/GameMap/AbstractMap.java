@@ -98,9 +98,12 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
 
         if (worldClip.x > 0) {
             coordPos.add(new Vector2f(coordDir).mul(worldClip.x));
+
             // negate rounding errors
-            coordPos.x = Math.round(coordPos.x);
-            coordPos.y = Math.round(coordPos.y);
+            int xRound = (int) (coordPos.x);
+            if (Math.abs(xRound - coordPos.x) < 0.0001f) coordPos.x = xRound;
+            int yRound = (int) (coordPos.y);
+            if (Math.abs(yRound - coordPos.y) < 0.0001f) coordPos.y = yRound;
 
         } else {
             // check this tile before setting up voxel ray casting
