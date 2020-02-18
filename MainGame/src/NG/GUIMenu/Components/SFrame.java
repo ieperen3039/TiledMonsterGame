@@ -6,19 +6,19 @@ import NG.GUIMenu.NGFonts;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.PANEL;
-
 /**
  * A Frame object similar to {@link javax.swing.JFrame} objects. The {@link #setMainPanel(SComponent)} can be used to
  * control over the contents of the SFrame.
  * @author Geert van Ieperen. Created on 20-9-2018.
  */
-public class SFrame extends SContainer {
-    public static final int INNER_BORDER = 4;
+public class SFrame extends SComponent {
     public static final int FRAME_TITLE_BAR_SIZE = 50;
+    private static final SFiller FILLER = new SFiller();
 
     private final String title;
-    private SContainer upperBar;
+    private final SPanel contents;
+    private final SContainer body;
+
     private boolean isDisposed = false;
     private STextArea titleComponent;
 
@@ -38,11 +38,12 @@ public class SFrame extends SContainer {
      * @see SPanel
      */
     public SFrame(String title, int width, int height, boolean manipulable) {
-        super(new SingleElementLayout());
         this.title = title;
 
+        SContainer upperBar;
         if (manipulable) {
             upperBar = makeUpperBar(title);
+
         } else {
             titleComponent = new STextArea(title, FRAME_TITLE_BAR_SIZE, 0, true, NGFonts.TextType.TITLE, SFrameLookAndFeel.Alignment.CENTER_TOP);
             upperBar = new SPanel(new SingleElementLayout(), true);
@@ -50,7 +51,13 @@ public class SFrame extends SContainer {
         }
         upperBar.setParent(this);
 
-        setMainPanel(new SPanel());
+        body = SContainer.singleton(FILLER);
+
+        contents = new SPanel(0, 0, 1, 2, true, true);
+        contents.setBorderVisible(false);
+        contents.add(upperBar, new Vector2i(0, 0));
+        contents.add(body, new Vector2i(0, 1));
+
         setSize(width, height);
         setGrowthPolicy(false, false);
     }
@@ -97,21 +104,8 @@ public class SFrame extends SContainer {
      * @return this
      */
     public SFrame setMainPanel(SComponent comp) {
-        comp.setPosition(0, upperBar.getHeight());
-        super.add(comp, null); // single element layout
+        body.add(comp, null);
         return this;
-    }
-
-    /**
-     * This method should not be used. The main panel should be modified, which can be set with {@link
-     * #setMainPanel(SComponent)}
-     * @throws UnsupportedOperationException always
-     * @deprecated this should not be used
-     */
-    @Deprecated
-    @Override
-    public void add(SComponent comp, Object prop) {
-        throw new UnsupportedOperationException("Tried adding components to a SFrame, which is illegal");
     }
 
     /**
@@ -124,20 +118,18 @@ public class SFrame extends SContainer {
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         if (!isVisible()) return;
-        // take offset into account for consistency.
-        design.draw(PANEL, screenPosition, dimensions);
-        upperBar.draw(design, screenPosition);
-        drawChildren(design, screenPosition);
+        design.draw(SFrameLookAndFeel.UIComponent.PANEL, screenPosition, dimensions);
+        contents.draw(design, screenPosition);
     }
 
     @Override
     public int minWidth() {
-        return Math.max(super.minWidth(), upperBar.minWidth());
+        return contents.minWidth();
     }
 
     @Override
     public int minHeight() {
-        return super.minHeight() + upperBar.minHeight();
+        return contents.minHeight();
     }
 
     @Override
@@ -147,10 +139,7 @@ public class SFrame extends SContainer {
 
     @Override
     public SComponent getComponentAt(int xRel, int yRel) {
-        if (upperBar.contains(xRel, yRel)) {
-            return upperBar.getComponentAt(xRel, yRel);
-        }
-        return super.getComponentAt(xRel, yRel);
+        return contents.getComponentAt(xRel, yRel);
     }
 
     @Override
@@ -160,14 +149,8 @@ public class SFrame extends SContainer {
 
     @Override
     public void doValidateLayout() {
+        contents.doValidateLayout();
         super.doValidateLayout();
-        upperBar.setSize(getWidth(), FRAME_TITLE_BAR_SIZE);
-        upperBar.validateLayout();
-    }
-
-    @Override
-    protected ComponentBorder getLayoutBorder() {
-        return new ComponentBorder(INNER_BORDER, INNER_BORDER, INNER_BORDER + upperBar.getHeight(), INNER_BORDER);
     }
 
     /**

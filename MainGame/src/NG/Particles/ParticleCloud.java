@@ -121,7 +121,7 @@ public class ParticleCloud implements Mesh {
             MemoryUtil.memFree(randomBuffer);
         }
 
-        Toolbox.checkGLError();
+        Toolbox.checkGLError(toString());
         bulk = null;
     }
 
@@ -205,7 +205,12 @@ public class ParticleCloud implements Mesh {
         return currentTime > startTime + maxTTL;
     }
 
+    /**
+     * @return true iff this cloud should be disposed
+     */
     public boolean disposeIfFaded(float currentTime) {
+        if (vaoId == 0) return true;
+
         if (hasFaded(currentTime)) {
             dispose();
             return true;
@@ -214,19 +219,15 @@ public class ParticleCloud implements Mesh {
     }
 
     public void dispose() {
-        glDisableVertexAttribArray(0);
-
         // Delete the VBOs
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDeleteBuffers(posMidVboID);
-        glDeleteBuffers(moveVboID);
-        glDeleteBuffers(colorVboID);
-        glDeleteBuffers(ttlVboID);
-        glDeleteBuffers(randVboID);
+        glDeleteBuffers(new int[]{posMidVboID, moveVboID, colorVboID, ttlVboID, randVboID});
 
         // Delete the VAO
         glBindVertexArray(0);
         glDeleteVertexArrays(vaoId);
+        vaoId = 0;
+        Toolbox.checkGLError(toString());
     }
 
     /**

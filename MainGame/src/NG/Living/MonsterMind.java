@@ -4,6 +4,7 @@ import NG.Actions.ActionFall;
 import NG.Actions.ActionIdle;
 import NG.Actions.BrokenMovementException;
 import NG.Actions.Commands.Command;
+import NG.Actions.Commands.CommandWalk;
 import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.Core.GameTimer;
@@ -11,6 +12,7 @@ import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
@@ -26,8 +28,6 @@ public abstract class MonsterMind {
     protected final MonsterSoul owner;
     protected MonsterEntity entity;
     protected Game game;
-
-    private float previousGameTime = -Float.MAX_VALUE;
 
     protected MonsterMind(MonsterSoul owner) {
         this.owner = owner;
@@ -47,13 +47,9 @@ public abstract class MonsterMind {
      * returns the next action to execute at the given game time.
      * @param gameTime planned time of execution of the action.
      * @param game     the game instance
-     * @param entity   the entity that is controlled.
      * @return the next action that the given entity should execute
      */
-    public EntityAction getNextAction(float gameTime, Game game, MonsterEntity entity) {
-        assert (gameTime >= previousGameTime) : "getNextAction calls in non-chronological order";
-        previousGameTime = gameTime;
-
+    public EntityAction getNextAction(float gameTime, Game game) {
         Pair<EntityAction, Float> action = entity.currentActions.getActionAt(gameTime);
         EntityAction previous = action.left;
         Vector3f position = previous.getPositionAt(action.right);
@@ -99,17 +95,24 @@ public abstract class MonsterMind {
         // if currently nothing is executed, trigger an action update
         if (executionTarget == null) {
             float now = game.get(GameTimer.class).getGametime();
-            EntityAction nextAction = getNextAction(now, game, entity);
+            EntityAction nextAction = getNextAction(now, game);
             entity.currentActions.insert(nextAction, now);
         }
     }
 
-    public EntityAction reactCollision(Game game, Entity other, float collisionTime) {
+    public EntityAction reactCollision(Entity other, float collisionTime) {
         Vector3f thisPos = entity.getPositionAt(collisionTime);
         Vector3f otherPos = other.getPositionAt(collisionTime);
         Vector3f otherToThis = thisPos.sub(otherPos, otherPos);
-        executionTarget = null;
 
-        return new ActionFall(thisPos, otherToThis, game.get(GameMap.class));
+        Vector2i landingCoord = game.get(GameMap.class).getCoordinate(thisPos);
+        landingCoord.add(
+                otherToThis.x() == 0 ? 0 : (otherToThis.x() > 0 ? 1 : -1),
+                otherToThis.y() == 0 ? 0 : (otherToThis.y() > 0 ? 1 : -1)
+        );
+
+        executionTarget = new CommandWalk(owner, owner, landingCoord);
+
+        return new ActionFall(thisPos, otherToThis, 2);
     }
 }

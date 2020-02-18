@@ -129,9 +129,10 @@ public abstract class AbstractMesh implements Mesh {
      */
     public static void cleanAll() {
         while (!loadedMeshes.isEmpty()) {
-            loadedMeshes.peek().dispose();
+            AbstractMesh mesh = loadedMeshes.peek();
+            mesh.dispose();
+            Toolbox.checkGLError(mesh.toString());
         }
-        Toolbox.checkGLError();
     }
 
     /**

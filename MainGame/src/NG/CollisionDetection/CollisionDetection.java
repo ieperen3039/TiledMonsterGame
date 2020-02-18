@@ -5,9 +5,7 @@ import NG.DataStructures.Generic.ConcurrentArrayList;
 import NG.DataStructures.Generic.Pair;
 import NG.DataStructures.Generic.PairList;
 import NG.Entities.Entity;
-import NG.Entities.MonsterEntity;
 import NG.Entities.MovingEntity;
-import NG.GameMap.GameMap;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.AABBf;
@@ -179,14 +177,6 @@ public class CollisionDetection {
         // this may change with previous collisions
         if (a.isDisposed() || b.isDisposed() || a == b) return false;
 
-        // special case for maps
-        if (a instanceof MonsterEntity && b instanceof GameMap) {
-            return mapCollision(gameTime, a, (GameMap) b);
-
-        } else if (a instanceof GameMap && b instanceof MonsterEntity) {
-            return mapCollision(gameTime, b, (GameMap) a);
-        }
-
         float bFrac = checkAtoB(alpha, b, gameTime);
         float aFrac = checkAtoB(beta, a, gameTime);
 
@@ -202,15 +192,6 @@ public class CollisionDetection {
         a.collideWith(b, collisionTime);
         b.collideWith(a, collisionTime);
 
-        return true;
-    }
-
-    private boolean mapCollision(float gameTime, Entity a, GameMap map) {
-        float hitFrac = map.checkCollision(a, previousTime, gameTime);
-        if (hitFrac == 1) return false;
-
-        float collisionTime = previousTime + hitFrac * (previousTime - gameTime);
-        a.collideWith(map, collisionTime);
         return true;
     }
 

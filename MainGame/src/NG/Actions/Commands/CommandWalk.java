@@ -19,8 +19,8 @@ import java.util.Iterator;
 public class CommandWalk extends Command {
     private final Vector2ic target;
 
-    public CommandWalk(Living source, Living receiver, Vector2ic position, float gameTime) {
-        super(source, receiver, gameTime);
+    public CommandWalk(Living source, Living receiver, Vector2ic position) {
+        super(source, receiver);
         this.target = new Vector2i(position);
     }
 
@@ -35,24 +35,25 @@ public class CommandWalk extends Command {
                 .findPath(beginCoord, target, walkSpeed, 0.1f)
                 .iterator();
 
-        if (!path.hasNext()) {
+        if (path.hasNext()) {
+            beginCoord = path.next();
+
+        } else {
             Vector3fc tgtPos = map.getPosition(beginCoord);
             if (Vectors.almostEqual(tgtPos, beginPosition)) return null; // already there
-
-            if (beginPosition.z() > map.getHeightAt(beginCoord)) {
-                return new ActionJump(beginPosition, map.getPosition(beginCoord), walkSpeed);
-            }
-            return new ActionWalk(game, beginPosition, beginCoord, walkSpeed);
         }
 
-        return new ActionWalk(game, beginPosition, path.next(), walkSpeed);
+        if (beginPosition.z() > (map.getHeightAt(beginPosition.x(), beginPosition.y()) + EntityAction.ON_GROUND_EPSILON)) {
+            return new ActionJump(beginPosition, map.getPosition(beginCoord), walkSpeed * 2);
+        }
+        return new ActionWalk(game, beginPosition, beginCoord, walkSpeed);
     }
 
-    public static CommandSelection.CommandProvider walkCommand(float gameTime) {
+    public static CommandSelection.CommandProvider walkCommand() {
         return new CommandSelection.CommandProvider("Walk") {
             @Override
             public Command create(Living source, Living receiver, Vector2ic target) {
-                return new CommandWalk(source, receiver, target, gameTime);
+                return new CommandWalk(source, receiver, target);
             }
         };
     }

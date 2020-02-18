@@ -243,7 +243,7 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         Vector3f position = previous.getPositionAt(startTime - prevStart);
         if (!position.equals(action.getStartPosition())) {
             lockQueueEdit.unlock();
-            throw new BrokenMovementException(action, previous, startTime - prevStart);
+            throw new BrokenMovementException(previous, action, startTime - prevStart);
         }
 
         // shift last actions into the queue

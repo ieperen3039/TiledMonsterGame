@@ -356,8 +356,13 @@ public final class NVGOverlay {
         }
 
         @Override
-        public int createImageFromTexture(int textureID, int w, int h) {
-            return nvglCreateImageFromHandle(vg, textureID, w, h, NVG_IMAGE_NEAREST);
+        public int createImageFromBuffer(ByteBuffer buffer, int width, int height) {
+            return nvgCreateImageRGBA(vg, width, height, NVG_IMAGE_NEAREST, buffer);
+        }
+
+        @Override
+        public void updateImageFromBuffer(int nvgID, ByteBuffer buffer) {
+            nvgUpdateImage(vg, nvgID, buffer);
         }
 
         @Override

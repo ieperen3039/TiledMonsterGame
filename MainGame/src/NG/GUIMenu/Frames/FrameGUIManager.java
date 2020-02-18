@@ -4,7 +4,7 @@ import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.HUDManager;
+import NG.GUIMenu.HUD.HUDManager;
 
 /**
  * A class that manages frames of a game. New {@link SFrame} objects can be added using {@link #addFrame(SFrame)}

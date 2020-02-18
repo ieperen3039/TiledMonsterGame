@@ -181,8 +181,9 @@ public class SPanel extends SContainer {
         return row;
     }
 
-    public void setBorderVisible(boolean doVisible) {
+    public SPanel setBorderVisible(boolean doVisible) {
         this.border = doVisible;
+        return this;
     }
 
     @Override

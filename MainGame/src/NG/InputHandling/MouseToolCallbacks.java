@@ -3,7 +3,7 @@ package NG.InputHandling;
 import NG.Core.Game;
 import NG.Core.GameAspect;
 import NG.DataStructures.Tracked.TrackedFloat;
-import NG.GUIMenu.HUDManager;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;

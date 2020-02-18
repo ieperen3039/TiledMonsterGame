@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  * @author Geert van Ieperen created on 12-1-2018.
  */
 public final class Particles {
-    public static final float FIRE_LINGER_TIME = 2f;
+    public static final float FIRE_LINGER_TIME = 1f;
     public static final int EXPLOSION_BASE_DENSITY = 1000;
 
     /**

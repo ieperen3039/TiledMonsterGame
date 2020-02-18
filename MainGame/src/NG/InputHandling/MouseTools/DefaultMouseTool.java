@@ -11,7 +11,7 @@ import NG.Entities.MonsterEntity;
 import NG.Entities.Projectiles.ProjectilePowerBall;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
-import NG.GUIMenu.HUDManager;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
@@ -20,6 +20,7 @@ import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameState;
+import NG.Rendering.Pointer;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -95,6 +96,10 @@ public class DefaultMouseTool implements MouseTool {
 
     @Override
     public void apply(Vector3fc position, int xSc, int ySc) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            selected = null;
+        }
+
         if (selected != null) {
             Logger.DEBUG.print("Clicked at " + Vectors.toString(position) + " with " + selected + " selected");
 
@@ -102,12 +107,12 @@ public class DefaultMouseTool implements MouseTool {
             float gameTime = game.get(GameTimer.class).getGametime();
             GameMap gameMap = game.get(GameMap.class);
             Vector2i coord = gameMap.getCoordinate(position);
-            gameMap.setHighlights(coord);
+            game.get(Pointer.class).setSelection(coord);
 
             CommandSelection commandSelector = new CommandSelection(game, game.get(Player.class), controller, coord,
-                    CommandWalk.walkCommand(gameTime),
+                    CommandWalk.walkCommand(),
                     ProjectilePowerBall.fireCommand(game),
-                    CommandSelection.actionCommand("Jump", ActionJump::new, gameTime)
+                    CommandSelection.actionCommand("Jump", ActionJump::new)
             );
 
             if (selectionFrame == null || selectionFrame.isDisposed()) {
@@ -130,6 +135,7 @@ public class DefaultMouseTool implements MouseTool {
 
         } else {
             Logger.DEBUG.print("Clicked at " + Vectors.toString(position));
+            game.get(Pointer.class).setSelection(null);
         }
     }
 

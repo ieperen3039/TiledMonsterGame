@@ -44,7 +44,7 @@ public class MonsterMindSimple extends MonsterMind {
                         Vector3f ePos = entity.getPositionAt(gameTime);
                         Vector2i tgt = game.get(GameMap.class).getCoordinate(ePos);
                         tgt.add(rng.nextInt(5) - 2, rng.nextInt(5) - 2);
-                        CommandWalk walk = new CommandWalk(owner, owner, tgt, gameTime);
+                        CommandWalk walk = new CommandWalk(owner, owner, tgt);
 
                         queueCommand(game, walk);
                     }

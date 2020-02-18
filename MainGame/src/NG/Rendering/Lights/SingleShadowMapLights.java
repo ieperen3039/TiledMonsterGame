@@ -129,7 +129,7 @@ public class SingleShadowMapLights implements GameLights {
             }
             shadowShader.unbind();
 
-            Toolbox.checkGLError();
+            Toolbox.checkGLError(toString());
         }
     }
 

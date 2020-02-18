@@ -96,7 +96,7 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
         createUniform("modelMatrix");
         createUniform("normalMatrix");
 
-        Toolbox.checkGLError();
+        Toolbox.checkGLError(toString());
     }
 
     @Override

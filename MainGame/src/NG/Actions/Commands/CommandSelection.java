@@ -104,11 +104,11 @@ public class CommandSelection {
      * @return an action command. Takes a lambda function for creating an action, and generates commands that try to
      * execute the given action exactly once..
      */
-    public static CommandProvider actionCommand(String name, ActionCreator action, float gameTime) {
+    public static CommandProvider actionCommand(String name, ActionCreator action) {
         return new CommandSelection.CommandProvider(name) {
             @Override
             public Command create(Living source, Living receiver, Vector2ic target) {
-                return new Command(source, receiver, gameTime) {
+                return new Command(source, receiver) {
                     boolean hasFired = false;
 
                     @Override

@@ -5,8 +5,8 @@ import NG.Camera.TycoonFixedCamera;
 import NG.CollisionDetection.BoundingBox;
 import NG.CollisionDetection.PhysicsEngine;
 import NG.DataStructures.Generic.Color4f;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.GUIMenu.HUD.MonsterHud;
-import NG.GUIMenu.HUDManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameEvent.EventLoop;
 import NG.GameEvent.GameEventQueueLoop;
@@ -123,6 +123,9 @@ public class MonsterGame implements ModLoader {
         // init all fields
         renderer.init(combinedGame);
         inputHandler.init(combinedGame);
+        hud.init(combinedGame);
+        pointer.init(combinedGame);
+
         pocketGame.init();
         worldGame.init();
 
@@ -135,13 +138,12 @@ public class MonsterGame implements ModLoader {
         // entities
         renderer.renderSequence(new BlinnPhongShader())
                 .add(gl -> combinedGame.get(GameLights.class).draw(gl))
-                .add(gl -> combinedGame.get(GameState.class).draw(gl));
+                .add(gl -> combinedGame.get(GameState.class).draw(gl))
+                // pointer
+                .add(gl -> combinedGame.get(TilePointer.class).draw(gl));
         // particles
         renderer.renderSequence(new ParticleShader())
                 .add(gl -> combinedGame.get(GameParticles.class).draw(gl));
-        // pointer
-        renderer.renderSequence(null)
-                .add(gl -> combinedGame.get(TilePointer.class).draw(gl));
 
         // GUIs
         renderer.addHudItem(painter -> combinedGame.get(HUDManager.class).draw(painter));
@@ -199,19 +201,17 @@ public class MonsterGame implements ModLoader {
 
         final Color4f HALOGEN = Color4f.rgb(255, 241, 224);
         pocketGame.get(GameLights.class).
-
                 addDirectionalLight(new Vector3f(1, 1, 2), HALOGEN, 0.8f);
-        worldGame.get(GameLights.class).
 
+        worldGame.get(GameLights.class).
                 addDirectionalLight(new Vector3f(2, 1.5f, 0.5f), Color4f.WHITE, 0.5f);
 
         Logger.DEBUG.print("Booting game loops...");
 
         pocketGame.getAll(GameEventQueueLoop.class).
-
                 forEach(Thread::start);
-        worldGame.getAll(GameEventQueueLoop.class).
 
+        worldGame.getAll(GameEventQueueLoop.class).
                 forEach(Thread::start);
 
         Logger.INFO.print("Finished initialisation");

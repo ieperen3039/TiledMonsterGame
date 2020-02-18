@@ -12,7 +12,7 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Entities.CubeMonster;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
-import NG.GUIMenu.HUDManager;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
@@ -163,9 +163,9 @@ public class MainMenu extends SFrame {
             MonsterSoul monsterSoul3 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
             state.addEntity(monsterSoul3.getAsEntity(overworld, position.add(2, 0), Vectors.X));
 
-            monsterSoul1.mind().queueCommand(overworld, new CommandWalk(monsterSoul1, monsterSoul1, position, 0));
+            monsterSoul1.mind().queueCommand(overworld, new CommandWalk(monsterSoul1, monsterSoul1, position));
             monsterSoul2.mind()
-                    .queueCommand(overworld, new CommandWalk(monsterSoul2, monsterSoul2, position.sub(4, 0), 0));
+                    .queueCommand(overworld, new CommandWalk(monsterSoul2, monsterSoul2, position.sub(4, 0)));
 
             List<MonsterSoul> team = overworld.get(Player.class).team;
             team.add(monsterSoul1);

@@ -37,7 +37,11 @@ public class SProgressBar extends SComponent {
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         design.draw(PANEL, screenPosition, dimensions);
-        Vector2i bar = new Vector2i(dimensions.x, (int) (dimensions.y * progress.get()));
-        design.draw(SELECTION, screenPosition, bar);
+        Float heath = progress.get();
+
+        if (heath > 0) {
+            Vector2i bar = new Vector2i((int) (dimensions.x * heath), dimensions.y);
+            design.draw(SELECTION, screenPosition, bar);
+        }
     }
 }

@@ -7,7 +7,7 @@ import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.HUDManager;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseScrollListener;
 import NG.InputHandling.MouseTools.MouseTool;

@@ -1,10 +1,11 @@
-package NG.GUIMenu;
+package NG.GUIMenu.HUD;
 
 import NG.Core.Game;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SContainer;
 import NG.GUIMenu.Components.SPanel;
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.GUIPainter;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
 import org.joml.Vector2i;

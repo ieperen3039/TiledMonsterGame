@@ -1,16 +1,16 @@
 package NG.GUIMenu.HUD;
 
+import NG.Camera.Camera;
 import NG.Core.Game;
 import NG.GUIMenu.BaseLF;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.SimpleHUD;
 import NG.GameMap.GameMap;
-import NG.GameMap.MiniMapTexture;
+import NG.InputHandling.MouseToolCallbacks;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.Textures.GenericTextures;
-import NG.Tools.Logger;
+import org.joml.Vector2i;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ import java.util.Map;
  * @author Geert van Ieperen created on 15-7-2019.
  */
 public class MonsterHud extends SimpleHUD {
-    private static final int UI_MAP_SIZE = 200;
+    private static final int UI_INFO_BAR_SIZE = 350;
     private static final int TEAM_SELECT_MIN_SIZE = 100;
     private static final int TEXT_BOX_HEIGHT = 200;
 
@@ -29,7 +29,7 @@ public class MonsterHud extends SimpleHUD {
 
     private Map<MonsterSoul, SPanel> teamPanels = new HashMap<>();
 
-    private SComponent minimap;
+    private MiniMap minimap;
     private SComponentArea textBox;
     private SScrollableList teamSelection;
 
@@ -42,13 +42,11 @@ public class MonsterHud extends SimpleHUD {
         if (this.game != null) return;
         super.init(game);
 
-        MiniMapTexture mapTexture = new MiniMapTexture(game.get(GameMap.class));
-        minimap = new STexturedPanel(GenericTextures.CHECKER, UI_MAP_SIZE, UI_MAP_SIZE);
+        minimap = new MiniMap(game, UI_INFO_BAR_SIZE, UI_INFO_BAR_SIZE);
 
-        textBox = new SComponentArea(10, TEXT_BOX_HEIGHT);
-        textBox.setGrowthPolicy(true, false);
-        teamSelection = new SScrollableList(1, new SPanel());
-        Logger.printOnline(() -> "Team members: " + game.get(Player.class).team.size());
+        textBox = new SComponentArea(UI_INFO_BAR_SIZE, TEXT_BOX_HEIGHT);
+        textBox.setGrowthPolicy(false, false);
+        teamSelection = new SScrollableList(5);
 
 //        textBox.show(new SPanel());
 
@@ -64,7 +62,7 @@ public class MonsterHud extends SimpleHUD {
                                 false, true,
                                 minimap,
                                 teamSelection
-                        )
+                        ).setBorderVisible(true)
                 )
         );
     }
@@ -80,12 +78,15 @@ public class MonsterHud extends SimpleHUD {
             }
         }
 
+        Vector2i focusCoord = game.get(GameMap.class).getCoordinate(game.get(Camera.class).getFocus());
+        minimap.setFocus(focusCoord);
+
+        super.draw(painter);
+
         for (SComponent e : freeFloatingElements) {
             e.validateLayout();
             e.draw(lookAndFeel, e.getPosition());
         }
-
-        super.draw(painter);
     }
 
     @Override
@@ -129,13 +130,20 @@ public class MonsterHud extends SimpleHUD {
     }
 
     private SPanel getMonsterPanel(MonsterSoul soul) {
-        SProgressBar healthBar = new SProgressBar(0, 0, () -> ((float) soul.getHitpoints() / soul.stats.hitPoints));
-        return SPanel.row(
-                new STexturedPanel(GenericTextures.CHECKER, true),
-                SPanel.column(
-                        healthBar,
-                        new STextArea(soul.toString(), 0)
-                )
+        SProgressBar healthBar = new SProgressBar(0, 20, () -> ((float) soul.getHitpoints() / soul.stats.hitPoints));
+        SExtendedTextArea name = new SExtendedTextArea(soul.toString(), 50, true);
+        name.setClickListener(
+                (button, x, y) -> game.get(MouseToolCallbacks.class)
+                        .getDefaultMouseTool()
+                        .apply(soul.entity(), x, y)
         );
+
+        return SPanel.row(
+                new STexturedPanel(GenericTextures.CHECKER, true, true),
+                SPanel.column(
+                        name,
+                        healthBar
+                )
+        ).setBorderVisible(true);
     }
 }

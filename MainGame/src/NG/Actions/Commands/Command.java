@@ -12,7 +12,7 @@ public abstract class Command {
     private final Living source; // may be equal
     private final Living target;
 
-    protected Command(Living source, Living target, float gameTime) {
+    protected Command(Living source, Living target) {
         this.source = source;
         this.target = target;
     }
@@ -27,11 +27,12 @@ public abstract class Command {
     /**
      * transforms the command into an action that is executed by the given entity and starts on the given moment in
      * time.
-     * @param game      the current game instance
+     * @param game          the current game instance
      * @param startPosition the last action executed
-     * @param gameTime the current game time
-     * @return a list {@code l} of actions, sorted on first action first, such that they corresponds exactly to this command, and it holds that {@code
-     * l.get(0).}{@link EntityAction#follows(EntityAction) follows}{@code (preceding)}
+     * @param gameTime
+     * @return a list {@code l} of actions, sorted on first action first, such that they corresponds exactly to this
+     * command, and it holds that {@code l.get(0).}{@link EntityAction#follows(EntityAction) follows}{@code
+     * (preceding)}
      */
     public abstract EntityAction getAction(Game game, Vector3fc startPosition, float gameTime);
 

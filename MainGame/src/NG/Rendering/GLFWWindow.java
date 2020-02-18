@@ -122,7 +122,7 @@ public class GLFWWindow {
         // set polygons to fill
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        Toolbox.checkGLError();
+        Toolbox.checkGLError(toString());
     }
 
     /**

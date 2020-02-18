@@ -3,6 +3,7 @@ package NG.Rendering;
 import NG.Core.GameAspect;
 import NG.InputHandling.MousePositionListener;
 import NG.Rendering.MatrixStack.SGL;
+import org.joml.Vector2i;
 import org.joml.Vector3fc;
 
 /**
@@ -27,4 +28,10 @@ public interface Pointer extends GameAspect, MousePositionListener {
      * @param position the position of the pointer.
      */
     void setPosition(Vector3fc position);
+
+    /**
+     * Sets the given coordinate to a visually 'selected' state.
+     * @param coordinate the coordinate to be selected
+     */
+    void setSelection(Vector2i coordinate);
 }

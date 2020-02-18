@@ -22,7 +22,7 @@ class SScrollBar extends SComponent {
     private static final int DRAG_BAR_MIN_SIZE = 15;
 
     private final List<SScrollBarListener> listeners = new ArrayList<>();
-    private final List<SComponent> elements;
+    private final SComponent[] elements;
 
     private final SButton scrollUp;
     private final SButton scrollDown;
@@ -41,7 +41,7 @@ class SScrollBar extends SComponent {
      * @param current the output value to start with
      */
     public SScrollBar(int minimum, int maximum, int current) {
-        assert maximum > minimum;
+        assert maximum > minimum || maximum == 0;
         assert current >= minimum;
         assert current <= maximum;
 
@@ -52,17 +52,16 @@ class SScrollBar extends SComponent {
         this.scrollDown = new SButton("\\/", this::down, SCROLL_BUTTON_SIZE, SCROLL_BUTTON_SIZE);
         this.dragBar = new SDragBar();
 
-        elements = new ArrayList<>(3);
-        elements.add(scrollUp);
-        elements.add(dragBar);
-        elements.add(scrollDown);
+        elements = new SComponent[3];
+        elements[0] = scrollUp;
+        elements[1] = dragBar;
+        elements[2] = scrollDown;
         setGrowthPolicy(false, true);
-
     }
 
     public SScrollBar(int totalElts, int shownElts) {
-        this(0, Math.max(1, totalElts - shownElts), 0);
-        this.barSizeFraction = Math.max(1, (float) shownElts / totalElts);
+        this(0, Math.max(totalElts - shownElts, 0), 0);
+        this.barSizeFraction = (totalElts == 0) ? 1 : (float) shownElts / totalElts;
     }
 
     public void addListener(SScrollBarListener listener) {
@@ -86,7 +85,7 @@ class SScrollBar extends SComponent {
     }
 
     private void alignDragBar() {
-        dragBarOffsetFraction = (float) (currentInd - minimumInd) / (maximumInd - minimumInd);
+        dragBarOffsetFraction = (maximumInd == 0) ? 0 : (float) (currentInd - minimumInd) / (maximumInd - minimumInd);
         positionDragbar(dragBarOffsetFraction);
     }
 
@@ -160,6 +159,12 @@ class SScrollBar extends SComponent {
 
     public int getIndex() {
         return currentInd;
+    }
+
+    public void resize(int newTotalElts, int newShownElts) {
+        maximumInd = Math.max(newTotalElts - newShownElts, 0);
+        this.barSizeFraction = (newTotalElts == 0) ? 1 : (float) newShownElts / newTotalElts;
+        positionDragbar(dragBarOffsetFraction);
     }
 
     /**

@@ -89,6 +89,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     @Override
     protected void update(float deltaTime) {
+        Toolbox.checkGLError("Pre-loop");
         timeObserver.startNewLoop();
 
         // current time
@@ -107,12 +108,14 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         glViewport(0, 0, window.getWidth(), window.getHeight());
         glEnable(GL_LINE_SMOOTH);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        Toolbox.checkGLError("Lights & Setup");
 
         for (RenderBundle renderBundle : renders.values()) {
             String identifier = renderBundle.shader.getClass().getSimpleName();
             timeObserver.startTiming(identifier);
             renderBundle.draw();
             timeObserver.endTiming(identifier);
+            Toolbox.checkGLError(identifier);
         }
 
         int windowWidth = window.getWidth();
@@ -120,12 +123,13 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         timeObserver.startTiming("GUI");
         overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
         timeObserver.endTiming("GUI");
+        Toolbox.checkGLError("GUI");
 
         // update window
         window.update();
 
         // loop clean
-        Toolbox.checkGLError();
+        Toolbox.checkGLError("Render loop");
         if (window.shouldClose()) stopLoop();
 
         timeObserver.startTiming("Loop Overhead");

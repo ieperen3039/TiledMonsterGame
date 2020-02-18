@@ -100,7 +100,7 @@ public abstract class MonsterEntity implements MovingEntity {
     public void update(float gameTime) {
         float lastActionEnd = currentActions.lastActionEnd();
         if (gameTime >= lastActionEnd) {
-            EntityAction next = controller.mind().getNextAction(lastActionEnd, game, controller.entity());
+            EntityAction next = controller.mind().getNextAction(lastActionEnd, game);
             currentActions.insert(next, lastActionEnd);
         }
 
@@ -157,7 +157,7 @@ public abstract class MonsterEntity implements MovingEntity {
     @Override
     public void collideWith(Entity other, float collisionTime) {
         MonsterMind mind = controller.mind();
-        EntityAction nextAction = mind.reactCollision(game, other, collisionTime);
+        EntityAction nextAction = mind.reactCollision(other, collisionTime);
         currentActions.insert(nextAction, collisionTime);
     }
 
@@ -166,7 +166,7 @@ public abstract class MonsterEntity implements MovingEntity {
         EntityAction action = currentActions.getActionAt(collisionTime).left;
         if (!action.hasWorldCollision()) return;
 
-        EntityAction nextAction = controller.mind().getNextAction(collisionTime, game, controller.entity());
+        EntityAction nextAction = controller.mind().getNextAction(collisionTime, game);
         currentActions.insert(nextAction, collisionTime);
     }
 

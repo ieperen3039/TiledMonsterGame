@@ -111,10 +111,10 @@ public class Color4f {
                 .split(", ");
 
         return new Color4f(
-                Float.valueOf(numbers[0]),
-                Float.valueOf(numbers[1]),
-                Float.valueOf(numbers[2]),
-                Float.valueOf(numbers[3])
+                Float.parseFloat(numbers[0]),
+                Float.parseFloat(numbers[1]),
+                Float.parseFloat(numbers[2]),
+                Float.parseFloat(numbers[3])
         );
     }
 

@@ -17,7 +17,7 @@ public class CommandAttack extends Command {
     private Projectile elt;
 
     public CommandAttack(Living source, MonsterEntity entity, Projectile projectile, float gameTime) {
-        super(source, entity.getController(), gameTime);
+        super(source, entity.getController());
         this.entity = entity;
         elt = projectile;
     }

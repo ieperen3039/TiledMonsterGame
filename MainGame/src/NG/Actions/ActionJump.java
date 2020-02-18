@@ -25,7 +25,7 @@ public class ActionJump implements EntityAction {
     private final float c;
 
     public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord) {
-        this(game, startPosition, endCoord, 2f);
+        this(game, startPosition, endCoord, 8f);
     }
 
     public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord, float jumpSpeed) {
@@ -69,16 +69,16 @@ public class ActionJump implements EntityAction {
     }
 
     public static float jumpDuration(float jumpSpeed, Vector3fc startPosition, Vector3fc endPosition) {
-        float distance = startPosition.distance(endPosition); // not entirely true, as this does not take z into account
-        return (distance < 1 / 128f ? 0 : (jumpSpeed / distance)) + 1;
+        float distance = startPosition.distance(endPosition); // not entirely true, as this does take z into account
+        return (distance < (1 / 128f)) ? 0 : (distance / jumpSpeed);
     }
 
     @Override
     public Vector3f getPositionAt(float timeSinceStart) {
         if (timeSinceStart <= 0) return new Vector3f(start);
 
-        float fraction = Math.max(Toolbox.interpolate(-.3f, 1f, timeSinceStart / duration), 0);
-        float x = duration * fraction; // NOT timeSinceStart
+        float fraction = timeSinceStart / duration;
+        final float x = timeSinceStart;
 
         return new Vector3f(
                 Toolbox.interpolate(start.x(), end.x(), fraction),

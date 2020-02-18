@@ -1,8 +1,9 @@
-package NG.GUIMenu;
+package NG.GUIMenu.HUD;
 
 import NG.Core.GameAspect;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.GUIPainter;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import org.joml.Vector2ic;

@@ -18,17 +18,16 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 16-2-2020.
  */
 public class TilePointer implements Pointer {
-    private Vector3f midSquare;
+    private Vector3f midSelection;
     private Vector3f exactPosition;
-    private Vector3f exactNegate;
-    private boolean isVisible;
+    private boolean pointerIsVisible = true;
+    private boolean selectionIsVisible = false;
     private boolean cursorIsVisible = true;
     private Game game;
 
     public TilePointer() {
-        this.midSquare = new Vector3f();
+        this.midSelection = new Vector3f();
         this.exactPosition = new Vector3f();
-        this.exactNegate = new Vector3f();
     }
 
     public void init(Game game) {
@@ -39,7 +38,11 @@ public class TilePointer implements Pointer {
 
     @Override
     public void setVisible(boolean doVisible) {
-        isVisible = doVisible;
+        pointerIsVisible = doVisible;
+
+        if (!doVisible && game != null) {
+            game.get(GameMap.class).setHighlights();
+        }
     }
 
     public void mouseMoved(int xPos, int yPos) {
@@ -58,7 +61,7 @@ public class TilePointer implements Pointer {
             Vector3f position = new Vector3f(direction).mul(t).add(origin);
 
             setPosition(position);
-            isVisible = true;
+            pointerIsVisible = true;
 
             if (cursorIsVisible && game.get(Settings.class).HIDE_CURSOR_ON_MAP) {
                 window.setCursorMode(CursorMode.HIDDEN_FREE);
@@ -66,7 +69,7 @@ public class TilePointer implements Pointer {
             }
 
         } else {
-            isVisible = false;
+            pointerIsVisible = false;
 
             if (!cursorIsVisible) {
                 window.setCursorMode(CursorMode.VISIBLE);
@@ -75,26 +78,31 @@ public class TilePointer implements Pointer {
         }
     }
 
-
     @Override
     public void draw(SGL gl) {
-        if (!isVisible) return;
-        gl.pushMatrix();
-        {
-            gl.translate(exactPosition);
-            Toolbox.draw3DPointer(gl);
-            gl.translate(exactNegate);
-
-            gl.translate(midSquare);
-
-            if (gl.getShader() instanceof MaterialShader) {
-                MaterialShader mShader = (MaterialShader) gl.getShader();
-                mShader.setMaterial(Material.ROUGH, Color4f.BLUE);
+        if (pointerIsVisible) {
+            gl.pushMatrix();
+            {
+                gl.translate(exactPosition);
+                Toolbox.draw3DPointer(gl);
             }
-
-            gl.render(GenericShapes.SELECTION, null);
+            gl.popMatrix();
         }
-        gl.popMatrix();
+
+        if (selectionIsVisible) {
+            gl.pushMatrix();
+            {
+                gl.translate(midSelection);
+
+                if (gl.getShader() instanceof MaterialShader) {
+                    MaterialShader mShader = (MaterialShader) gl.getShader();
+                    mShader.setMaterial(Material.ROUGH, Color4f.BLUE);
+                }
+
+                gl.render(GenericShapes.SELECTION, null);
+            }
+            gl.popMatrix();
+        }
     }
 
     @Override
@@ -102,17 +110,28 @@ public class TilePointer implements Pointer {
         GameMap map = game.get(GameMap.class);
 
         Vector2i coordinate = map.getCoordinate(position);
-        Vector3f midSquare = map.getPosition(coordinate);
+        if (pointerIsVisible) map.setHighlights(coordinate);
 
-        map.setHighlights(coordinate);
-
-        this.midSquare.set(midSquare);
         this.exactPosition.set(position);
-        this.exactNegate = exactPosition.negate(exactNegate);
+    }
+
+    @Override
+    public void setSelection(Vector2i coordinate) {
+        if (coordinate == null) {
+            selectionIsVisible = false;
+
+        } else {
+            selectionIsVisible = true;
+            GameMap map = game.get(GameMap.class);
+
+            Vector3f midSquare = map.getPosition(coordinate);
+            this.midSelection.set(midSquare);
+        }
     }
 
     @Override
     public void cleanup() {
+        pointerIsVisible = false;
         game.get(KeyMouseCallbacks.class).removeListener(this);
     }
 }

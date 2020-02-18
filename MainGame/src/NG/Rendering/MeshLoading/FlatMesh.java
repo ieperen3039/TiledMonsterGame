@@ -109,7 +109,7 @@ public class FlatMesh extends AbstractMesh {
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-        Toolbox.checkGLError();
+        Toolbox.checkGLError(toString());
     }
 
     /**

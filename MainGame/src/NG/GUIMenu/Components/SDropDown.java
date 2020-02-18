@@ -1,7 +1,7 @@
 package NG.GUIMenu.Components;
 
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
-import NG.GUIMenu.HUDManager;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.GUIMenu.NGFonts;
 import NG.InputHandling.MouseRelativeClickListener;
 import org.joml.Vector2i;

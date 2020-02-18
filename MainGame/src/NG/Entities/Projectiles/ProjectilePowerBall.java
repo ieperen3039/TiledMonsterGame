@@ -30,9 +30,9 @@ import org.joml.Vector3fc;
  */
 public class ProjectilePowerBall extends Projectile {
     private static final GenericShapes mesh = GenericShapes.ICOSAHEDRON;
-    private static final int POWER = 10;
+    private static final int EXPLOSION_POWER = 10;
     private static final float HITBOX_SCALAR = 0.4f;
-    private static final int BASE_DAMAGE = 100;
+    private static final int BASE_DAMAGE = 25;
     private final float speed;
     private final BoundingBox boundingBox;
     private final DamageType damageType;
@@ -48,7 +48,8 @@ public class ProjectilePowerBall extends Projectile {
                 game.get(GameMap.class)
                         .getPosition(endCoordinate)
                         .add(0, 0, size * HITBOX_SCALAR),
-                speed, size);
+                speed, size
+        );
     }
 
     public ProjectilePowerBall(Game game, Entity source, Vector3fc endPosition, float speed, float size) {
@@ -104,7 +105,7 @@ public class ProjectilePowerBall extends Projectile {
                 new Color4f(1, 0, 0),
                 new Color4f(0.5f, 0.2f, 0),
                 (int) (game.get(Settings.class).PARTICLE_MODIFIER * Particles.EXPLOSION_BASE_DENSITY),
-                Particles.FIRE_LINGER_TIME, POWER
+                Particles.FIRE_LINGER_TIME, EXPLOSION_POWER
         ));
         dispose();
     }

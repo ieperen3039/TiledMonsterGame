@@ -11,9 +11,11 @@ import org.joml.Vector2ic;
 public class SScrollableList extends SContainer {
     private final SScrollBar scroller;
     private LimitedVisibilityLayout layout;
+    private int nrOfShownElts;
 
     public SScrollableList(int nrOfShownElts, SComponent... elements) {
         this(nrOfShownElts, new LimitedVisibilityLayout(nrOfShownElts, 0, true), elements);
+        this.nrOfShownElts = nrOfShownElts;
     }
 
     private SScrollableList(
@@ -31,6 +33,12 @@ public class SScrollableList extends SContainer {
             this.layout.setAsFirstVisible(value);
             invalidateLayout();
         });
+    }
+
+    @Override
+    public void add(SComponent comp, Object prop) {
+        super.add(comp, prop);
+        scroller.resize(children().size(), nrOfShownElts);
     }
 
     @Override
@@ -58,11 +66,6 @@ public class SScrollableList extends SContainer {
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         scroller.draw(design, new Vector2i(screenPosition).add(scroller.position));
         drawChildren(design, screenPosition);
-    }
-
-    public void setNrOfVisible(int value) {
-        layout.setNrOfVisible(value);
-        invalidateLayout();
     }
 
     @Override

@@ -3,7 +3,7 @@ package NG;
 import NG.Core.Game;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Frames.FrameGUIManager;
-import NG.GUIMenu.HUDManager;
+import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.*;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import org.joml.Vector2i;

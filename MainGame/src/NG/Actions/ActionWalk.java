@@ -50,7 +50,7 @@ public class ActionWalk implements EntityAction {
         this.game = game;
         GameMap map = game.get(GameMap.class);
 
-        assert Math.abs(map.getHeightAt(startPosition.x(), startPosition.y()) - startPosition.z()) < 1e-3f :
+        assert Math.abs(map.getHeightAt(startPosition.x(), startPosition.y()) - startPosition.z()) < ON_GROUND_EPSILON :
                 String.format("Start position is not on the ground: %s should have z = %s",
                         Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));
 

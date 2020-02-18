@@ -28,7 +28,6 @@ public class BaseLF implements SFrameLookAndFeel {
     private static final Color4f PANEL_COLOR = Color4f.WHITE;
     private static final Color4f STROKE_COLOR = Color4f.BLUE;
     private static final Color4f BUTTON_COLOR = Color4f.GREY;
-    private static final Color4f TOOLBAR_COLOR = Color4f.WHITE;
     private static final Color4f INPUT_FIELD_COLOR = Color4f.LIGHT_GREY;
     private Color4f SELECTION_COLOR = Color4f.TRANSPARENT_GREY;
 

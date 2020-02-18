@@ -3,6 +3,7 @@ package NG.GUIMenu;
 import NG.DataStructures.Generic.Color4f;
 import org.joml.Vector2i;
 
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
@@ -103,10 +104,18 @@ public interface GUIPainter {
     void render(Runnable action);
 
     /**
-     * create an image based on a texture
-     * @return the nvg id
+     * create an image based on a buffer with bytes in RGBA format
+     * @param buffer the contents to write
+     * @return the nvg id of the image
      */
-    int createImageFromTexture(int textureID, int w, int h);
+    int createImageFromBuffer(ByteBuffer buffer, int width, int height);
+
+    /**
+     * updates the image from a buffer with bytes in RGBA format
+     * @param nvgID  the nvg id of the image
+     * @param buffer the contents to write
+     */
+    void updateImageFromBuffer(int nvgID, ByteBuffer buffer);
 
     /**
      * create an image based on file location

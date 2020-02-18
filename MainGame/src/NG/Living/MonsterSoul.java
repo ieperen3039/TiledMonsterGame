@@ -76,8 +76,8 @@ public abstract class MonsterSoul implements Living {
         if (hitpoints <= 0) {
             hitpoints = 0;
             entity.eventDeath(time);
+            entity.dispose();
         }
-        entity = null;
     }
 
     public SPanel getStatisticsPanel(int buttonHeight) {
