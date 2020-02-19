@@ -130,7 +130,7 @@ public enum Logger {
                         .orElseThrow()
                 );
 
-        return String.format("%-80s ", frame);
+        return String.format("%-100s ", frame);
     }
 
     /**
@@ -248,7 +248,12 @@ public enum Logger {
     /**
      * @return the error logger as a printstream
      */
-    public PrintStream getPrintStream() {
-        return System.err; // TODO mapping (lambda -> PrintStream)
+    public PrintStream getPrintStream() { // TODO make an outputstream that reroutes all traffic
+        return new PrintStream(System.out, true) {
+            @Override
+            public void print(String s) {
+                Logger.this.print(s);
+            }
+        };
     }
 }
