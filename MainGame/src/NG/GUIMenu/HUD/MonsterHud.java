@@ -2,11 +2,16 @@ package NG.GUIMenu.HUD;
 
 import NG.Camera.Camera;
 import NG.Core.Game;
+import NG.Entities.Entity;
+import NG.Entities.MonsterEntity;
 import NG.GUIMenu.BaseLF;
 import NG.GUIMenu.Components.*;
+import NG.GUIMenu.Frames.SFrameLookAndFeel;
 import NG.GUIMenu.GUIPainter;
+import NG.GUIMenu.NGFonts;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseToolCallbacks;
+import NG.InputHandling.MouseTools.EntitySelectedMouseTool;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.Textures.GenericTextures;
@@ -22,7 +27,6 @@ import java.util.Map;
  */
 public class MonsterHud extends SimpleHUD {
     private static final int UI_INFO_BAR_SIZE = 350;
-    private static final int TEAM_SELECT_MIN_SIZE = 100;
     private static final int TEXT_BOX_HEIGHT = 200;
 
     private final List<SComponent> freeFloatingElements = new ArrayList<>();
@@ -30,7 +34,7 @@ public class MonsterHud extends SimpleHUD {
     private Map<MonsterSoul, SPanel> teamPanels = new HashMap<>();
 
     private MiniMap minimap;
-    private SComponentArea textBox;
+    private SComponentArea bottomBox;
     private SScrollableList teamSelection;
 
     public MonsterHud() {
@@ -44,32 +48,23 @@ public class MonsterHud extends SimpleHUD {
 
         minimap = new MiniMap(game, UI_INFO_BAR_SIZE, UI_INFO_BAR_SIZE);
 
-        textBox = new SComponentArea(UI_INFO_BAR_SIZE, TEXT_BOX_HEIGHT);
-        textBox.setGrowthPolicy(false, false);
+        bottomBox = new SComponentArea(0, TEXT_BOX_HEIGHT);
+        bottomBox.setGrowthPolicy(true, false);
         teamSelection = new SScrollableList(5);
-
-//        textBox.show(new SPanel());
 
         display(
                 SPanel.row(
                         true, true,
-                        SPanel.column(
-                                true, true,
-                                new SFiller(),
-                                textBox
-                        ),
-                        SPanel.column(
-                                false, true,
-                                minimap,
-                                teamSelection
-                        ).setBorderVisible(true)
+                        SPanel.column(new SFiller(), bottomBox).setGrowthPolicy(true, true),
+                        ((SPanel) SPanel.column(minimap, teamSelection)
+                                .setGrowthPolicy(false, true)).setBorderVisible(true)
                 )
         );
     }
 
     @Override
     public void draw(GUIPainter painter) {
-        for (MonsterSoul monster : game.get(Player.class).team) {
+        for (MonsterSoul monster : game.get(Player.class).getTeam()) {
             SPanel panel = teamPanels.get(monster);
             if (panel == null) {
                 panel = getMonsterPanel(monster);
@@ -139,11 +134,53 @@ public class MonsterHud extends SimpleHUD {
         );
 
         return SPanel.row(
-                new STexturedPanel(GenericTextures.CHECKER, true, true),
+                new STexturedPanel(GenericTextures.CHECKER, 100, 100),
                 SPanel.column(
                         name,
                         healthBar
                 )
         ).setBorderVisible(true);
+    }
+
+    /**
+     * Sets the current selected entity to the given entity, which may be null in case of deselection
+     */
+    public void setSelectedEntity(
+            Entity entity, EntitySelectedMouseTool mouseTool
+    ) {
+        if (entity instanceof MonsterEntity) {
+            MonsterEntity monster = (MonsterEntity) entity;
+            MonsterSoul soul = monster.getController();
+
+            int bbSize = bottomBox.getHeight() - 20;
+            bottomBox.show(
+                    SPanel.row(
+                            // entity image
+                            new STexturedPanel(GenericTextures.CHECKER, bbSize, bbSize),
+                            SPanel.column(
+                                    SPanel.row(
+                                            new STextArea(soul.toString(), 50, 0, true, NGFonts.TextType.TITLE, SFrameLookAndFeel.Alignment.CENTER),
+                                            new SProgressBar(0, 20, () -> ((float) soul.getHitpoints() / soul.stats.hitPoints))
+                                    ),
+                                    SPanel.row(
+                                            soul.mind().getAcceptedCommands()
+                                                    .stream()
+                                                    .map(c -> new SButton(c.name, () -> mouseTool.select(c)))
+                                                    .toArray(SComponent[]::new)
+                                    )
+                            ).setGrowthPolicy(true, true)
+                    ).setBorderVisible(true)
+            );
+
+        } else if (entity != null) {
+            bottomBox.show(
+                    SPanel.column(
+                            new STextArea(entity.toString(), 50)
+                    ).setGrowthPolicy(true, true)
+            );
+
+        } else {
+            bottomBox.hide();
+        }
     }
 }

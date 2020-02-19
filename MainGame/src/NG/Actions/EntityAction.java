@@ -12,7 +12,7 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public interface EntityAction {
-    float ON_GROUND_EPSILON = 1e-3f;
+    float ON_GROUND_EPSILON = 1f / 512f;
 
     /**
      * calculates the position of this action, at the given time after the start of this action

@@ -15,8 +15,8 @@ public abstract class SComponent {
     private boolean isVisible = true;
     private SComponent parent = null;
 
-    protected final Vector2i position = new Vector2i();
-    protected final Vector2i dimensions = new Vector2i();
+    private final Vector2i position = new Vector2i();
+    private final Vector2i dimensions = new Vector2i();
 
     private boolean wantHzGrow = true;
     private boolean wantVtGrow = true;
@@ -70,10 +70,12 @@ public abstract class SComponent {
      *                   will return true iff any of its child components returns true on that method.
      * @param vertical   if true, the next invocation of {@link #wantVerticalGrow()} will return true. Otherwise, it
      *                   will return true iff any of its child components returns true on that method.
+     * @return this
      */
-    public void setGrowthPolicy(boolean horizontal, boolean vertical) {
+    public SComponent setGrowthPolicy(boolean horizontal, boolean vertical) {
         wantHzGrow = horizontal;
         wantVtGrow = vertical;
+        return this;
     }
 
     /**
@@ -140,7 +142,7 @@ public abstract class SComponent {
         position.add(xDelta, yDelta);
     }
 
-    public void setSize(int width, int height) {
+    public final void setSize(int width, int height) {
         width = Math.max(width, minWidth());
         height = Math.max(height, minHeight());
 
@@ -175,6 +177,10 @@ public abstract class SComponent {
 
     public int getHeight() {
         return dimensions.y;
+    }
+
+    protected Vector2ic getSize() {
+        return dimensions;
     }
 
     /**

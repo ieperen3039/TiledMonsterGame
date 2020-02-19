@@ -92,9 +92,9 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        if (dimensions.x == 0 || dimensions.y == 0) return;
-        design.draw(state ? BUTTON_PRESSED : BUTTON_ACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
+        if (getWidth() == 0 || getHeight() == 0) return;
+        design.draw(state ? BUTTON_PRESSED : BUTTON_ACTIVE, screenPosition, getSize());
+        design.drawText(screenPosition, getSize(), text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
     }
 
     @Override

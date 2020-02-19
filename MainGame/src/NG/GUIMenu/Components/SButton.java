@@ -88,6 +88,11 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
         rightClickListeners.add(onRightClick);
     }
 
+    public SButton(String text, Runnable action, BProps properties) {
+        this(text, action, properties.width, properties.height);
+        setGrowthPolicy(properties.doGrowInWidth, properties.doGrowInHeight);
+    }
+
     @Override
     public int minWidth() {
         return minWidth;
@@ -108,8 +113,8 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.draw(isPressed ? BUTTON_PRESSED : BUTTON_ACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
+        design.draw(isPressed ? BUTTON_PRESSED : BUTTON_ACTIVE, screenPosition, getSize());
+        design.drawText(screenPosition, getSize(), text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
     }
 
     @Override
@@ -142,5 +147,19 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + " (" + getText() + ")";
+    }
+
+    public static class BProps {
+        public int width;
+        public int height;
+        public boolean doGrowInWidth;
+        public boolean doGrowInHeight;
+
+        public BProps(int width, int height, boolean doGrowInWidth, boolean doGrowInHeight) {
+            this.width = width;
+            this.height = height;
+            this.doGrowInWidth = doGrowInWidth;
+            this.doGrowInHeight = doGrowInHeight;
+        }
     }
 }

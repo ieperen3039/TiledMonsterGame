@@ -1,6 +1,5 @@
 package NG.GUIMenu.Menu;
 
-import NG.Actions.Commands.CommandWalk;
 import NG.Animations.BodyAnimation;
 import NG.Animations.BodyModel;
 import NG.Animations.PartialAnimation;
@@ -11,13 +10,11 @@ import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.CubeMonster;
 import NG.GUIMenu.Components.*;
-import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
 import NG.GameMap.SimpleMapGenerator;
 import NG.GameMap.TileThemeSet;
-import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
@@ -35,7 +32,6 @@ import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Rendering.TilePointer;
-import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
@@ -46,7 +42,6 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.Collection;
-import java.util.List;
 
 import static NG.Rendering.Shapes.GenericShapes.CUBE;
 
@@ -108,12 +103,12 @@ public class MainMenu extends SFrame {
     }
 
     private void particles() {
-        FrameGUIManager targetGUI = overworld.get(FrameGUIManager.class);
+        HUDManager targetGUI = overworld.get(HUDManager.class);
         Vector3fc center = overworld.get(Camera.class).getEye();
 
         overworld.get(TilePointer.class).setVisible(false);
 
-        targetGUI.addFrame(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
+        targetGUI.addElement(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
                 new STextArea("MR. TORGUE APPROVES", SButton.BUTTON_MIN_HEIGHT),
                 new SButton("BOOM", () -> {
                     ParticleCloud cloud = Particles.explosion(
@@ -128,8 +123,8 @@ public class MainMenu extends SFrame {
     public void testWorld() {
         Logger.DEBUG.printFrom(2, "Start test-world");
         try {
-            int xSize = Settings.CHUNK_SIZE;
-            int ySize = Settings.CHUNK_SIZE;
+            int xSize = 32;
+            int ySize = 32;
 
             GameState state = overworld.get(GameState.class);
             state.cleanup();
@@ -153,23 +148,21 @@ public class MainMenu extends SFrame {
             overworld.get(TilePointer.class).setVisible(true);
 
             /* --- DEBUG SECTION --- */
+            Player player = overworld.get(Player.class);
 
             // add a default entity
-            Vector2i position = gameMap.getCoordinate(cameraFocus);
+            Vector2ic position = gameMap.getCoordinate(cameraFocus);
             MonsterSoul monsterSoul1 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            state.addEntity(monsterSoul1.getAsEntity(overworld, position.sub(2, 0), Vectors.X));
+            state.addEntity(monsterSoul1.getAsEntity(overworld, new Vector2i(position).add(1, 2), Vectors.X));
             MonsterSoul monsterSoul2 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            state.addEntity(monsterSoul2.getAsEntity(overworld, position.add(2, 0), Vectors.X));
+            state.addEntity(monsterSoul2.getAsEntity(overworld, new Vector2i(position).add(-1, 2), Vectors.X));
             MonsterSoul monsterSoul3 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
-            state.addEntity(monsterSoul3.getAsEntity(overworld, position.add(2, 0), Vectors.X));
+            state.addEntity(monsterSoul3.getAsEntity(overworld, new Vector2i(position).add(1, -2), Vectors.X));
+            MonsterSoul monsterSoul4 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            state.addEntity(monsterSoul4.getAsEntity(overworld, new Vector2i(position).add(-1, -2), Vectors.X));
 
-            monsterSoul1.mind().queueCommand(overworld, new CommandWalk(monsterSoul1, monsterSoul1, position));
-            monsterSoul2.mind()
-                    .queueCommand(overworld, new CommandWalk(monsterSoul2, monsterSoul2, position.sub(4, 0)));
-
-            List<MonsterSoul> team = overworld.get(Player.class).team;
-            team.add(monsterSoul1);
-            team.add(monsterSoul2);
+            player.addToTeam(monsterSoul1);
+            player.addToTeam(monsterSoul2);
 
             /* --- END SECTION --- */
 
@@ -200,12 +193,12 @@ public class MainMenu extends SFrame {
         BodyAnimation baseAni = BodyAnimation.BASE_POSE;
         BodyModel baseMode = BodyModel.ANTHRO;
 
-        FrameGUIManager targetGUI = overworld.get(FrameGUIManager.class);
+        HUDManager targetGUI = overworld.get(HUDManager.class);
         SDropDown animationSelection = new SDropDown(targetGUI, baseAni.ordinal(), Toolbox.toStringArray(animations));
         SDropDown modelSelection = new SDropDown(targetGUI, baseMode.ordinal(), Toolbox.toStringArray(models));
         PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.get(GameTimer.class));
 
-        targetGUI.addFrame(new SFrame("Animations", SButton.BUTTON_MIN_WIDTH, 0)
+        targetGUI.addElement(new SFrame("Animations", SButton.BUTTON_MIN_WIDTH, 0)
                 .setMainPanel(SPanel.column(
                         animationSelection,
                         modelSelection
@@ -235,20 +228,6 @@ public class MainMenu extends SFrame {
         SFrame newGameFrame = new NewGameFrame(overworld, modLoader);
         newGameFrame.setVisible(true);
         overworld.get(HUDManager.class).addElement(newGameFrame);
-    }
-
-    public SToolBar getToolBar(Game game) {
-        SToolBar toolBar = new SToolBar(game, true);
-
-        toolBar.addButton("Stop", () -> {
-            game.get(FrameGUIManager.class).setToolBar(null);
-            setVisible(true);
-        }, 100);
-
-        toolBar.addButton("A* tester", () -> game.get(KeyMouseCallbacks.class)
-                .setMouseTool(new AStartTestMouseTool(game)), 200);
-
-        return toolBar;
     }
 
     private static class AStartTestMouseTool extends DefaultMouseTool {

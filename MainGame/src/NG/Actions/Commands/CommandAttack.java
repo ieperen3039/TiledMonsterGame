@@ -5,7 +5,6 @@ import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.Entities.MonsterEntity;
 import NG.Entities.Projectiles.Projectile;
-import NG.Living.Living;
 import org.joml.Vector3fc;
 
 /**
@@ -16,8 +15,8 @@ public class CommandAttack extends Command {
     private final MonsterEntity entity;
     private Projectile elt;
 
-    public CommandAttack(Living source, MonsterEntity entity, Projectile projectile, float gameTime) {
-        super(source, entity.getController());
+    public CommandAttack(MonsterEntity entity, Projectile projectile, float gameTime) {
+        super(entity.getController());
         this.entity = entity;
         elt = projectile;
     }

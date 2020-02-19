@@ -5,6 +5,7 @@ import NG.Actions.ActionWalk;
 import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.GameMap.GameMap;
+import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Living.Living;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -19,14 +20,14 @@ import java.util.Iterator;
 public class CommandWalk extends Command {
     private final Vector2ic target;
 
-    public CommandWalk(Living source, Living receiver, Vector2ic position) {
-        super(source, receiver);
+    public CommandWalk(Living receiver, Vector2ic position) {
+        super(receiver);
         this.target = new Vector2i(position);
     }
 
     @Override
     public EntityAction getAction(Game game, Vector3fc beginPosition, float gameTime) {
-        final float walkSpeed = 1f;
+        final float walkSpeed = 2f;
         GameMap map = game.get(GameMap.class);
 
         Vector2i beginCoord = map.getCoordinate(beginPosition);
@@ -44,16 +45,16 @@ public class CommandWalk extends Command {
         }
 
         if (beginPosition.z() > (map.getHeightAt(beginPosition.x(), beginPosition.y()) + EntityAction.ON_GROUND_EPSILON)) {
-            return new ActionJump(beginPosition, map.getPosition(beginCoord), walkSpeed * 2);
+            return new ActionJump(beginPosition, map.getPosition(beginCoord), walkSpeed * 1.5f);
         }
         return new ActionWalk(game, beginPosition, beginCoord, walkSpeed);
     }
 
-    public static CommandSelection.CommandProvider walkCommand() {
-        return new CommandSelection.CommandProvider("Walk") {
+    public static CommandProvider walkCommand() {
+        return new CommandProvider("Walk") {
             @Override
-            public Command create(Living source, Living receiver, Vector2ic target) {
-                return new CommandWalk(source, receiver, target);
+            public Command create(Living receiver, Vector2ic target) {
+                return new CommandWalk(receiver, target);
             }
         };
     }

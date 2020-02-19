@@ -52,7 +52,7 @@ public class CommandSType implements StimulusType {
             Vector2ic target = Direction.get(direction.x, direction.y).toVector();
 
             MonsterSoul self = entity.getController();
-            return new CommandWalk(self, self, target);
+            return new CommandWalk(self, target);
         }
 
         return null;

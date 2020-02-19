@@ -64,8 +64,18 @@ public class SScrollableList extends SContainer {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        scroller.draw(design, new Vector2i(screenPosition).add(scroller.position));
+        scroller.draw(design, new Vector2i(screenPosition).add(scroller.getPosition()));
         drawChildren(design, screenPosition);
+    }
+
+    @Override
+    public int minHeight() {
+        return Math.max(super.minHeight(), scroller.minHeight());
+    }
+
+    @Override
+    public int minWidth() {
+        return Math.max(super.minWidth(), scroller.minWidth());
     }
 
     @Override

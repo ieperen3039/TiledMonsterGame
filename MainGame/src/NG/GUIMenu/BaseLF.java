@@ -24,6 +24,8 @@ public class BaseLF implements SFrameLookAndFeel {
     private static final int TEXT_SIZE_REGULAR = 18;
     private static final int TEXT_SIZE_LARGE = 24;
 
+    private static final NGFonts FONT = ORBITRON_MEDIUM;
+
     private static final Color4f TEXT_COLOR = Color4f.BLACK;
     private static final Color4f PANEL_COLOR = Color4f.WHITE;
     private static final Color4f STROKE_COLOR = Color4f.BLUE;
@@ -50,6 +52,17 @@ public class BaseLF implements SFrameLookAndFeel {
     @Override
     public GUIPainter getPainter() {
         return hud;
+    }
+
+    @Override
+    public int getTextWidth(String text, NGFonts.TextType textType) {
+        int actualSize = TEXT_SIZE_REGULAR;
+
+        if (textType == NGFonts.TextType.TITLE || textType == NGFonts.TextType.ACCENT) {
+            actualSize = TEXT_SIZE_LARGE;
+        }
+
+        return hud.getTextWidth(text, actualSize, FONT);
     }
 
     @Override
@@ -134,7 +147,7 @@ public class BaseLF implements SFrameLookAndFeel {
         int height = dim.y();
         int actualSize = TEXT_SIZE_REGULAR;
         Color4f textColor = TEXT_COLOR;
-        NGFonts font = ORBITRON_MEDIUM;
+        NGFonts font = FONT;
 
         switch (type) {
             case TITLE:

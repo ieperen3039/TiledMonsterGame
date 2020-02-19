@@ -11,6 +11,7 @@ import org.lwjgl.nanovg.NVGPaint;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -381,6 +382,11 @@ public final class NVGOverlay {
             nvgFill(vg);
 
             restoreColors();
+        }
+
+        @Override
+        public int getTextWidth(String text, float size, NGFonts font) {
+            return (int) nvgTextBounds(vg, 0, 0, text, (FloatBuffer) null);
         }
 
     }

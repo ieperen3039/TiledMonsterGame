@@ -1,10 +1,14 @@
-package NG.Living;
+package NG.Living.MonsterMind;
 
 import NG.Actions.Commands.CommandWalk;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
+import NG.Living.BaseStimulus;
+import NG.Living.MonsterSoul;
+import NG.Living.Stimulus;
+import NG.Living.StimulusType;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -28,13 +32,13 @@ public class MonsterMindSimple extends MonsterMind {
     }
 
     @Override
-    void init(MonsterEntity entityToControl, Game game) {
+    public void init(MonsterEntity entityToControl, Game game) {
         super.init(entityToControl, game);
         this.timeUntilRandomMovement = game.get(GameTimer.class).getGametime() + (rng.nextFloat() * 20);
     }
 
     @Override
-    protected void update(float gameTime) {
+    public void update(float gameTime) {
         if (game == null) return;
 
         switch (fearLevel) {
@@ -44,7 +48,7 @@ public class MonsterMindSimple extends MonsterMind {
                         Vector3f ePos = entity.getPositionAt(gameTime);
                         Vector2i tgt = game.get(GameMap.class).getCoordinate(ePos);
                         tgt.add(rng.nextInt(5) - 2, rng.nextInt(5) - 2);
-                        CommandWalk walk = new CommandWalk(owner, owner, tgt);
+                        CommandWalk walk = new CommandWalk(owner, tgt);
 
                         queueCommand(game, walk);
                     }

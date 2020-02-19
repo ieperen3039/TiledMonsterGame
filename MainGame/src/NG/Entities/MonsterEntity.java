@@ -11,14 +11,13 @@ import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.Pair;
-import NG.GUIMenu.Components.SFrame;
-import NG.GUIMenu.Components.SPanel;
-import NG.GUIMenu.Frames.FrameGUIManager;
 import NG.GameMap.GameMap;
-import NG.Living.MonsterMind;
+import NG.Living.MonsterMind.MonsterMind;
 import NG.Living.MonsterSoul;
+import NG.Living.Player;
 import NG.Particles.GameParticles;
 import NG.Particles.Particles;
+import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
@@ -29,8 +28,6 @@ import org.joml.Vector3fc;
 
 import java.util.Map;
 
-import static NG.GUIMenu.Components.SButton.BUTTON_MIN_HEIGHT;
-
 /**
  * the generic class of all {@code MonsterEntity} entities. This is only the physical representation of the entity, NOT
  * including the {@link MonsterSoul} or identity of the monster.
@@ -40,14 +37,14 @@ public abstract class MonsterEntity implements MovingEntity {
     protected final Game game;
     /** the current actions that are executed */
     public final ActionQueue currentActions;
-    public final MonsterSoul controller;
 
+    private final MonsterSoul controller;
     private final BodyModel bodyModel;
     private final Map<SkeletonBone, BoneElement> boneMapping;
 
     private boolean isDisposed;
-    private SFrame frame;
     private EntityAction previousAction; // only in rendering
+    private Mark marking = Mark.NONE;
 
     public MonsterEntity(
             Game game, Vector2i initialPosition, MonsterSoul controller,
@@ -59,6 +56,10 @@ public abstract class MonsterEntity implements MovingEntity {
         this.previousAction = new ActionIdle(game, initialPosition);
         this.bodyModel = bodyModel;
         this.boneMapping = boneMapping;
+
+        if (game.get(Player.class).getTeam().contains(controller)) {
+            markAs(Mark.OWNED);
+        }
     }
 
     @Override
@@ -85,9 +86,21 @@ public abstract class MonsterEntity implements MovingEntity {
 
             ShaderProgram shader = gl.getShader();
             if (shader instanceof MaterialShader) {
-                gl.translate(0, 0, getHitbox().maxZ + 1);
-                gl.scale(1, 1, -1);
-                gl.render(GenericShapes.ARROW, this);
+                MaterialShader mat = (MaterialShader) shader;
+
+                switch (marking) {
+                    case SELECTED:
+                        mat.setMaterial(Material.ROUGH, Color4f.YELLOW);
+                    case OWNED:
+                        gl.translate(0, 0, getHitbox().maxZ + 2);
+                        gl.scale(2, 2, -1);
+                        gl.render(GenericShapes.ARROW, this);
+                        break;
+
+                    case NONE:
+                    default:
+                        break;
+                }
             }
         }
         gl.popMatrix();
@@ -100,7 +113,7 @@ public abstract class MonsterEntity implements MovingEntity {
     public void update(float gameTime) {
         float lastActionEnd = currentActions.lastActionEnd();
         if (gameTime >= lastActionEnd) {
-            EntityAction next = controller.mind().getNextAction(lastActionEnd, game);
+            EntityAction next = controller.mind().getNextAction(lastActionEnd);
             currentActions.insert(next, lastActionEnd);
         }
 
@@ -119,17 +132,6 @@ public abstract class MonsterEntity implements MovingEntity {
         return currentActions.getPositionAt(currentTime);
     }
 
-    public void onClick(int button) {
-        if (frame != null) frame.dispose();
-
-        frame = new SFrame("Entity " + this);
-        frame.setMainPanel(SPanel.column(
-                controller.getStatisticsPanel(BUTTON_MIN_HEIGHT)
-        ));
-        frame.pack();
-        game.get(FrameGUIManager.class).addFrame(frame);
-    }
-
     @Override
     public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
         return new BoundingBox(getHitbox(), getPositionAt(gameTime)).intersectRay(origin, direction);
@@ -138,7 +140,6 @@ public abstract class MonsterEntity implements MovingEntity {
     @Override
     public void dispose() {
         isDisposed = true;
-        if (frame != null) frame.dispose();
     }
 
     @Override
@@ -157,7 +158,7 @@ public abstract class MonsterEntity implements MovingEntity {
     @Override
     public void collideWith(Entity other, float collisionTime) {
         MonsterMind mind = controller.mind();
-        EntityAction nextAction = mind.reactCollision(other, collisionTime);
+        EntityAction nextAction = mind.reactEntityCollision(other, collisionTime);
         currentActions.insert(nextAction, collisionTime);
     }
 
@@ -166,7 +167,7 @@ public abstract class MonsterEntity implements MovingEntity {
         EntityAction action = currentActions.getActionAt(collisionTime).left;
         if (!action.hasWorldCollision()) return;
 
-        EntityAction nextAction = controller.mind().getNextAction(collisionTime, game);
+        EntityAction nextAction = controller.mind().getNextAction(collisionTime);
         currentActions.insert(nextAction, collisionTime);
     }
 
@@ -175,5 +176,13 @@ public abstract class MonsterEntity implements MovingEntity {
         game.get(GameParticles.class).add(
                 Particles.explosion(getPositionAt(time), Color4f.RED, 10)
         );
+    }
+
+    public void markAs(Mark type) {
+        marking = type;
+    }
+
+    public enum Mark {
+        NONE, OWNED, SELECTED
     }
 }

@@ -146,11 +146,11 @@ class SScrollBar extends SComponent {
         Vector2i size = new Vector2i(SCROLL_BAR_WIDTH, getDragBarSpace());
         design.draw(SCROLL_BAR_BACKGROUND, pos, size);
 
-        scrollUp.draw(design, new Vector2i(screenPosition).add(scrollUp.position));
+        scrollUp.draw(design, new Vector2i(screenPosition).add(scrollUp.getPosition()));
         if (dragBar.isVisible()) {
-            dragBar.draw(design, new Vector2i(screenPosition).add(dragBar.position));
+            dragBar.draw(design, new Vector2i(screenPosition).add(dragBar.getPosition()));
         }
-        scrollDown.draw(design, new Vector2i(screenPosition).add(scrollDown.position));
+        scrollDown.draw(design, new Vector2i(screenPosition).add(scrollDown.getPosition()));
     }
 
     private int getDragBarSpace() {
@@ -189,7 +189,7 @@ class SScrollBar extends SComponent {
 
         @Override
         public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-            design.draw(SCROLL_BAR_DRAG_ELEMENT, screenPosition, dimensions);
+            design.draw(SCROLL_BAR_DRAG_ELEMENT, screenPosition, getSize());
         }
 
         @Override

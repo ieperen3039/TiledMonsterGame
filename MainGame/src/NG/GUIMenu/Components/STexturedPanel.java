@@ -16,7 +16,6 @@ public class STexturedPanel extends SComponent {
 
     private int minWidth;
     private int minHeight;
-    private float ratio;
     private int nvgTextID = -1;
 
     /**
@@ -29,24 +28,7 @@ public class STexturedPanel extends SComponent {
         this.texture = texture;
         this.minWidth = width;
         this.minHeight = height;
-        this.ratio = -1;
         setGrowthPolicy(false, false);
-    }
-
-    /**
-     * create a textured panel with the minimum resolution of the original texture
-     * @param texture      the texture to show, assuming RGBA format.
-     * @param growthPolicy the growth policy. When false, the texture will not grow past the original resolution of the
-     *                     texture.
-     * @param keepRatio    if true, the aspect ratio is always honored for given width
-     */
-    public STexturedPanel(Texture texture, boolean growthPolicy, boolean keepRatio) {
-        this.texture = texture;
-        minWidth = texture.getWidth();
-        minHeight = texture.getHeight();
-        ratio = keepRatio ? (float) minHeight / minWidth : -1;
-
-        setGrowthPolicy(growthPolicy, growthPolicy);
     }
 
     @Override
@@ -69,7 +51,11 @@ public class STexturedPanel extends SComponent {
             nvgTextID = design.getPainter().createImageFromBuffer(buffer, texture.getWidth(), texture.getHeight());
         }
 
-        float height = (ratio == -1) ? getHeight() : getWidth() * ratio;
-        design.getPainter().drawImage(nvgTextID, screenPosition.x(), screenPosition.y(), getWidth(), (int) height);
+        int width = getWidth();
+        int height = getHeight();
+        int xHBorder = (width - minWidth) / 2;
+        int yHBorder = (height - minHeight) / 2;
+        design.getPainter()
+                .drawImage(nvgTextID, screenPosition.x() + xHBorder, screenPosition.y() + yHBorder, minWidth, minHeight);
     }
 }

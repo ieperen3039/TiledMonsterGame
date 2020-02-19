@@ -7,8 +7,6 @@ import NG.GameMap.GameMap;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.lang.Math;
-
 /**
  * A linear movement from point A to point B, where A and B are adjacent
  * @author Geert van Ieperen created on 12-2-2019.
@@ -50,9 +48,9 @@ public class ActionWalk implements EntityAction {
         this.game = game;
         GameMap map = game.get(GameMap.class);
 
-        assert Math.abs(map.getHeightAt(startPosition.x(), startPosition.y()) - startPosition.z()) < ON_GROUND_EPSILON :
-                String.format("Start position is not on the ground: %s should have z = %s",
-                        Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));
+        assert map.isOnFloor(startPosition) : String.format(
+                "Start position is not on the ground: %s should have z = %s",
+                Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));
 
         start = new Vector3f(startPosition);
         end = map.getPosition(endCoord);

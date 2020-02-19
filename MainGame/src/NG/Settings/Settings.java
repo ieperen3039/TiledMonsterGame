@@ -10,7 +10,7 @@ public class Settings {
     public static final String GAME_NAME = "MonsterGame"; // laaaaame
 
     // debug settings
-    public boolean DEBUG = true;
+    public final boolean DEBUG = true;
     public boolean DEBUG_SCREEN = DEBUG;
     public boolean RENDER_HITBOXES = DEBUG;
 
@@ -28,8 +28,10 @@ public class Settings {
     public static final float Z_FAR = 1000;
     public int TARGET_FPS = 30;
     public boolean V_SYNC = false;
-    public int DEFAULT_WINDOW_WIDTH = 1200;
-    public int DEFAULT_WINDOW_HEIGHT = 800;
+    public int DEFAULT_WINDOW_WIDTH = 1600;
+    public int DEFAULT_WINDOW_HEIGHT = 900;
+
+
     public int ANTIALIAS_LEVEL = 1;
     public boolean ISOMETRIC_VIEW = false;
     public float RENDER_DELAY = 1f / TARGET_TPS;
@@ -42,7 +44,6 @@ public class Settings {
     public float PARTICLE_MODIFIER = 1f;
 
     // UI settings
-    public static int TOOL_BAR_HEIGHT = 70;
     public boolean HIDE_CURSOR_ON_MAP = !DEBUG;
 
     // ambiance settings

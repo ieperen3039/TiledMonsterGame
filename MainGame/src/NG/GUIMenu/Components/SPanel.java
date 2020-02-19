@@ -132,6 +132,7 @@ public class SPanel extends SContainer {
             newPanel.add(components[i], new Vector2i(0, i));
         }
 
+        newPanel.setSize(0, 0);
         return newPanel;
     }
 
@@ -140,19 +141,6 @@ public class SPanel extends SContainer {
         SComponent base = super.getComponentAt(xRel, yRel);
         if (!border && base == this) return null;
         return base;
-    }
-
-    /**
-     * create a new panel with the given components in a column
-     * @param hzGrow     whether this panel wants horizontal growth
-     * @param vtGrow     whether this panel wants vertical growth
-     * @param components the components to put in a column, top to bottom
-     * @return the new panel
-     */
-    public static SPanel column(boolean hzGrow, boolean vtGrow, SComponent... components) {
-        SPanel column = column(components);
-        column.setGrowthPolicy(hzGrow, vtGrow);
-        return column;
     }
 
     /** creates a new panel with the given components in a row
@@ -165,6 +153,7 @@ public class SPanel extends SContainer {
             newPanel.add(components[i], new Vector2i(i, 0));
         }
 
+        newPanel.setSize(0, 0);
         return newPanel;
     }
 
@@ -201,7 +190,7 @@ public class SPanel extends SContainer {
         assert getWidth() > 0 && getHeight() > 0 :
                 String.format("Non-positive dimensions of %s: width = %d, height = %d", this, getWidth(), getHeight());
 
-        if (border) design.draw(PANEL, screenPosition, dimensions);
+        if (border) design.draw(PANEL, screenPosition, getSize());
         drawChildren(design, screenPosition);
     }
 

@@ -1,5 +1,6 @@
 package NG.GameMap;
 
+import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.GameAspect;
 import NG.Entities.Entity;
@@ -166,6 +167,10 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable
         }
 
         return intersect;
+    }
+
+    default boolean isOnFloor(Vector3fc position) {
+        return Math.abs(getHeightAt(position.x(), position.y()) - position.z()) < EntityAction.ON_GROUND_EPSILON;
     }
 
     interface ChangeListener {

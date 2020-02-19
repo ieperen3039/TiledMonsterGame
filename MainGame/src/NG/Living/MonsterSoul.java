@@ -6,6 +6,9 @@ import NG.Entities.EntityStatistics;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Components.SNamedValue;
 import NG.GUIMenu.Components.SPanel;
+import NG.Living.MonsterMind.MonsterMind;
+import NG.Living.MonsterMind.MonsterMindSimple;
+import NG.Living.MonsterMind.MonsterMindSlave;
 import org.joml.Vector2i;
 import org.joml.Vector3fc;
 
@@ -20,6 +23,7 @@ public abstract class MonsterSoul implements Living {
     private String monsterName;
 
     protected Game game;
+    private Player owner;
     private MonsterEntity entity;
     private MonsterMind mind;
 
@@ -34,6 +38,7 @@ public abstract class MonsterSoul implements Living {
      */
     public MonsterSoul(SoulDescription soulDescription) {
         this.monsterName = soulDescription.name;
+        this.owner = null;
 
         this.effects = new ArrayList<>();
         this.stats = new EntityStatistics(100);
@@ -50,11 +55,32 @@ public abstract class MonsterSoul implements Living {
 
         entity = getNewEntity(game, coordinate, direction);
         mind.init(entity, game);
+        if (owner != null) {
+            entity.markAs(MonsterEntity.Mark.OWNED);
+        }
 
         return entity;
     }
 
     protected abstract MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction);
+
+    public void setOwner(Player owner) {
+        this.owner = owner;
+        if (owner != null) {
+            mind = new MonsterMindSlave(this);
+            if (entity != null) {
+                entity.markAs(MonsterEntity.Mark.OWNED);
+            }
+
+        } else {
+            mind = new MonsterMindSimple(this);
+            if (entity != null) {
+                entity.markAs(MonsterEntity.Mark.NONE);
+            }
+        }
+
+        mind.init(entity, game);
+    }
 
     public void update(float gametime) {
         float deltaTime = gametime - lastUpdateTime;

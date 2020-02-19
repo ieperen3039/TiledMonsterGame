@@ -3,7 +3,6 @@ package NG.Entities.Projectiles;
 import NG.Actions.Attacks.DamageType;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.CommandAttack;
-import NG.Actions.Commands.CommandSelection;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Core.GameTimer;
@@ -11,6 +10,7 @@ import NG.DataStructures.Generic.Color4f;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
+import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Living.Living;
 import NG.Particles.GameParticles;
 import NG.Particles.Particles;
@@ -88,7 +88,7 @@ public class ProjectilePowerBall extends Projectile {
         if (other instanceof MonsterEntity) {
             MonsterEntity monster = (MonsterEntity) other;
 
-            monster.controller.applyDamage(damageType, BASE_DAMAGE, collisionTime);
+            monster.getController().applyDamage(damageType, BASE_DAMAGE, collisionTime);
         }
 
         explode(collisionTime);
@@ -123,10 +123,10 @@ public class ProjectilePowerBall extends Projectile {
         gl.render(mesh, this);
     }
 
-    public static CommandSelection.CommandProvider fireCommand(Game game) {
-        return new CommandSelection.CommandProvider("PowerBall") {
+    public static CommandProvider fireCommand(Game game) {
+        return new CommandProvider("PowerBall") {
             @Override
-            public Command create(Living source, Living receiver, Vector2ic target) {
+            public Command create(Living receiver, Vector2ic target) {
                 MonsterEntity entity = receiver.entity();
                 if (entity == null) return null;
 
@@ -134,7 +134,7 @@ public class ProjectilePowerBall extends Projectile {
                 Projectile prj = new ProjectilePowerBall(game, entity, targetPosition, 5, 0.5f);
 
                 float gametime = game.get(GameTimer.class).getGametime();
-                return new CommandAttack(source, entity, prj, gametime);
+                return new CommandAttack(entity, prj, gametime);
             }
         };
     }

@@ -1,18 +1,13 @@
 package NG.InputHandling.MouseTools;
 
-import NG.Actions.ActionJump;
-import NG.Actions.Commands.CommandSelection;
-import NG.Actions.Commands.CommandWalk;
 import NG.Camera.Camera;
 import NG.Core.Game;
-import NG.Core.GameTimer;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
-import NG.Entities.Projectiles.ProjectilePowerBall;
 import NG.GUIMenu.Components.SComponent;
-import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
+import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
@@ -20,7 +15,6 @@ import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameState;
-import NG.Rendering.Pointer;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
@@ -46,10 +40,7 @@ public class DefaultMouseTool implements MouseTool {
     private MouseReleaseListener releaseListener = null;
     private int button;
 
-    private MonsterEntity selected = null;
-
     protected Game game;
-    private SFrame selectionFrame;
 
     public DefaultMouseTool(Game game) {
         this.game = game;
@@ -86,57 +77,21 @@ public class DefaultMouseTool implements MouseTool {
     public void apply(Entity entity, int xSc, int ySc) {
         Logger.DEBUG.print("Clicked on " + entity);
 
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && entity instanceof MonsterEntity) {
-            selected = (MonsterEntity) entity;
-            // TODO selection marking
-        } else {
-            selected = null;
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            if (entity instanceof MonsterEntity) {
+                MonsterEntity monster = (MonsterEntity) entity;
+                MonsterSoul soul = monster.getController();
+
+                if (game.get(Player.class).getTeam().contains(soul)) {
+                    game.get(KeyMouseCallbacks.class).setMouseTool(new EntitySelectedMouseTool(game, monster));
+                }
+            }
         }
     }
 
     @Override
     public void apply(Vector3fc position, int xSc, int ySc) {
-        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-            selected = null;
-        }
-
-        if (selected != null) {
-            Logger.DEBUG.print("Clicked at " + Vectors.toString(position) + " with " + selected + " selected");
-
-            MonsterSoul controller = selected.getController();
-            float gameTime = game.get(GameTimer.class).getGametime();
-            GameMap gameMap = game.get(GameMap.class);
-            Vector2i coord = gameMap.getCoordinate(position);
-            game.get(Pointer.class).setSelection(coord);
-
-            CommandSelection commandSelector = new CommandSelection(game, game.get(Player.class), controller, coord,
-                    CommandWalk.walkCommand(),
-                    ProjectilePowerBall.fireCommand(game),
-                    CommandSelection.actionCommand("Jump", ActionJump::new)
-            );
-
-            if (selectionFrame == null || selectionFrame.isDisposed()) {
-                selectionFrame = new SFrame("Command " + controller);
-                game.get(HUDManager.class).addElement(selectionFrame);
-            }
-
-            selectionFrame.setMainPanel(commandSelector.asComponent(80, 40));
-            selectionFrame.pack();
-            selectionFrame.setVisible(true);
-
-            int height = selectionFrame.getHeight();
-            int width = selectionFrame.getWidth();
-            Vector2i newPos = new Vector2i(xSc - width - 100, ySc - height / 2); // for y, top is 0
-            if (newPos.x < 0) { // TODO better placement
-                newPos.set(xSc + 200, ySc - height / 2);
-            }
-
-            selectionFrame.setPosition(newPos);
-
-        } else {
-            Logger.DEBUG.print("Clicked at " + Vectors.toString(position));
-            game.get(Pointer.class).setSelection(null);
-        }
+        Logger.DEBUG.print("Clicked at " + Vectors.toString(position));
     }
 
     @Override
@@ -167,15 +122,16 @@ public class DefaultMouseTool implements MouseTool {
 
         if (game.get(HUDManager.class).checkMouseClick(this, x, y)) return;
 
-//        // invert y for transforming to model space (inconsistency between OpenGL and GLFW)
-//        y = game.get(GLFWWindow.class).getHeight() - y;
-
         if (game.get(GameState.class).checkMouseClick(this, x, y)) return;
         game.get(GameMap.class).checkMouseClick(this, x, y);
     }
 
     protected void setButton(int button) {
         this.button = button;
+    }
+
+    protected int getButton() {
+        return button;
     }
 
     @Override

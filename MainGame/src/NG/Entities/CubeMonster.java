@@ -23,6 +23,7 @@ import java.util.Map;
  */
 public class CubeMonster extends MonsterSoul {
     private static final float HALF_SIZE = 0.4f;
+    private static int nextID = 1;
 
     private final Map<SkeletonBone, BoneElement> boneMap;
     private final BoundingBox hitbox = new BoundingBox(-HALF_SIZE, -HALF_SIZE, 0, HALF_SIZE, HALF_SIZE, HALF_SIZE * 2);
@@ -43,6 +44,7 @@ public class CubeMonster extends MonsterSoul {
      * Entity of a cube
      */
     public class Entity extends MonsterEntity {
+        private int id = nextID++;
 
         /**
          * a default cube that can move and interact like any other monster
@@ -53,7 +55,7 @@ public class CubeMonster extends MonsterSoul {
 
         @Override
         public String toString() {
-            return "CubeMonster";
+            return "CubeMonster " + id;
         }
 
         @Override

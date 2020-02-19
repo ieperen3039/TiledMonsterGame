@@ -9,19 +9,10 @@ import org.joml.Vector3fc;
  * a command issued to a MonsterSoul
  */
 public abstract class Command {
-    private final Living source; // may be equal
     private final Living target;
 
-    protected Command(Living source, Living target) {
-        this.source = source;
+    protected Command(Living target) {
         this.target = target;
-    }
-
-    /**
-     * @return the entity that issued the command.
-     */
-    public Living getSource() {
-        return source;
     }
 
     /**

@@ -108,7 +108,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         glViewport(0, 0, window.getWidth(), window.getHeight());
         glEnable(GL_LINE_SMOOTH);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        Toolbox.checkGLError("Lights & Setup");
+        Toolbox.checkGLError(window.toString());
 
         for (RenderBundle renderBundle : renders.values()) {
             String identifier = renderBundle.shader.getClass().getSimpleName();
@@ -121,9 +121,9 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         int windowWidth = window.getWidth();
         int windowHeight = window.getHeight();
         timeObserver.startTiming("GUI");
-        overlay.draw(windowWidth, windowHeight, 10, Settings.TOOL_BAR_HEIGHT + 10, 16);
+        overlay.draw(windowWidth, windowHeight, 10, 10, 16);
         timeObserver.endTiming("GUI");
-        Toolbox.checkGLError("GUI");
+        Toolbox.checkGLError(overlay.toString());
 
         // update window
         window.update();

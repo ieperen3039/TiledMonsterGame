@@ -10,7 +10,6 @@ import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
 import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.TOOLBAR_BACKGROUND;
-import static NG.Settings.Settings.TOOL_BAR_HEIGHT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 /**
@@ -18,10 +17,11 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
  */
 public class SToolBar extends SContainer implements MouseReleaseListener, MouseRelativeClickListener {
     public static final int MAX_BAR_ICONS = 20; // TODO look for opportunity of calculating this
+    private static final int TOOL_BAR_HEIGHT = 50;
     private static int BUTTON_SIZE = TOOL_BAR_HEIGHT - (4 + 4);
 
     private Game game;
-    private int i = 0;
+    private int nextButtonIndex = 0;
     private SButton clickedButton;
 
     /**
@@ -42,7 +42,7 @@ public class SToolBar extends SContainer implements MouseReleaseListener, MouseR
     @Override
     public void add(SComponent comp, Object prop) {
         assert prop == null;
-        super.add(comp, new Vector2i(i++, 0));
+        super.add(comp, new Vector2i(nextButtonIndex++, 0));
     }
 
     /**
@@ -107,10 +107,5 @@ public class SToolBar extends SContainer implements MouseReleaseListener, MouseR
     public void doValidateLayout() {
         setSize(game.get(GLFWWindow.class).getWidth(), TOOL_BAR_HEIGHT);
         super.doValidateLayout();
-    }
-
-    @Override
-    public Vector2i getScreenPosition() {
-        return new Vector2i(position);
     }
 }

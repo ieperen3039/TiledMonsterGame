@@ -76,7 +76,7 @@ public abstract class SContainer extends SComponent {
     public void drawChildren(SFrameLookAndFeel lookFeel, Vector2ic offset) {
         for (SComponent component : children()) {
             if (component.isVisible() && component.getWidth() != 0 && component.getHeight() != 0) {
-                Vector2i scPos = new Vector2i(component.position).add(offset);
+                Vector2i scPos = new Vector2i(component.getPosition()).add(offset);
                 component.draw(lookFeel, scPos);
             }
         }
@@ -115,7 +115,7 @@ public abstract class SContainer extends SComponent {
         layout.recalculateProperties();
 
         Vector2i layoutPos = new Vector2i();
-        Vector2i layoutDim = new Vector2i(dimensions);
+        Vector2i layoutDim = new Vector2i(getSize());
         ComponentBorder border = getLayoutBorder();
         border.reduce(layoutPos, layoutDim);
 

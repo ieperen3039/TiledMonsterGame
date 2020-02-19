@@ -2,6 +2,7 @@ package NG.GUIMenu.Components;
 
 import NG.GUIMenu.Frames.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.SingleElementLayout;
+import NG.Tools.Logger;
 import org.joml.Vector2ic;
 
 /**
@@ -19,6 +20,7 @@ public class SComponentArea extends SContainer {
         this.width = width;
         this.height = height;
         setVisible(false);
+        setGrowthPolicy(false, false);
     }
 
     /**
@@ -26,16 +28,18 @@ public class SComponentArea extends SContainer {
      */
     public void hide() {
         add(FILLER, null);
-        setVisible(true);
+        setVisible(false);
     }
 
     public void show(SComponent element) {
         validateLayout();
-        assert element.minWidth() < getWidth() : getWidth();
-        assert element.minHeight() < getHeight() : getHeight();
+        if (element.minWidth() < getWidth() && element.minHeight() < getHeight()) {
+            add(element, null);
+            setVisible(true);
+        } else {
+            Logger.ASSERT.print("Element too large to show", element, getSize(), element.getSize());
+        }
 
-        add(element, null);
-        setVisible(false);
     }
 
     @Override

@@ -9,6 +9,8 @@ import org.joml.Vector2ic;
  */
 public class STextArea extends SComponent {
     public static final int LETTER_WIDTH = 18;
+    private int textWidth;
+
     protected final NGFonts.TextType textType;
     protected final SFrameLookAndFeel.Alignment alignment;
     protected String text;
@@ -26,6 +28,7 @@ public class STextArea extends SComponent {
         this.textType = textType;
         setGrowthPolicy(doGrowInWidth, false);
         this.alignment = alignment;
+        textWidth = text.length() * LETTER_WIDTH;
     }
 
     public STextArea(String text, int minHeight) {
@@ -34,7 +37,7 @@ public class STextArea extends SComponent {
 
     @Override
     public int minWidth() {
-        return Math.max(getText().length() * LETTER_WIDTH, specMinWidth);
+        return Math.max(textWidth, specMinWidth);
     }
 
     @Override
@@ -44,7 +47,9 @@ public class STextArea extends SComponent {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.drawText(screenPosition, dimensions, getText(), textType, alignment);
+        String text = getText();
+        textWidth = design.getTextWidth(text, textType);
+        design.drawText(screenPosition, getSize(), text, textType, alignment);
     }
 
     public String getText() {
@@ -58,7 +63,7 @@ public class STextArea extends SComponent {
     @Override
     public String toString() {
         String text = getText();
-        String substring = text.length() > 30 ? text.substring(0, 20) + "..." : text;
+        String substring = text.length() > 25 ? text.substring(0, 20) + "..." : text;
         return this.getClass().getSimpleName() + " (" + substring + ")";
     }
 }

@@ -82,8 +82,8 @@ public class STileBrowser extends SContainer {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        buttonBack.draw(design, new Vector2i(screenPosition).add(buttonBack.position));
-        buttonFurther.draw(design, new Vector2i(screenPosition).add(buttonFurther.position));
+        buttonBack.draw(design, new Vector2i(screenPosition).add(buttonBack.getPosition()));
+        buttonFurther.draw(design, new Vector2i(screenPosition).add(buttonFurther.getPosition()));
         drawChildren(design, screenPosition);
     }
 

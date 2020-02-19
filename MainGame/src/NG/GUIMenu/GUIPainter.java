@@ -128,4 +128,10 @@ public interface GUIPainter {
      * @param imageID the id of the image to draw, obtained from either createImage or createImageFromTexture
      */
     void drawImage(int imageID, int x, int y, int width, int height);
+
+    /**
+     * @param text any string
+     * @return the width of the text displayed in pixels
+     */
+    int getTextWidth(String text, float size, NGFonts font);
 }

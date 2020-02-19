@@ -68,7 +68,7 @@ public class S3DModelDisplay extends SComponent {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.draw(PANEL, screenPosition, dimensions);
+        design.draw(PANEL, screenPosition, getSize());
 
         design.getPainter().render(() -> {
             SceneShader shader = game.get(RenderLoop.class).getUIShader();
@@ -89,7 +89,7 @@ public class S3DModelDisplay extends SComponent {
 
                 // get vec to middle
                 Vector3f offset = new Vector3f(screenPosition.x(), screenPosition.y(), 0)
-                        .add(dimensions.x / 2f, dimensions.y / 2f, 0)
+                        .add(getWidth() / 2f, getHeight() / 2f, 0)
                         .sub(windowWidth / 2f, windowHeight / 2f, 0)
                         .mul((float) windowWidth / windowHeight)
                         .negate();
@@ -104,10 +104,10 @@ public class S3DModelDisplay extends SComponent {
                 // scaling
                 Vector3f xyDim = new Vector3f(meshSize).mul(1, 1, 0);
                 double xScale = MODEL_BASE_SCALING / xyDim.length(); // scale to size 2
-                xScale *= dimensions.x; // scale to panel size
+                xScale *= getWidth(); // scale to panel size
 
                 double yScale = MODEL_BASE_SCALING / meshSize.length();
-                yScale *= dimensions.y;
+                yScale *= getHeight();
 
                 float scaling = (float) Math.min(xScale, yScale);
                 gl.scale(scaling);

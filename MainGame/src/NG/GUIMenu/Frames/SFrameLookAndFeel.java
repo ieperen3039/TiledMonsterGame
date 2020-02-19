@@ -58,4 +58,11 @@ public interface SFrameLookAndFeel extends InitialisationMod {
         /** the drag bar element of a scrollbar */
         SCROLL_BAR_DRAG_ELEMENT,
     }
+
+    /**
+     * @param text     any string
+     * @param textType the type displayed
+     * @return the width of the text displayed in pixels
+     */
+    int getTextWidth(String text, NGFonts.TextType textType);
 }

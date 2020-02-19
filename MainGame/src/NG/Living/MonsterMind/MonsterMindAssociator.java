@@ -1,8 +1,9 @@
-package NG.Living;
+package NG.Living.MonsterMind;
 
 import NG.Actions.Commands.Command;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.PairList;
+import NG.Living.*;
 
 import java.util.ArrayDeque;
 import java.util.EnumMap;

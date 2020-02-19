@@ -13,7 +13,6 @@ import org.joml.Vector2ic;
  */
 public class SFrame extends SComponent {
     public static final int FRAME_TITLE_BAR_SIZE = 50;
-    private static final SFiller FILLER = new SFiller();
 
     private final String title;
     private final SPanel contents;
@@ -49,11 +48,10 @@ public class SFrame extends SComponent {
             upperBar = new SPanel(new SingleElementLayout(), true);
             upperBar.add(titleComponent, null);
         }
-        upperBar.setParent(this);
-
-        body = SContainer.singleton(FILLER);
+        body = SContainer.singleton(new SFiller());
 
         contents = new SPanel(0, 0, 1, 2, true, true);
+        contents.setParent(this);
         contents.setBorderVisible(false);
         contents.add(upperBar, new Vector2i(0, 0));
         contents.add(body, new Vector2i(0, 1));
@@ -118,7 +116,7 @@ public class SFrame extends SComponent {
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         if (!isVisible()) return;
-        design.draw(SFrameLookAndFeel.UIComponent.PANEL, screenPosition, dimensions);
+        design.draw(SFrameLookAndFeel.UIComponent.PANEL, screenPosition, getSize());
         contents.draw(design, screenPosition);
     }
 
@@ -144,7 +142,7 @@ public class SFrame extends SComponent {
 
     @Override
     public Vector2i getScreenPosition() {
-        return new Vector2i(position);
+        return new Vector2i(getPosition());
     }
 
     @Override

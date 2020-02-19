@@ -1,19 +1,24 @@
 package NG.Living;
 
-import NG.Entities.MonsterEntity;
-
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
+ * The player data, which stores info as the team composition, inventory and progress
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public class Player implements Living {
-    private final MonsterEntity playerEntity = null;
-    public List<MonsterSoul> team = new ArrayList<>();
+public class Player {
+    private final List<MonsterSoul> team = new ArrayList<>();
+    private final Collection<MonsterSoul> teamView = Collections.unmodifiableCollection(team);
 
-    @Override
-    public MonsterEntity entity() {
-        return playerEntity;
+    public Collection<MonsterSoul> getTeam() {
+        return teamView;
+    }
+
+    public void addToTeam(MonsterSoul monster) {
+        team.add(monster);
+        monster.setOwner(this);
     }
 }

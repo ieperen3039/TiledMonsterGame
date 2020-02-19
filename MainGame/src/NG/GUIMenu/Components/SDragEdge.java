@@ -35,8 +35,8 @@ public class SDragEdge extends SComponent implements MouseMoveListener {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.draw(BUTTON_ACTIVE, screenPosition, dimensions);
-        design.drawText(screenPosition, dimensions, "+", NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.LEFT);
+        design.draw(BUTTON_ACTIVE, screenPosition, getSize());
+        design.drawText(screenPosition, getSize(), "+", NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.LEFT);
     }
 
     @Override

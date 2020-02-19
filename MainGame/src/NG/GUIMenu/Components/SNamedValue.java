@@ -18,8 +18,8 @@ public class SNamedValue extends STextArea {
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
-        design.drawText(screenPosition, dimensions, text + ":", textType, SFrameLookAndFeel.Alignment.LEFT);
-        design.drawText(screenPosition, dimensions, String.valueOf(producer.get()), textType, SFrameLookAndFeel.Alignment.RIGHT);
+        design.drawText(screenPosition, getSize(), text + ":", textType, SFrameLookAndFeel.Alignment.LEFT);
+        design.drawText(screenPosition, getSize(), String.valueOf(producer.get()), textType, SFrameLookAndFeel.Alignment.RIGHT);
     }
 
     @Override
