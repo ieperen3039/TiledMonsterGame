@@ -7,7 +7,9 @@ import NG.DataStructures.Generic.Color4f;
  * @author Geert van Ieperen. Created on 13-9-2018.
  */
 public enum Material {
-    ROUGH(Color4f.GREY, Color4f.INVISIBLE, 1), METAL(Color4f.GREY, Color4f.WHITE, 50), PLASTIC(Color4f.GREY, Color4f.WHITE, 2),
+    ROUGH(Color4f.GREY, Color4f.INVISIBLE, 1),
+    METAL(Color4f.BLACK, Color4f.WHITE, 50),
+    PLASTIC(Color4f.BLACK, Color4f.WHITE, 2),
 
     SILVER(new Color4f(0.8f, 0.8f, 0.8f), new Color4f(0.9f, 0.9f, 1f), 40);
 
@@ -20,6 +22,4 @@ public enum Material {
         this.specular = specular;
         this.reflectance = reflectance;
     }
-
-
 }

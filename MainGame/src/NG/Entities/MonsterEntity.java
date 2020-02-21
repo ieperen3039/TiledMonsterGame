@@ -63,6 +63,7 @@ public abstract class MonsterEntity implements MovingEntity {
         float now = game.get(GameTimer.class).getRendertime();
         currentActions.removeUntil(now);
 
+        ShaderProgram shader = gl.getShader();
         Pair<EntityAction, Float> actionPair = currentActions.getActionAt(now);
         EntityAction action = actionPair.left;
         Float timeSinceStart = actionPair.right;
@@ -70,22 +71,26 @@ public abstract class MonsterEntity implements MovingEntity {
         gl.pushMatrix();
         {
             gl.translate(action.getPositionAt(timeSinceStart));
+
+            if (shader instanceof MaterialShader && marking == Mark.SELECTED) {
+                MaterialShader mat = (MaterialShader) shader;
+                mat.setMaterial(Material.SILVER, Color4f.YELLOW);
+                gl.translate(0, 0, 0.5f);
+                gl.render(GenericShapes.SELECTION, this);
+                gl.translate(0, 0, -0.5f);
+            }
+
             gl.rotate(action.getRotationAt(timeSinceStart));
 
-            gl.pushMatrix();
-            {
-                bodyModel.draw(gl, this, boneMapping, timeSinceStart, action, previousAction);
-            }
-            gl.popMatrix();
+            bodyModel.draw(gl, this, boneMapping, timeSinceStart, action, previousAction);
 
-            ShaderProgram shader = gl.getShader();
             if (shader instanceof MaterialShader) {
                 MaterialShader mat = (MaterialShader) shader;
                 mat.setMaterial(Material.ROUGH, Color4f.WHITE);
 
                 switch (marking) {
                     case SELECTED:
-                        mat.setMaterial(Material.PLASTIC, Color4f.YELLOW);
+                        mat.setMaterial(Material.SILVER, Color4f.YELLOW);
                     case OWNED:
                         gl.translate(0, 0, 4);
                         gl.scale(2, 2, -1);
@@ -172,7 +177,11 @@ public abstract class MonsterEntity implements MovingEntity {
 
     @Override
     public BoundingBox getHitbox(float gameTime) {
-        return getLocalHitbox().getMoved(getPositionAt(gameTime));
+//        Pair<EntityAction, Float> action = getActionAt(gameTime);
+//        Quaternionf rotation = action.left.getRotationAt(action.right);
+        BoundingBox hitbox = getLocalHitbox();
+//        rotate hitbox
+        return hitbox.getMoved(getPositionAt(gameTime));
     }
 
     /**

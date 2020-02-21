@@ -2,6 +2,7 @@ package NG.GameState;
 
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
+import NG.CollisionDetection.GameState;
 import NG.Core.Game;
 import NG.Core.GameService;
 import NG.Core.Version;
@@ -14,7 +15,6 @@ import NG.GameMap.GameMap;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
-import NG.Rendering.Lights.GameState;
 import NG.Settings.Settings;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;

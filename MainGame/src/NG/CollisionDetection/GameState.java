@@ -1,4 +1,4 @@
-package NG.Rendering.Lights;
+package NG.CollisionDetection;
 
 import NG.Core.GameAspect;
 import NG.DataStructures.Generic.Pair;

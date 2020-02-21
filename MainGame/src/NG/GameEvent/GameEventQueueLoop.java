@@ -1,9 +1,9 @@
 package NG.GameEvent;
 
+import NG.CollisionDetection.GameState;
 import NG.Core.AbstractGameLoop;
 import NG.Core.Game;
 import NG.Core.GameTimer;
-import NG.Rendering.Lights.GameState;
 import NG.Storable;
 
 import java.io.DataOutputStream;
@@ -52,10 +52,11 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Storable, Ev
         timer.updateGameTime();
         float gameTime = timer.getGametime();
 
-        if (eventQueue.isEmpty()) {
+        if (eventQueue.isEmpty() && timer.getGametimeDifference() > 0) {
             state.update(gameTime);
-            return;
         }
+
+        if (eventQueue.isEmpty()) return;
 
         lockQueueRead.lock();
         Event next = eventQueue.element();
@@ -92,7 +93,9 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Storable, Ev
             eventTime = next.getTime();
         }
 
-        state.update(gameTime);
+        if (timer.getGametimeDifference() > 0) {
+            state.update(gameTime);
+        }
     }
 
     @Override

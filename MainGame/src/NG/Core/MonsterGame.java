@@ -3,6 +3,7 @@ package NG.Core;
 import NG.Camera.Camera;
 import NG.Camera.TycoonFixedCamera;
 import NG.CollisionDetection.BoundingBox;
+import NG.CollisionDetection.GameState;
 import NG.CollisionDetection.PhysicsEngine;
 import NG.DataStructures.Generic.Color4f;
 import NG.GUIMenu.HUD.HUDManager;
@@ -23,7 +24,6 @@ import NG.Particles.GameParticles;
 import NG.Particles.ParticleShader;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
-import NG.Rendering.Lights.GameState;
 import NG.Rendering.Lights.SingleShadowMapLights;
 import NG.Rendering.Pointer;
 import NG.Rendering.RenderLoop;
@@ -172,7 +172,7 @@ public class MonsterGame implements ModLoader {
 
         } catch (Exception ex) {
             Logger.WARN.print("Could not start ClickShader: " + ex);
-            // we have backups if it doesn't work for whatever reason
+            // we have a backup if it doesn't work for whatever reason
         }
 
         inputHandler.addKeyPressListener(k -> {
@@ -189,6 +189,15 @@ public class MonsterGame implements ModLoader {
                     combinedGame.executeOnRenderThread(() ->
                             combinedGame.select((combinedGame.current() + 1) % 2)
                     );
+                    break;
+
+                case TOGGLE_PAUSE:
+                    GameTimer timer = worldGame.get(GameTimer.class);
+                    if (timer.isPaused()) {
+                        timer.unPause();
+                    } else {
+                        timer.pause();
+                    }
                     break;
             }
         });

@@ -1,10 +1,10 @@
 package NG.InputHandling;
 
 import NG.Camera.Camera;
+import NG.CollisionDetection.GameState;
 import NG.Core.Game;
 import NG.Entities.Entity;
 import NG.Rendering.GLFWWindow;
-import NG.Rendering.Lights.GameState;
 import NG.Rendering.MatrixStack.AbstractSGL;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;

@@ -103,8 +103,8 @@ public class ProjectilePowerBall extends Projectile {
     private void explode(float collisionTime) {
         game.get(GameParticles.class).add(Particles.explosion(
                 getPositionAt(collisionTime), Vectors.O,
-                new Color4f(1, 0, 0),
-                new Color4f(0.5f, 0.2f, 0),
+                new Color4f(1, 1, 0),
+                new Color4f(0.5f, 0.8f, 0),
                 (int) (game.get(Settings.class).PARTICLE_MODIFIER * Particles.EXPLOSION_BASE_DENSITY),
                 Particles.FIRE_LINGER_TIME, EXPLOSION_POWER
         ));
@@ -132,7 +132,7 @@ public class ProjectilePowerBall extends Projectile {
                 if (entity == null) return null;
 
                 Vector3f targetPosition = game.get(GameMap.class).getPosition(target);
-                Projectile prj = new ProjectilePowerBall(game, entity, targetPosition, 5, 0.5f);
+                Projectile prj = new ProjectilePowerBall(game, entity, targetPosition, 5, 0.3f);
 
                 float gametime = game.get(GameTimer.class).getGametime();
                 return new CommandAttack(entity, prj, gametime);

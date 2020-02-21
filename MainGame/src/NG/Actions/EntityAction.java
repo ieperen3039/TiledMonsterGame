@@ -13,6 +13,7 @@ import org.joml.Vector3fc;
  */
 public interface EntityAction {
     float ACCEPTABLE_DIFFERENCE = 1f / 512f;
+    float DIRECTION_DELTA = 0.1f;
 
     /**
      * calculates the position of this action, at the given time after the start of this action
@@ -65,8 +66,8 @@ public interface EntityAction {
      * @return the rotation from the base at the given moment in time as described by this action.
      */
     default Quaternionf getRotationAt(float timeSinceStart) {
-        Vector3f startPosition = getPositionAt(0);
-        Vector3f endPosition = getPositionAt(duration());
+        Vector3f startPosition = getPositionAt(timeSinceStart);
+        Vector3f endPosition = getPositionAt(timeSinceStart + DIRECTION_DELTA);
         Quaternionf rot = new Quaternionf();
         float dx = endPosition.x - startPosition.x;
         float dy = endPosition.y - startPosition.y;

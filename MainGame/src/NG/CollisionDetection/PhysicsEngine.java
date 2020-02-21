@@ -9,11 +9,9 @@ import NG.Entities.MovingEntity;
 import NG.GameMap.GameMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
-import NG.Rendering.Lights.GameState;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Settings.Settings;
 import NG.Storable;
-import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -78,12 +76,6 @@ public class PhysicsEngine implements GameState {
             Vector3fc delta = entity.getPositionAt(startTime + 0.001f);
             assert delta.z() > map.getHeightAt(delta.x(), delta.y()) : "The fact that this triggered means that this is needed";
             return;
-        }
-
-        if (firstAction.left.equals(lastAction.left)) {
-            Logger.WARN.printf("Collision during %s at %6.04f", firstAction.left, intersect);
-        } else {
-            Logger.WARN.printf("Collision between %s and %s at %6.04f", firstAction.left, lastAction.left, intersect);
         }
 
         // collision found

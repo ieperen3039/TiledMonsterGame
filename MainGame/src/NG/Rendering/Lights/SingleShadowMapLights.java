@@ -1,6 +1,7 @@
 package NG.Rendering.Lights;
 
 import NG.Camera.Camera;
+import NG.CollisionDetection.GameState;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
 import NG.GameMap.GameMap;

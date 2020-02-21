@@ -86,6 +86,18 @@ public class BoundingBox extends AABBf {
         return min;
     }
 
+    public void unionRotated(AABBf other, Quaternionfc rotation) {
+        Vector3f point = new Vector3f();
+        union(point.set(other.minX, other.minY, other.minZ).rotate(rotation));
+        union(point.set(other.maxX, other.minY, other.minZ).rotate(rotation));
+        union(point.set(other.minX, other.maxY, other.minZ).rotate(rotation));
+        union(point.set(other.minX, other.minY, other.maxZ).rotate(rotation));
+        union(point.set(other.maxX, other.maxY, other.minZ).rotate(rotation));
+        union(point.set(other.maxX, other.minY, other.maxZ).rotate(rotation));
+        union(point.set(other.minX, other.maxY, other.maxZ).rotate(rotation));
+        union(point.set(other.maxX, other.maxY, other.maxZ).rotate(rotation));
+    }
+
     /**
      * Iterates over the corners of this bounding box using an iterator-local buffer vector
      * @return an iterable source of the corners of this box. Changes of the bounding box are reflected in the values

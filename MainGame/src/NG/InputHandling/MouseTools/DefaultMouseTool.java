@@ -1,6 +1,7 @@
 package NG.InputHandling.MouseTools;
 
 import NG.Camera.Camera;
+import NG.CollisionDetection.GameState;
 import NG.Core.Game;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
@@ -14,7 +15,6 @@ import NG.InputHandling.MouseReleaseListener;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.GLFWWindow;
-import NG.Rendering.Lights.GameState;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector2i;
