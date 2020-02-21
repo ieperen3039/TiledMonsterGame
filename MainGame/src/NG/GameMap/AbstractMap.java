@@ -106,7 +106,9 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         } else {
             // check this tile before setting up voxel ray casting
             Float secFrac = getTileIntersect(origin, direction, (int) coordPos.x, (int) coordPos.y);
-            if (secFrac >= 0 && secFrac < 1) {
+            if (secFrac < 0) {
+                return 1;
+            } else if (secFrac < 1) {
                 return secFrac;
             }
         }
@@ -142,7 +144,8 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
                 Logger.ASSERT.printf("got (%d, %d) which is out of bounds", xCoord, yCoord);
                 return 1;
 
-            } else if (secFrac >= 0 && secFrac < 1) {
+            } else if (secFrac < 1) {
+                assert secFrac > 0;
                 return secFrac;
             }
 

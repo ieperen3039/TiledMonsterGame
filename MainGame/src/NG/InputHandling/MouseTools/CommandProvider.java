@@ -37,6 +37,11 @@ public abstract class CommandProvider {
 
                         return action.create(game, startPosition, target);
                     }
+
+                    @Override
+                    public String toString() {
+                        return "Command " + name;
+                    }
                 };
             }
         };

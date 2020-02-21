@@ -50,27 +50,40 @@ public class PhysicsEngine implements GameState {
         Pair<EntityAction, Float> firstAction = movingEntity.getActionAt(startTime);
         Pair<EntityAction, Float> lastAction = movingEntity.getActionAt(endTime);
 
-        // especially if (firstAction == lastAction)
-        boolean firstHasColl = firstAction.left.hasWorldCollision();
-        boolean lastHasColl = lastAction.left.hasWorldCollision();
+        if (firstAction.left != lastAction.left) {
+            // we assume there is no action inbetween
+            boolean firstHasColl = firstAction.left.hasWorldCollision();
+            boolean lastHasColl = lastAction.left.hasWorldCollision();
 
-        if (!firstHasColl && !lastHasColl) return;
-        // if only second action, then set start to the end of the first action
-        if (!firstHasColl) startTime = endTime - lastAction.right;
-        // if only first action, set end to the end of the first action
-        if (!lastHasColl) endTime -= lastAction.right;
+            if (!firstHasColl && !lastHasColl) return;
+            // if only second action, then set start to the end of the first action
+            if (!firstHasColl) startTime = endTime - lastAction.right;
+            // if only first action, set end to the end of the first action
+            if (!lastHasColl) endTime -= lastAction.right;
 
-        GameMap map = game.get(GameMap.class);
+        } else {
+            if (!firstAction.left.hasWorldCollision()) return;
+        }
+
+        assert startTime < endTime;
+
         Vector3fc startPos = entity.getPositionAt(startTime);
         Vector3fc endPos = entity.getPositionAt(endTime);
 
+        GameMap map = game.get(GameMap.class);
         float intersect = map.gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
         if (intersect == 1) return;
+        // edge case: immediate collision, but still legal
+        if (intersect == 0 && endPos.z() > map.getHeightAt(endPos.x(), endPos.y())) {
+            Vector3fc delta = entity.getPositionAt(startTime + 0.001f);
+            assert delta.z() > map.getHeightAt(delta.x(), delta.y()) : "The fact that this triggered means that this is needed";
+            return;
+        }
 
         if (firstAction.left.equals(lastAction.left)) {
-            Logger.WARN.printf("Collision during %s", firstAction.left);
+            Logger.WARN.printf("Collision during %s at %6.04f", firstAction.left, intersect);
         } else {
-            Logger.WARN.printf("Collision between %s and %s", firstAction.left, lastAction.left);
+            Logger.WARN.printf("Collision between %s and %s at %6.04f", firstAction.left, lastAction.left, intersect);
         }
 
         // collision found
