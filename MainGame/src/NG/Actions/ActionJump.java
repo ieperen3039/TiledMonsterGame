@@ -7,6 +7,7 @@ import NG.GameMap.GameMap;
 import NG.Settings.Settings;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
+import org.joml.Math;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -25,7 +26,7 @@ public class ActionJump implements EntityAction {
     private final float c;
 
     public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord) {
-        this(game, startPosition, endCoord, 8f);
+        this(game, startPosition, endCoord, 4f);
     }
 
     public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord, float jumpSpeed) {
@@ -37,7 +38,7 @@ public class ActionJump implements EntityAction {
         this.end = endPosition;
         this.duration = jumpDuration(jumpSpeed, startPosition, endPosition);
 
-        // relative
+        // float ax = 0;
         float ay = startPosition.z();
         float bx = duration;
         float by = endPosition.z();
@@ -50,7 +51,7 @@ public class ActionJump implements EntityAction {
             c = end.z();
         } else {
             b = -((ay - by) + (a * bx * bx)) / (bx);
-            c = (ay * bx) / (bx);
+            c = ay;
         }
 
         assert getPositionAt(duration).equals(endPosition, 1 / 128f) :
@@ -69,7 +70,7 @@ public class ActionJump implements EntityAction {
     }
 
     public static float jumpDuration(float jumpSpeed, Vector3fc startPosition, Vector3fc endPosition) {
-        float distance = startPosition.distance(endPosition); // not entirely true, as this does take z into account
+        float distance = (float) Math.sqrt(startPosition.distance(endPosition)); // not entirely true, as this does take z into account
         return (distance < (1 / 128f)) ? 0 : (distance / jumpSpeed);
     }
 

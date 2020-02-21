@@ -1,10 +1,13 @@
 package NG.Animations;
 
+import NG.Actions.ActionIdle;
+import NG.Actions.EntityAction;
+import NG.CollisionDetection.BoundingBox;
 import NG.Core.GameTimer;
+import NG.DataStructures.Generic.Pair;
 import NG.Entities.Dummy;
 import NG.Entities.MovingEntity;
 import NG.Entities.RobotMonster;
-import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import org.joml.Matrix4fc;
@@ -69,7 +72,7 @@ public interface PartialAnimation extends Storable {
         }
 
         @Override
-        public Vector3f getPositionAt(float currentTime) {
+        public Vector3f getPositionAt(float gameTime) {
             return position;
         }
 
@@ -83,8 +86,13 @@ public interface PartialAnimation extends Storable {
         }
 
         @Override
-        public void collideWith(GameMap map, float collisionTime) {
+        public BoundingBox getHitbox(float gameTime) {
+            return new BoundingBox(0, 0, 0, 0, 0, 0);
+        }
 
+        @Override
+        public Pair<EntityAction, Float> getActionAt(float gameTime) {
+            return new Pair<>(new ActionIdle(position), 0f);
         }
     }
 }

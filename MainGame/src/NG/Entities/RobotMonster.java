@@ -38,7 +38,7 @@ public class RobotMonster extends MonsterSoul {
         }
 
         @Override
-        public BoundingBox getHitbox() {
+        public BoundingBox getLocalHitbox() {
             return new BoundingBox(-1, -1, 0, 1, 1, 2);
         }
     }

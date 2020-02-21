@@ -14,7 +14,6 @@ import NG.DataStructures.Generic.Pair;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterMind.MonsterMind;
 import NG.Living.MonsterSoul;
-import NG.Living.Player;
 import NG.Particles.GameParticles;
 import NG.Particles.Particles;
 import NG.Rendering.Material;
@@ -24,7 +23,6 @@ import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
 import java.util.Map;
 
@@ -56,10 +54,6 @@ public abstract class MonsterEntity implements MovingEntity {
         this.previousAction = new ActionIdle(game, initialPosition);
         this.bodyModel = bodyModel;
         this.boneMapping = boneMapping;
-
-        if (game.get(Player.class).getTeam().contains(controller)) {
-            markAs(Mark.OWNED);
-        }
     }
 
     @Override
@@ -87,12 +81,13 @@ public abstract class MonsterEntity implements MovingEntity {
             ShaderProgram shader = gl.getShader();
             if (shader instanceof MaterialShader) {
                 MaterialShader mat = (MaterialShader) shader;
+                mat.setMaterial(Material.ROUGH, Color4f.WHITE);
 
                 switch (marking) {
                     case SELECTED:
-                        mat.setMaterial(Material.ROUGH, Color4f.YELLOW);
+                        mat.setMaterial(Material.PLASTIC, Color4f.YELLOW);
                     case OWNED:
-                        gl.translate(0, 0, getHitbox().maxZ + 2);
+                        gl.translate(0, 0, 4);
                         gl.scale(2, 2, -1);
                         gl.render(GenericShapes.ARROW, this);
                         break;
@@ -128,13 +123,8 @@ public abstract class MonsterEntity implements MovingEntity {
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
-        return currentActions.getPositionAt(currentTime);
-    }
-
-    @Override
-    public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
-        return new BoundingBox(getHitbox(), getPositionAt(gameTime)).intersectRay(origin, direction);
+    public Vector3f getPositionAt(float gameTime) {
+        return currentActions.getPositionAt(gameTime);
     }
 
     @Override
@@ -147,12 +137,9 @@ public abstract class MonsterEntity implements MovingEntity {
         return isDisposed;
     }
 
-    public EntityAction getLastAction() {
-        return currentActions.lastAction();
-    }
-
-    public EntityAction getActionAt(float gameTime) {
-        return currentActions.getActionAt(gameTime).left;
+    @Override
+    public Pair<EntityAction, Float> getActionAt(float gameTime) {
+        return currentActions.getActionAt(gameTime);
     }
 
     @Override
@@ -164,9 +151,6 @@ public abstract class MonsterEntity implements MovingEntity {
 
     @Override
     public void collideWith(GameMap map, float collisionTime) {
-        EntityAction action = currentActions.getActionAt(collisionTime).left;
-        if (!action.hasWorldCollision()) return;
-
         EntityAction nextAction = controller.mind().getNextAction(collisionTime);
         currentActions.insert(nextAction, collisionTime);
     }
@@ -185,4 +169,14 @@ public abstract class MonsterEntity implements MovingEntity {
     public enum Mark {
         NONE, OWNED, SELECTED
     }
+
+    @Override
+    public BoundingBox getHitbox(float gameTime) {
+        return getLocalHitbox().getMoved(getPositionAt(gameTime));
+    }
+
+    /**
+     * @return the relative (local-space) bounding box of this entity
+     */
+    abstract BoundingBox getLocalHitbox();
 }

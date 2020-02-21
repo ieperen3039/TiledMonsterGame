@@ -39,7 +39,7 @@ public class ActionFireProjectile implements EntityAction {
 
         // TODO replace validity check with something more robust
         Event e = new ProjectileSpawnEvent(game, elt, spawnPosition, spawnTime, () ->
-                source.getActionAt(game.get(GameTimer.class).getGametime()) == this
+                source.getActionAt(game.get(GameTimer.class).getGametime()).left == this
         );
         game.get(EventLoop.class).addEvent(e);
     }

@@ -1,7 +1,9 @@
 package NG.Entities;
 
+import NG.Actions.ActionIdle;
+import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
-import NG.GameMap.GameMap;
+import NG.DataStructures.Generic.Pair;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector3f;
@@ -16,7 +18,8 @@ public class Cube implements MovingEntity {
     private final int id;
 
     private boolean isDisposed = false;
-    protected Vector3f position;
+    protected Vector3fc position;
+    private Pair<EntityAction, Float> action;
     private BoundingBox boundingBox;
 
     public Cube(Vector3f position) {
@@ -25,11 +28,17 @@ public class Cube implements MovingEntity {
 
         float half = SIZE / 2;
         boundingBox = new BoundingBox(half, half, half, half, half, half);
+        action = new Pair<>(new ActionIdle(position), 0f);
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
-        return position;
+    public Pair<EntityAction, Float> getActionAt(float gameTime) {
+        return action;
+    }
+
+    @Override
+    public Vector3f getPositionAt(float gameTime) {
+        return new Vector3f(position);
     }
 
     @Override
@@ -64,22 +73,12 @@ public class Cube implements MovingEntity {
     }
 
     @Override
-    public BoundingBox getHitbox() {
-        return boundingBox;
-    }
-
-    @Override
-    public void collideWith(Entity other, float collisionTime) {
-
-    }
-
-    @Override
     public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
         return 0;
     }
 
     @Override
-    public void collideWith(GameMap map, float collisionTime) {
-
+    public BoundingBox getHitbox(float gameTime) {
+        return boundingBox.getMoved(getPositionAt(gameTime));
     }
 }

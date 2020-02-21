@@ -1,6 +1,7 @@
 package NG.GameMap;
 
 import NG.Camera.Camera;
+import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.DataStructures.Direction;
 import NG.DataStructures.Generic.AveragingQueue;
@@ -488,5 +489,10 @@ public class TileMap extends AbstractMap {
         );
 
         return tileData.intersectFraction(localOrigin, direction);
+    }
+
+    @Override
+    public BoundingBox getHitbox(float gameTime) {
+        return new BoundingBox(0, 0, Float.NEGATIVE_INFINITY, xChunks * chunkSize * TILE_SIZE, yChunks * chunkSize * TILE_SIZE, Float.POSITIVE_INFINITY);
     }
 }

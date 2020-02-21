@@ -1,5 +1,6 @@
 package NG.GameMap;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
@@ -55,8 +56,9 @@ public class EmptyMap extends AbstractMap {
 
     }
 
-    public Vector3f intersectWithSegment(Vector3fc origin, Vector3fc direction) {
-        return new Vector3f();
+    @Override
+    public BoundingBox getHitbox(float gameTime) {
+        return new BoundingBox(0, 0, 0, 0, 0, 0);
     }
 
     @Override

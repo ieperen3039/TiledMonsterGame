@@ -21,6 +21,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import static NG.Settings.Settings.DEFAULT_WINDOW_HEIGHT;
+import static NG.Settings.Settings.DEFAULT_WINDOW_WIDTH;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -416,7 +418,12 @@ public class GLFWWindow {
         final boolean cullFace;
 
         public Settings(NG.Settings.Settings s) {
-            this(s.DEBUG, false, s.ANTIALIAS_LEVEL, !s.DEBUG, s.DEFAULT_WINDOW_WIDTH, s.DEFAULT_WINDOW_HEIGHT, s.V_SYNC, s.TARGET_FPS, true);
+            this(
+                    s.DEBUG, false,
+                    s.ANTIALIAS_LEVEL, !s.DEBUG,
+                    DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
+                    s.V_SYNC, s.TARGET_FPS, true
+            );
         }
 
         public Settings(

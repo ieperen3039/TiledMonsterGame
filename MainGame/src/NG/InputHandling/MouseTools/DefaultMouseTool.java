@@ -113,7 +113,7 @@ public class DefaultMouseTool implements MouseTool {
 
     @Override
     public String toString() {
-        return "Default MouseTool";
+        return getClass().getSimpleName();
     }
 
     @Override

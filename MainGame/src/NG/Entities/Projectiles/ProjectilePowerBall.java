@@ -1,12 +1,15 @@
 package NG.Entities.Projectiles;
 
+import NG.Actions.ActionFly;
 import NG.Actions.Attacks.DamageType;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.CommandAttack;
+import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
+import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
@@ -38,9 +41,8 @@ public class ProjectilePowerBall extends Projectile {
     private final DamageType damageType;
     private float size;
 
-    private Vector3fc startPosition;
-    private Vector3fc endPosition;
-    private float duration;
+    private EntityAction action;
+    private Vector3fc target;
 
     public ProjectilePowerBall(Game game, Entity source, Vector2ic endCoordinate, float speed, float size) {
         this(
@@ -52,14 +54,15 @@ public class ProjectilePowerBall extends Projectile {
         );
     }
 
-    public ProjectilePowerBall(Game game, Entity source, Vector3fc endPosition, float speed, float size) {
+    public ProjectilePowerBall(Game game, Entity source, Vector3fc target, float speed, float size) {
         super(game, source);
+        this.target = target;
         this.speed = speed;
         this.size = size;
+        this.damageType = DamageType.PHYSICAL;
+
         float boxSize = size * HITBOX_SCALAR;
         this.boundingBox = new BoundingBox(-boxSize, -boxSize, -boxSize, boxSize, boxSize, boxSize);
-        this.endPosition = new Vector3f(endPosition);
-        damageType = DamageType.PHYSICAL;
     }
 
     @Override
@@ -67,20 +70,18 @@ public class ProjectilePowerBall extends Projectile {
     }
 
     @Override
-    protected void setSpawnPosition(Vector3fc spawnPosition) {
-        this.startPosition = spawnPosition;
-        this.duration = startPosition.distance(endPosition) / speed;
+    public BoundingBox getHitbox(float gameTime) {
+        return boundingBox.getMoved(getPositionAt(gameTime));
     }
 
     @Override
-    public Vector3f getPositionAt(float gameTime) {
-        float timeSinceStart = gameTime - getSpawnTime();
-        if (timeSinceStart < 0) {
-            return null;
-        }
+    protected void setSpawnPosition(Vector3fc spawnPosition) {
+        action = new ActionFly(spawnPosition, target, speed);
+    }
 
-        float fraction = timeSinceStart / duration;
-        return new Vector3f(startPosition).lerp(endPosition, fraction);
+    @Override
+    public Pair<EntityAction, Float> getActionAt(float gameTime) {
+        return new Pair<>(action, gameTime - getSpawnTime());
     }
 
     @Override
@@ -137,11 +138,6 @@ public class ProjectilePowerBall extends Projectile {
                 return new CommandAttack(entity, prj, gametime);
             }
         };
-    }
-
-    @Override
-    public BoundingBox getHitbox() {
-        return boundingBox;
     }
 
     @Override

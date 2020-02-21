@@ -1,6 +1,7 @@
 package NG.GameMap;
 
 import NG.Camera.Camera;
+import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
 import NG.InputHandling.MouseTools.MouseTool;
@@ -197,6 +198,11 @@ public class BlockMap extends AbstractMap {
             }
             gl.popMatrix();
         }
+    }
+
+    @Override
+    public BoundingBox getHitbox(float gameTime) {
+        return new BoundingBox(0, 0, Float.NEGATIVE_INFINITY, xSize * TILE_SIZE, ySize * TILE_SIZE, Float.POSITIVE_INFINITY);
     }
 
     @Override

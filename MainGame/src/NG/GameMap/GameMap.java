@@ -4,6 +4,7 @@ import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.GameAspect;
 import NG.Entities.Entity;
+import NG.Entities.MovingEntity;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Settings.Settings;
@@ -140,7 +141,7 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable
             BoundingBox hitbox, Vector3fc origin, Vector3fc direction, float maximum
     );
 
-    default float checkCollision(Entity entity, float startTime, float endTime) {
+    default float checkCollision(MovingEntity entity, float startTime, float endTime) {
         Vector3fc startPos = entity.getPositionAt(startTime);
         Vector3fc endPos = entity.getPositionAt(endTime);
 
@@ -170,7 +171,7 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable
     }
 
     default boolean isOnFloor(Vector3fc position) {
-        return Math.abs(getHeightAt(position.x(), position.y()) - position.z()) < EntityAction.ON_GROUND_EPSILON;
+        return Math.abs(getHeightAt(position.x(), position.y()) - position.z()) < EntityAction.ACCEPTABLE_DIFFERENCE;
     }
 
     interface ChangeListener {

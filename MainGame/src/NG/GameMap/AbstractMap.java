@@ -10,8 +10,6 @@ import NG.Tools.Vectors;
 import org.joml.Math;
 import org.joml.*;
 
-import java.util.List;
-
 /**
  * An object that represents the world where all other entities stand on. This includes both the graphical and the
  * physical representation. The map considers a difference between coordinates and position, in that a coordinate may be
@@ -166,12 +164,6 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
     /** returns the floating-point transformation to coordinates */
     protected abstract Vector2f getCoordPosf(Vector3fc origin);
 
-    @Override
-    public List<Vector3f> getShapePoints(List<Vector3f> dest, float gameTime) {
-        dest.clear(); // returning all points is expensive and can be left out
-        return dest;
-    }
-
     /**
      * computes the intersection of a ray on the given coordinate
      * @param origin    the origin of the ray in real space
@@ -182,10 +174,4 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
      * null if the given coordinate is not on the map.
      */
     abstract Float getTileIntersect(Vector3fc origin, Vector3fc direction, int xCoord, int yCoord);
-
-    @Override
-    public BoundingBox getHitbox() {
-        Vector2ic size = getSize();
-        return new BoundingBox(0, 0, Float.NEGATIVE_INFINITY, size.x(), size.y(), Float.POSITIVE_INFINITY);
-    }
 }

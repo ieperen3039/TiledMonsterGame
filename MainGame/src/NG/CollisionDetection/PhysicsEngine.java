@@ -1,5 +1,6 @@
 package NG.CollisionDetection;
 
+import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
@@ -12,6 +13,7 @@ import NG.Rendering.Lights.GameState;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Settings.Settings;
 import NG.Storable;
+import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -24,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Doesn't actually calculate results of collisions. See {@link Entity#collideWith(Entity, float)}
  * @author Geert van Ieperen created on 10-2-2019.
  */
 public class PhysicsEngine implements GameState {
@@ -41,12 +44,34 @@ public class PhysicsEngine implements GameState {
     }
 
     private void entityWorldCollision(Entity entity, float startTime, float endTime) {
+        if (!(entity instanceof MovingEntity)) return;
+
+        MovingEntity movingEntity = (MovingEntity) entity;
+        Pair<EntityAction, Float> firstAction = movingEntity.getActionAt(startTime);
+        Pair<EntityAction, Float> lastAction = movingEntity.getActionAt(endTime);
+
+        // especially if (firstAction == lastAction)
+        boolean firstHasColl = firstAction.left.hasWorldCollision();
+        boolean lastHasColl = lastAction.left.hasWorldCollision();
+
+        if (!firstHasColl && !lastHasColl) return;
+        // if only second action, then set start to the end of the first action
+        if (!firstHasColl) startTime = endTime - lastAction.right;
+        // if only first action, set end to the end of the first action
+        if (!lastHasColl) endTime -= lastAction.right;
+
         GameMap map = game.get(GameMap.class);
         Vector3fc startPos = entity.getPositionAt(startTime);
         Vector3fc endPos = entity.getPositionAt(endTime);
 
         float intersect = map.gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
         if (intersect == 1) return;
+
+        if (firstAction.left.equals(lastAction.left)) {
+            Logger.WARN.printf("Collision during %s", firstAction.left);
+        } else {
+            Logger.WARN.printf("Collision between %s and %s", firstAction.left, lastAction.left);
+        }
 
         // collision found
         float collisionTime = startTime + intersect * (endTime - startTime);

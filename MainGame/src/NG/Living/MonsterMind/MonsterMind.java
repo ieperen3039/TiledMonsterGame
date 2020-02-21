@@ -13,6 +13,7 @@ import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Living.MonsterSoul;
 import NG.Living.Stimulus;
+import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 
@@ -83,7 +84,10 @@ public abstract class MonsterMind {
 
         GameMap map = game.get(GameMap.class);
         Vector2i coordinate = map.getCoordinate(position);
-        if (map.getPosition(coordinate).distanceSquared(position) > 0.1f) {
+        if (!map.isOnFloor(position)) {
+            return new ActionJump(position, map.getPosition(coordinate), 4);
+
+        } else if (map.getPosition(coordinate).distanceSquared(position) > 0.01f) {
             return new ActionWalk(game, position, coordinate);
 
         } else {
@@ -112,6 +116,8 @@ public abstract class MonsterMind {
             float now = game.get(GameTimer.class).getGametime();
             EntityAction nextAction = getNextAction(now);
             entity.currentActions.insert(nextAction, now);
+        } else {
+            Logger.DEBUG.printf("Queued %s, Currently doing %s", c, executionTarget);
         }
     }
 
@@ -126,9 +132,39 @@ public abstract class MonsterMind {
         }
 
         Vector3f otherToThis = new Vector3f(thisPos).sub(otherPos);
-
         executionTarget = null;
+
+        if (map.isOnFloor(thisPos)) {
+            Vector2i coordinate = map.getCoordinate(thisPos);
+            Vector3f direction = map.getPosition(coordinate).sub(thisPos);
+            Logger.WARN.print(thisPos);
+            // if current coordinate is in direction of collision
+            if (direction.dot(otherToThis) < 0) {
+                expandCoord(coordinate, otherToThis);
+                return new ActionWalk(game, thisPos, coordinate);
+            }
+
+            return new ActionIdle(thisPos, 0.1f);
+        }
+
         return new ActionFall(thisPos, otherToThis, 2);
+    }
+
+    /** increases the x or y coordinate in the given direction */
+    private void expandCoord(Vector2i coordinate, Vector3f direction) {
+        if (Math.abs(direction.x) > Math.abs(direction.y)) {
+            if (direction.x > 0) {
+                coordinate.x++;
+            } else {
+                coordinate.x--;
+            }
+        } else {
+            if (direction.y > 0) {
+                coordinate.y++;
+            } else {
+                coordinate.y--;
+            }
+        }
     }
 
     public List<CommandProvider> getAcceptedCommands() {

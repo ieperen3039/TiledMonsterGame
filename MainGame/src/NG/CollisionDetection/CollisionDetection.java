@@ -8,9 +8,7 @@ import NG.Entities.Entity;
 import NG.Entities.MovingEntity;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
-import org.joml.AABBf;
 import org.joml.RayAabIntersection;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.*;
@@ -18,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
 
 /**
  * @author Geert van Ieperen created on 10-3-2018.
@@ -49,7 +47,7 @@ public class CollisionDetection {
     /**
      * Collects the given entities and allows collision and phisics calculations to influence these entities
      * @param staticEntities a list of fixed entities. Entities in this collection should not move, but if they do,
-     *                       dynamic objects might phase through when moving in opposite direction. Apart from this
+     *                       dynamic objects might phase through when CollisionEntity in opposite direction. Apart from this
      *                       case, the collision detection still functions.
      * @param gameTime
      */
@@ -82,7 +80,7 @@ public class CollisionDetection {
         int i = 0;
         for (Entity entity : entities) {
             assert entity != null;
-            CollisionEntity asCollisionEntity = new CollisionEntity(entity, gameTime);
+            CollisionEntity asCollisionEntity = CollisionEntity.getInstance(entity, gameTime);
             xLowerSorted[i] = asCollisionEntity;
             yLowerSorted[i] = asCollisionEntity;
             zLowerSorted[i] = asCollisionEntity;
@@ -139,7 +137,7 @@ public class CollisionDetection {
 
         // world collisions
         for (CollisionEntity e : entityArray()) {
-            world.checkCollision(e.entity, previousTime, gameTime);
+            world.checkCollision(e.entity(), previousTime, gameTime);
         }
 
         /* As a single collision may result in a previously not-intersecting pair to collide,
@@ -148,13 +146,28 @@ public class CollisionDetection {
          */
         PairList<CollisionEntity, CollisionEntity> pairs = getIntersectingPairs();
 
-        IntStream.range(0, pairs.size())
-                .parallel()
-                .forEach(n -> {
-                    CollisionEntity left = pairs.left(n);
-                    CollisionEntity right = pairs.right(n);
-                    checkCollisionPair(left, right, gameTime);
-                });
+        int i;
+        for (i = 0; i < MAX_COLLISION_ITERATIONS && !pairs.isEmpty(); i++) {
+            pairs = pairs.parallelStream()
+                    .filter(p -> checkCollisionPair(p.left, p.right, gameTime))
+                    .collect(Collectors.toCollection(PairList::new));
+
+            Set<CollisionEntity> uniqueValues = new HashSet<>(pairs.size() * 2);
+            for (int j = 0; j < pairs.size(); j++) {
+                CollisionEntity e1 = pairs.left(j);
+                if (uniqueValues.add(e1)) {
+                    e1.refresh(gameTime);
+                    world.checkCollision(e1.entity(), previousTime, gameTime);
+                }
+
+                CollisionEntity e2 = pairs.right(j);
+                if (uniqueValues.add(e2)) {
+                    pairs.right(j).refresh(gameTime);
+                    world.checkCollision(e2.entity(), previousTime, gameTime);
+                }
+            }
+        }
+        Logger.INFO.printSpamless("CollDet" + i, gameTime, "Collision iterations ", i);
 
         previousTime = gameTime;
     }
@@ -170,55 +183,29 @@ public class CollisionDetection {
      * @return true iff these pairs indeed collided before endTime
      */
     private boolean checkCollisionPair(CollisionEntity alpha, CollisionEntity beta, float gameTime) {
-        Entity a = alpha.entity;
-        Entity b = beta.entity;
+        Entity a = alpha.entity();
+        Entity b = beta.entity();
 
         assert a.canCollideWith(b) && b.canCollideWith(a);
         // this may change with previous collisions
         if (a.isDisposed() || b.isDisposed() || a == b) return false;
 
-        float bFrac = checkAtoB(alpha, b, gameTime);
-        float aFrac = checkAtoB(beta, a, gameTime);
+        float bFrac = alpha.checkAtoB(b, gameTime);
+        float aFrac = beta.checkAtoB(a, gameTime);
 
         float hitFrac = Math.min(aFrac, bFrac);
         if (hitFrac == 1) return false;
 
-        float collisionTime = previousTime + hitFrac * (previousTime - gameTime);
+        double collisionTime = previousTime + (double) hitFrac * (previousTime - gameTime);
 
         /*
          Note: if en entity collides with many entities in one tick, it will affect and be affected by all the
          entities it would collide with, even if the first deflects it. A solution is complex and expensive.
          */
-        a.collideWith(b, collisionTime);
-        b.collideWith(a, collisionTime);
+        a.collideWith(b, (float) collisionTime);
+        b.collideWith(a, (float) collisionTime);
 
         return true;
-    }
-
-    /**
-     * checks whether {@code moving} collides with {@code receiving}
-     * @param moving   an object holding an entity
-     * @param receiver another entity
-     * @param gameTime
-     * @return 1 if moving does not hit the receiver, otherwise a value t [0 ... 1) such that {@code origin + t *
-     * direction}
-     */
-    private float checkAtoB(CollisionEntity moving, Entity receiver, float gameTime) {
-        List<Vector3f> prev = moving.prevPoints;
-        List<Vector3f> next = moving.nextPoints;
-
-        float bFrac = 1;
-        for (int i = 0; i < prev.size(); i++) {
-            Vector3f origin = next.get(i);
-            Vector3f direction = new Vector3f(prev.get(i)).sub(origin);
-            float intersection = receiver.getIntersection(origin, direction, gameTime);
-
-            if (intersection < bFrac) {
-                bFrac = intersection;
-            }
-        }
-
-        return bFrac;
     }
 
     /**
@@ -238,7 +225,7 @@ public class CollisionDetection {
 
         // initialize id values to correspond to the array
         for (int i = 0; i < nrOfEntities; i++) {
-            entityArray[i].id = i;
+            entityArray[i].setID(i);
         }
 
         AdjacencyMatrix adjacencies = new AdjacencyMatrix(nrOfEntities, 3);
@@ -282,8 +269,9 @@ public class CollisionDetection {
 
             // while the lowerbound of target is less than the upperbound of our subject
             while (lower.apply(target) <= upper.apply(subject)) {
-                if (subject.entity.canCollideWith(target.entity) && target.entity.canCollideWith(subject.entity)) {
-                    adjacencyMatrix.add(target.id, subject.id);
+                if (subject.entity().canCollideWith(target.entity()) && target.entity()
+                        .canCollideWith(subject.entity())) {
+                    adjacencyMatrix.add(target.getID(), subject.getID());
                 }
 
                 if (j == nOfItems) break;
@@ -305,8 +293,8 @@ public class CollisionDetection {
 
     /**
      * calculates the first entity hit by the given ray
-     * @param origin the origin of the ray
-     * @param dir    the direction of the ray
+     * @param origin   the origin of the ray
+     * @param dir      the direction of the ray
      * @param gameTime
      * @return Left: the first entity hit by the ray, or null if no entity is hit.
      * <p>
@@ -328,9 +316,9 @@ public class CollisionDetection {
             );
             if (!collide) continue;
 
-            Entity entity = elt.entity;
+            Entity entity = elt.entity();
 
-            float f = entity.getHitbox().getMoved(entity.getPositionAt(gameTime)).intersectRay(origin, dir);
+            float f = entity.getHitbox(gameTime).intersectRay(origin, dir);
             if (f < fraction) {
                 fraction = f;
                 suspect = entity;
@@ -357,7 +345,7 @@ public class CollisionDetection {
 
     /**
      * Remove the selected entities off the entity lists in a robust way. Entities that did not exist are ignored, and
-     * doubles are also accepted.
+     * doubles are accepted.
      * @param targets a collection of entities to be removed
      */
     private void deleteEntities(Collection<Entity> targets) {
@@ -371,7 +359,7 @@ public class CollisionDetection {
     private CollisionEntity[] deleteAll(Collection<Entity> targets, CollisionEntity[] array) {
         int xi = 0;
         for (int i = 0; i < array.length; i++) {
-            Entity entity = array[i].entity;
+            Entity entity = array[i].entity();
             if ((entity != null) && targets.contains(entity)) {
                 continue;
             }
@@ -435,77 +423,6 @@ public class CollisionDetection {
             e.dispose();
         }
         newEntities.clear();
-    }
-
-    protected static class CollisionEntity {
-        public final Entity entity;
-        public int id;
-
-        public List<Vector3f> nextPoints;
-        public List<Vector3f> prevPoints;
-
-        private BoundingBox nextBoundingBox;
-        private AABBf hitbox; // combined of both states
-
-        public CollisionEntity(Entity source, float gameTime) {
-            this.entity = source;
-            prevPoints = new ArrayList<>();
-            update(gameTime);
-        }
-
-        public void update(float gameTime) {
-            entity.update(gameTime);
-
-            if (nextBoundingBox == null) {
-                nextPoints = entity.getShapePoints(gameTime);
-                prevPoints = entity.getShapePoints(gameTime);
-
-                Vector3fc nextPos = entity.getPositionAt(gameTime);
-                nextBoundingBox = entity.getHitbox().getMoved(nextPos);
-                hitbox = nextBoundingBox;
-
-            } else {
-                List<Vector3f> buffer = prevPoints;
-
-                prevPoints = nextPoints;
-                nextPoints = entity.getShapePoints(buffer, gameTime);
-
-                Vector3fc nextPos = entity.getPositionAt(gameTime);
-                BoundingBox prevBoundingBox = nextBoundingBox;
-                nextBoundingBox = entity.getHitbox().getMoved(nextPos);
-
-                hitbox = prevBoundingBox.union(nextBoundingBox);
-            }
-        }
-
-        public float xUpper() {
-            return hitbox.maxX;
-        }
-
-        public float yUpper() {
-            return hitbox.maxY;
-        }
-
-        public float zUpper() {
-            return hitbox.maxZ;
-        }
-
-        public float xLower() {
-            return hitbox.minX;
-        }
-
-        public float yLower() {
-            return hitbox.minY;
-        }
-
-        public float zLower() {
-            return hitbox.minZ;
-        }
-
-        @Override
-        public String toString() {
-            return entity.toString();
-        }
     }
 
     /**
@@ -590,22 +507,22 @@ public class CollisionDetection {
         // all arrays contain all entities
         Set<Entity> allEntities = new HashSet<>();
         for (CollisionEntity colEty : entityArray()) {
-            allEntities.add(colEty.entity);
+            allEntities.add(colEty.entity());
         }
 
         for (CollisionEntity collEty : xLowerSorted) {
-            if (!allEntities.contains(collEty.entity)) {
-                throw new IllegalStateException("Array x does not contain entity " + collEty.entity);
+            if (!allEntities.contains(collEty.entity())) {
+                throw new IllegalStateException("Array x does not contain entity " + collEty.entity());
             }
         }
         for (CollisionEntity collEty : yLowerSorted) {
-            if (!allEntities.contains(collEty.entity)) {
-                throw new IllegalStateException("Array y does not contain entity " + collEty.entity);
+            if (!allEntities.contains(collEty.entity())) {
+                throw new IllegalStateException("Array y does not contain entity " + collEty.entity());
             }
         }
         for (CollisionEntity collEty : zLowerSorted) {
-            if (!allEntities.contains(collEty.entity)) {
-                throw new IllegalStateException("Array z does not contain entity " + collEty.entity);
+            if (!allEntities.contains(collEty.entity())) {
+                throw new IllegalStateException("Array z does not contain entity " + collEty.entity());
             }
         }
 

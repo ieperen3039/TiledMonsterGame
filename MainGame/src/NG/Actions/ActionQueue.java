@@ -241,7 +241,7 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         }
 
         Vector3f position = previous.getPositionAt(startTime - prevStart);
-        if (!position.equals(action.getStartPosition())) {
+        if (position.distance(action.getStartPosition()) > EntityAction.ACCEPTABLE_DIFFERENCE) {
             lockQueueEdit.unlock();
             throw new BrokenMovementException(previous, action, startTime - prevStart);
         }
@@ -302,7 +302,6 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
                 if (nextActionStart < gameTime) { // basically another iteration
                     action = lastAction;
                     actionStart = nextActionStart;
-                    nextActionStart = Float.POSITIVE_INFINITY;
                 }
 
                 break; // redundant
@@ -310,13 +309,6 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         } while (nextActionStart < gameTime);
 
         lockQueueRead.unlock();
-
-        float actionEnd = actionStart + action.duration();
-        if (actionEnd < gameTime) {
-            float waitDuration = nextActionStart - actionEnd;
-            float waitTime = gameTime - actionEnd;
-            return new Pair<>(new ActionIdle(action.getEndPosition(), waitDuration), waitTime);
-        }
 
         return new Pair<>(action, gameTime - actionStart);
     }

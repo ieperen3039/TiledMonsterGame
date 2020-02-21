@@ -59,7 +59,7 @@ public class CubeMonster extends MonsterSoul {
         }
 
         @Override
-        public BoundingBox getHitbox() {
+        public BoundingBox getLocalHitbox() {
             return hitbox;
         }
     }

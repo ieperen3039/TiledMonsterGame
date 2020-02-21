@@ -160,7 +160,7 @@ public class MonsterGame implements ModLoader {
                     float gametime = combinedGame.get(GameTimer.class).getGametime();
                     List<BoundingBox> boxes = combinedGame.get(GameState.class)
                             .entities().stream()
-                            .map(e -> e.getHitbox().getMoved(e.getPositionAt(gametime)))
+                            .map(e -> e.getHitbox(gametime))
                             .collect(Collectors.toList());
                     Toolbox.drawHitboxes(gl, boxes);
                 });

@@ -20,14 +20,14 @@ public class ActionFly implements EntityAction {
     protected final float duration;
 
     public ActionFly(
-            Game game, Vector3f startPosition, Vector2ic endCoord, float speed, float height
+            Game game, Vector3fc startPosition, Vector2ic endCoord, float speed
     ) {
-        this(startPosition, game.get(GameMap.class).getPosition(endCoord), speed, height);
+        this(startPosition, game.get(GameMap.class).getPosition(endCoord), speed);
     }
 
-    public ActionFly(Vector3f startPosition, Vector3f endPosition, float speed, float height) {
-        this.start = startPosition.add(0, 0, height);
-        this.end = endPosition.add(0, 0, height);
+    public ActionFly(Vector3fc startPosition, Vector3fc endPosition, float speed) {
+        this.start = startPosition;
+        this.end = endPosition;
         this.duration = speed / start.distance(end);
     }
 

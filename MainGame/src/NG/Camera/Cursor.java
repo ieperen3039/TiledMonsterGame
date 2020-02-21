@@ -1,5 +1,6 @@
 package NG.Camera;
 
+import NG.CollisionDetection.BoundingBox;
 import NG.Entities.Dummy;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Tools.Toolbox;
@@ -26,8 +27,13 @@ public class Cursor extends Dummy {
     }
 
     @Override
-    public Vector3f getPositionAt(float currentTime) {
+    public Vector3f getPositionAt(float gameTime) {
         return positionSupplier.get();
+    }
+
+    @Override
+    public BoundingBox getHitbox(float gameTime) {
+        return new BoundingBox(0, 0, 0, 0, 0, 0);
     }
 
 }
