@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.SingleElementLayout;
 import NG.Tools.Logger;
 import org.joml.Vector2ic;

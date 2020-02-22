@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.NGFonts;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
@@ -10,8 +10,8 @@ import org.joml.Vector2ic;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
@@ -22,6 +22,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 public class SButton extends SComponent implements MouseReleaseListener, MouseRelativeClickListener {
     public static final int BUTTON_MIN_WIDTH = 250;
     public static final int BUTTON_MIN_HEIGHT = 30;
+    public static final NGFonts.TextType TEXT_TYPE = NGFonts.TextType.REGULAR;
 
     private Collection<Runnable> leftClickListeners = new ArrayList<>();
     private Collection<Runnable> rightClickListeners = new ArrayList<>();
@@ -30,6 +31,7 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
     private String text;
     private boolean isPressed = false;
+    private int textWidth;
 
     /**
      * a button with no associated action (a dead button)
@@ -95,7 +97,7 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
 
     @Override
     public int minWidth() {
-        return minWidth;
+        return Math.max(textWidth, minWidth);
     }
 
     @Override
@@ -114,7 +116,14 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         design.draw(isPressed ? BUTTON_PRESSED : BUTTON_ACTIVE, screenPosition, getSize());
-        design.drawText(screenPosition, getSize(), text, NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.CENTER);
+
+        int textWidth = design.getTextWidth(text, TEXT_TYPE);
+        if (this.textWidth != textWidth) {
+            this.textWidth = textWidth;
+            invalidateLayout();
+        }
+
+        design.drawText(screenPosition, getSize(), text, TEXT_TYPE, SFrameLookAndFeel.Alignment.CENTER);
     }
 
     @Override

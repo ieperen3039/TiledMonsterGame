@@ -1,4 +1,4 @@
-package NG.GUIMenu.Frames;
+package NG.GUIMenu.FrameManagers;
 
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
@@ -21,6 +21,7 @@ public interface FrameGUIManager extends HUDManager {
 
     /**
      * adds the given frame at a position that the frame manager assumes to be optimal
+     * @param frame
      * @see #addFrame(SFrame, int, int)
      */
     void addFrame(SFrame frame);

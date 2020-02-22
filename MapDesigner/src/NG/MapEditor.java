@@ -4,7 +4,7 @@ import NG.Camera.Camera;
 import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
 import NG.GUIMenu.Components.*;
-import NG.GUIMenu.Frames.FrameGUIManager;
+import NG.GUIMenu.FrameManagers.FrameGUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.*;
 import NG.InputHandling.MouseToolCallbacks;

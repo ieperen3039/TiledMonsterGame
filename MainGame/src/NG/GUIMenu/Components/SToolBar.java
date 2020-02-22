@@ -1,15 +1,15 @@
 package NG.GUIMenu.Components;
 
 import NG.Core.Game;
-import NG.GUIMenu.Frames.FrameGUIManager;
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.FrameGUIManager;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
 import NG.Rendering.GLFWWindow;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.TOOLBAR_BACKGROUND;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.TOOLBAR_BACKGROUND;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 /**

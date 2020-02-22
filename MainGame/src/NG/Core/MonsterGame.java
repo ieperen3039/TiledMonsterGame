@@ -250,7 +250,6 @@ public class MonsterGame implements ModLoader {
         splashWindow = null;
         // show main menu
         mainMenu.setVisible(true);
-        mainMenu.testWorld(); // immediately start test world, for debugging purposes
         window.open();
         renderer.run();
 

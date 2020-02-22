@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.NGFonts;
 import NG.InputHandling.MouseRelativeClickListener;
 import org.joml.Vector2ic;
@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
 
 /**
  * A button with a state that only changes upon clicking the button
@@ -22,7 +22,7 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
     private String text;
 
     private boolean state;
-    private List<Runnable> stateChangeListeners = new ArrayList<>();
+    private List<Consumer<Boolean>> stateChangeListeners = new ArrayList<>();
 
     /**
      * Create a button with the given properties, starting disabled
@@ -77,7 +77,7 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
      */
     public SToggleButton(String text, int minWidth, int minHeight, Consumer<Boolean> stateChangeListener) {
         this(text, minWidth, minHeight);
-        addStateChangeListener(() -> stateChangeListener.accept(state));
+        addStateChangeListener(stateChangeListener);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
     /**
      * @param action Upon change, this action is activated
      */
-    public void addStateChangeListener(Runnable action) {
+    public void addStateChangeListener(Consumer<Boolean> action) {
         stateChangeListeners.add(action);
     }
 
@@ -115,7 +115,10 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
 
     public void setState(boolean state) {
         this.state = state;
-        stateChangeListeners.forEach(Runnable::run);
+
+        for (Consumer<Boolean> c : stateChangeListeners) {
+            c.accept(state);
+        }
     }
 
     public String getText() {

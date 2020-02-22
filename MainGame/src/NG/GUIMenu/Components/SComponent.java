@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -36,7 +36,7 @@ public abstract class SComponent {
     /**
      * sets the layout validity flag of this component and all of its parents to false.
      */
-    protected void invalidateLayout() {
+    protected final void invalidateLayout() {
         if (layoutIsValid) {
             layoutIsValid = false;
             if (parent != null) parent.invalidateLayout();
@@ -58,10 +58,6 @@ public abstract class SComponent {
      * set the validity of this component and all of its children
      */
     protected void doValidateLayout() {
-        dimensions.set(
-                Math.max(dimensions.x, minWidth()),
-                Math.max(dimensions.y, minHeight())
-        );
     }
 
     /**
@@ -197,6 +193,7 @@ public abstract class SComponent {
      */
     public void setVisible(boolean doVisible) {
         isVisible = doVisible;
+        if (doVisible) validateLayout();
     }
 
     /** @return whether this component is drawn */

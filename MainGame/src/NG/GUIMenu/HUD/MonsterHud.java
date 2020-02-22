@@ -6,21 +6,21 @@ import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.BaseLF;
 import NG.GUIMenu.Components.*;
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.GUIPainter;
 import NG.GUIMenu.NGFonts;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.InputHandling.MouseTools.EntitySelectedMouseTool;
+import NG.InputHandling.MouseTools.MouseTool;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.Textures.GenericTextures;
+import NG.Tools.Logger;
 import org.joml.Vector2i;
+import org.joml.Vector2ic;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Geert van Ieperen created on 15-7-2019.
@@ -29,13 +29,13 @@ public class MonsterHud extends SimpleHUD {
     private static final int UI_INFO_BAR_SIZE = 350;
     private static final int TEXT_BOX_HEIGHT = 200;
 
-    private final List<SComponent> freeFloatingElements = new ArrayList<>();
-
-    private Map<MonsterSoul, SPanel> teamPanels = new HashMap<>();
-
     private MiniMap minimap;
     private SComponentArea bottomBox;
     private SScrollableList teamSelection;
+    private final Deque<SComponent> freeFloatingElements = new ArrayDeque<>();
+    private SComponent modalComponent = null;
+
+    private Map<MonsterSoul, SPanel> teamPanels = new HashMap<>();
 
     public MonsterHud() {
         super(new BaseLF());
@@ -54,11 +54,12 @@ public class MonsterHud extends SimpleHUD {
 
         display(
                 SPanel.row(
-                        true, true,
-                        SPanel.column(new SFiller(), bottomBox).setGrowthPolicy(true, true),
-                        ((SPanel) SPanel.column(minimap, teamSelection)
-                                .setGrowthPolicy(false, true)).setBorderVisible(true)
-                )
+                        SPanel.column(new SFiller(), bottomBox)
+                                .setGrowthPolicy(true, true),
+                        SPanel.column(minimap, teamSelection)
+                                .setBorderVisible(true)
+                                .setGrowthPolicy(false, true)
+                ).setGrowthPolicy(true, true)
         );
     }
 
@@ -78,15 +79,51 @@ public class MonsterHud extends SimpleHUD {
 
         super.draw(painter);
 
-        for (SComponent e : freeFloatingElements) {
-            e.validateLayout();
-            e.draw(lookAndFeel, e.getPosition());
+        Iterator<SComponent> itr = freeFloatingElements.descendingIterator();
+        while (itr.hasNext()) {
+            final SComponent f = itr.next();
+
+            if (f.isVisible()) {
+                f.validateLayout();
+                f.draw(lookAndFeel, f.getPosition());
+            }
         }
+
+        if (modalComponent != null) modalComponent.draw(lookAndFeel, modalComponent.getScreenPosition());
+    }
+
+    @Override
+    public void setModalListener(SComponent listener) {
+        listener.setParent(null);
+        modalComponent = listener;
     }
 
     @Override
     public void addElement(SComponent component) {
-        freeFloatingElements.add(component);
+        int x = 50;
+        int y = 50;
+
+        // reposition frame not to overlap other frames (greedy)
+        for (Iterator<SComponent> iterator = freeFloatingElements.descendingIterator(); iterator.hasNext(); ) {
+            SComponent other = iterator.next();
+
+            if (other.equals(component)) {
+                iterator.remove();
+                continue;
+            }
+
+            if (!other.isVisible()) continue;
+
+            Vector2ic otherPos = other.getScreenPosition();
+            if (otherPos.x() == x && otherPos.y() == y) {
+                x += 20;
+                y += 20; // MS windows-style
+            }
+        }
+
+        component.setPosition(x, y);
+        component.setParent(null);
+        freeFloatingElements.offerFirst(component);
     }
 
     @Override
@@ -94,12 +131,21 @@ public class MonsterHud extends SimpleHUD {
         return freeFloatingElements.remove(component);
     }
 
-    @Override // also fixes checkMouseClick
+    @Override
     public SComponent getComponentAt(int xSc, int ySc) {
+        if (modalComponent != null && modalComponent.contains(xSc, ySc)) return modalComponent;
+
         for (SComponent elt : freeFloatingElements) {
             if (elt.isVisible() && elt.contains(xSc, ySc)) {
                 int xr = xSc - elt.getX();
                 int yr = ySc - elt.getY();
+
+                // focus
+                if (!elt.equals(freeFloatingElements.peekFirst())) {
+                    freeFloatingElements.remove(elt);
+                    freeFloatingElements.addFirst(elt);
+                }
+
                 return elt.getComponentAt(xr, yr);
             }
         }
@@ -108,14 +154,48 @@ public class MonsterHud extends SimpleHUD {
     }
 
     @Override
+    public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
+        if (modalComponent != null) {
+            if (modalComponent.contains(xSc, ySc)) {
+                int xr = xSc - modalComponent.getX();
+                int yr = ySc - modalComponent.getY();
+                SComponent component = modalComponent.getComponentAt(xr, yr);
+
+                if (component != null) {
+                    tool.apply(component, xSc, ySc);
+                }
+            }
+
+            Logger.WARN.print(modalComponent, modalComponent.contains(xSc, ySc));
+            modalComponent = null;
+            return true;
+        }
+
+        for (SComponent elt : freeFloatingElements) {
+            if (elt.isVisible() && elt.contains(xSc, ySc)) {
+                int xr = xSc - elt.getX();
+                int yr = ySc - elt.getY();
+                SComponent component = elt.getComponentAt(xr, yr);
+
+                if (component != null) {
+                    tool.apply(component, xSc, ySc);
+                    return true;
+                }
+            }
+        }
+
+        return super.checkMouseClick(tool, xSc, ySc);
+    }
+
+    @Override
     public boolean covers(int xSc, int ySc) {
+        if (modalComponent != null && modalComponent.contains(xSc, ySc)) return true;
+
         for (SComponent elt : freeFloatingElements) {
             if (elt.isVisible() && elt.contains(xSc, ySc)) return true;
         }
 
-        // TODO more efficient implementation
-        SComponent component = getComponentAt(xSc, ySc);
-        return component != null && component.isVisible() && !(component instanceof SFiller);
+        return super.covers(xSc, ySc);
     }
 
     @Override

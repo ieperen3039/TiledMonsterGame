@@ -4,7 +4,7 @@ import NG.Core.Game;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SContainer;
 import NG.GUIMenu.Components.SPanel;
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.GUIPainter;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
@@ -17,8 +17,7 @@ public abstract class SimpleHUD implements HUDManager {
     protected Game game;
 
     protected SFrameLookAndFeel lookAndFeel;
-    private SComponent modalComponent = null;
-    private SContainer mainPanel;
+    private SComponent mainPanel;
 
     /**
      * create a HUD manager with the given look-and-feel and layout manager
@@ -38,10 +37,10 @@ public abstract class SimpleHUD implements HUDManager {
     }
 
     /**
-     * sets the given container to cover the entire screen
+     * sets the given component to cover the entire screen
      * @param container
      */
-    public void display(SContainer container) {
+    public void display(SComponent container) {
         this.mainPanel = container;
 
         if (game != null) {
@@ -58,11 +57,6 @@ public abstract class SimpleHUD implements HUDManager {
 
         GLFWWindow window = game.get(GLFWWindow.class);
         mainPanel.setSize(window.getWidth(), window.getHeight());
-    }
-
-    @Override
-    public void setModalListener(SComponent listener) {
-        modalComponent = listener;
     }
 
     @Override
@@ -90,32 +84,23 @@ public abstract class SimpleHUD implements HUDManager {
     }
 
     @Override
-    public SComponent getComponentAt(int xSc, int ySc) {
-        return mainPanel.getComponentAt(xSc, ySc);
+    public boolean checkMouseClick(MouseTool tool, int xSc, int ySc) {
+        SComponent component = mainPanel.getComponentAt(xSc, ySc);
+        if (component == null) return false;
+
+        tool.apply(component, xSc, ySc);
+        return true;
     }
 
-    @SuppressWarnings("Duplicates")
     @Override
-    public boolean checkMouseClick(MouseTool tool, final int xSc, final int ySc) {
-        SComponent component;
+    public boolean covers(int xSc, int ySc) {
+        SComponent c = mainPanel.getComponentAt(xSc, ySc);
+        return c != null && c.isVisible();
+    }
 
-        // check modal dialogues
-        if (modalComponent != null) {
-            SComponent tgt = this.modalComponent;
-            modalComponent = null;
-
-            HUDManager.applyOnComponent(tool, xSc, ySc, tgt);
-            return true; // did do something; disabling the modal component
-        }
-
-        component = getComponentAt(xSc, ySc);
-
-        if (component != null) {
-            tool.apply(component, xSc, ySc);
-            return true;
-        }
-
-        return false;
+    @Override
+    public SComponent getComponentAt(int xSc, int ySc) {
+        return mainPanel.getComponentAt(xSc, ySc);
     }
 
     @Override

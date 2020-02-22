@@ -166,8 +166,8 @@ public class GridLayoutManager implements SLayoutManager {
                 SComponent elt = grid[x][y];
 
                 if (elt != null) {
-                    elt.setSize(colSizes[x], rowSizes[y]);
                     elt.setPosition(xPos, yPos);
+                    elt.setSize(colSizes[x], rowSizes[y]);
                 }
 
                 yPos += rowSizes[y];

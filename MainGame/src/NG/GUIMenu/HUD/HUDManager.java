@@ -2,11 +2,9 @@ package NG.GUIMenu.HUD;
 
 import NG.Core.GameAspect;
 import NG.GUIMenu.Components.SComponent;
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.GUIPainter;
-import NG.InputHandling.MouseTools.MouseTool;
 import NG.InputHandling.MouseTools.MouseToolListener;
-import org.joml.Vector2ic;
 
 /**
  * @author Geert van Ieperen created on 18-5-2019.
@@ -59,26 +57,4 @@ public interface HUDManager extends GameAspect, MouseToolListener {
      * @param listener a listener that receives the button and screen positions of the next click exactly once.
      */
     void setModalListener(SComponent listener);
-
-    /**
-     * applies the given mouse tool to the modalComponent, iff the given xSc and ySc coordinates are on this component
-     * @param tool a mouse tool
-     * @param xSc x screen position in pixels from left
-     * @param ySc y screen position in pixels from top
-     * @param modalComponent a fully visible component
-     * @return true iff the tool was applied on the component
-     */
-    static boolean applyOnComponent(MouseTool tool, int xSc, int ySc, SComponent modalComponent) {
-        Vector2ic mPos = modalComponent.getScreenPosition();
-
-        if (xSc >= mPos.x() && ySc >= mPos.y()) {
-            if (xSc <= mPos.x() + modalComponent.getWidth()) {
-                if (ySc <= mPos.y() + modalComponent.getHeight()) {
-                    tool.apply(modalComponent, xSc, ySc);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

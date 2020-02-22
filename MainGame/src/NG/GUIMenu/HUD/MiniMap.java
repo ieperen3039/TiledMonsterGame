@@ -4,7 +4,7 @@ import NG.Camera.Camera;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
 import NG.GUIMenu.Components.SComponent;
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.GUIPainter;
 import NG.GameMap.GameMap;
 import org.joml.Vector2f;

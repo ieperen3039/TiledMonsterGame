@@ -3,7 +3,7 @@ package NG.GUIMenu;
 import NG.Core.Game;
 import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -92,6 +92,7 @@ public class BaseLF implements SFrameLookAndFeel {
                 break;
 
             case SELECTION:
+                hud.setStroke(STROKE_COLOR, 0);
                 drawRoundedRectangle(x, y, width, height, SELECTION_COLOR);
                 break;
 

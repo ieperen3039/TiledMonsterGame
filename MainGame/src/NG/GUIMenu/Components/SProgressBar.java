@@ -1,13 +1,13 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
 import java.util.function.Supplier;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.PANEL;
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.SELECTION;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.PANEL;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.SELECTION;
 
 /**
  * @author Geert van Ieperen. Created on 28-9-2018.

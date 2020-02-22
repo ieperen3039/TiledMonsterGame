@@ -1,4 +1,4 @@
-package NG.GUIMenu.Frames;
+package NG.GUIMenu.FrameManagers;
 
 import NG.GUIMenu.GUIPainter;
 import NG.GUIMenu.NGFonts;

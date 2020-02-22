@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.LimitedVisibilityLayout;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -56,7 +56,7 @@ public class SScrollableList extends SContainer {
     public void doValidateLayout() {
         super.doValidateLayout();
 
-        ComponentBorder border = getLayoutBorder();
+        ComponentBorder border = layoutBorder;
         scroller.setSize(0, getHeight() - border.top - border.bottom);
         scroller.setPosition(getWidth() - border.right, border.top);
         scroller.validateLayout();
@@ -79,7 +79,7 @@ public class SScrollableList extends SContainer {
     }
 
     @Override
-    protected ComponentBorder getLayoutBorder() {
+    protected ComponentBorder newLayoutBorder() {
         return new ComponentBorder(0, scroller.minWidth(), 0, 0);
     }
 }

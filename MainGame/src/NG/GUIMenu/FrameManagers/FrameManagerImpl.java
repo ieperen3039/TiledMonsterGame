@@ -1,4 +1,4 @@
-package NG.GUIMenu.Frames;
+package NG.GUIMenu.FrameManagers;
 
 import NG.Core.Game;
 import NG.Core.Version;
@@ -7,7 +7,6 @@ import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.HUD.HUDManager;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseScrollListener;
 import NG.InputHandling.MouseTools.MouseTool;
@@ -137,7 +136,7 @@ public class FrameManagerImpl implements FrameGUIManager {
         frame.setVisible(true);
 
         // no further action when already focused
-        if (frames.peekFirst().equals(frame)) return;
+        if (frame.equals(frames.peekFirst())) return;
 
         boolean success = frames.remove(frame);
         if (!success) {
@@ -204,10 +203,11 @@ public class FrameManagerImpl implements FrameGUIManager {
 
         // check modal dialogues
         if (modalComponent != null) {
-            SComponent tgt = this.modalComponent;
+            if (modalComponent.contains(xSc, ySc)) {
+                tool.apply(modalComponent, xSc, ySc);
+            }
             modalComponent = null;
-
-            return HUDManager.applyOnComponent(tool, xSc, ySc, tgt);
+            return true;
 
         } else {
             component = getComponentAt(xSc, ySc);

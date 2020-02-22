@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.LimitedVisibilityLayout;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -69,14 +69,14 @@ public class STileBrowser extends SContainer {
         super.doValidateLayout();
 
         // use original layout border for side buttons instead
-        ComponentBorder supBorder = super.getLayoutBorder();
-        int height = getHeight() - supBorder.top - supBorder.bottom;
+        ComponentBorder border = layoutBorder;
+        int height = getHeight() - border.top - border.bottom;
 
         buttonFurther.setSize(0, height);
-        buttonFurther.setPosition(getWidth() - supBorder.right - buttonFurther.getWidth(), supBorder.top);
+        buttonFurther.setPosition(this.getWidth() - border.right, border.top);
         buttonFurther.validateLayout();
         buttonBack.setSize(0, height);
-        buttonBack.setPosition(supBorder.left, supBorder.top);
+        buttonBack.setPosition(border.left - buttonBack.getWidth(), border.top);
         buttonBack.validateLayout();
     }
 
@@ -88,7 +88,7 @@ public class STileBrowser extends SContainer {
     }
 
     @Override
-    protected ComponentBorder getLayoutBorder() {
-        return super.getLayoutBorder().add(buttonBack.minWidth(), buttonFurther.minWidth(), 0, 0);
+    protected ComponentBorder newLayoutBorder() {
+        return super.newLayoutBorder().add(buttonBack.minWidth(), buttonFurther.minWidth(), 0, 0);
     }
 }

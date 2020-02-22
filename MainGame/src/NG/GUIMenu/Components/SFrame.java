@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.SingleElementLayout;
 import NG.GUIMenu.NGFonts;
 import org.joml.Vector2i;
@@ -11,15 +11,14 @@ import org.joml.Vector2ic;
  * control over the contents of the SFrame.
  * @author Geert van Ieperen. Created on 20-9-2018.
  */
-public class SFrame extends SComponent {
+public class SFrame extends SDecorator {
     public static final int FRAME_TITLE_BAR_SIZE = 50;
 
     private final String title;
-    private final SPanel contents;
-    private final SContainer body;
-
     private boolean isDisposed = false;
+
     private STextArea titleComponent;
+    private final SContainer bodyComponent;
 
     /**
      * Creates a SFrame with the given title, width and height
@@ -37,6 +36,10 @@ public class SFrame extends SComponent {
      * @see SPanel
      */
     public SFrame(String title, int width, int height, boolean manipulable) {
+        super(
+                new SPanel(1, 2, true, true)
+                        .setBorderVisible(false)
+        );
         this.title = title;
 
         SContainer upperBar;
@@ -45,16 +48,13 @@ public class SFrame extends SComponent {
 
         } else {
             titleComponent = new STextArea(title, FRAME_TITLE_BAR_SIZE, 0, true, NGFonts.TextType.TITLE, SFrameLookAndFeel.Alignment.CENTER_TOP);
-            upperBar = new SPanel(new SingleElementLayout(), true);
+            upperBar = new SPanel(new SingleElementLayout(), false);
             upperBar.add(titleComponent, null);
         }
-        body = SContainer.singleton(new SFiller());
+        bodyComponent = SContainer.singleton(new SFiller());
 
-        contents = new SPanel(0, 0, 1, 2, true, true);
-        contents.setParent(this);
-        contents.setBorderVisible(false);
         contents.add(upperBar, new Vector2i(0, 0));
-        contents.add(body, new Vector2i(0, 1));
+        contents.add(bodyComponent, new Vector2i(0, 1));
 
         setSize(width, height);
         setGrowthPolicy(false, false);
@@ -101,8 +101,9 @@ public class SFrame extends SComponent {
      * @param comp the new middle component
      * @return this
      */
-    public SFrame setMainPanel(SComponent comp) {
-        body.add(comp, null);
+    public SDecorator setMainPanel(SComponent comp) {
+        bodyComponent.add(comp, null);
+        invalidateLayout();
         return this;
     }
 
@@ -116,18 +117,9 @@ public class SFrame extends SComponent {
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         if (!isVisible()) return;
+        validateLayout();
         design.draw(SFrameLookAndFeel.UIComponent.PANEL, screenPosition, getSize());
         contents.draw(design, screenPosition);
-    }
-
-    @Override
-    public int minWidth() {
-        return contents.minWidth();
-    }
-
-    @Override
-    public int minHeight() {
-        return contents.minHeight();
     }
 
     @Override
@@ -136,19 +128,8 @@ public class SFrame extends SComponent {
     }
 
     @Override
-    public SComponent getComponentAt(int xRel, int yRel) {
-        return contents.getComponentAt(xRel, yRel);
-    }
-
-    @Override
     public Vector2i getScreenPosition() {
         return new Vector2i(getPosition());
-    }
-
-    @Override
-    public void doValidateLayout() {
-        contents.doValidateLayout();
-        super.doValidateLayout();
     }
 
     /**

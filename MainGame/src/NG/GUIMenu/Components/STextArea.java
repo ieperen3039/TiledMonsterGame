@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.NGFonts;
 import org.joml.Vector2ic;
 
@@ -26,9 +26,10 @@ public class STextArea extends SComponent {
         this.height = minHeight;
         this.specMinWidth = minWidth;
         this.textType = textType;
-        setGrowthPolicy(doGrowInWidth, false);
         this.alignment = alignment;
         textWidth = text.length() * LETTER_WIDTH;
+
+        setGrowthPolicy(doGrowInWidth, false);
     }
 
     public STextArea(String text, int minHeight) {
@@ -48,7 +49,13 @@ public class STextArea extends SComponent {
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
         String text = getText();
-        textWidth = design.getTextWidth(text, textType);
+
+        int textWidth = design.getTextWidth(text, textType);
+        if (this.textWidth != textWidth) {
+            this.textWidth = textWidth;
+            invalidateLayout();
+        }
+
         design.drawText(screenPosition, getSize(), text, textType, alignment);
     }
 
@@ -58,6 +65,7 @@ public class STextArea extends SComponent {
 
     public void setText(String text) {
         this.text = text;
+        invalidateLayout();
     }
 
     @Override

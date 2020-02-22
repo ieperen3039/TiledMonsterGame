@@ -7,7 +7,7 @@ import NG.Core.GameService;
 import NG.Core.GameTimer;
 import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
-import NG.GUIMenu.Frames.FrameManagerImpl;
+import NG.GUIMenu.FrameManagers.FrameManagerImpl;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.InputHandling.MouseToolCallbacks;

@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.GridLayoutManager;
 import NG.GUIMenu.LayoutManagers.SLayoutManager;
 import NG.GUIMenu.LayoutManagers.SingleElementLayout;
@@ -14,6 +14,7 @@ import java.util.Collection;
  */
 public abstract class SContainer extends SComponent {
     private final SLayoutManager layout;
+    protected ComponentBorder layoutBorder;
 
     /**
      * a container that uses the given manager for its layout
@@ -97,42 +98,52 @@ public abstract class SContainer extends SComponent {
 
     @Override
     public int minWidth() {
-        if (!layoutIsValid()) layout.recalculateProperties();
-        ComponentBorder borderSize = getLayoutBorder();
+        validateLayoutSize();
+        ComponentBorder borderSize = layoutBorder;
         return layout.getMinimumWidth() + borderSize.left + borderSize.right;
+    }
+
+    private void validateLayoutSize() {
+        if (!layoutIsValid()) {
+            layout.recalculateProperties();
+            layoutBorder = newLayoutBorder();
+        }
     }
 
     @Override
     public int minHeight() {
-        if (!layoutIsValid()) layout.recalculateProperties();
-        ComponentBorder borderSize = getLayoutBorder();
+        validateLayoutSize();
+        ComponentBorder borderSize = layoutBorder;
         return layout.getMinimumHeight() + borderSize.top + borderSize.bottom;
     }
 
     @Override
     public void doValidateLayout() {
         // first restructure this container
-        layout.recalculateProperties();
+        validateLayoutSize();
 
+        // ensure minimum width and height
         Vector2i layoutPos = new Vector2i();
         Vector2i layoutDim = new Vector2i(getSize());
-        ComponentBorder border = getLayoutBorder();
-        border.reduce(layoutPos, layoutDim);
-
+        layoutBorder.reduce(layoutPos, layoutDim);
         layout.placeComponents(layoutPos, layoutDim);
 
         // then restructure the children
         for (SComponent child : children()) {
             child.validateLayout();
         }
+    }
 
-        super.doValidateLayout();
+    @Override
+    public SContainer setGrowthPolicy(boolean horizontal, boolean vertical) {
+        super.setGrowthPolicy(horizontal, vertical);
+        return this;
     }
 
     /**
      * Gives the desired border sizes for this container
      */
-    protected ComponentBorder getLayoutBorder() {
+    protected ComponentBorder newLayoutBorder() {
         return new ComponentBorder(4);
     }
 }

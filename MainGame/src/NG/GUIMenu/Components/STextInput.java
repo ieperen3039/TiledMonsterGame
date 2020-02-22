@@ -1,12 +1,12 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.NGFonts;
 import NG.InputHandling.KeyPressListener;
 import NG.InputHandling.MouseRelativeClickListener;
 import org.joml.Vector2ic;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.SELECTION;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.SELECTION;
 
 /**
  * @author Geert van Ieperen. Created on 5-10-2018.

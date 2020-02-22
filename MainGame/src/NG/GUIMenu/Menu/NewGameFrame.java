@@ -45,11 +45,11 @@ public class NewGameFrame extends SFrame {
         mainPanel.add(new SFiller(20, 20), new Vector2i(COLS - 1, ROWS - 1));
 
         // message
-        notice = new STextArea("Select which mods to load", 50);
+        notice = new STextArea("", 50);
         mainPanel.add(notice, mpos.add(0, 1));
 
         // size selection
-        SPanel sizeSelection = new SPanel(0, 0, 4, 1, false, false);
+        SPanel sizeSelection = new SPanel(4, 1, false, false);
         sizeSelection.add(new STextArea("Size", 0), new Vector2i(0, 0));
         this.game = game;
         xSizeSelector = new SDropDown(game.get(HUDManager.class), 100, 60, 1, "100", "200", "500", "1000");
@@ -60,6 +60,7 @@ public class NewGameFrame extends SFrame {
         mainPanel.add(sizeSelection, mpos.add(0, 1));
 
         if (nOfMods > 0) {
+            notice.setText("Select which mods to load");
             // add mod buttons
             SContainer modPanel = new SPanel(1, nOfMods);
             Vector2i pos = new Vector2i(0, -1);

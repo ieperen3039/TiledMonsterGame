@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.Frames.SFrameLookAndFeel;
+import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.HUD.HUDManager;
 import NG.GUIMenu.NGFonts;
 import NG.InputHandling.MouseRelativeClickListener;
@@ -11,14 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_CLOSED;
-import static NG.GUIMenu.Frames.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_OPEN;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_CLOSED;
+import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_OPEN;
 
 /**
  * A menu item that may assume different options, where the player can choose from using a drop-down selection.
  * @author Geert van Ieperen. Created on 5-10-2018.
  */
 public class SDropDown extends SComponent implements MouseRelativeClickListener {
+    public static final NGFonts.TextType TEXT_TYPE = NGFonts.TextType.REGULAR;
     private final String[] values;
     private final DropDownOptions optionPane;
     private final HUDManager gui;
@@ -28,6 +29,7 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
     private boolean isOpened = false;
     private int minHeight;
     private int minWidth;
+    private int textWidth;
 
     private int dropOptionHeight = 50;
 
@@ -138,12 +140,6 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
     }
 
     @Override
-    public void setParent(SComponent parent) {
-        super.setParent(parent);
-        optionPane.setParent(parent);
-    }
-
-    @Override
     public int minWidth() {
         return minWidth;
     }
@@ -155,8 +151,16 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
     @Override
     public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
+        String text = values[current];
+
+        int textWidth = design.getTextWidth(text, TEXT_TYPE);
+        if (this.textWidth != textWidth) {
+            this.textWidth = textWidth;
+            invalidateLayout();
+        }
+
         design.draw(isOpened ? DROP_DOWN_HEAD_OPEN : DROP_DOWN_HEAD_CLOSED, screenPosition, getSize());
-        design.drawText(screenPosition, getSize(), values[current], NGFonts.TextType.REGULAR, SFrameLookAndFeel.Alignment.LEFT);
+        design.drawText(screenPosition, getSize(), text, TEXT_TYPE, SFrameLookAndFeel.Alignment.LEFT);
         // modal dialogs are drawn separately
     }
 
@@ -166,10 +170,11 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
             close();
 
         } else {
-            validateLayout();
-            optionPane.setPosition(getX(), getY() + getHeight());
+            Vector2i scPos = getScreenPosition();
+            optionPane.setPosition(scPos.x, scPos.y + getHeight());
             optionPane.setSize(getWidth(), 0);
             optionPane.setVisible(true);
+            optionPane.validateLayout();
             gui.setModalListener(optionPane);
         }
     }
@@ -183,10 +188,9 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
         optionPane.setVisible(false);
     }
 
-    private class DropDownOptions extends SPanel implements MouseRelativeClickListener {
-
+    private class DropDownOptions extends SDecorator implements MouseRelativeClickListener {
         private DropDownOptions(String[] values) {
-            super(1, values.length);
+            super(new SPanel(1, values.length));
             setVisible(false);
 
             for (int i = 0; i < values.length; i++) {
@@ -206,16 +210,11 @@ public class SDropDown extends SComponent implements MouseRelativeClickListener 
 
         @Override
         public void onClick(int button, int xRel, int yRel) {
-            if (xRel < 0 || yRel < 0 || xRel > getWidth() || yRel > getHeight()) {
-                close();
-                return;
-            }
-
             SComponent target = getComponentAt(xRel, yRel);
-            if (target instanceof SExtendedTextArea) {
-                SExtendedTextArea option = (SExtendedTextArea) target;
-                option.onClick(button, 0, 0);
-            }
+            assert (target instanceof SExtendedTextArea);
+
+            SExtendedTextArea option = (SExtendedTextArea) target;
+            option.onClick(button, 0, 0);
         }
     }
 }

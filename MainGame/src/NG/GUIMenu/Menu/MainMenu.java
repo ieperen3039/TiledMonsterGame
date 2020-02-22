@@ -198,7 +198,7 @@ public class MainMenu extends SFrame {
         SDropDown modelSelection = new SDropDown(targetGUI, baseMode.ordinal(), Toolbox.toStringArray(models));
         PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.get(GameTimer.class));
 
-        targetGUI.addElement(new SFrame("Animations", SButton.BUTTON_MIN_WIDTH, 0)
+        targetGUI.addElement(new SFrame("Animations")
                 .setMainPanel(SPanel.column(
                         animationSelection,
                         modelSelection

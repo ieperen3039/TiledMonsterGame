@@ -14,7 +14,7 @@ import org.joml.Vector3fc;
  */
 public interface Camera extends GameAspect, MouseScrollListener {
     /**
-     * a copy of the direction vector of the eye of the camera to the focus of the camera.
+     * the direction vector of the eye of the camera to the focus of the camera.
      * @return {@link #getEye()}.to({@link #getFocus()}) The length of this vector may differ by implementation
      */
     Vector3fc vectorToFocus();
@@ -25,13 +25,13 @@ public interface Camera extends GameAspect, MouseScrollListener {
      */
     void updatePosition(float deltaTime);
 
-    /** a copy of the position of the camera itself */
+    /** the position of the camera itself */
     Vector3fc getEye();
 
-    /** a copy of the point in space where the camera looks to */
+    /** the point in space where the camera looks to */
     Vector3fc getFocus();
 
-    /** a copy of the direction of up, the length of this vector is undetermined. */
+    /** the direction of up, the length of this vector is undetermined. */
     Vector3fc getUpVector();
 
     /** sets the camera to the given position and focus. The state of the up-vector depends on the implementation */
