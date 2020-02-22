@@ -7,7 +7,6 @@ import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
 import NG.Entities.Dummy;
 import NG.Entities.MovingEntity;
-import NG.Entities.RobotMonster;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Storable;
 import org.joml.Matrix4fc;
@@ -46,13 +45,34 @@ public interface PartialAnimation extends Storable {
 
     /** an entity that plays a given animation using a robot mesh */
     class Demonstrator extends Dummy implements MovingEntity {
-        private static final Map<SkeletonBone, BoneElement> ROBOT_MESH_MAP = RobotMonster.getRobotMeshMap();
         private final GameTimer timer;
-
         private Vector3f position = new Vector3f();
         private UniversalAnimation ani;
         private BodyModel model;
         private float startTime = 0;
+
+        private static final Map<SkeletonBone, BoneElement> ROBOT_MESH_MAP = new SkeletonBone.BodyBuilder(BodyModel.ANTHRO)
+                .add("Spine", RobotMeshes.ROBOT_TORSO)
+                .add("UpperArm.L", RobotMeshes.ROBOT_UPPER_ARM)
+                .add("LowerArm.L", RobotMeshes.ROBOT_LOWER_ARM)
+                .add("UpperLeg.L", RobotMeshes.ROBOT_UPPER_ARM)
+                .add("LowerLeg.L", RobotMeshes.ROBOT_LOWER_ARM)
+                .add("UpperArm.R", RobotMeshes.ROBOT_UPPER_ARM)
+                .add("LowerArm.R", RobotMeshes.ROBOT_LOWER_ARM)
+                .add("UpperLeg.R", RobotMeshes.ROBOT_UPPER_ARM)
+                .add("LowerLeg.R", RobotMeshes.ROBOT_LOWER_ARM)
+                .add("Foot.L", RobotMeshes.ROBOT_FOOT)
+                .add("Foot.R", RobotMeshes.ROBOT_FOOT)
+                .add("Head", RobotMeshes.ROBOT_HEAD)
+                .add("Ear.L", RobotMeshes.ROBOT_EAR)
+                .add("Ear.R", RobotMeshes.ROBOT_EAR)
+                .add("TopFinger.L", RobotMeshes.ROBOT_CLAW)
+                .add("FrontFinger.L", RobotMeshes.ROBOT_CLAW)
+                .add("BackFinger.L", RobotMeshes.ROBOT_CLAW)
+                .add("TopFinger.R", RobotMeshes.ROBOT_CLAW)
+                .add("FrontFinger.R", RobotMeshes.ROBOT_CLAW)
+                .add("BackFinger.R", RobotMeshes.ROBOT_CLAW)
+                .get();
 
         public Demonstrator(UniversalAnimation ani, BodyModel model, GameTimer timer) {
             this.timer = timer;

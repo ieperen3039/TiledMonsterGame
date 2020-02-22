@@ -1,10 +1,11 @@
 package NG.Actions.Commands;
 
-import NG.Actions.ActionFly;
 import NG.Actions.ActionJump;
+import NG.Actions.ActionLinearMove;
 import NG.Actions.ActionWalk;
 import NG.Actions.EntityAction;
 import NG.Core.Game;
+import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Living.Living;
@@ -30,8 +31,8 @@ public class CommandWalk extends Command {
     }
 
     @Override
-    public EntityAction getAction(Game game, Vector3fc beginPosition, float gameTime) {
-        final float walkSpeed = 2f;
+    public EntityAction getAction(Game game, Vector3fc beginPosition, float gameTime, MonsterEntity entity) {
+        final float walkSpeed = entity.getController().props.walkSpeed;
         GameMap map = game.get(GameMap.class);
 
         Vector2i coordinate = map.getCoordinate(beginPosition);
@@ -52,7 +53,7 @@ public class CommandWalk extends Command {
 
         if (beginPosition.z() < startHeight - ACCEPTABLE_DIFFERENCE) {
             Logger.ASSERT.print("Entity below ground " + beginPosition);
-            return new ActionFly(beginPosition, map.getPosition(coordinate), 10f);
+            return new ActionLinearMove(beginPosition, map.getPosition(coordinate), 10f);
         }
 
         if (beginPosition.z() > (startHeight + ACCEPTABLE_DIFFERENCE)) {

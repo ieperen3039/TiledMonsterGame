@@ -1,7 +1,44 @@
 {
-  "name" : "cubemonster",
-  "model" : "CUBE",
-  "meshtree" : {
-    "cube_root": "general/cube.obj"
+  "robot": {
+    "jump_speed": 5,
+    "walk_speed": 2,
+    "hit_points": 100,
+    "defences": {
+      "fire": 1,
+      "electro": 1,
+      "force": 1,
+      "physical": 1
+    },
+    "body_model": "ANTHRO",
+    "hitbox": [
+      -1,
+      -1,
+      0,
+      1,
+      1,
+      2
+    ],
+    "bone_mapping": {
+      "Spine": "robot/torso.obj",
+      "UpperArm.L": "robot/leg1.obj",
+      "LowerArm.L": "robot/leg2.obj",
+      "UpperLeg.L": "robot/leg1.obj",
+      "LowerLeg.L": "robot/leg2.obj",
+      "UpperArm.R": "robot/leg1.obj",
+      "LowerArm.R": "robot/leg2.obj",
+      "UpperLeg.R": "robot/leg1.obj",
+      "LowerLeg.R": "robot/leg2.obj",
+      "Foot.L": "robot/foot.obj",
+      "Foot.R": "robot/foot.obj",
+      "Head": "robot/head.obj",
+      "Ear.L": "robot/ear.obj",
+      "Ear.R": "robot/ear.obj",
+      "TopFinger.L": "robot/finger.obj",
+      "FrontFinger.L": "robot/finger.obj",
+      "BackFinger.L": "robot/finger.obj",
+      "TopFinger.R": "robot/finger.obj",
+      "FrontFinger.R": "robot/finger.obj",
+      "BackFinger.R": "robot/finger.obj"
+    }
   }
 }

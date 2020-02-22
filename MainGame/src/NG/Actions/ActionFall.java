@@ -3,7 +3,6 @@ package NG.Actions;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Settings.Settings;
-import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -24,7 +23,6 @@ public class ActionFall implements EntityAction {
     public ActionFall(Vector3fc startPosition, Vector3fc direction, float speed) {
         this.movement = new Vector3f(direction).normalize(speed);
         this.start = startPosition;
-        Logger.WARN.print(movement, startPosition);
     }
 
     @Override

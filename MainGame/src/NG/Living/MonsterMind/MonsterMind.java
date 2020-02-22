@@ -8,7 +8,6 @@ import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
-import NG.Entities.Projectiles.ProjectilePowerBall;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Living.MonsterSoul;
@@ -18,11 +17,12 @@ import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An AI for monsters. The base implementation just follows exactly and only the commands given
+ * An AI for monsters, which selects what moves are executed. The base implementation just follows exactly and only the
+ * commands given.
  * @author Geert van Ieperen created on 5-2-2020.
  */
 public abstract class MonsterMind {
@@ -32,10 +32,13 @@ public abstract class MonsterMind {
     protected final MonsterSoul owner;
     protected MonsterEntity entity;
     protected Game game;
-    private List<CommandProvider> acceptedCommands;
+    protected List<CommandProvider> knownMoves = new ArrayList<>();
 
     protected MonsterMind(MonsterSoul owner) {
         this.owner = owner;
+
+        knownMoves.add(CommandWalk.walkCommand());
+        knownMoves.add(ActionJump.JUMP_COMMAND);
     }
 
     /**
@@ -47,11 +50,6 @@ public abstract class MonsterMind {
         this.game = game;
         this.entity = entityToControl;
 
-        acceptedCommands = Arrays.asList(
-                CommandWalk.walkCommand(),
-                ProjectilePowerBall.fireCommand(game),
-                CommandProvider.actionCommand("Jump", ActionJump::new)
-        );
     }
 
     /**
@@ -69,7 +67,7 @@ public abstract class MonsterMind {
         }
 
         while (executionTarget != null) {
-            EntityAction next = executionTarget.getAction(game, position, gameTime);
+            EntityAction next = executionTarget.getAction(game, position, gameTime, entity);
 
             if (next != null) {
                 if (next != previous && !next.getStartPosition().equals(position)) {
@@ -168,6 +166,6 @@ public abstract class MonsterMind {
     }
 
     public List<CommandProvider> getAcceptedCommands() {
-        return acceptedCommands;
+        return knownMoves;
     }
 }

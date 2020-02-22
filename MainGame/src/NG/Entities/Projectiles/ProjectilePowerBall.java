@@ -1,6 +1,6 @@
 package NG.Entities.Projectiles;
 
-import NG.Actions.ActionFly;
+import NG.Actions.ActionLinearMove;
 import NG.Actions.Attacks.DamageType;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.CommandAttack;
@@ -76,7 +76,7 @@ public class ProjectilePowerBall extends Projectile {
 
     @Override
     protected void setSpawnPosition(Vector3fc spawnPosition) {
-        action = new ActionFly(spawnPosition, target, speed);
+        action = new ActionLinearMove(spawnPosition, target, speed);
     }
 
     @Override

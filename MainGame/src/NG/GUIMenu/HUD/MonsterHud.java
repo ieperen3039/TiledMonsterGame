@@ -205,7 +205,7 @@ public class MonsterHud extends SimpleHUD {
     }
 
     private SPanel getMonsterPanel(MonsterSoul soul) {
-        SProgressBar healthBar = new SProgressBar(0, 20, () -> ((float) soul.getHitpoints() / soul.stats.hitPoints));
+        SProgressBar healthBar = new SProgressBar(0, 20, () -> ((float) soul.getHitpoints() / soul.props.hitPoints));
         SExtendedTextArea name = new SExtendedTextArea(soul.toString(), 50, true);
         name.setClickListener(
                 (button, x, y) -> game.get(MouseToolCallbacks.class)
@@ -240,7 +240,7 @@ public class MonsterHud extends SimpleHUD {
                             SPanel.column(
                                     SPanel.row(
                                             new STextArea(soul.toString(), 50, 0, true, NGFonts.TextType.TITLE, SFrameLookAndFeel.Alignment.CENTER),
-                                            new SProgressBar(0, 20, () -> ((float) soul.getHitpoints() / soul.stats.hitPoints))
+                                            new SProgressBar(0, 20, () -> ((float) soul.getHitpoints() / soul.props.hitPoints))
                                     ),
                                     SPanel.row(
                                             soul.mind().getAcceptedCommands()

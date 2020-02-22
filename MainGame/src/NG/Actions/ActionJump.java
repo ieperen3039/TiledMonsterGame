@@ -4,6 +4,7 @@ import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
 import NG.GameMap.GameMap;
+import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Settings.Settings;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -16,6 +17,8 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 21-3-2019.
  */
 public class ActionJump implements EntityAction {
+    public static final CommandProvider JUMP_COMMAND = CommandProvider.actionCommand("Jump", (g, e, s, t) ->
+            new ActionJump(g, s, t, e.getController().props.jumpSpeed));
 
     protected final Vector3fc start;
     protected final Vector3fc end;
@@ -24,10 +27,6 @@ public class ActionJump implements EntityAction {
     private final float a = -Settings.GRAVITY_CONSTANT;
     private final float b;
     private final float c;
-
-    public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord) {
-        this(game, startPosition, endCoord, 4f);
-    }
 
     public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord, float jumpSpeed) {
         this(startPosition, game.get(GameMap.class).getPosition(endCoord), jumpSpeed);

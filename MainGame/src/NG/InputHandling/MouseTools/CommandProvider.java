@@ -3,6 +3,7 @@ package NG.InputHandling.MouseTools;
 import NG.Actions.Commands.Command;
 import NG.Actions.EntityAction;
 import NG.Core.Game;
+import NG.Entities.MonsterEntity;
 import NG.Living.Living;
 import org.joml.Vector2ic;
 import org.joml.Vector3fc;
@@ -31,11 +32,13 @@ public abstract class CommandProvider {
                     boolean hasFired = false;
 
                     @Override
-                    public EntityAction getAction(Game game, Vector3fc startPosition, float gameTime) {
+                    public EntityAction getAction(
+                            Game game, Vector3fc startPosition, float gameTime, MonsterEntity entity
+                    ) {
                         if (hasFired) return null;
                         hasFired = true;
 
-                        return action.create(game, startPosition, target);
+                        return action.create(game, entity, startPosition, target);
                     }
 
                     @Override
@@ -48,6 +51,8 @@ public abstract class CommandProvider {
     }
 
     public interface ActionCreator {
-        EntityAction create(Game game, Vector3fc startPosition, Vector2ic target);
+        EntityAction create(
+                Game game, MonsterEntity entity, Vector3fc startPosition, Vector2ic targetPosition
+        );
     }
 }

@@ -2,6 +2,7 @@ package NG.Actions.Commands;
 
 import NG.Actions.EntityAction;
 import NG.Core.Game;
+import NG.Entities.MonsterEntity;
 import NG.Living.Living;
 import org.joml.Vector3fc;
 
@@ -21,11 +22,14 @@ public abstract class Command {
      * @param game          the current game instance
      * @param startPosition the last action executed
      * @param gameTime
+     * @param entity
      * @return a list {@code l} of actions, sorted on first action first, such that they corresponds exactly to this
      * command, and it holds that {@code l.get(0).}{@link EntityAction#follows(EntityAction) follows}{@code
      * (preceding)}
      */
-    public abstract EntityAction getAction(Game game, Vector3fc startPosition, float gameTime);
+    public abstract EntityAction getAction(
+            Game game, Vector3fc startPosition, float gameTime, MonsterEntity entity
+    );
 
     /**
      * @return the entity that is supposed to execute the command

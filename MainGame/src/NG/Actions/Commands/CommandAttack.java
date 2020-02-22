@@ -22,7 +22,7 @@ public class CommandAttack extends Command {
     }
 
     @Override
-    public EntityAction getAction(Game game, Vector3fc startPosition, float gameTime) {
-        return elt.isLaunched() ? null : new ActionFireProjectile(game, entity, elt, gameTime, DURATION);
+    public EntityAction getAction(Game game, Vector3fc startPosition, float gameTime, MonsterEntity entity) {
+        return elt.isLaunched() ? null : new ActionFireProjectile(game, this.entity, elt, gameTime, DURATION);
     }
 }

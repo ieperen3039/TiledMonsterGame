@@ -14,18 +14,18 @@ import static NG.Animations.BodyAnimation.BASE_POSE;
  * A linear movement from point A to point B
  * @author Geert van Ieperen created on 2-4-2019.
  */
-public class ActionFly implements EntityAction {
+public class ActionLinearMove implements EntityAction {
     protected final Vector3fc start;
     protected final Vector3fc end;
     protected final float duration;
 
-    public ActionFly(
+    public ActionLinearMove(
             Game game, Vector3fc startPosition, Vector2ic endCoord, float speed
     ) {
         this(startPosition, game.get(GameMap.class).getPosition(endCoord), speed);
     }
 
-    public ActionFly(Vector3fc startPosition, Vector3fc endPosition, float speed) {
+    public ActionLinearMove(Vector3fc startPosition, Vector3fc endPosition, float speed) {
         this.start = startPosition;
         this.end = endPosition;
         this.duration = speed / start.distance(end);

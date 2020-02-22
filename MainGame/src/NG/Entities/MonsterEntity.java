@@ -3,9 +3,6 @@ package NG.Entities;
 import NG.Actions.ActionIdle;
 import NG.Actions.ActionQueue;
 import NG.Actions.EntityAction;
-import NG.Animations.BodyModel;
-import NG.Animations.BoneElement;
-import NG.Animations.SkeletonBone;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.Core.GameTimer;
@@ -14,8 +11,6 @@ import NG.DataStructures.Generic.Pair;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterMind.MonsterMind;
 import NG.Living.MonsterSoul;
-import NG.Particles.GameParticles;
-import NG.Particles.Particles;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
@@ -24,36 +19,29 @@ import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 
-import java.util.Map;
-
 /**
  * the generic class of all {@code MonsterEntity} entities. This is only the physical representation of the entity, NOT
  * including the {@link MonsterSoul} or identity of the monster.
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public abstract class MonsterEntity implements MovingEntity {
+public class MonsterEntity implements MovingEntity {
     protected final Game game;
     /** the current actions that are executed */
     public final ActionQueue currentActions;
 
     private final MonsterSoul controller;
-    private final BodyModel bodyModel;
-    private final Map<SkeletonBone, BoneElement> boneMapping;
 
     private boolean isDisposed;
     private EntityAction previousAction; // only in rendering
     private Mark marking = Mark.NONE;
 
     public MonsterEntity(
-            Game game, Vector2i initialPosition, MonsterSoul controller,
-            BodyModel bodyModel, Map<SkeletonBone, BoneElement> boneMapping
+            Game game, Vector2i initialPosition, MonsterSoul controller
     ) {
         this.game = game;
         this.controller = controller;
         this.currentActions = new ActionQueue(game, initialPosition);
         this.previousAction = new ActionIdle(game, initialPosition);
-        this.bodyModel = bodyModel;
-        this.boneMapping = boneMapping;
     }
 
     @Override
@@ -82,7 +70,7 @@ public abstract class MonsterEntity implements MovingEntity {
 
             gl.rotate(action.getRotationAt(timeSinceStart));
 
-            bodyModel.draw(gl, this, boneMapping, timeSinceStart, action, previousAction);
+            controller.props.bodyModel.draw(gl, this, controller.props.boneMapping, timeSinceStart, action, previousAction);
 
             if (shader instanceof MaterialShader) {
                 MaterialShader mat = (MaterialShader) shader;
@@ -160,11 +148,9 @@ public abstract class MonsterEntity implements MovingEntity {
         currentActions.insert(nextAction, collisionTime);
     }
 
-    public void eventDeath(float time) {
-        this.dispose();
-        game.get(GameParticles.class).add(
-                Particles.explosion(getPositionAt(time), Color4f.RED, 10)
-        );
+    @Override
+    public String toString() {
+        return controller.toString();
     }
 
     public void markAs(Mark type) {
@@ -187,5 +173,7 @@ public abstract class MonsterEntity implements MovingEntity {
     /**
      * @return the relative (local-space) bounding box of this entity
      */
-    abstract BoundingBox getLocalHitbox();
+    public BoundingBox getLocalHitbox() {
+        return controller.props.hitbox;
+    }
 }

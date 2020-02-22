@@ -9,7 +9,7 @@ import NG.CollisionDetection.GameState;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
-import NG.Entities.CubeMonster;
+import NG.Entities.EntityProperties;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
@@ -32,7 +32,6 @@ import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Rendering.TilePointer;
-import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -49,7 +48,7 @@ import static NG.Rendering.Shapes.GenericShapes.CUBE;
  * @author Geert van Ieperen. Created on 28-9-2018.
  */
 public class MainMenu extends SFrame {
-
+    public static final EntityProperties BASE_PROPERTIES = new EntityProperties();
     private final Game overworld;
     private final Game pocketworld;
     private final ModLoader modLoader;
@@ -152,13 +151,13 @@ public class MainMenu extends SFrame {
 
             // add a default entity
             Vector2ic position = gameMap.getCoordinate(cameraFocus);
-            MonsterSoul monsterSoul1 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            MonsterSoul monsterSoul1 = new MonsterSoul(BASE_PROPERTIES);
             state.addEntity(monsterSoul1.getAsEntity(overworld, new Vector2i(position).add(1, 2), Vectors.X));
-            MonsterSoul monsterSoul2 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            MonsterSoul monsterSoul2 = new MonsterSoul(BASE_PROPERTIES);
             state.addEntity(monsterSoul2.getAsEntity(overworld, new Vector2i(position).add(-1, 2), Vectors.X));
-            MonsterSoul monsterSoul3 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            MonsterSoul monsterSoul3 = new MonsterSoul(BASE_PROPERTIES);
             state.addEntity(monsterSoul3.getAsEntity(overworld, new Vector2i(position).add(1, -2), Vectors.X));
-            MonsterSoul monsterSoul4 = new CubeMonster(Directory.souls.getFile("soul1.txt"));
+            MonsterSoul monsterSoul4 = new MonsterSoul(BASE_PROPERTIES);
             state.addEntity(monsterSoul4.getAsEntity(overworld, new Vector2i(position).add(-1, -2), Vectors.X));
 
             player.addToTeam(monsterSoul1);

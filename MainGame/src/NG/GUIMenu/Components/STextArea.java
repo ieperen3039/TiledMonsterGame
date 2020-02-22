@@ -22,6 +22,7 @@ public class STextArea extends SComponent {
             String text, int minHeight, int minWidth, boolean doGrowInWidth, NGFonts.TextType textType,
             SFrameLookAndFeel.Alignment alignment
     ) {
+        assert text != null;
         this.text = text;
         this.height = minHeight;
         this.specMinWidth = minWidth;
