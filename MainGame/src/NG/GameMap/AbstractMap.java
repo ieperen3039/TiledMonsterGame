@@ -68,8 +68,14 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
 
     @Override
     public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
+        Vector2ic size = getSize();
         // edge case, direction == (0, 0, dz)
         if (direction.x() == 0 && direction.y() == 0) {
+            Vector3f realSize = getPosition(size);
+            if (origin.x() < 0 || origin.y() < 0 || origin.x() > realSize.x || origin.y() > realSize.y) {
+                return 1;
+            }
+
             Vector2i coord = getCoordinate(origin);
             Float sect = getTileIntersect(origin, direction, coord.x, coord.y);
             if (sect == null || sect < 0 || sect > 1) {
@@ -79,7 +85,6 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
             }
         }
 
-        Vector2ic size = getSize();
         Vector2f coordPos = getCoordPosf(origin);
         Vector2f coordDir = getCoordDirf(direction).normalize();
 
@@ -88,27 +93,19 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
                 coordPos.x, coordPos.y, 0,
                 coordDir.x, coordDir.y, 0,
                 0, 0, -1,
-                size.x() - 0.5f, size.y() - 0.5f, 1,
+                size.x(), size.y(), 1,
                 worldClip
         );
 
         if (!isOnWorld) return 1;
 
         if (worldClip.x > 0) {
-            coordPos.add(new Vector2f(coordDir).mul(worldClip.x));
-
-            // negate rounding errors
-            int xRound = (int) (coordPos.x);
-            if (Math.abs(xRound - coordPos.x) < 0.0001f) coordPos.x = xRound;
-            int yRound = (int) (coordPos.y);
-            if (Math.abs(yRound - coordPos.y) < 0.0001f) coordPos.y = yRound;
+            coordPos.add(new Vector2f(coordDir).mul(worldClip.x + EPSILON));
 
         } else {
             // check this tile before setting up voxel ray casting
             Float secFrac = getTileIntersect(origin, direction, (int) coordPos.x, (int) coordPos.y);
-            if (secFrac < 0) {
-                return 1;
-            } else if (secFrac < 1) {
+            if (secFrac < 1) {
                 return secFrac;
             }
         }

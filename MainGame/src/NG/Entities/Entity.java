@@ -54,6 +54,13 @@ public interface Entity {
      */
     boolean isDisposed();
 
+    /**
+     * calculates the smallest t = [0 ... 1] such that origin + (t * direction) lies on this entity.
+     * @param origin    the origin of the ray to cast
+     * @param direction the direction of the ray
+     * @param gameTime  the time at which to measure
+     * @return 1 if the given ray piece does not hit this entity
+     */
     default float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
         return getHitbox(gameTime).intersectRay(origin, direction);
     }
