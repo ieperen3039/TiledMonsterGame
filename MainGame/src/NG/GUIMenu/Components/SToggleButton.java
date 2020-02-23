@@ -1,7 +1,7 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
-import NG.GUIMenu.NGFonts;
+import NG.GUIMenu.Rendering.NGFonts;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseRelativeClickListener;
 import org.joml.Vector2ic;
 
@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
 
 /**
  * A button with a state that only changes upon clicking the button
@@ -58,28 +58,6 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
         this(text, minWidth, minHeight, false);
     }
 
-    /**
-     * Create a button with the given properties, starting disabled and with the given listener
-     * @param text                the displayed text
-     * @param stateChangeListener upon change, this action is activated with the current state as argument
-     */
-    public SToggleButton(String text, Consumer<Boolean> stateChangeListener) {
-        this(text, SButton.BUTTON_MIN_WIDTH, SButton.BUTTON_MIN_HEIGHT, stateChangeListener);
-    }
-
-    /**
-     * Create a button with the given properties, starting disabled and with the given listener
-     * @param text                the displayed text
-     * @param minWidth            the minimal width of this buttion, which {@link NG.GUIMenu.LayoutManagers.SLayoutManager}s
-     *                            should respect
-     * @param minHeight           the minimal height of this button.
-     * @param stateChangeListener upon change, this action is activated with the current state as argument
-     */
-    public SToggleButton(String text, int minWidth, int minHeight, Consumer<Boolean> stateChangeListener) {
-        this(text, minWidth, minHeight);
-        addStateChangeListener(stateChangeListener);
-    }
-
     @Override
     public int minWidth() {
         return minWidth;
@@ -99,21 +77,22 @@ public class SToggleButton extends SComponent implements MouseRelativeClickListe
 
     @Override
     public void onClick(int button, int xSc, int ySc) {
-        setState(!state);
+        setActive(!state);
     }
 
     /**
      * @param action Upon change, this action is activated
      */
-    public void addStateChangeListener(Consumer<Boolean> action) {
+    public SToggleButton addStateChangeListener(Consumer<Boolean> action) {
         stateChangeListeners.add(action);
+        return this;
     }
 
-    public boolean getState() {
+    public boolean isActive() {
         return state;
     }
 
-    public void setState(boolean state) {
+    public void setActive(boolean state) {
         this.state = state;
 
         for (Consumer<Boolean> c : stateChangeListeners) {

@@ -1,8 +1,8 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.HUD.HUDManager;
-import NG.GUIMenu.NGFonts;
+import NG.GUIMenu.Rendering.NGFonts;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseRelativeClickListener;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_CLOSED;
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_OPEN;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_CLOSED;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.DROP_DOWN_HEAD_OPEN;
 
 /**
  * A menu item that may assume different options, where the player can choose from using a drop-down selection.

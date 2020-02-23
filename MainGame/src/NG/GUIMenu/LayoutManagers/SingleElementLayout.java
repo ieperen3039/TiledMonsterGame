@@ -65,4 +65,14 @@ public class SingleElementLayout implements SLayoutManager {
     public void clear() {
         target = null;
     }
+
+    @Override
+    public boolean wantHorizontalGrow() {
+        return target.wantHorizontalGrow();
+    }
+
+    @Override
+    public boolean wantVerticalGrow() {
+        return target.wantVerticalGrow();
+    }
 }

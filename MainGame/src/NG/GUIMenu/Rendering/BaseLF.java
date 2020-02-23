@@ -1,17 +1,16 @@
-package NG.GUIMenu;
+package NG.GUIMenu.Rendering;
 
 import NG.Core.Game;
 import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
 import java.util.EnumSet;
 
-import static NG.GUIMenu.GUIPainter.Alignment.*;
-import static NG.GUIMenu.NGFonts.ORBITRON_MEDIUM;
+import static NG.GUIMenu.Rendering.GUIPainter.Alignment.*;
+import static NG.GUIMenu.Rendering.NGFonts.ORBITRON_MEDIUM;
 
 /**
  * Little more than the absolute basic appearance of a GUI
@@ -142,6 +141,8 @@ public class BaseLF implements SFrameLookAndFeel {
     public void drawText(
             Vector2ic pos, Vector2ic dim, String text, NGFonts.TextType type, Alignment align
     ) {
+        if (text == null || text.isEmpty()) return;
+
         int x = pos.x();
         int y = pos.y();
         int width = dim.x();

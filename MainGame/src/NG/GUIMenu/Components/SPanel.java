@@ -1,13 +1,13 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.GridLayoutManager;
 import NG.GUIMenu.LayoutManagers.SLayoutManager;
 import NG.GUIMenu.LayoutManagers.SingleElementLayout;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.PANEL;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.PANEL;
 
 /**
  * @author Geert van Ieperen. Created on 20-9-2018.
@@ -25,23 +25,17 @@ public class SPanel extends SContainer {
     public static final Object SOUTHWEST = new Vector2i(0, 2);
     public static final Object MIDDLE = new Vector2i(1, 1);
 
-    private boolean border = true;
-
     /**
      * creates a panel with the given layout manager
      * @param layoutManager  a new layout manager for this component
      * @param growHorizontal if true, the panel tries to grow in its width
      * @param growVertical   if true, the panel tries to grow in its height
-     * @param drawBorder     if true, this panel itself is drawn
      */
     public SPanel(
             SLayoutManager layoutManager, boolean growHorizontal,
-            boolean growVertical,
-            boolean drawBorder
+            boolean growVertical
     ) {
         super(layoutManager);
-        this.border = drawBorder;
-
         setGrowthPolicy(growHorizontal, growVertical);
     }
 
@@ -57,16 +51,34 @@ public class SPanel extends SContainer {
     ) {
         this(
                 (cols * rows > 0 ? new GridLayoutManager(cols, rows) : new SingleElementLayout()),
-                growHorizontal, growVertical, true);
+                growHorizontal, growVertical);
     }
 
     /**
-     * creates a panel with the given layout manager, minimum size of (0, 0)
+     * the basic panel for holding components. Use {@link Vector2i} for positioning elements. Note that indices are
+     * 0-indexed.
+     * @param cols number of components
+     * @param rows number of rows
+     */
+    public SPanel(int cols, int rows) {
+        super((cols * rows > 0 ? new GridLayoutManager(cols, rows) : new SingleElementLayout()));
+    }
+
+    /**
+     * creates a panel with the given layout manager, minimum size of (0, 0) and growth policy in both dimensions
      * @param layoutManager a new layout manager for this component
      * @param growPolicy    if true, try to grow
      */
     public SPanel(SLayoutManager layoutManager, boolean growPolicy) {
-        this(layoutManager, growPolicy, growPolicy, true);
+        this(layoutManager, growPolicy, growPolicy);
+    }
+
+    /**
+     * creates a panel with the given layout manager, minimum size of (0, 0)
+     * @param layoutManager a layout manager for this component
+     */
+    public SPanel(SLayoutManager layoutManager) {
+        super(layoutManager);
     }
 
     /**
@@ -87,60 +99,13 @@ public class SPanel extends SContainer {
     }
 
     /**
-     * creates a panel that uses no layout and with given minimum size
-     * @param growPolicy if true, this panel tries to grow in each direction
+     * creates a panel with a single element. Calling {@link #add(SComponent, Object)} causes this element to be
+     * replaced with the new element. Use {@code null} as add position.
+     * @param content the element of this panel.
      */
-    public SPanel(boolean growPolicy) {
-        super(new GridLayoutManager(1, 1));
-        setGrowthPolicy(growPolicy, growPolicy);
-    }
-
-    /**
-     * the basic panel for holding components. Growth policy is false, and minimum size is (0, 0).
-     * Use {@link Vector2i} for positioning elements. Note that indices are 0-indexed.
-     * @param cols number of components
-     * @param rows number of rows
-     */
-    public SPanel(int cols, int rows) {
-        this(cols, rows, false, false);
-    }
-
-    /** creates a new panel with the given components on a single column */
-    public static SPanel column(SComponent... components) {
-        SPanel newPanel = new SPanel(1, components.length);
-        newPanel.border = false;
-
-        for (int i = 0; i < components.length; i++) {
-            newPanel.add(components[i], new Vector2i(0, i));
-        }
-
-        newPanel.setSize(0, 0);
-        return newPanel;
-    }
-
-    /** creates a new panel with the given components in a row */
-    public static SPanel row(SComponent... components) {
-        SPanel newPanel = new SPanel(components.length, 1);
-        newPanel.border = false;
-
-        for (int i = 0; i < components.length; i++) {
-            newPanel.add(components[i], new Vector2i(i, 0));
-        }
-
-        newPanel.setSize(0, 0);
-        return newPanel;
-    }
-
-    @Override
-    public SComponent getComponentAt(int xRel, int yRel) {
-        SComponent base = super.getComponentAt(xRel, yRel);
-        if (!border && base == this) return null;
-        return base;
-    }
-
-    public SPanel setBorderVisible(boolean doVisible) {
-        this.border = doVisible;
-        return this;
+    public SPanel(SContainer content) {
+        super(new SingleElementLayout());
+        add(content, null);
     }
 
     @Override
@@ -148,12 +113,7 @@ public class SPanel extends SContainer {
         assert getWidth() > 0 && getHeight() > 0 :
                 String.format("Non-positive dimensions of %s: width = %d, height = %d", this, getWidth(), getHeight());
 
-        if (border) design.draw(PANEL, screenPosition, getSize());
+        design.draw(PANEL, screenPosition, getSize());
         drawChildren(design, screenPosition);
-    }
-
-    @Override
-    protected ComponentBorder newLayoutBorder() {
-        return border ? super.newLayoutBorder() : new ComponentBorder();
     }
 }

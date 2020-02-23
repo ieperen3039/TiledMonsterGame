@@ -1,7 +1,7 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
-import NG.GUIMenu.NGFonts;
+import NG.GUIMenu.Rendering.NGFonts;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;

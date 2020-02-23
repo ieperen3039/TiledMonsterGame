@@ -18,6 +18,7 @@ import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -135,7 +136,6 @@ public abstract class MonsterMind {
         if (map.isOnFloor(thisPos)) {
             Vector2i coordinate = map.getCoordinate(thisPos);
             Vector3f direction = map.getPosition(coordinate).sub(thisPos);
-            Logger.WARN.print(thisPos);
             // if current coordinate is in direction of collision
             if (direction.dot(otherToThis) < 0) {
                 expandCoord(coordinate, otherToThis);
@@ -166,6 +166,6 @@ public abstract class MonsterMind {
     }
 
     public List<CommandProvider> getAcceptedCommands() {
-        return knownMoves;
+        return Collections.unmodifiableList(knownMoves);
     }
 }

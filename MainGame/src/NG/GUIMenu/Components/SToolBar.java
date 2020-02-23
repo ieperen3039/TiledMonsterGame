@@ -2,14 +2,14 @@ package NG.GUIMenu.Components;
 
 import NG.Core.Game;
 import NG.GUIMenu.FrameManagers.FrameGUIManager;
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
 import NG.Rendering.GLFWWindow;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.TOOLBAR_BACKGROUND;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.TOOLBAR_BACKGROUND;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 /**
@@ -31,7 +31,7 @@ public class SToolBar extends SContainer implements MouseReleaseListener, MouseR
      * @param doSides if true, separators are added to each size of the bar
      */
     public SToolBar(Game game, boolean doSides) {
-        super(MAX_BAR_ICONS, 1, true);
+        super(MAX_BAR_ICONS, 1);
         this.game = game;
         if (doSides) {
             add(new SFiller(), null);

@@ -201,4 +201,20 @@ public class LimitedVisibilityLayout implements SLayoutManager {
         elements.clear();
         currentInd = 0;
     }
+
+    @Override
+    public boolean wantHorizontalGrow() {
+        for (SComponent elt : elements) {
+            if (elt.wantHorizontalGrow()) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean wantVerticalGrow() {
+        for (SComponent elt : elements) {
+            if (elt.wantVerticalGrow()) return true;
+        }
+        return false;
+    }
 }

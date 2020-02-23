@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseReleaseListener;
 import NG.Tools.Toolbox;
@@ -10,8 +10,8 @@ import org.joml.Vector2ic;
 import java.util.ArrayList;
 import java.util.List;
 
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.SCROLL_BAR_BACKGROUND;
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.SCROLL_BAR_DRAG_ELEMENT;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.SCROLL_BAR_BACKGROUND;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.SCROLL_BAR_DRAG_ELEMENT;
 
 /**
  * @author Geert van Ieperen created on 13-5-2019.
@@ -103,9 +103,10 @@ class SScrollBar extends SComponent {
     private void positionDragbar(float fraction) {
         int dragBarSpace = getDragBarSpace();
         if (dragBarSpace > 0) {
-            dragBar.setSize(SCROLL_BAR_WIDTH, (int) (dragBarSpace * barSizeFraction));
+            int dragBarHeight = (int) (dragBarSpace * Math.min(1, barSizeFraction));
+            dragBar.setSize(SCROLL_BAR_WIDTH, dragBarHeight);
 
-            int dragMaxYPos = getHeight() - SCROLL_BUTTON_SIZE - dragBar.getHeight();
+            int dragMaxYPos = getHeight() - SCROLL_BUTTON_SIZE - dragBarHeight;
             int drabBarY = (int) Toolbox.interpolate(SCROLL_BUTTON_SIZE, dragMaxYPos, fraction);
             dragBar.setPosition(0, drabBarY);
 
@@ -126,6 +127,7 @@ class SScrollBar extends SComponent {
 
     @Override
     public SComponent getComponentAt(int xRel, int yRel) {
+        validateLayout();
         for (SComponent elt : elements) {
             if (elt.isVisible() && elt.contains(xRel, yRel)) {
                 xRel -= elt.getX();
@@ -163,6 +165,7 @@ class SScrollBar extends SComponent {
         maximumInd = Math.max(newTotalElts - newShownElts, 0);
         this.barSizeFraction = (newTotalElts == 0) ? 1 : (float) newShownElts / newTotalElts;
         positionDragbar(dragBarOffsetFraction);
+        invalidateLayout();
     }
 
     /**

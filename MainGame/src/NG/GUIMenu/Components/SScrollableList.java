@@ -1,7 +1,7 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.LimitedVisibilityLayout;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -29,6 +29,7 @@ public class SScrollableList extends SContainer {
         }
 
         scroller = new SScrollBar(elements.length, nrOfShownElts);
+        scroller.setParent(this);
         scroller.addListener(value -> {
             this.layout.setAsFirstVisible(value);
             invalidateLayout();
@@ -43,6 +44,7 @@ public class SScrollableList extends SContainer {
 
     @Override
     public SComponent getComponentAt(int xRel, int yRel) {
+        validateLayout();
         if (scroller.contains(xRel, yRel)) {
             Vector2ic position = scroller.getPosition();
             return scroller.getComponentAt(xRel - position.x(), yRel - position.y());

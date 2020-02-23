@@ -1,7 +1,5 @@
-package NG.GUIMenu.FrameManagers;
+package NG.GUIMenu.Rendering;
 
-import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.NGFonts;
 import NG.Mods.InitialisationMod;
 import org.joml.Vector2ic;
 

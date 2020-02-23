@@ -102,7 +102,7 @@ public class NewGameFrame extends SFrame {
         // install selected mods
         List<Mod> targets = new ArrayList<>();
         for (int i = 0; i < toggleList.size(); i++) {
-            if (toggleList.left(i).getState()) {
+            if (toggleList.left(i).isActive()) {
                 Mod mod = toggleList.right(i);
                 targets.add(mod);
             }

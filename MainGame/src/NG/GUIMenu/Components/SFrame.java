@@ -1,8 +1,8 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.SingleElementLayout;
-import NG.GUIMenu.NGFonts;
+import NG.GUIMenu.Rendering.NGFonts;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -38,7 +38,6 @@ public class SFrame extends SDecorator {
     public SFrame(String title, int width, int height, boolean manipulable) {
         super(
                 new SPanel(1, 2, true, true)
-                        .setBorderVisible(false)
         );
         this.title = title;
 
@@ -87,12 +86,9 @@ public class SFrame extends SDecorator {
         titleComponent = title;
         title.setDragListener(this::addToPosition);
 
-        SPanel bar = SPanel.row(
+        return new SPanel(SContainer.row(
                 title, new SCloseButton(this)
-        );
-        bar.setBorderVisible(true);
-
-        return bar;
+        ));
     }
 
     /**

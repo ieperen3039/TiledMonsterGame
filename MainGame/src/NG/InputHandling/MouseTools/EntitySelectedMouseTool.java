@@ -17,8 +17,6 @@ import org.joml.Vector2ic;
 import org.joml.Vector3fc;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.List;
-
 /**
  * @author Geert van Ieperen created on 19-2-2020.
  */
@@ -30,9 +28,6 @@ public class EntitySelectedMouseTool extends DefaultMouseTool {
         super(game);
         Logger.DEBUG.print("Selected " + entity);
         this.receiver = entity.getController();
-
-        List<CommandProvider> providers = receiver.mind().getAcceptedCommands();
-        selectedCommand = providers.get(0);
 
         MonsterHud hud = game.get(MonsterHud.class);
         hud.setSelectedEntity(entity, this);
@@ -49,9 +44,7 @@ public class EntitySelectedMouseTool extends DefaultMouseTool {
     @Override
     public void apply(Vector3fc position, int xSc, int ySc) {
         if (getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-            game.get(Pointer.class).setSelection(null);
-            game.get(KeyMouseCallbacks.class).setMouseTool(null);
-            receiver.entity().markAs(MonsterEntity.Mark.OWNED);
+            deselect();
             return;
         }
 
@@ -61,6 +54,12 @@ public class EntitySelectedMouseTool extends DefaultMouseTool {
         accept(selectedCommand, coordinate);
     }
 
+    private void deselect() {
+        game.get(Pointer.class).setSelection(null);
+        game.get(KeyMouseCallbacks.class).setMouseTool(null);
+        receiver.entity().markAs(MonsterEntity.Mark.OWNED);
+    }
+
     private void accept(CommandProvider provider, Vector2ic targetPosition) {
         Command command = provider.create(receiver, targetPosition);
         if (command == null) return;
@@ -68,7 +67,7 @@ public class EntitySelectedMouseTool extends DefaultMouseTool {
         receiver.mind().queueCommand(game, command);
     }
 
-    public void select(CommandProvider command) {
+    public void selectCommand(CommandProvider command) {
         selectedCommand = command;
     }
 }

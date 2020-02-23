@@ -72,4 +72,8 @@ public interface SLayoutManager {
      * remove all elements from this layout
      */
     void clear();
+
+    boolean wantHorizontalGrow();
+
+    boolean wantVerticalGrow();
 }

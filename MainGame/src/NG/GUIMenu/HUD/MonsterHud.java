@@ -4,19 +4,19 @@ import NG.Camera.Camera;
 import NG.Core.Game;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
-import NG.GUIMenu.BaseLF;
 import NG.GUIMenu.Components.*;
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
-import NG.GUIMenu.GUIPainter;
-import NG.GUIMenu.NGFonts;
+import NG.GUIMenu.Rendering.BaseLF;
+import NG.GUIMenu.Rendering.GUIPainter;
+import NG.GUIMenu.Rendering.NGFonts;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseToolCallbacks;
+import NG.InputHandling.MouseTools.CommandProvider;
 import NG.InputHandling.MouseTools.EntitySelectedMouseTool;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.Textures.GenericTextures;
-import NG.Tools.Logger;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -51,14 +51,15 @@ public class MonsterHud extends SimpleHUD {
         bottomBox = new SComponentArea(0, TEXT_BOX_HEIGHT);
         bottomBox.setGrowthPolicy(true, false);
         teamSelection = new SScrollableList(5);
+        teamSelection.setGrowthPolicy(false, true);
 
         display(
-                SPanel.row(
-                        SPanel.column(new SFiller(), bottomBox)
+                SContainer.row(
+                        SContainer.column(new SFiller(), bottomBox)
                                 .setGrowthPolicy(true, true),
-                        SPanel.column(minimap, teamSelection)
-                                .setBorderVisible(true)
-                                .setGrowthPolicy(false, true)
+                        new SPanel(SContainer.column(
+                                minimap, teamSelection
+                        )).setGrowthPolicy(false, true)
                 ).setGrowthPolicy(true, true)
         );
     }
@@ -166,7 +167,6 @@ public class MonsterHud extends SimpleHUD {
                 }
             }
 
-            Logger.WARN.print(modalComponent, modalComponent.contains(xSc, ySc));
             modalComponent = null;
             return true;
         }
@@ -213,13 +213,13 @@ public class MonsterHud extends SimpleHUD {
                         .apply(soul.entity(), x, y)
         );
 
-        return SPanel.row(
+        return new SPanel(SContainer.row(
                 new STexturedPanel(GenericTextures.CHECKER, 100, 100),
-                SPanel.column(
+                SContainer.column(
                         name,
                         healthBar
                 )
-        ).setBorderVisible(true);
+        ));
     }
 
     /**
@@ -231,30 +231,42 @@ public class MonsterHud extends SimpleHUD {
         if (entity instanceof MonsterEntity) {
             MonsterEntity monster = (MonsterEntity) entity;
             MonsterSoul soul = monster.getController();
+            List<CommandProvider> acceptedCommands = soul.mind().getAcceptedCommands();
+            String[] commandNames = acceptedCommands.stream()
+                    .map(c -> c.name)
+                    .toArray(String[]::new);
 
             int bbSize = bottomBox.getHeight() - 20;
+
             bottomBox.show(
-                    SPanel.row(
+                    new SPanel(SContainer.row(
                             // entity image
                             new STexturedPanel(GenericTextures.CHECKER, bbSize, bbSize),
-                            SPanel.column(
-                                    SPanel.row(
-                                            new STextArea(soul.toString(), 50, 0, true, NGFonts.TextType.TITLE, SFrameLookAndFeel.Alignment.CENTER),
-                                            new SProgressBar(0, 20, () -> ((float) soul.getHitpoints() / soul.props.hitPoints))
+                            SContainer.column(
+                                    SContainer.row(
+                                            new STextArea( // entity name
+                                                    soul.toString(),
+                                                    50, 0, true,
+                                                    NGFonts.TextType.TITLE, SFrameLookAndFeel.Alignment.CENTER
+                                            )
                                     ),
-                                    SPanel.row(
-                                            soul.mind().getAcceptedCommands()
-                                                    .stream()
-                                                    .map(c -> new SButton(c.name, () -> mouseTool.select(c)))
-                                                    .toArray(SComponent[]::new)
-                                    )
+                                    SContainer.row( // health bar
+                                            new SNamedValue("HP", soul::getHitpoints, 20)
+                                                    .setGrowthPolicy(false, false),
+                                            new SProgressBar(200, 20, () -> ((float) soul.getHitpoints() / soul.props.hitPoints))
+                                                    .setGrowthPolicy(true, false)
+                                    ),
+                                    // commands
+                                    new SExclusiveButtonRow(true, commandNames)
+                                            .addSelectionListener((i) -> mouseTool.selectCommand(acceptedCommands.get(i)))
+                                            .setGrowthPolicy(false, false)
                             ).setGrowthPolicy(true, true)
-                    ).setBorderVisible(true)
+                    ))
             );
 
         } else if (entity != null) {
             bottomBox.show(
-                    SPanel.column(
+                    SContainer.column(
                             new STextArea(entity.toString(), 50)
                     ).setGrowthPolicy(true, true)
             );

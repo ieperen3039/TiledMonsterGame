@@ -1,7 +1,7 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
-import NG.GUIMenu.NGFonts;
+import NG.GUIMenu.Rendering.NGFonts;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
 import NG.Tools.Logger;
@@ -10,8 +10,8 @@ import org.joml.Vector2ic;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.BUTTON_ACTIVE;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.BUTTON_PRESSED;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
@@ -105,12 +105,14 @@ public class SButton extends SComponent implements MouseReleaseListener, MouseRe
         return minHeight;
     }
 
-    public void addLeftClickListener(Runnable action) {
+    public SButton addLeftClickListener(Runnable action) {
         leftClickListeners.add(action);
+        return this;
     }
 
-    public void addRightClickListeners(Runnable action) {
+    public SButton addRightClickListeners(Runnable action) {
         rightClickListeners.add(action);
+        return this;
     }
 
     @Override

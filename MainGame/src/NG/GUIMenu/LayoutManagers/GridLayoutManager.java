@@ -221,20 +221,20 @@ public class GridLayoutManager implements SLayoutManager {
         return widths;
     }
 
-    int[] getMinRowHeight() {
-        return minRowHeight;
+    @Override
+    public boolean wantHorizontalGrow() {
+        for (boolean doWantGrow : rowWantGrow) {
+            if (doWantGrow) return true;
+        }
+        return false;
     }
 
-    int[] getMinColWidth() {
-        return minColWidth;
-    }
-
-    boolean[] getRowWantGrow() {
-        return rowWantGrow;
-    }
-
-    boolean[] getColWantGrow() {
-        return colWantGrow;
+    @Override
+    public boolean wantVerticalGrow() {
+        for (boolean doWantGrow : colWantGrow) {
+            if (doWantGrow) return true;
+        }
+        return false;
     }
 
     private class GridIterator implements Iterator<SComponent> {

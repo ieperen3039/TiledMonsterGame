@@ -2,8 +2,8 @@ package NG.GUIMenu.HUD;
 
 import NG.Core.GameAspect;
 import NG.GUIMenu.Components.SComponent;
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
-import NG.GUIMenu.GUIPainter;
+import NG.GUIMenu.Rendering.GUIPainter;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseTools.MouseToolListener;
 
 /**

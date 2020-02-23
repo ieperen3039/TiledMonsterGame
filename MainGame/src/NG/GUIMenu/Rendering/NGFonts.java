@@ -1,4 +1,4 @@
-package NG.GUIMenu;
+package NG.GUIMenu.Rendering;
 
 import NG.Tools.Directory;
 import NG.Tools.Logger;

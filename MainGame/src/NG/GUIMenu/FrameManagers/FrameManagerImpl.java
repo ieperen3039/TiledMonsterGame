@@ -2,11 +2,12 @@ package NG.GUIMenu.FrameManagers;
 
 import NG.Core.Game;
 import NG.Core.Version;
-import NG.GUIMenu.BaseLF;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
-import NG.GUIMenu.GUIPainter;
+import NG.GUIMenu.Rendering.BaseLF;
+import NG.GUIMenu.Rendering.GUIPainter;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseScrollListener;
 import NG.InputHandling.MouseTools.MouseTool;

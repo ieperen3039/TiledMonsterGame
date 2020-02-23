@@ -3,17 +3,14 @@ package NG;
 import NG.Camera.Camera;
 import NG.Core.Version;
 import NG.DataStructures.Generic.Color4f;
-import NG.GUIMenu.Components.*;
 import NG.GUIMenu.FrameManagers.FrameGUIManager;
 import NG.GUIMenu.Menu.MainMenu;
-import NG.GameMap.*;
 import NG.InputHandling.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.RenderLoop;
 import NG.Rendering.Shaders.WorldBPShader;
 import NG.Settings.Settings;
-import NG.Tools.*;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 
@@ -271,8 +268,8 @@ public class MapEditor {
         mainPanel.add(new SFiller(10, 10), new Vector2i(0, 0));
         mainPanel.add(new SFiller(10, 10), new Vector2i(2, 2));
 
-        mainPanel.add(SPanel.column(
-                SPanel.row(
+        mainPanel.add(SContainer.column(
+                SContainer.row(
                         new STextArea("Size", 0),
                         xSizeSelector,
                         new STextArea("X", 0),

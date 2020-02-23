@@ -60,9 +60,9 @@ public class MainMenu extends SFrame {
         this.pocketworld = pocketworld;
         this.modLoader = modManager;
 
-        setMainPanel(SPanel.row(
+        setMainPanel(SContainer.row(
                 new SFiller(),
-                SPanel.column(
+                SContainer.column(
                         new SButton("Start new game", this::showNewGamePanel),
                         new SButton("Start Testworld", this::testWorld),
                         new SButton("Animation Tester", this::animationDisplay),
@@ -76,7 +76,7 @@ public class MainMenu extends SFrame {
     }
 
     private void gui() {
-        SFrame newFrame = new SFrame("Gui tester", SPanel.column(
+        SFrame newFrame = new SFrame("Gui tester", SContainer.column(
                 new S3DModelDisplay(
                         overworld, 500, 500, this::drawCube, CUBE.getBoundingBox(),
                         () -> new Vector3f(2, 0, 1).rotateZ(overworld.get(GameTimer.class).getRendertime())
@@ -107,7 +107,7 @@ public class MainMenu extends SFrame {
 
         overworld.get(TilePointer.class).setVisible(false);
 
-        targetGUI.addElement(new SFrame("EXPLOSIONS").setMainPanel(SPanel.column(
+        targetGUI.addElement(new SFrame("EXPLOSIONS").setMainPanel(SContainer.column(
                 new STextArea("MR. TORGUE APPROVES", SButton.BUTTON_MIN_HEIGHT),
                 new SButton("BOOM", () -> {
                     ParticleCloud cloud = Particles.explosion(
@@ -198,7 +198,7 @@ public class MainMenu extends SFrame {
         PartialAnimation.Demonstrator demonstrator = new PartialAnimation.Demonstrator(baseAni, baseMode, overworld.get(GameTimer.class));
 
         targetGUI.addElement(new SFrame("Animations")
-                .setMainPanel(SPanel.column(
+                .setMainPanel(SContainer.column(
                         animationSelection,
                         modelSelection
                 ))

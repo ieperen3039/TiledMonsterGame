@@ -1,6 +1,6 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -71,6 +71,7 @@ public abstract class SComponent {
     public SComponent setGrowthPolicy(boolean horizontal, boolean vertical) {
         wantHzGrow = horizontal;
         wantVtGrow = vertical;
+        invalidateLayout();
         return this;
     }
 
@@ -167,6 +168,14 @@ public abstract class SComponent {
         return position;
     }
 
+    public Vector2i getScreenPosition() {
+        if (parent == null) {
+            return new Vector2i(position);
+        } else {
+            return parent.getScreenPosition().add(position);
+        }
+    }
+
     public int getWidth() {
         return dimensions.x;
     }
@@ -203,14 +212,6 @@ public abstract class SComponent {
 
     public void setParent(SComponent parent) {
         this.parent = parent;
-    }
-
-    public Vector2i getScreenPosition() {
-        if (parent == null) {
-            return new Vector2i(position);
-        } else {
-            return parent.getScreenPosition().add(position);
-        }
     }
 
     public Optional<SComponent> getParent() {

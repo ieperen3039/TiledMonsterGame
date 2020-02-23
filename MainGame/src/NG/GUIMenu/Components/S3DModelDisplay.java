@@ -4,7 +4,7 @@ import NG.Camera.Camera;
 import NG.Camera.StaticCamera;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MatrixStack.SceneShaderGL;
@@ -17,7 +17,7 @@ import java.lang.Math;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static NG.GUIMenu.FrameManagers.SFrameLookAndFeel.UIComponent.PANEL;
+import static NG.GUIMenu.Rendering.SFrameLookAndFeel.UIComponent.PANEL;
 
 /**
  * @author Geert van Ieperen created on 18-5-2019.

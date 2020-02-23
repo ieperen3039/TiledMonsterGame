@@ -1,9 +1,9 @@
 package NG.GUIMenu.Components;
 
-import NG.GUIMenu.FrameManagers.SFrameLookAndFeel;
 import NG.GUIMenu.LayoutManagers.GridLayoutManager;
 import NG.GUIMenu.LayoutManagers.SLayoutManager;
 import NG.GUIMenu.LayoutManagers.SingleElementLayout;
+import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -25,13 +25,11 @@ public abstract class SContainer extends SComponent {
 
     /**
      * constructor for a container that uses a grid layout of the given size and a growth policy of true
-     * @param xElts      nr of elements in width
-     * @param yElts      nr of elements in height
-     * @param growPolicy
+     * @param xElts nr of elements in width
+     * @param yElts nr of elements in height
      */
-    public SContainer(int xElts, int yElts, boolean growPolicy) {
+    public SContainer(int xElts, int yElts) {
         this(new GridLayoutManager(xElts, yElts));
-        setGrowthPolicy(growPolicy, growPolicy);
     }
 
     /**
@@ -40,15 +38,33 @@ public abstract class SContainer extends SComponent {
      * @return the target as a container object
      */
     public static SContainer singleton(SComponent target) {
-        final SContainer c = new SContainer(new SingleElementLayout()) {
-            @Override
-            public void draw(SFrameLookAndFeel design, Vector2ic offset) {
-                drawChildren(design, offset);
-            }
-        };
+        SContainer c = new SGhostContainer(new SingleElementLayout());
         c.add(target, null);
-
         return c;
+    }
+
+    /** creates a new invisible container with the given components on a single column */
+    public static SContainer column(SComponent... components) {
+        SContainer column = new SGhostContainer(new GridLayoutManager(1, components.length));
+
+        for (int i = 0; i < components.length; i++) {
+            column.add(components[i], new Vector2i(0, i));
+        }
+
+        column.setSize(0, 0);
+        return column;
+    }
+
+    /** creates a new invisible container with the given components in a single row */
+    public static SContainer row(SComponent... components) {
+        SContainer row = new SGhostContainer(new GridLayoutManager(components.length, 1));
+
+        for (int i = 0; i < components.length; i++) {
+            row.add(components[i], new Vector2i(i, 0));
+        }
+
+        row.setSize(0, 0);
+        return row;
     }
 
     /**
@@ -135,6 +151,16 @@ public abstract class SContainer extends SComponent {
     }
 
     @Override
+    public boolean wantHorizontalGrow() {
+        return super.wantHorizontalGrow() && layout.wantHorizontalGrow();
+    }
+
+    @Override
+    public boolean wantVerticalGrow() {
+        return super.wantVerticalGrow() && layout.wantVerticalGrow();
+    }
+
+    @Override
     public SContainer setGrowthPolicy(boolean horizontal, boolean vertical) {
         super.setGrowthPolicy(horizontal, vertical);
         return this;
@@ -145,5 +171,28 @@ public abstract class SContainer extends SComponent {
      */
     protected ComponentBorder newLayoutBorder() {
         return new ComponentBorder(4);
+    }
+
+    private static class SGhostContainer extends SContainer {
+        public SGhostContainer(SLayoutManager layout) {
+            super(layout);
+        }
+
+        @Override
+        public void draw(SFrameLookAndFeel design, Vector2ic screenPosition) {
+            drawChildren(design, screenPosition);
+        }
+
+        @Override
+        public SComponent getComponentAt(int xRel, int yRel) {
+            SComponent found = super.getComponentAt(xRel, yRel);
+            if (found == this) return null;
+            return found;
+        }
+
+        @Override
+        protected ComponentBorder newLayoutBorder() {
+            return new ComponentBorder();
+        }
     }
 }

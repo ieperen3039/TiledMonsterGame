@@ -1,4 +1,4 @@
-package NG.GUIMenu;
+package NG.GUIMenu.Rendering;
 
 import NG.DataStructures.Generic.Color4f;
 import NG.Tools.Logger;

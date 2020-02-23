@@ -1,10 +1,8 @@
 package NG;
 
 import NG.Core.Game;
-import NG.GUIMenu.Components.*;
 import NG.GUIMenu.FrameManagers.FrameGUIManager;
 import NG.GUIMenu.HUD.HUDManager;
-import NG.GameMap.*;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -67,15 +65,15 @@ class DualEditorTool extends DefaultMouseTool {
         final int BUTTON_SIZE = BUTTON_MIN_HEIGHT;
         final int GAP_SIZE = 20;
 
-        SPanel mainPanel = SPanel.column(
-                SPanel.row(
+        SComponent mainPanel = SContainer.column(
+                SContainer.row(
                         new SNamedValue("Height", () -> blockMap.getHeightAt(x, y), BUTTON_MIN_HEIGHT),
                         new SFiller(GAP_SIZE, 0),
                         new SButton("+", () -> incTile(x, y, 1), BUTTON_SIZE, BUTTON_SIZE),
                         new SButton("=", () -> flatten(x, y), BUTTON_SIZE, BUTTON_SIZE),
                         new SButton("-", () -> incTile(x, y, -1), BUTTON_SIZE, BUTTON_SIZE)
                 ),
-                SPanel.row(
+                SContainer.row(
                         new SNamedValue("Selection range", () -> String.format("%1.01f", selectionSize), BUTTON_MIN_HEIGHT),
                         new SFiller(GAP_SIZE, 0),
                         new SButton("+", () -> incSelect(x, y, SELECTION_STEP_SIZE), BUTTON_SIZE, BUTTON_SIZE),
@@ -177,7 +175,7 @@ class DualEditorTool extends DefaultMouseTool {
         }
 
         // structure
-        SPanel elements = SPanel.column(
+        SComponent elements = SContainer.column(
                 typeDist,
                 heightDisp,
                 orientationDisp,
