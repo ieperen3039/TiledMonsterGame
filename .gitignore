@@ -8,10 +8,12 @@ jar/
 tex/
 img/
 gen
+
 res/colladaFiles/
 Demonstrator/
 Screenshots/
 blend/
+/target/
 
 !/tex/Game Concept.pdf
 !/.idea/artifacts/Project_Build.xml

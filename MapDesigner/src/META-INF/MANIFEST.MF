@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Main-Class: NG.MapEditor
+Class-Path: MainGame.jar
+            lib/joml-1.9.22.jar
+

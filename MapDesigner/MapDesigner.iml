@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="org.joml:joml:Release" level="project" />
     <orderEntry type="module" module-name="MainGame" />
+    <orderEntry type="library" name="Maven: org.joml:joml:1.9.22" level="project" />
   </component>
 </module>
