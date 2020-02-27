@@ -26,7 +26,7 @@ public class CommandWalk extends Command {
     private final Vector2ic target;
 
     public CommandWalk(Living receiver, Vector2ic position) {
-        super(receiver);
+        super();
         this.target = new Vector2i(position);
     }
 

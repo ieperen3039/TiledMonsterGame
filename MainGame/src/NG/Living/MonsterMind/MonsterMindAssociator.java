@@ -73,11 +73,11 @@ public class MonsterMindAssociator extends MonsterMind {
             actionAssociator.record((CommandSType) sType, relativeMagnitude);
 
             if (relativeMagnitude > focusRelevance) {
-                commandFocus = asCommand.getTarget();
+                commandFocus = (Living) asCommand;
                 focusRelevance = relativeMagnitude;
             }
 
-            if (commandFocus == asCommand.getTarget()) {
+            if (commandFocus == asCommand) {
                 actionAssociator.notice(sType, relativeMagnitude);
             }
 
@@ -115,7 +115,7 @@ public class MonsterMindAssociator extends MonsterMind {
         if (stimulus instanceof Command) {
             // consider executing the command
             Command command = (Command) stimulus;
-            Living target = command.getTarget();
+            Living target = (Living) command;
             if (target != null && target.equals(thisSoul)) { // may be redundant
 
                 best = (CommandSType) stimulus.getType();

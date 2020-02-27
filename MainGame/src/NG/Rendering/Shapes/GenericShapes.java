@@ -4,14 +4,13 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shapes.Primitives.Plane;
+import NG.Resources.GeneratorResource;
+import NG.Resources.Resource;
 import NG.Tools.Directory;
-import NG.Tools.Logger;
 import org.joml.AABBf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
 
 /**
@@ -30,46 +29,36 @@ public enum GenericShapes implements Mesh, Shape {
     QUAD(makeSingleQuad()),
     ;
 
-    private MeshFile pars;
-    private Mesh mesh = null;
-    private final Shape shape;
+    private Resource<Mesh> mesh;
+    private Shape shape; // we use the actual shape as this is an enum
 
     GenericShapes(String... path) {
-        Path asPath = Directory.meshes.getPath(path);
-
-        try {
-            pars = MeshFile.loadFile(asPath);
-
-        } catch (IOException ex) {
-            Logger.ERROR.print(ex);
-            shape = null;
-            mesh = null;
-            return;
-        }
-
-        shape = new BasicShape(pars);
+        Resource<MeshFile> pars = MeshFile.createResource(Directory.meshes, path);
+        shape = pars.get().getShape();
+        mesh = Resource.derive(pars, MeshFile::getMesh, Mesh::dispose);
     }
 
     GenericShapes(CustomShape frame) {
-        pars = frame.toMeshFile();
         shape = frame.toShape();
+        mesh = new GeneratorResource<>(frame::toFlatMesh);
+    }
+
+    public Resource<Mesh> meshResource() {
+        return mesh;
+    }
+
+    public Resource<Shape> shapeResource() {
+        return new GeneratorResource<>(() -> shape);
     }
 
     @Override
     public void render(SGL.Painter lock) {
-        if (mesh == null) {
-            mesh = pars.getMesh();
-            pars = null;
-        }
-        mesh.render(lock);
+        mesh.get().render(lock);
     }
 
     @Override
     public void dispose() {
-        pars = null;
-        if (mesh != null) {
-            mesh.dispose();
-        }
+        mesh.drop();
     }
 
     @Override

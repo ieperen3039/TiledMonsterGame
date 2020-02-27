@@ -25,8 +25,8 @@ public class ActionFireProjectile implements EntityAction {
     private static final float aniFireMoment = 0.5f;
     private static final float JUMP_GRAVITY = Settings.GRAVITY_CONSTANT;
     protected final Vector3fc startEnd;
-    protected final float duration;
 
+    protected final float duration;
 
     public ActionFireProjectile(
             Game game, MonsterEntity source, Projectile elt, float startTime, float duration

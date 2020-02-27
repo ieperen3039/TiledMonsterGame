@@ -3,19 +3,14 @@ package NG.Actions.Commands;
 import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.Entities.MonsterEntity;
-import NG.Living.Living;
 import org.joml.Vector3fc;
+
+import java.io.Serializable;
 
 /**
  * a command issued to a MonsterSoul
  */
-public abstract class Command {
-    private final Living target;
-
-    protected Command(Living target) {
-        this.target = target;
-    }
-
+public abstract class Command implements Serializable {
     /**
      * transforms the command into an action that is executed by the given entity and starts on the given moment in
      * time.
@@ -30,13 +25,6 @@ public abstract class Command {
     public abstract EntityAction getAction(
             Game game, Vector3fc startPosition, float gameTime, MonsterEntity entity
     );
-
-    /**
-     * @return the entity that is supposed to execute the command
-     */
-    public Living getTarget() {
-        return target;
-    }
 
     @Override
     public String toString() {

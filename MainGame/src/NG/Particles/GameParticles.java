@@ -4,11 +4,10 @@ import NG.Core.Game;
 import NG.Core.GameAspect;
 import NG.Core.GameTimer;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Tools.AutoLock;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * ordinary container for particles
@@ -16,16 +15,14 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class GameParticles implements GameAspect {
     private final List<ParticleCloud> particles;
-    private final List<ParticleCloud> newParticles;
-    private final Lock newLock;
+    private final AutoLock newLock;
+    private ParticleCloud newParticles = null;
     private Game game;
-
 
     public GameParticles() {
         this.particles = new ArrayList<>();
-        newParticles = new ArrayList<>();
 
-        newLock = new ReentrantLock();
+        newLock = new AutoLock();
     }
 
     @Override
@@ -35,10 +32,12 @@ public class GameParticles implements GameAspect {
 
     public void add(ParticleCloud cloud) {
         newLock.lock();
-        try {
-            newParticles.add(cloud);
-        } finally {
-            newLock.unlock();
+        try (AutoLock.Section ignored = newLock.open()) {
+            if (newParticles == null) {
+                newParticles = cloud;
+            } else {
+                newParticles.addAll(cloud);
+            }
         }
     }
 
@@ -47,16 +46,14 @@ public class GameParticles implements GameAspect {
 
         particles.removeIf(cloud -> cloud.disposeIfFaded(now));
 
-        newLock.lock();
-        try {
-            newParticles.stream()
-                    .flatMap(ParticleCloud::granulate)
-                    .peek(c -> c.writeToGL(now))
-                    .forEach(particles::add);
+        if (newParticles != null) {
+            try (AutoLock.Section ignored = newLock.open()) {
+                newParticles.granulate()
+                        .peek(c -> c.writeToGL(now))
+                        .forEach(particles::add);
 
-            newParticles.clear();
-        } finally {
-            newLock.unlock();
+                newParticles = null;
+            }
         }
 
         for (ParticleCloud cloud : particles) {
@@ -67,8 +64,15 @@ public class GameParticles implements GameAspect {
     @Override
     public void cleanup() {
         newLock.lock();
+
+        particles.forEach(ParticleCloud::dispose);
         particles.clear();
-        newParticles.clear();
+
+        if (newParticles != null) {
+            newParticles.dispose();
+            newParticles = null;
+        }
+
         newLock.unlock();
     }
 }

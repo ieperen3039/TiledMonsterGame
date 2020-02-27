@@ -30,18 +30,16 @@ import NG.Rendering.RenderLoop;
 import NG.Rendering.Shaders.BlinnPhongShader;
 import NG.Rendering.Shaders.WorldBPShader;
 import NG.Rendering.TilePointer;
+import NG.Resources.Resource;
 import NG.Settings.KeyBinding;
 import NG.Settings.Settings;
-import NG.Storable;
-import NG.Tools.Directory;
-import NG.Tools.Logger;
-import NG.Tools.Splash;
-import NG.Tools.Toolbox;
+import NG.Tools.*;
 import org.joml.Vector3f;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -130,6 +128,10 @@ public class MonsterGame implements ModLoader {
         worldGame.init();
 
         Logger.DEBUG.print("Installing basic elements...");
+
+        // dirty hack to mark unused resources
+        renderer.renderSequence(null)
+                .add(gl -> Resource.getAll().forEach(Resource::cool));
 
         // world
         renderer.renderSequence(new WorldBPShader())
@@ -320,11 +322,11 @@ public class MonsterGame implements ModLoader {
 
     /**
      * writes all relevant parts that represent the state of this Game object to the output stream. This can be reverted
-     * using {@link #readStateFromFile(DataInputStream)}.
+     * using {@link #readStateFromFile(ObjectInput)}.
      * @param out an output stream
      */
-    public void writeStateToFile(DataOutputStream out) throws IOException {
-        GAME_VERSION.writeToDataStream(out);
+    public void writeStateToFile(ObjectOutput out) throws IOException {
+        out.writeObject(GAME_VERSION);
 
         // store timestamp
         out.writeFloat(combinedGame.get(GameTimer.class).getGametime());
@@ -335,35 +337,35 @@ public class MonsterGame implements ModLoader {
 
         for (Mod mod : listOfMods) {
             out.writeUTF(mod.getModName());
-            mod.getVersionNumber().writeToDataStream(out);
+            out.writeObject(mod.getVersionNumber());
         }
 
         filterAndStore(out, pocketGame);
         filterAndStore(out, worldGame);
     }
 
-    private static void filterAndStore(DataOutputStream out, Game game) throws IOException {
-        List<Storable> box = new ArrayList<>();
+    private static void filterAndStore(ObjectOutput out, Game game) throws IOException {
+        List<Serializable> box = new ArrayList<>();
 
         for (Object elt : game) {
-            if (elt instanceof Storable) {
-                box.add((Storable) elt);
+            if (elt instanceof Serializable) {
+                box.add((Serializable) elt);
             }
         }
 
         out.writeInt(box.size());
-        for (Storable s : box) {
-            Storable.writeSafe(out, s);
+        for (Serializable s : box) {
+            SerializationTools.writeSafe(out, s);
         }
     }
 
     /**
-     * reads and restores a state previously written by {@link #writeStateToFile(DataOutputStream)}. After this method
+     * reads and restores a state previously written by {@link #writeStateToFile(ObjectOutput)}. After this method
      * returns, the elements that represent the state of this object are set to the streamed state.
-     * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(DataOutputStream)}
+     * @param in an input stream, synchronized with the begin of {@link #writeStateToFile(ObjectOutput)}
      */
-    public void readStateFromFile(DataInputStream in) throws Exception {
-        Version fileVersion = new Version(in);
+    public void readStateFromFile(ObjectInput in) throws Exception {
+        Version fileVersion = (Version) in.readObject();
         Logger.INFO.print("Reading state of version " + fileVersion);
 
         float restoredTime = in.readFloat();
@@ -374,7 +376,7 @@ public class MonsterGame implements ModLoader {
         for (int i = 0; i < nOfMods; i++) {
             String modName = in.readUTF();
             Mod targetMod = getModByName(modName);
-            Version version = new Version(in);
+            Version version = (Version) in.readObject();
 
             boolean hasMod = targetMod != null;
             Logger logger = hasMod ? Logger.INFO : Logger.WARN;
@@ -387,19 +389,20 @@ public class MonsterGame implements ModLoader {
         combinedGame.get(GameTimer.class).set(restoredTime);
     }
 
-    private void readAndClean(DataInputStream in, Game pocketGame) throws Exception {
+    private void readAndClean(ObjectInput in, Game game) throws Exception {
         int size = in.readInt();
         ArrayList<Object> pocketElts = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            Object entity = Storable.readSafe(in, Object.class);
+            Object entity = SerializationTools.readSafe(in, Object.class);
             if (entity == null) continue;
             pocketElts.add(entity);
         }
 
-        Iterator<Object> iterator = pocketGame.iterator();
+        Iterator<Object> iterator = game.iterator();
+        // remove all non-transient elements
         while (iterator.hasNext()) {
             Object elt = iterator.next();
-            if (elt instanceof Storable) {
+            if (elt instanceof Serializable) {
                 if (elt instanceof GameAspect) {
                     ((GameAspect) elt).cleanup();
                 }
@@ -408,8 +411,8 @@ public class MonsterGame implements ModLoader {
             }
         }
 
-        pocketElts.forEach(pocketGame::add);
-        pocketGame.init();
+        pocketElts.forEach(game::add);
+        game.init();
     }
 
 

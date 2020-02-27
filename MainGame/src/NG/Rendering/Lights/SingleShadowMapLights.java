@@ -9,15 +9,10 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.DepthShader;
 import NG.Rendering.Shaders.LightShader;
 import NG.Rendering.Shaders.ShaderProgram;
-import NG.Storable;
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.joml.Vector4f;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -156,42 +151,8 @@ public class SingleShadowMapLights implements GameLights {
 
     @Override
     public void cleanup() {
-
-    }
-
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-        pointLightReadLock.lock();
-        try {
-            out.writeInt(lights.size());
-            for (PointLight light : lights) {
-                Storable.writeVector3f(out, light.getPosition());
-                Storable.writeVector4f(out, light.getColor().toVector4f());
-                out.writeFloat(light.getIntensity());
-            }
-
-        } finally {
-            pointLightReadLock.unlock();
-        }
-    }
-
-    public SingleShadowMapLights(DataInputStream in) throws IOException {
-        this();
-
-        try {
-            int lightsSize = in.readInt();
-            for (int i = 0; i < lightsSize; i++) {
-                Vector3f pos = Storable.readVector3f(in);
-                Vector4f col = Storable.readVector4f(in);
-                float intensity = in.readFloat();
-
-                PointLight light = new FixedPointLight(pos, new Color4f(col), intensity);
-                lights.add(light);
-            }
-
-        } catch (Exception e) {
-            lights.clear();
-            throw e;
-        }
+        shadowShader.cleanup();
+        sunLight.cleanup();
+        lights.clear();
     }
 }

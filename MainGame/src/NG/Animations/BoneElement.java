@@ -7,19 +7,22 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
+import NG.Resources.Resource;
+
+import java.io.Serializable;
 
 /**
  * @author Geert van Ieperen created on 28-2-2019.
  */
-public class BoneElement {
-    private final Mesh mesh;
+public class BoneElement implements Serializable {
+    private final Resource<Mesh> mesh;
     private final Material mat;
 
     /**
-     * @param mesh    what to draw for this bone, may be null
+     * @param mesh     what to draw for this bone, may be null
      * @param material
      */
-    public BoneElement(Mesh mesh, Material material) {
+    public BoneElement(Resource<Mesh> mesh, Material material) {
         this.mesh = mesh;
         mat = material;
     }
@@ -32,6 +35,6 @@ public class BoneElement {
             ((MaterialShader) shader).setMaterial(mat, Color4f.WHITE);
         }
 
-        gl.render(mesh, entity);
+        gl.render(mesh.get(), entity);
     }
 }

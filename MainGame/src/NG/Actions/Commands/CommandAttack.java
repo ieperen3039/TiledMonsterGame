@@ -12,17 +12,15 @@ import org.joml.Vector3fc;
  */
 public class CommandAttack extends Command {
     private static final float DURATION = 1f;
-    private final MonsterEntity entity;
     private Projectile elt;
 
-    public CommandAttack(MonsterEntity entity, Projectile projectile, float gameTime) {
-        super(entity.getController());
-        this.entity = entity;
+    public CommandAttack(Projectile projectile) {
+        super();
         elt = projectile;
     }
 
     @Override
     public EntityAction getAction(Game game, Vector3fc startPosition, float gameTime, MonsterEntity entity) {
-        return elt.isLaunched() ? null : new ActionFireProjectile(game, this.entity, elt, gameTime, DURATION);
+        return elt.isLaunched() ? null : new ActionFireProjectile(game, entity, elt, gameTime, DURATION);
     }
 }

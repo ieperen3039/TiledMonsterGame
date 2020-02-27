@@ -2,6 +2,7 @@ package NG.Actions;
 
 import NG.Animations.CompoundAnimation;
 import NG.Animations.UniversalAnimation;
+import NG.Core.Game;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -114,5 +115,12 @@ public class CompoundAction implements EntityAction {
     @Override
     public boolean hasWorldCollision() {
         return false;
+    }
+
+    @Override
+    public void restore(Game game) {
+        for (EntityAction action : actions) {
+            action.restore(game);
+        }
     }
 }

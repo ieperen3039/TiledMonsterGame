@@ -46,8 +46,6 @@ public class MapEditor {
         Settings settings = new Settings();
         settings.ISOMETRIC_VIEW = true;
         settings.DYNAMIC_SHADOW_RESOLUTION = 0;
-
-
         settings.STATIC_SHADOW_RESOLUTION = 0;
         settings.DEBUG_SCREEN = true;
 
@@ -83,11 +81,11 @@ public class MapEditor {
 
         Logger.INFO.print("Loaded Map Editor " + EDITOR_VERSION);
         Logger.DEBUG.newLine();
-
     }
 
     public void init() throws Exception {
         game.init();
+        MapTiles.readTileSetFile("Hitbox", "tileSetHitbox.txt");
         blockMap.init(game);
 
         // world
@@ -127,7 +125,7 @@ public class MapEditor {
         Logger.DEBUG.print("Loading tiles...");
 
         try {
-            MapTiles.readTileSetFile(null, file.toPath());
+            MapTiles.readTileSetFile(file.toPath());
 
         } catch (IOException ex) {
             errorDialog(ex);
@@ -151,10 +149,10 @@ public class MapEditor {
 
                 try (FileOutputStream fileOut = hasExtension ?
                         new FileOutputStream(selectedFile) :
-                        new FileOutputStream(nameWithExtension)
+                        new FileOutputStream(nameWithExtension);
                 ) {
-                    DataOutputStream output = new DataOutputStream(fileOut);
-                    Storable.write(output, game.get(TileMap.class));
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                    out.writeObject(game.get(TileMap.class));
 
                     Logger.INFO.print("Saved file " + (hasExtension ? selectedFile : nameWithExtension));
 
@@ -177,11 +175,10 @@ public class MapEditor {
             Supplier<String> loadNotify = () -> "Loading file " + selectedFile + "...";
             Logger.printOnline(loadNotify);
 
-            try {
-                FileInputStream fs = new FileInputStream(selectedFile);
-                DataInputStream input = new DataInputStream(fs);
-                TileMap newMap = Storable.read(input, TileMap.class);
-                newMap.init(game);
+            try (FileInputStream fs = new FileInputStream(selectedFile)) {
+                ObjectInputStream in = new ObjectInputStream(fs);
+                TileMap newMap = (TileMap) in.readObject();
+                newMap.restore(game);
 
                 game.setGameMap(newMap);
                 blockMap.generateNew(newMap.cornerCopyGenerator());
@@ -253,8 +250,6 @@ public class MapEditor {
             int ySize = Integer.parseInt(ySizeSelector.getSelected());
             generator.setXSize(xSize + 1); // heightmap is 1 larger
             generator.setYSize(ySize + 1);
-
-            TileThemeSet.BASE.load();
 
             blockMap.generateNew(generator);
             TileMap tileMap = game.get(TileMap.class);

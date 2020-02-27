@@ -14,8 +14,8 @@ import NG.GUIMenu.Components.*;
 import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
+import NG.GameMap.MapTiles;
 import NG.GameMap.SimpleMapGenerator;
-import NG.GameMap.TileThemeSet;
 import NG.InputHandling.MouseTools.DefaultMouseTool;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
@@ -129,7 +129,7 @@ public class MainMenu extends SFrame {
             state.cleanup();
             state.init(overworld);
 
-            TileThemeSet.BASE.load();
+            MapTiles.readTileSetFile("Hitbox", "tileSetHitbox.txt");
 
             // random map
             int seed = Math.abs(Toolbox.random.nextInt());

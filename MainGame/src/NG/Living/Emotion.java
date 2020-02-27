@@ -1,11 +1,8 @@
 package NG.Living;
 
-import NG.Storable;
 import NG.Tools.Toolbox;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -66,7 +63,7 @@ public enum Emotion {
     /**
      * a collection of emotions, with a processing element such that the emotions affect each other.
      */
-    public static class ECollection implements Storable {
+    public static class ECollection implements Serializable {
         private final float[][] transformationMatrix; // row-major
         private final short[] values;
         private float stateTime = PROCESS_DELTA;
@@ -137,42 +134,6 @@ public enum Emotion {
             int index = target.ordinal();
             int newValue = values[index] + value;
             values[index] = (short) Math.max(Math.min(newValue, MAX_VALUE), MIN_VALUE);
-        }
-
-        @Override
-        public void writeToDataStream(DataOutputStream out) throws IOException {
-            out.writeInt(Emotion.count);
-
-            for (short value : values) {
-                out.writeShort(value);
-            }
-
-            for (float[] array : transformationMatrix) {
-                for (float f : array) {
-                    out.writeFloat(f);
-                }
-            }
-        }
-
-        // TODO add robustness in matching names
-        public ECollection(DataInputStream in) throws IOException {
-            int nrOfEmotions = in.readInt();
-            if (nrOfEmotions != Emotion.count) {
-                throw new IOException("Source emotion set is of different size as current");
-            }
-
-            transformationMatrix = new float[Emotion.count][Emotion.count];
-            values = new short[Emotion.count];
-
-            for (int i = 0; i < nrOfEmotions; i++) {
-                values[i] = in.readShort();
-            }
-
-            for (int i = 0; i < nrOfEmotions; i++) {
-                for (int j = 0; j < nrOfEmotions; j++) {
-                    transformationMatrix[i][j] = in.readFloat();
-                }
-            }
         }
 
         /**

@@ -17,7 +17,7 @@ public class ActionWalk implements EntityAction {
     protected final Vector2fc startToEnd;
     protected final float duration;
     private final UniversalAnimation animation;
-    private Game game;
+    private transient Game game;
 
     /**
      * @param game          the current game instance
@@ -94,4 +94,7 @@ public class ActionWalk implements EntityAction {
         return false;
     }
 
+    public void restore(Game game) {
+        this.game = game;
+    }
 }

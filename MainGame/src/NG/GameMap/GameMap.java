@@ -8,16 +8,16 @@ import NG.Entities.MovingEntity;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Settings.Settings;
-import NG.Storable;
 import org.joml.*;
 
+import java.io.Externalizable;
 import java.lang.Math;
 import java.util.Collection;
 
 /**
  * @author Geert van Ieperen created on 5-5-2019.
  */
-public interface GameMap extends GameAspect, Entity, MouseToolListener, Storable {
+public interface GameMap extends GameAspect, Entity, MouseToolListener, Externalizable {
     /**
      * generate a map using the provided generator. This method can be run in a separate thread
      * @param mapGenerator the generator to use for this map.

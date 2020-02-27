@@ -7,7 +7,6 @@ import NG.Actions.Commands.CommandAttack;
 import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
-import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
@@ -124,6 +123,11 @@ public class ProjectilePowerBall extends Projectile {
         gl.render(mesh, this);
     }
 
+    @Override
+    public void restore(Game game) {
+        action.restore(game);
+    }
+
     public static CommandProvider fireCommand(Game game) {
         return new CommandProvider("PowerBall") {
             @Override
@@ -133,9 +137,7 @@ public class ProjectilePowerBall extends Projectile {
 
                 Vector3f targetPosition = game.get(GameMap.class).getPosition(target);
                 Projectile prj = new ProjectilePowerBall(game, entity, targetPosition, 5, 0.3f);
-
-                float gametime = game.get(GameTimer.class).getGametime();
-                return new CommandAttack(entity, prj, gametime);
+                return new CommandAttack(prj);
             }
         };
     }

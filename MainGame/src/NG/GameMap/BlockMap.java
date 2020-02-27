@@ -13,9 +13,9 @@ import NG.Rendering.Shapes.GenericShapes;
 import NG.Tools.AStar;
 import org.joml.*;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.lang.Math;
 import java.util.*;
 
@@ -30,9 +30,9 @@ public class BlockMap extends AbstractMap {
     private static final Color4f SELECTION_COLOR = Color4f.BLUE;
     private static final Color4f WHITE = Color4f.WHITE;
 
-    private final List<ChangeListener> changeListeners = new ArrayList<>();
+    private transient List<ChangeListener> changeListeners = new ArrayList<>();
     private Map<Integer, Set<Integer>> highlightedTiles = new HashMap<>();
-    private Game game;
+    private transient Game game;
 
     private float hBlockSize;
     private float hBlockHeight;
@@ -52,20 +52,8 @@ public class BlockMap extends AbstractMap {
         hBlockHeight = blockHeight / 2;
     }
 
-    public BlockMap(DataInputStream in) throws IOException {
-        xSize = in.readInt();
-        ySize = in.readInt();
-
-        map = new short[xSize][ySize];
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                map[x][y] = in.readShort();
-            }
-        }
-    }
-
     @Override
-    public void init(Game game) throws Exception {
+    public void init(Game game) {
         this.game = game;
     }
 
@@ -235,7 +223,7 @@ public class BlockMap extends AbstractMap {
     }
 
     @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
+    public void writeExternal(ObjectOutput out) throws IOException {
         synchronized (this) {
             out.writeInt(xSize);
             out.writeInt(ySize);
@@ -245,6 +233,19 @@ public class BlockMap extends AbstractMap {
                 for (int y = 0; y < ySize; y++) {
                     out.writeShort(slice[y]);
                 }
+            }
+        }
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        xSize = in.readInt();
+        ySize = in.readInt();
+
+        map = new short[xSize][ySize];
+        for (int x = 0; x < xSize; x++) {
+            for (int y = 0; y < ySize; y++) {
+                map[x][y] = in.readShort();
             }
         }
     }
@@ -300,5 +301,10 @@ public class BlockMap extends AbstractMap {
     @Override
     protected Vector2f getCoordPosf(Vector3fc origin) {
         return new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
+    }
+
+    @Override
+    public void restore(Game game) {
+        init(game);
     }
 }

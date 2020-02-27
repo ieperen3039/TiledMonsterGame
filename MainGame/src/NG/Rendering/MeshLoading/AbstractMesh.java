@@ -76,7 +76,6 @@ public abstract class AbstractMesh implements Mesh {
     protected void createVAO() {
         assert VAO_ID == 0;
         VAO_ID = glGenVertexArrays();
-        loadedMeshes.add(this);
     }
 
     public int getVAO() {
@@ -128,11 +127,11 @@ public abstract class AbstractMesh implements Mesh {
      * all meshes that have been written to the GPU will be removed
      */
     public static void cleanAll() {
-        while (!loadedMeshes.isEmpty()) {
-            AbstractMesh mesh = loadedMeshes.peek();
+        for (AbstractMesh mesh : loadedMeshes) {
             mesh.dispose();
             Toolbox.checkGLError(mesh.toString());
         }
+        loadedMeshes.clear();
     }
 
     /**

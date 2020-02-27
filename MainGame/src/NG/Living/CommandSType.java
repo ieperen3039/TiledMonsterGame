@@ -7,9 +7,6 @@ import NG.Entities.MonsterEntity;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -22,22 +19,12 @@ public class CommandSType implements StimulusType {
         this.isTarget = isTarget;
     }
 
-    // compatibility to Storable
-    private CommandSType(DataInputStream in) throws IOException {
-        isTarget = in.readBoolean();
-    }
-
     public boolean isTarget() {
         return isTarget;
     }
 
     public CommandSType invert() {
         return new CommandSType(!isTarget);
-    }
-
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-        out.writeBoolean(isTarget);
     }
 
     public Command generateNew(MonsterEntity entity, Stimulus cause, float gametime) {

@@ -4,6 +4,7 @@ import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
@@ -11,7 +12,7 @@ import java.nio.FloatBuffer;
  * An immutable representation of colors. Includes an opacity value (the alpha value) and a set of predefined colors.
  * @author Geert van Ieperen created on 21-11-2017.
  */
-public class Color4f {
+public class Color4f implements Serializable {
     public static final Color4f BLACK = new Color4f(0, 0, 0);
     public static final Color4f GREY = new Color4f(0.5f, 0.5f, 0.5f);
     public static final Color4f LIGHT_GREY = new Color4f(0.8f, 0.8f, 0.8f);

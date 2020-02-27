@@ -1,6 +1,7 @@
 package NG.Living;
 
 import NG.Actions.Attacks.DamageType;
+import NG.Core.AbstractGameObject;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
 import NG.Entities.EntityProperties;
@@ -22,11 +23,10 @@ import java.util.Map;
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public class MonsterSoul implements Living {
+public class MonsterSoul extends AbstractGameObject implements Living {
     private static final ConsistentRandom RNG = new ConsistentRandom(0);
     public final EntityProperties props;
 
-    protected Game game;
     private String monsterName;
 
     private Player owner;
@@ -54,14 +54,20 @@ public class MonsterSoul implements Living {
         this.defences = new EnumMap<>(props.defences);
     }
 
+    @Override
+    protected void restoreFields(Game game) {
+        entity.restore(game);
+    }
+
     public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
-        this.game = game;
+        init(game);
 
         if (entity != null) {
             entity.dispose();
         }
 
         entity = getNewEntity(game, coordinate, direction);
+        entity.restoreFields(game);
         mind.init(entity, game);
         if (owner != null) {
             entity.markAs(MonsterEntity.Mark.OWNED);

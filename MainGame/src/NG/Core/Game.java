@@ -1,12 +1,10 @@
 package NG.Core;
 
 import NG.GameMap.GameMap;
-import NG.Storable;
 import NG.Tools.Logger;
+import NG.Tools.SerializationTools;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -118,9 +116,7 @@ public interface Game extends Iterable<Object> {
     void cleanup();
 
     default void loadMap(File map) throws Exception {
-        FileInputStream fs = new FileInputStream(map);
-        DataInputStream input = new DataInputStream(fs);
-        GameMap newMap = Storable.read(input, GameMap.class);
+        GameMap newMap = (GameMap) SerializationTools.readFromFile(map);
         GameMap oldMap = get(GameMap.class);
 
         newMap.init(this);

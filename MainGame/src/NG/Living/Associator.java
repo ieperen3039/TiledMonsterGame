@@ -1,21 +1,17 @@
 package NG.Living;
 
-import NG.DataStructures.Generic.PairList;
 import NG.DataStructures.PriorityCollection;
-import NG.Storable;
-import NG.Tools.Logger;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.*;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 /**
  * @author Geert van Ieperen created on 22-2-2019.
  */
-public class Associator<T extends Storable> implements Storable {
+public class Associator<T extends Serializable> implements Serializable {
     /** fraction of importance lost per incoming stimulus */
     private static final float ATTENTION_REDUCTION = 0.05f;
     /** fraction of association lost per new association */
@@ -128,83 +124,10 @@ public class Associator<T extends Storable> implements Storable {
         return new PriorityCollection<>(mapClass, associationMapSize);
     }
 
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-        // create mapping of stimuli
-        Map<StimulusType, Integer> idMap = new HashMap<>(memory.size());
-
-        for (StimulusPair pair : memory.keySet()) {
-            idMap.putIfAbsent(pair.one, idMap.size());
-            idMap.putIfAbsent(pair.two, idMap.size());
-        }
-//        for (PriorityCollection<T> associations : memory.values()) {
-//            for (T elt : associations) {
-//                // ?
-//            }
-//        }
-
-        Logger.DEBUG.printf("Writing %d different stimuli", idMap.size());
-
-        out.writeInt(idMap.size());
-        for (StimulusType s : idMap.keySet()) {
-            Storable.write(out, s);
-        }
-
-        // output data
-        out.writeInt(memory.size());
-        for (StimulusPair pair : memory.keySet()) {
-            out.writeInt(idMap.get(pair.one));
-            out.writeInt(idMap.get(pair.two));
-
-            PairList<T, Float> associations = memory.get(pair).asPairList();
-            out.writeInt(associations.size());
-            for (int i = 0; i < associations.size(); i++) {
-                Storable elt = associations.left(i);
-                Storable.write(out, elt);
-                out.writeFloat(associations.right(i));
-            }
-        }
-    }
-
-    public Associator(DataInputStream in, Class<T> expected) throws IOException, ClassNotFoundException {
-        // read stimuli mapping
-        int nrOfStimuli = in.readInt();
-        List<StimulusType> idMap = new ArrayList<>(nrOfStimuli);
-
-        for (int i = 0; i < nrOfStimuli; i++) {
-            StimulusType stimulus = Storable.read(in, StimulusType.class);
-            idMap.add(stimulus); // each stimulus occurs only once
-        }
-
-        // read data
-        int nrOfPairs = in.readInt();
-        memory = new HashMap<>(nrOfPairs);
-
-        for (int i = 0; i < nrOfPairs; i++) {
-            StimulusType one = idMap.get(in.readInt());
-            StimulusType two = idMap.get(in.readInt());
-            StimulusPair pair = new StimulusPair(one, two);
-
-            int nrOfAssoc = in.readInt();
-            //noinspection unchecked
-            T[] stimuli = (T[]) Array.newInstance(expected.getComponentType(), nrOfAssoc);
-            float[] relevances = new float[nrOfAssoc];
-
-            for (int j = 0; j < nrOfAssoc; j++) {
-                stimuli[j] = Storable.read(in, expected);
-                relevances[j] = in.readFloat();
-            }
-
-            memory.put(pair, new PriorityCollection<>(stimuli, relevances));
-        }
-        attentionSize = 6;
-        associationMapSize = 10;
-    }
-
     /**
      * a symmetric pair of {@link StimulusType} objects
      */
-    private static class StimulusPair {
+    private static class StimulusPair implements Serializable {
         final StimulusType one;
         final StimulusType two;
 

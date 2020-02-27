@@ -1,5 +1,6 @@
 package NG.DataStructures.Generic;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -7,7 +8,7 @@ import java.util.Objects;
  * @param <L> Left type
  * @param <R> Right type
  */
-public class Pair<L, R> {
+public class Pair<L, R> implements Serializable {
     public final L left;
     public final R right;
 

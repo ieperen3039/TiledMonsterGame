@@ -3,6 +3,11 @@ package NG.Rendering.MeshLoading;
 import NG.Animations.SkeletonBone;
 import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.PairList;
+import NG.Rendering.Shapes.BasicShape;
+import NG.Rendering.Shapes.Shape;
+import NG.Resources.FileResource;
+import NG.Resources.Resource;
+import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.Vector2fc;
@@ -70,32 +75,24 @@ public class MeshFile {
         return faces;
     }
 
-    public static MeshFile loadFileRequired(Path meshPath) {
-        try {
-            return loadFile(meshPath, Vectors.O, Vectors.Scaling.UNIFORM);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public static MeshFile loadFile(Path file) throws IOException {
-        return loadFile(file, Vectors.O, Vectors.Scaling.UNIFORM);
-    }
-
-    public static MeshFile loadFile(Path file, Vector3fc offset, Vector3fc scaling) throws IOException {
+    private static MeshFile loadFile(Path file, Vector3fc scaling) throws IOException {
         String fileName = file.getFileName().toString();
 
-        assert fileName.contains(".");
+        assert fileName.contains(".") : fileName;
         String extension = fileName.substring(fileName.lastIndexOf('.'));
 
         switch (extension) {
             case ".obj":
-                return FileLoaders.loadOBJ(offset, scaling, file, fileName);
+                return FileLoaders.loadOBJ(scaling, file, fileName);
             case ".ply":
-                return FileLoaders.loadPLY(offset, scaling, file, fileName);
+                return FileLoaders.loadPLY(scaling, file, fileName);
             default:
                 throw new UnsupportedMeshFileException(fileName);
         }
+    }
+
+    public Shape getShape() {
+        return new BasicShape(vertices, normals, faces);
     }
 
     public Mesh getMesh() {
@@ -106,6 +103,13 @@ public class MeshFile {
         }
     }
 
+    public static Resource<MeshFile> createResource(Directory meshes, String... path) {
+        return createResource(Vectors.Scaling.UNIFORM, meshes, path);
+    }
+
+    public static Resource<MeshFile> createResource(Vector3fc scaling, Directory meshes, String... path) {
+        return FileResource.get((p) -> loadFile(p, scaling), meshes, path);
+    }
 
     /**
      * writes an object to the given filename

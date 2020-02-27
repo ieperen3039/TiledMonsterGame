@@ -11,23 +11,22 @@ import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Settings.Settings;
-import NG.Storable;
+import NG.Tools.SerializationTools;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.Externalizable;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Doesn't actually calculate results of collisions. See {@link Entity#collideWith(Entity, float)}
  * @author Geert van Ieperen created on 10-2-2019.
  */
-public class PhysicsEngine implements GameState {
+public class PhysicsEngine implements GameState, Externalizable {
     private final CollisionDetection entityList;
     private Game game;
 
@@ -150,36 +149,29 @@ public class PhysicsEngine implements GameState {
     }
 
     @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-        Collection<Entity> entities = entityList.getEntityList();
-        List<Storable> box = new ArrayList<>(entities.size());
-
-        for (Entity e : entities) {
-            if (e instanceof Storable) {
-                box.add((Storable) e);
-            }
-        }
-
-        out.writeInt(box.size());
-        for (Storable s : box) {
-            Storable.writeSafe(out, s);
-        }
-    }
-
-    public PhysicsEngine(DataInputStream in) throws IOException {
-        int size = in.readInt();
-        List<Entity> list = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            Entity entity = Storable.readSafe(in, MovingEntity.class);
-            if (entity == null) continue;
-            list.add(entity);
-        }
-        entityList = new CollisionDetection(list, 0);
-    }
-
-    @Override
     public void cleanup() {
         entityList.cleanup();
     }
 
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        Collection<Entity> box = entityList.getEntityList();
+
+        out.writeInt(box.size());
+        for (Object s : box) {
+            SerializationTools.writeSafe(out, s);
+        }
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException {
+        int size = in.readInt();
+        for (int i = 0; i < size; i++) {
+            Entity entity = SerializationTools.readSafe(in, Entity.class);
+            if (entity == null) continue;
+            if (entity instanceof MovingEntity) {
+                entityList.addEntity(entity);
+            }
+        }
+    }
 }

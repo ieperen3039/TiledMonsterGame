@@ -1,8 +1,11 @@
 package NG.GameMap;
 
+import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
-import NG.Rendering.Shapes.BasicShape;
 import NG.Rendering.Shapes.Shape;
+import NG.Rendering.Textures.Texture;
+import NG.Resources.Resource;
+import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.Vector3fc;
@@ -21,11 +24,18 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
 public class MapTiles {
     private static final Pattern SEPARATOR = Toolbox.WHITESPACE_PATTERN;
     private static final Set<String> NAMES = new HashSet<>();
-    private static final Set<Path> PATHS = new HashSet<>();
     private static final HashMap<Integer, List<MapTile>> tileFinder = new HashMap<>();
 
-    public static void readTileSetFile(TileThemeSet sourceSet, Path path) throws IOException {
-        Path folder = path.getParent();
+    public static void readTileSetFile(String... path) {
+        try {
+            readTileSetFile(Directory.mapTileModels.getPath(path));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void readTileSetFile(Path path) throws IOException {
+        Path folder = Directory.mapTileModels.getPath().relativize(path.getParent());
         Scanner sc = new Scanner(path);
         int lineNr = 0;
 
@@ -41,16 +51,17 @@ public class MapTiles {
                 String hitboxFile = elts[1];
                 String texture = elts[2];
 
+                Path meshPath = folder.resolve(meshFile);
+                Path hitboxPath = hitboxFile.equals("-") ? meshPath : folder.resolve(hitboxFile);
+                Path texturePath = texture.equals("-") ? null : folder.resolve(texture);
+
                 EnumSet<TileProperties> properties = EnumSet.noneOf(TileProperties.class);
                 for (int i = 3; i < elts.length; i++) {
                     properties.add(TileProperties.valueOf(elts[i]));
                 }
 
-                Path meshPath = folder.resolve(meshFile);
-                Path hitboxPath = hitboxFile.equals("-") ? meshPath : folder.resolve(hitboxFile);
-                Path texturePath = texture.equals("-") ? null : folder.resolve(texture);
-
-                registerTile(meshFile, meshPath, hitboxPath, texturePath, properties, sourceSet);
+                String name = meshFile.substring(0, meshFile.indexOf("."));
+                registerTile(name, meshPath, hitboxPath, texturePath, properties);
 
             } catch (Exception ex) {
                 throw new IOException("Error on line " + lineNr + " of file " + path + ": \n" + ex, ex);
@@ -102,47 +113,38 @@ public class MapTiles {
     }
 
     /**
-     * register a new MapTile instance with relative heights as given
+     * register a new MapTile instance
      * @param name        a unique name for this tile
      * @param meshPath    the path to the visual element of this tile
-     * @param texturePath the path to the texture of this tile
      * @param hitboxPath  the path to the hitbox of this tile
+     * @param texturePath the path to the texture of this tile
      * @param properties  the properties of this tile
-     * @param sourceSet   the tile set where this tile is part of, or null if this is a custom tile.
      */
     public static MapTile registerTile(
-            String name, Path meshPath, Path hitboxPath, Path texturePath, EnumSet<TileProperties> properties,
-            TileThemeSet sourceSet
-    ) throws IOException {
-        // ensure uniqueness in mesh
-        if (PATHS.contains(meshPath)) {
-            Logger.WARN.printSpamless(String.valueOf(sourceSet), "Tile " + name + " from set " + sourceSet + " was already loaded");
-            return null;
-        }
-
+            String name, Path meshPath, Path hitboxPath, Path texturePath, EnumSet<TileProperties> properties
+    ) {
         // ensure uniqueness in name
-        if (NAMES.contains(name)) {
+        boolean isNew = NAMES.add(name);
+        if (!isNew) {
             Logger.WARN.print("A tile with name " + name + " already exists. This will cause problems when saving / loading files");
             int i = 2;
             String newName;
             do {
-                newName = name + i++;
+                newName = name + "_" + i++;
             } while (NAMES.contains(newName));
+            Logger.INFO.print("Renamed tile " + name + " to " + newName);
             name = newName;
-            Logger.INFO.print("Renamed tile to " + name);
         }
 
-        NAMES.add(name);
-        PATHS.add(meshPath);
-
-        Shape hitbox = new BasicShape(MeshFile.loadFile(hitboxPath));
-        int[] heights = gatherHeights(hitbox);
+        Resource<MeshFile> hitboxFile = MeshFile.createResource(Directory.mapTileModels, hitboxPath.toString());
+        Resource<Shape> hitbox = Resource.derive(hitboxFile, MeshFile::getShape);
+        int[] heights = gatherHeights(hitbox.get());
         int baseHeight = heights[8];
         heights = Arrays.copyOf(heights, 8);
+        Resource<Mesh> meshFile = Mesh.createResource(Directory.mapTileModels, meshPath.toString());
+        Resource<Texture> textureFile = (texturePath == null) ? null : Texture.createResource(texturePath.toString());
 
-        MeshFile meshFile = MeshFile.loadFile(meshPath);
-
-        MapTile tile = new MapTile(name, meshFile, hitbox, texturePath, heights, baseHeight, properties, sourceSet);
+        MapTile tile = new MapTile(name, meshFile, hitbox, textureFile, heights, baseHeight, properties);
 
         List<MapTile> tiles = tileFinder.computeIfAbsent(tile.fit.id, (k) -> new ArrayList<>());
         tiles.add(tile);
@@ -291,6 +293,5 @@ public class MapTiles {
             this.rotation = rotation;
             this.id = max;
         }
-
     }
 }

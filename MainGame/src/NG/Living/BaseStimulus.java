@@ -1,8 +1,5 @@
 package NG.Living;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 /**
  * A base set of stimuli
  * @author Geert van Ieperen created on 23-2-2019.
@@ -24,9 +21,4 @@ public enum BaseStimulus implements StimulusType {
     FLASH,
 
     UNKNOWN;
-
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-
-    }
 }

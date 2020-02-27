@@ -3,6 +3,7 @@ package NG.Entities;
 import NG.Actions.ActionIdle;
 import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
+import NG.Core.Game;
 import NG.DataStructures.Generic.Pair;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
@@ -80,5 +81,10 @@ public class Cube implements MovingEntity {
     @Override
     public BoundingBox getHitbox(float gameTime) {
         return boundingBox.getMoved(getPositionAt(gameTime));
+    }
+
+    @Override
+    public void restore(Game game) {
+
     }
 }

@@ -8,7 +8,6 @@ import NG.CollisionDetection.BoundingBox;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
-import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Tools.Directory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,7 +20,6 @@ import java.util.*;
  */
 public class EntityProperties {
     private static final DamageType[] DAMAGE_TYPES = DamageType.values();
-    private static final Map<String, Mesh> meshes = new HashMap<>();
 
     public final String name;
     public final int hitPoints;
@@ -49,8 +47,9 @@ public class EntityProperties {
 
         this.hitbox = new BoundingBox(-0.5f, -0.5f, 0, 0.5f, 0.5f, 1f);
         this.bodyModel = BodyModel.CUBE;
+
         this.boneMapping = Collections.singletonMap(BodyModel.CUBE.getBone("cube_root"),
-                new BoneElement(GenericShapes.CUBE, Material.ROUGH) {
+                new BoneElement(GenericShapes.CUBE.meshResource(), Material.ROUGH) {
                     @Override
                     public void draw(SGL gl, Entity entity) {
                         gl.scale(0.5f);
@@ -102,15 +101,7 @@ public class EntityProperties {
             String boneName = bones.next();
             String meshLocation = boneMappingNode.get(boneName).textValue();
 
-            Mesh mesh;
-            if (meshes.containsKey(meshLocation)) {
-                mesh = meshes.get(meshLocation);
-            } else {
-                mesh = MeshFile.loadFile(Directory.meshes.getPath(meshLocation)).getMesh();
-                meshes.put(meshLocation, mesh);
-            }
-
-            BoneElement boneShape = new BoneElement(mesh, Material.ROUGH);
+            BoneElement boneShape = new BoneElement(Mesh.createResource(Directory.meshes, meshLocation), Material.ROUGH);
             boneMapping.put(bodyModel.getBone(boneName), boneShape);
         }
     }

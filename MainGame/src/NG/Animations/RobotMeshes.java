@@ -3,72 +3,53 @@ package NG.Animations;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
+import NG.Resources.Resource;
 import NG.Tools.Directory;
-import NG.Tools.Logger;
-import NG.Tools.Vectors;
 import org.joml.AABBf;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 /**
  * @author Geert van Ieperen created on 28-2-2019.
  */
-public enum RobotMeshes implements BodyMesh {
-    ROBOT_UPPER_ARM("Robot", "leg1.obj"),
-    ROBOT_LOWER_ARM("Robot", "leg2.obj"),
-    ROBOT_TORSO("Robot", "torso.obj"),
-    ROBOT_EAR("Robot", "ear.obj"),
-    ROBOT_HEAD("Robot", "head.obj"),
-    ROBOT_FOOT("Robot", "foot.obj"),
-    ROBOT_CLAW("Robot", "finger.obj"),
+public enum RobotMeshes implements Mesh {
+    ROBOT_UPPER_ARM("robot", "leg1.obj"),
+    ROBOT_LOWER_ARM("robot", "leg2.obj"),
+    ROBOT_TORSO("robot", "torso.obj"),
+    ROBOT_EAR("robot", "ear.obj"),
+    ROBOT_HEAD("robot", "head.obj"),
+    ROBOT_FOOT("robot", "foot.obj"),
+    ROBOT_CLAW("robot", "finger.obj"),
 
     ;
 
-    private Mesh mesh;
+    private Resource<Mesh> mesh;
     private final AABBf bounds;
-    private MeshFile pars;
 
     RobotMeshes(String... filePath) {
-        Path path = Directory.meshes.getPath(filePath);
-
-        try {
-            pars = MeshFile.loadFile(path);
-
-        } catch (IOException ex) {
-            Logger.ERROR.print(ex);
-            bounds = null;
-            return;
-        }
+        Resource<MeshFile> meshFile = MeshFile.createResource(Directory.meshes, filePath);
+        mesh = Resource.derive(meshFile, MeshFile::getMesh, Mesh::dispose);
 
         bounds = new AABBf();
-        for (Vector3fc vertex : pars.getVertices()) {
+        for (Vector3fc vertex : meshFile.get().getVertices()) {
             bounds.union(vertex);
         }
     }
 
+    public Resource<Mesh> meshResource() {
+        return mesh;
+    }
+
     @Override
     public void render(SGL.Painter lock) {
-        if (mesh == null) {
-            mesh = pars.getMesh();
-            pars = null;
-        }
-        mesh.render(lock);
+        mesh.get().render(lock);
     }
 
     @Override
     public void dispose() {
-        if (mesh == null) {
-            pars = null;
-        } else {
-            mesh.dispose();
-        }
+        mesh.drop();
     }
 
-    @Override
-    public Vector3f getSize() {
-        return Vectors.sizeOf(bounds);
+    public AABBf getBounds() {
+        return bounds;
     }
 }

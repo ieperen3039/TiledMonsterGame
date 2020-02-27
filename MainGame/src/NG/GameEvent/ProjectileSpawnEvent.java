@@ -12,7 +12,7 @@ import java.util.function.Supplier;
  * @author Geert van Ieperen created on 19-4-2019.
  */
 public class ProjectileSpawnEvent extends Event {
-    private final Game game;
+    private transient Game game;
     private Projectile elt;
     private Vector3fc spawnPosition;
     private final Supplier<Boolean> validity;
@@ -39,6 +39,14 @@ public class ProjectileSpawnEvent extends Event {
         if (validity.get()) {
             elt.launch(spawnPosition, eventTime);
             game.get(GameState.class).addEntity(elt);
+        }
+    }
+
+    @Override
+    public void restore(Game game) {
+        if (this.game == null) {
+            this.game = game;
+            elt.restore(game);
         }
     }
 

@@ -3,6 +3,7 @@ package NG.Living.MonsterMind;
 import NG.Actions.*;
 import NG.Actions.Commands.Command;
 import NG.Actions.Commands.CommandWalk;
+import NG.Core.AbstractGameObject;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
@@ -26,13 +27,12 @@ import java.util.List;
  * commands given.
  * @author Geert van Ieperen created on 5-2-2020.
  */
-public abstract class MonsterMind {
+public abstract class MonsterMind extends AbstractGameObject {
     protected ArrayDeque<Command> plan = new ArrayDeque<>(16);
     protected Command executionTarget;
 
     protected final MonsterSoul owner;
     protected MonsterEntity entity;
-    protected Game game;
     protected List<CommandProvider> knownMoves = new ArrayList<>();
 
     protected MonsterMind(MonsterSoul owner) {
@@ -48,9 +48,14 @@ public abstract class MonsterMind {
      * @param game            the game instance of the entity
      */
     public void init(MonsterEntity entityToControl, Game game) {
-        this.game = game;
+        init(game);
         this.entity = entityToControl;
+    }
 
+    @Override
+    protected void restoreFields(Game game) {
+        entity.restore(game);
+        owner.restore(game);
     }
 
     /**
@@ -59,7 +64,7 @@ public abstract class MonsterMind {
      * @return the next action that the given entity should execute
      */
     public EntityAction getNextAction(float gameTime) {
-        Pair<EntityAction, Float> action = entity.currentActions.getActionAt(gameTime);
+        Pair<EntityAction, Float> action = entity.getActionAt(gameTime);
         EntityAction previous = action.left;
         Vector3f position = previous.getPositionAt(action.right);
 
@@ -114,7 +119,7 @@ public abstract class MonsterMind {
         if (executionTarget == null) {
             float now = game.get(GameTimer.class).getGametime();
             EntityAction nextAction = getNextAction(now);
-            entity.currentActions.insert(nextAction, now);
+            entity.insertActionAt(now, nextAction);
         } else {
             Logger.DEBUG.printf("Queued %s, Currently doing %s", c, executionTarget);
         }

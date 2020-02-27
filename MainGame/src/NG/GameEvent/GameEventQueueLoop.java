@@ -4,10 +4,8 @@ import NG.CollisionDetection.GameState;
 import NG.Core.AbstractGameLoop;
 import NG.Core.Game;
 import NG.Core.GameTimer;
-import NG.Storable;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.Serializable;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -18,11 +16,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * external updates to the queue, like with user interaction.
  * @author Geert van Ieperen created on 14-2-2019.
  */
-public class GameEventQueueLoop extends AbstractGameLoop implements Storable, EventLoop {
+public class GameEventQueueLoop extends AbstractGameLoop implements Serializable, EventLoop {
     private final PriorityQueue<Event> eventQueue; // requires explicit synchronisation
-    private final Lock lockQueueRead;
-    private final Lock lockQueueEdit;
-    private Game game;
+    private final transient Lock lockQueueRead;
+    private final transient Lock lockQueueEdit;
+    private transient Game game;
     private float updateTime;
 
     /**
@@ -115,10 +113,5 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Storable, Ev
         boolean b = lockQueueEdit.tryLock();
         eventQueue.clear();
         if (b) lockQueueEdit.unlock();
-    }
-
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-
     }
 }

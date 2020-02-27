@@ -2,11 +2,12 @@ package ColladaLoader;
 
 import NG.Animations.*;
 import NG.Rendering.MeshLoading.MeshFile;
-import NG.Storable;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
+import NG.Tools.SerializationTools;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -37,7 +38,7 @@ public class Converter {
     public static void writeSkeleton(String fileBaseName, AssimpScene scene) {
         SkeletonBone root = scene.getSkeleton().toSkeletonBone();
         File skeletonFile = Directory.skeletons.getFile(fileBaseName + ".skelbi");
-        root.writeToFile(skeletonFile);
+        SerializationTools.writeToFile(skeletonFile, root);
     }
 
     public static void writeMapping(String fileBaseName, AssimpScene scene) throws IOException {
@@ -76,31 +77,6 @@ public class Converter {
         PartialAnimation animation = new AnimationCombiner(partials);
 
         File targetFile = Directory.animations.getFile(target);
-        animation.writeToFile(targetFile);
-    }
-
-    public static PartialAnimation loadAnimation(File file) {
-        String fileName = file.getName();
-
-        // create binary if absent
-        if (!file.exists()) { // TODO read description file
-//            String source = fileName.replace(".anibi", ".dae");
-//            File colladaFile = Directory.colladaFiles.getFile(source);
-
-            throw new RuntimeException("animation not found: " + fileName);
-        }
-
-        // load from binary
-        PartialAnimation animation;
-        try (InputStream fileStream = new FileInputStream(file)) {
-            DataInputStream in = new DataInputStream(fileStream);
-            animation = Storable.read(in, PartialAnimation.class);
-
-        } catch (IOException | ClassNotFoundException e) {
-//                Logger.ERROR.print(e);
-            throw new RuntimeException(e);
-        }
-
-        return animation;
+        SerializationTools.writeToFile(targetFile, animation);
     }
 }

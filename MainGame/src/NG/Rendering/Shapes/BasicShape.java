@@ -1,7 +1,6 @@
 package NG.Rendering.Shapes;
 
 import NG.Rendering.MeshLoading.Mesh;
-import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shapes.Primitives.Plane;
 import org.joml.AABBf;
 import org.joml.Vector3fc;
@@ -19,10 +18,6 @@ public class BasicShape implements Shape {
     private final AABBf boundingBox;
     private List<Vector3fc> vertices;
     private List<Plane> triangles;
-
-    public BasicShape(MeshFile model) {
-        this(model.getVertices(), model.getNormals(), model.getFaces());
-    }
 
     /**
      * reads a model from the given file.
@@ -52,5 +47,4 @@ public class BasicShape implements Shape {
     public AABBf getBoundingBox() {
         return boundingBox;
     }
-
 }

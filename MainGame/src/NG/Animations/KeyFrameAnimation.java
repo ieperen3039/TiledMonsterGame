@@ -1,14 +1,11 @@
 package NG.Animations;
 
 import NG.DataStructures.Generic.PairList;
-import NG.Storable;
 import NG.Tools.Logger;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,46 +62,11 @@ public class KeyFrameAnimation implements PartialAnimation {
         return transformations.keySet();
     }
 
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-        Storable.writeEnum(out, model);
-        out.writeInt(transformations.size());
-        out.writeFloat(duration);
-
-        for (SkeletonBone key : transformations.keySet()) {
-            out.writeUTF(key.getName());
-            TransformArray frame = transformations.get(key);
-            frame.writeToDataStream(out);
-        }
-    }
-
-    /**
-     * Reads an animation from the data input.
-     * @param in the data input stream
-     * @throws IOException if anything goes wrong
-     */
-    public KeyFrameAnimation(DataInputStream in) throws IOException {
-        model = Storable.readEnum(in, BodyModel.class);
-
-        int size = in.readInt();
-        transformations = new HashMap<>(size);
-        duration = in.readFloat();
-
-        for (int i = 0; i < size; i++) {
-            String boneName = in.readUTF();
-            SkeletonBone bone = model.getBone(boneName);
-
-            TransformArray frame = new TransformArray(in);
-
-            transformations.put(bone, frame);
-        }
-    }
-
     public String framesOf(SkeletonBone bone) {
         return transformations.get(bone).toString();
     }
 
-    private static class TransformArray implements Storable {
+    private static class TransformArray implements Serializable {
         // sorted arrays
         private final int size;
         private final float[] timeStamps;
@@ -126,19 +88,6 @@ public class KeyFrameAnimation implements PartialAnimation {
             this.size = timestamps.length;
         }
 
-        public TransformArray(DataInputStream in) throws IOException {
-            size = in.readInt();
-            timeStamps = new float[size];
-            frames = new Matrix4fc[size];
-
-            for (int j = 0; j < size; j++) {
-                timeStamps[j] = in.readFloat();
-            }
-            for (int j = 0; j < size; j++) {
-                frames[j] = Storable.readMatrix4f(in);
-            }
-        }
-
         public TransformArray(Float[] timeStamps, Matrix4fc[] frames) {
             if (timeStamps.length != frames.length) {
                 throw new IllegalArgumentException("Arrays are of unequal length");
@@ -155,17 +104,6 @@ public class KeyFrameAnimation implements PartialAnimation {
 
             this.frames = frames;
             this.size = timeStamps.length;
-        }
-
-        @Override
-        public void writeToDataStream(DataOutputStream out) throws IOException {
-            out.writeInt(size);
-            for (float f : timeStamps) {
-                out.writeFloat(f);
-            }
-            for (Matrix4fc mat : frames) {
-                Storable.writeMatrix4f(out, mat);
-            }
         }
 
         public Matrix4fc interpolate(float timeSinceStart) {

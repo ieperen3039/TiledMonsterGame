@@ -3,13 +3,12 @@ package NG.Rendering.Lights;
 import NG.Core.GameAspect;
 import NG.DataStructures.Generic.Color4f;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Storable;
 import org.joml.Vector3fc;
 
 /**
  * @author Geert van Ieperen created on 3-2-2019.
  */
-public interface GameLights extends GameAspect, Storable {
+public interface GameLights extends GameAspect {
     /**
      * adds a point-light to the game.
      * @param light the new light

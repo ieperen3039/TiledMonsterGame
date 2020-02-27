@@ -13,15 +13,14 @@ import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Settings.Settings;
-import NG.Storable;
 import NG.Tools.AStar;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.*;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.*;
 
 import static NG.Settings.Settings.TILE_SIZE;
@@ -31,14 +30,14 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
  * @author Geert van Ieperen created on 3-2-2019.
  */
 public class TileMap extends AbstractMap {
-    private final int chunkSize;
-    private final float realChunkSize;
-    private final List<ChangeListener> changeListeners;
+    private transient List<ChangeListener> changeListeners = new ArrayList<>();
+    private int chunkSize;
+    private float realChunkSize;
 
     private int xChunks = 0;
     private int yChunks = 0;
-    private MapChunk[][] map;
-    private Game game;
+    private MapChunk[][] map = new MapChunk[0][0];
+    private transient Game game;
 
     private Collection<MapChunk> highlightedChunks = new HashSet<>();
     private AveragingQueue culledChunks = new AveragingQueue(30);
@@ -46,8 +45,9 @@ public class TileMap extends AbstractMap {
     public TileMap(int chunkSize) {
         this.chunkSize = chunkSize;
         this.realChunkSize = chunkSize * Settings.TILE_SIZE;
-        map = new MapChunk[0][0];
-        changeListeners = new ArrayList<>();
+    }
+
+    public TileMap() {
     }
 
     @Override
@@ -294,7 +294,7 @@ public class TileMap extends AbstractMap {
     }
 
     @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
+    public void writeExternal(ObjectOutput out) throws IOException {
         List<MapTile> tileTypes = MapTiles.values();
 
         // number of tile types
@@ -303,10 +303,7 @@ public class TileMap extends AbstractMap {
 
         // write all tiles in order
         for (MapTile tileType : tileTypes) {
-            out.writeInt(tileType.tileID);
-            out.writeUTF(tileType.toString());
-            out.writeUTF(String.valueOf(tileType.sourceSet));
-            out.writeInt(tileType.orientationBits());
+            out.writeObject(tileType);
         }
 
         synchronized (this) {
@@ -323,41 +320,15 @@ public class TileMap extends AbstractMap {
         }
     }
 
-    /**
-     * Constructs an instance from a data stream. Must be executed on the render thread for loading tile models.
-     * @param in the data stream synchonized to the call to {@link Storable#writeToDataStream(DataOutputStream)}
-     * @throws IOException if the data produces unexpected values
-     */
-    public TileMap(DataInputStream in) throws IOException {
-
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         // get number of tile types
         int nrOfTileTypes = in.readInt();
         Map<Integer, MapTile> types = new HashMap<>(nrOfTileTypes);
 
         // read tiles in order
         for (int i = 0; i < nrOfTileTypes; i++) {
-            int tileID = in.readInt();
-            String name = in.readUTF();
-            String set = in.readUTF();
-            int orientation = in.readInt();
-
-            if (!set.equals("null")) {
-                TileThemeSet.valueOf(set).load();
-            }
-            MapTile presumedTile = MapTiles.getByName(name);
-
-            if (presumedTile == MapTile.DEFAULT_TILE) {
-                types.put(tileID, MapTiles.getByOrientationBits(orientation, 0));
-
-            } else if (presumedTile.orientationBits() == orientation) {
-                types.put(tileID, presumedTile);
-
-            } else {
-                Logger.ASSERT.printf("Closest match for %s (%s) did not have correct rotation. Defaulting to a plain tile",
-                        name, presumedTile
-                );
-                types.put(tileID, MapTiles.getByOrientationBits(orientation, 0));
-            }
+            types.put(i, (MapTile) in.readObject());
         }
 
         chunkSize = in.readInt();
@@ -379,8 +350,6 @@ public class TileMap extends AbstractMap {
             }
             map[mx] = yStrip;
         }
-
-        changeListeners = new ArrayList<>();
     }
 
     public MapTile.Instance getTileData(int x, int y) {
@@ -494,5 +463,10 @@ public class TileMap extends AbstractMap {
     @Override
     public BoundingBox getHitbox(float gameTime) {
         return new BoundingBox(0, 0, Float.NEGATIVE_INFINITY, xChunks * chunkSize * TILE_SIZE, yChunks * chunkSize * TILE_SIZE, Float.POSITIVE_INFINITY);
+    }
+
+    @Override
+    public void restore(Game game) {
+        init(game);
     }
 }

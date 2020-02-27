@@ -17,11 +17,7 @@ import org.joml.*;
  * @author Geert van Ieperen. Created on 29-9-2018.
  */
 public abstract class AbstractMap extends StaticEntity implements GameMap {
-
     public static final float EPSILON = 1f / (1 << 16);
-
-    public AbstractMap() {
-    }
 
     @Override
     public int getHeightAt(Vector2ic position) {

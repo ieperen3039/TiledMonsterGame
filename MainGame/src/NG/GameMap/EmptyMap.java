@@ -6,9 +6,9 @@ import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.*;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -20,11 +20,6 @@ import static NG.Settings.Settings.TILE_SIZE;
  */
 public class EmptyMap extends AbstractMap {
     public EmptyMap() {
-    }
-
-    @Override
-    public void init(Game game) throws Exception {
-
     }
 
     @Override
@@ -92,16 +87,12 @@ public class EmptyMap extends AbstractMap {
     }
 
     @Override
-    public void cleanup() {
+    public void init(Game game) throws Exception {
 
     }
 
     @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-
-    }
-
-    public EmptyMap(DataInputStream in) {
+    public void cleanup() {
 
     }
 
@@ -113,5 +104,20 @@ public class EmptyMap extends AbstractMap {
     @Override
     protected Vector2f getCoordPosf(Vector3fc origin) {
         return new Vector2f(origin.x() / TILE_SIZE, origin.y() / TILE_SIZE);
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+
+    }
+
+    @Override
+    public void restore(Game game) {
+
     }
 }

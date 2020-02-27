@@ -20,12 +20,11 @@ import java.util.List;
  */
 public final class FileLoaders {
     /**
-     * @param offSet offset of the gravity middle in this mesh as the negative of the vector to the gravity middle
-     * @param scale  the scaling applied to the loaded object
-     * @param path   the path to the object
-     * @param name   debug name of the shape
+     * @param scale the scaling applied to the loaded object
+     * @param path  the path to the object
+     * @param name  debug name of the shape
      */
-    public static MeshFile loadOBJ(Vector3fc offSet, Vector3fc scale, Path path, String name) throws IOException {
+    public static MeshFile loadOBJ(Vector3fc scale, Path path, String name) throws IOException {
         List<Vector2fc> textureCoords;
         List<Vector3fc> vertices;
         List<Vector3fc> normals;
@@ -50,7 +49,6 @@ public final class FileLoaders {
                             Float.parseFloat(tokens[3])
                             )
                                     .mul(scale)
-                                    .add(offSet)
                     );
                     break;
                 case "vn":
@@ -91,7 +89,7 @@ public final class FileLoaders {
      * @throws IOException if file not found
      * @throws IOException if file format not supported
      */
-    public static MeshFile loadPLY(Vector3fc offSet, Vector3fc scale, Path path, String name) throws IOException {
+    public static MeshFile loadPLY(Vector3fc scale, Path path, String name) throws IOException {
         int nrOfVertices = -1;
         int nrOfFaces = -1;
         // Open the file as a list of strings
@@ -167,7 +165,6 @@ public final class FileLoaders {
                             Float.parseFloat(tokens[2])
                     )
                             .mul(scale)
-                            .add(offSet)
             );
 
             // Normal vector data

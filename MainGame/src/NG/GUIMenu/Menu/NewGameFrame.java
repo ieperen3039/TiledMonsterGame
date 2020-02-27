@@ -7,8 +7,8 @@ import NG.GUIMenu.Components.*;
 import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
 import NG.GameMap.MapGeneratorMod;
+import NG.GameMap.MapTiles;
 import NG.GameMap.SimpleMapGenerator;
-import NG.GameMap.TileThemeSet;
 import NG.Mods.Mod;
 import NG.Mods.ModLoader;
 import NG.Rendering.Pointer;
@@ -110,7 +110,7 @@ public class NewGameFrame extends SFrame {
         modLoader.initMods(targets);
 
         // generate map
-        TileThemeSet.BASE.load();
+        MapTiles.readTileSetFile("Hitbox", "tileSetHitbox.txt");
         GameMap map = game.get(GameMap.class);
         map.generateNew(generator);
 

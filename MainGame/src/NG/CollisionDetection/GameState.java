@@ -6,9 +6,9 @@ import NG.Entities.Entity;
 import NG.Entities.MovingEntity;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Storable;
 import org.joml.Vector3fc;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 /**
@@ -16,7 +16,7 @@ import java.util.Collection;
  * collisions.
  * @author Geert van Ieperen. Created on 21-9-2018.
  */
-public interface GameState extends GameAspect, Storable, MouseToolListener {
+public interface GameState extends GameAspect, Serializable, MouseToolListener {
     /**
      * update the physics and entities of the state
      * @param gameTime

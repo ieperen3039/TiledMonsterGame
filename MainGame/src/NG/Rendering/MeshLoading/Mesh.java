@@ -1,6 +1,8 @@
 package NG.Rendering.MeshLoading;
 
 import NG.Rendering.MatrixStack.SGL;
+import NG.Resources.Resource;
+import NG.Tools.Directory;
 
 import java.util.Arrays;
 
@@ -15,6 +17,12 @@ public interface Mesh {
     void render(SGL.Painter lock);
 
     void dispose();
+
+    /** creates a resource that cleans the meshfile it used whenever it reloads */
+    static Resource<Mesh> createResource(Directory dir, String... path) {
+        Resource<MeshFile> mfRes = MeshFile.createResource(dir, path);
+        return Resource.derive(mfRes, MeshFile::getMesh, Mesh::dispose);
+    }
 
     /**
      * a record class to describe a plane by indices. This object is not robust, thus one may not assume it is

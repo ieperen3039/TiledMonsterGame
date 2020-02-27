@@ -1,11 +1,10 @@
 package NG.Animations;
 
-import NG.Storable;
 import NG.Tools.Directory;
+import NG.Tools.SerializationTools;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
@@ -25,7 +24,7 @@ public enum BodyAnimation implements UniversalAnimation {
 
     BodyAnimation(String... filePath) {
         File file = Directory.animations.getFile(filePath);
-        animation = Storable.readFromFileRequired(file, PartialAnimation.class);
+        animation = SerializationTools.readFromFileRequired(file, PartialAnimation.class);
     }
 
     BodyAnimation(PartialAnimation baked) {
@@ -58,10 +57,6 @@ public enum BodyAnimation implements UniversalAnimation {
             @Override
             public Set<SkeletonBone> getDomain() {
                 return Collections.emptySet();
-            }
-
-            @Override
-            public void writeToDataStream(DataOutputStream out) {
             }
         };
     }

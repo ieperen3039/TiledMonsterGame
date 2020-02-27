@@ -7,9 +7,11 @@ import NG.Tools.Toolbox;
 import org.joml.Vector3fc;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -22,18 +24,17 @@ import static org.lwjgl.opengl.GL30.*;
  * a group of particles, each rendered around the same time
  * @author Geert van Ieperen created on 16-5-2018.
  */
-public class ParticleCloud implements Mesh {
-
+public class ParticleCloud implements Mesh, Externalizable {
     private static final float PARTICLECLOUD_MIN_TIME = 0.5f;
     private static final int PARTICLECLOUD_SPLIT_SIZE = 1000;
-    private int vaoId;
+    private int vaoId = -1;
     private int posMidVboID;
     private int moveVboID;
     private int colorVboID;
     private int ttlVboID;
     private int randVboID;
 
-    private ArrayList<Particle> bulk = new ArrayList<>();
+    private List<Particle> bulk = new ArrayList<>();
     private float maxTTL = 0;
     private float minTTL = Float.MAX_VALUE;
     private int nrOfParticles;
@@ -122,13 +123,10 @@ public class ParticleCloud implements Mesh {
         }
 
         Toolbox.checkGLError(toString());
-        bulk = null;
     }
 
     /** a rough estimate of the number of visible particles */
     public int estParticlesAt(float currentTime) {
-        if (bulk != null) return 0;
-
         float fraction = 1 - ((currentTime - startTime) / (maxTTL - minTTL));
         if (fraction < 0) return 0;
         if (fraction > 1) fraction = 1;
@@ -169,6 +167,21 @@ public class ParticleCloud implements Mesh {
         bulk = newBulk;
 
         return newCloud;
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(bulk);
+        out.writeFloat(minTTL);
+        out.writeFloat(maxTTL);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        //noinspection unchecked
+        bulk = (List<Particle>) in.readObject();
+        minTTL = in.readFloat();
+        maxTTL = in.readFloat();
     }
 
     private static int loadToGL(FloatBuffer buffer, int index, int itemSize) {
@@ -219,6 +232,7 @@ public class ParticleCloud implements Mesh {
     }
 
     public void dispose() {
+        bulk.clear();
         // Delete the VBOs
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDeleteBuffers(new int[]{posMidVboID, moveVboID, colorVboID, ttlVboID, randVboID});
@@ -243,17 +257,9 @@ public class ParticleCloud implements Mesh {
     }
 
     /**
-     * @return true if particles will be loaded to the GPU after a call to writeToGl() This returns false if there are
-     * no particles loaded, or writeToGl has already been called
-     */
-    public boolean readyToLoad() {
-        return (bulk != null) && !bulk.isEmpty();
-    }
-
-    /**
      * record class for particles
      */
-    private class Particle {
+    private static class Particle implements Serializable {
         public final Vector3fc position;
         public final Vector3fc movement;
         public final Color4f color;

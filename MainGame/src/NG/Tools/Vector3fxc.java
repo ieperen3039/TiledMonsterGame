@@ -2,10 +2,12 @@ package NG.Tools;
 
 import org.joml.*;
 
+import java.io.Externalizable;
+
 /**
  * @author Geert van Ieperen created on 4-7-2019.
  */
-public interface Vector3fxc {
+public interface Vector3fxc extends Externalizable {
     /**
      * @return this vector's x component in floating-point representation
      */

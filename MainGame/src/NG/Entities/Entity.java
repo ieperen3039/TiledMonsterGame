@@ -1,6 +1,7 @@
 package NG.Entities;
 
 import NG.CollisionDetection.BoundingBox;
+import NG.Core.GameObject;
 import NG.Core.GameTimer;
 import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
@@ -11,7 +12,7 @@ import org.joml.Vector3fc;
  * An entity is anything that is in the world, excluding the ground itself, particles and other purely visual elements.
  * @author Geert van Ieperen. Created on 14-9-2018.
  */
-public interface Entity {
+public interface Entity extends GameObject {
 
     /**
      * Draws this entity using the provided SGL object. This method may only be called from the rendering loop, and

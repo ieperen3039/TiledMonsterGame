@@ -1,10 +1,12 @@
 package NG.DataStructures.Generic;
 
+import java.io.Serializable;
+
 /**
  * a Collection that accepts floats and can only return the average of the last n entries (in constant time)
  * @author Geert van Ieperen created on 5-2-2018.
  */
-public class AveragingQueue {
+public class AveragingQueue implements Serializable {
     private float[] entries;
     private float sum = 0;
     private int head = 0;

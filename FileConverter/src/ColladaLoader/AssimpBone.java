@@ -5,7 +5,6 @@ import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.PairList;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
-import NG.Tools.Logger;
 import org.joml.*;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
@@ -116,7 +115,6 @@ public class AssimpBone {
             AIBone aiBone = AIBone.create(buffer.get());
             String boneName = aiBone.mName().dataString();
             SkeletonBone bone = root.findBone(boneName);
-            Logger.WARN.print(boneName);
 
             AIVertexWeight.Buffer vertexWeights = aiBone.mWeights();
             for (int i = 0; i < aiBone.mNumWeights(); i++) {

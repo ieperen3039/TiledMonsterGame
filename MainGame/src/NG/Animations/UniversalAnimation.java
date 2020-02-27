@@ -2,11 +2,13 @@ package NG.Animations;
 
 import org.joml.Matrix4fc;
 
+import java.io.Serializable;
+
 /**
  * An animation that has an entry for every body model
  * @author Geert van Ieperen created on 24-3-2019.
  */
-public interface UniversalAnimation {
+public interface UniversalAnimation extends Serializable {
     /**
      * @param bone           a bone
      * @param timeSinceStart the time since the start of this animation

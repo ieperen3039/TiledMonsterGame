@@ -3,15 +3,14 @@ package NG.Animations;
 import NG.Entities.Entity;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Storable;
+import NG.Rendering.MeshLoading.Mesh;
+import NG.Resources.Resource;
 import NG.Tools.Toolbox;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Quaternionf;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -19,7 +18,7 @@ import java.util.function.Consumer;
  * a rotation of a child bone on a given relative position of some parent animation bone, specifying an initial rotation
  * and additional rotation angles. Objects of this type are immutable
  */
-public class SkeletonBone implements Storable {
+public class SkeletonBone implements Serializable {
     private final String name; // 'local' per bodyModel
     private final Matrix4fc transformation;
     private final Collection<SkeletonBone> subElements;
@@ -187,28 +186,6 @@ public class SkeletonBone implements Storable {
         return name;
     }
 
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-        out.writeUTF(name);
-        Storable.writeMatrix4f(out, transformation);
-
-        out.writeInt(subElements.size());
-        for (SkeletonBone elt : subElements) {
-            elt.writeToDataStream(out);
-        }
-    }
-
-    public SkeletonBone(DataInputStream in) throws IOException {
-        name = in.readUTF();
-        transformation = Storable.readMatrix4f(in);
-
-        int nOfElts = in.readInt();
-        subElements = new ArrayList<>(nOfElts);
-        for (int i = 0; i < nOfElts; i++) {
-            subElements.add(new SkeletonBone(in));
-        }
-    }
-
     /**
      * @return the inverse of the local transformation of this bone
      */
@@ -245,7 +222,7 @@ public class SkeletonBone implements Storable {
          * @param mesh the mesh to use
          * @return this
          */
-        public BodyBuilder add(String name, BodyMesh mesh) {
+        public BodyBuilder add(String name, Resource<Mesh> mesh) {
             SkeletonBone bone = model.getBone(name);
 
             // checks

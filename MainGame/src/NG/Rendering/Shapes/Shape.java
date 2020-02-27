@@ -3,6 +3,8 @@ package NG.Rendering.Shapes;
 import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shapes.Primitives.Plane;
+import NG.Resources.Resource;
+import NG.Tools.Directory;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
 import org.joml.AABBf;
@@ -10,8 +12,6 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector3i;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,6 +27,10 @@ public interface Shape {
 
     /** @return the points of this plane in no specific order */
     Collection<Vector3fc> getPoints();
+
+    static Resource<Shape> createResource(String... path) {
+        return Resource.derive(MeshFile.createResource(Directory.meshes, path), MeshFile::getShape);
+    }
 
     /**
      * given a point on position {@code origin} and a direction of {@code direction}, calculates the fraction t such
@@ -52,15 +56,12 @@ public interface Shape {
     AABBf getBoundingBox();
 
     /**
-     * loads a mesh, splitting it into sections of size containersize.
+     * splits the mesh into sections of size containersize.
+     * @param file          the file to split
      * @param containerSize size of splitted container, which is applied in 3 dimensions
-     * @param scale         possible scaling factor upon loading
-     * @param path          path to the .obj file without extension
      * @return a list of shapes, each being roughly containersize in size
      */
-    static List<Shape> loadSplit(float containerSize, Vector3fc scale, Path path)
-            throws IOException {
-        MeshFile file = MeshFile.loadFile(path, Vectors.O, scale);
+    static List<Shape> split(MeshFile file, float containerSize) {
         HashMap<Vector3i, CustomShape> world = new HashMap<>();
 
         for (Mesh.Face f : file.getFaces()) {

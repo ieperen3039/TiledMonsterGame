@@ -3,6 +3,9 @@ package NG.Tools;
 import org.joml.Math;
 import org.joml.*;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Locale;
 
 /**
@@ -105,6 +108,20 @@ public class Vector3fx implements Vector3fxc {
         }
 
         return round(value);
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeInt(x);
+        out.writeInt(y);
+        out.writeInt(z);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException {
+        x = in.readInt();
+        y = in.readInt();
+        z = in.readInt();
     }
 
     private static int round(double value) {

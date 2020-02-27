@@ -1,15 +1,11 @@
 package NG.Core;
 
-import NG.Storable;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * @author Geert van Ieperen. Created on 19-9-2018.
  */
-public class Version implements Comparable<Version>, Storable {
+public class Version implements Comparable<Version>, Serializable {
     private final int major;
     private final int minor;
 
@@ -55,23 +51,6 @@ public class Version implements Comparable<Version>, Storable {
     @Override
     public String toString() {
         return "v " + major + "." + minor;
-    }
-
-    @Override
-    public void writeToDataStream(DataOutputStream out) throws IOException {
-        out.writeChar('v');
-        out.writeInt(major);
-        out.writeInt(minor);
-    }
-
-    public Version(DataInputStream in) throws IOException {
-        char c = in.readChar();
-        if (c != 'v') {
-            throw new IOException(String.format("Expected '%04x', but found %04x", (int) 'v', (int) c));
-        }
-
-        major = in.readInt();
-        minor = in.readInt();
     }
 
     public static class MisMatchException extends Exception {

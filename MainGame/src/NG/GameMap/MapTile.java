@@ -3,21 +3,17 @@ package NG.GameMap;
 import NG.DataStructures.Direction;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
-import NG.Rendering.MeshLoading.MeshFile;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shaders.TextureShader;
-import NG.Rendering.Shapes.BasicShape;
+import NG.Rendering.Shapes.GenericShapes;
 import NG.Rendering.Shapes.Shape;
-import NG.Rendering.Textures.FileTexture;
 import NG.Rendering.Textures.Texture;
-import NG.Tools.Directory;
-import NG.Tools.Logger;
+import NG.Resources.Resource;
 import org.joml.AABBf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.Random;
 
@@ -29,7 +25,8 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
  * @author Geert van Ieperen created on 3-2-2019.
  * @see Instance
  */
-public class MapTile {
+public class MapTile
+        implements Serializable { // Could have been a resource on itself, but the current system works fine and is very efficient in storage
     public static final MapTile DEFAULT_TILE = new MapTile();
 
     private static int nextIdentity = 0; // basic tile has id 0
@@ -39,32 +36,27 @@ public class MapTile {
     public final MapTiles.RotationFreeFit fit;
     public final EnumSet<TileProperties> properties;
     public final int baseHeight; // height of the middle part, the height the user stands on
-    public final TileThemeSet sourceSet;
 
     // all eight height values in clockwise order
-    private final int[] heights;// pp, pm, pn, mn, nn, nm, np, mp
-    private final Shape shape;
-    private MeshFile meshFile;
+    private final int[] heights; // pp, pm, pn, mn, nn, nm, np, mp
 
-    private Mesh mesh; // lazy initialized
-    private final Path texturePath;
-    private Texture texture = null;
+    private final Resource<Shape> shape;
+    private final Resource<Mesh> mesh;
+    private final Resource<Texture> texture; // may be null
 
     /**
      * @param name       a unique name for this tile
      * @param meshFile
-     * @param hitbox
+     * @param shapeFile
      * @param texture    the path to the texture of this tile
      * @param properties the properties of this tile
-     * @param sourceSet  the tileset where this tile is part of, or null if this is a custom tile.
      */
     MapTile(
-            String name, MeshFile meshFile, Shape hitbox, Path texture, int[] heights,
-            int baseHeight, EnumSet<TileProperties> properties, TileThemeSet sourceSet
+            String name, Resource<Mesh> meshFile, Resource<Shape> shapeFile, Resource<Texture> texture, int[] heights,
+            int baseHeight, EnumSet<TileProperties> properties
     ) {
         this.name = name;
-        this.texturePath = texture;
-        this.sourceSet = sourceSet;
+        this.texture = texture;
         this.tileID = nextIdentity++;
         // the order is important
         this.fit = MapTiles.createRFF(heights[0], heights[2], heights[4], heights[6]);// pp, pn, nn, np
@@ -72,25 +64,17 @@ public class MapTile {
         this.baseHeight = baseHeight;
 
         this.heights = heights;
-        this.meshFile = meshFile;
-        this.shape = hitbox;
+        this.shape = shapeFile;
+        this.mesh = meshFile;
     }
 
     /** basic tile */
     public MapTile() {
-        // circumvent registration due to initialisation of static fields
-        this.name = "default";
-        this.texturePath = null;
-        this.sourceSet = null;
-        this.tileID = nextIdentity++;
-        this.fit = MapTiles.createRFF(1, 1, 1, 1);// pp, pn, nn, np
-        this.properties = EnumSet.noneOf(TileProperties.class);
-        this.heights = new int[]{1, 1, 1, 1, 1, 1, 1, 1};
-        this.baseHeight = 1;
-
-        Path path = Directory.meshes.getPath("general", "cube.obj");
-        this.meshFile = MeshFile.loadFileRequired(path);
-        this.shape = new BasicShape(meshFile);
+        // circumvent registration to allow initialisation of static fields
+        this(
+                "default tile", GenericShapes.CUBE.meshResource(), GenericShapes.CUBE.shapeResource(), null,
+                new int[]{1, 1, 1, 1, 1, 1, 1, 1}, 1, EnumSet.noneOf(TileProperties.class)
+        );
     }
 
     public int orientationBits() {
@@ -103,21 +87,7 @@ public class MapTile {
     }
 
     public AABBf getBoundingBox() {
-        return shape.getBoundingBox();
-    }
-
-    private void loadMesh() {
-        try {
-            mesh = meshFile.getMesh();
-            meshFile = null;
-
-            if (texturePath != null) {
-                texture = FileTexture.get(texturePath);
-            }
-
-        } catch (IOException ex) {
-            Logger.ERROR.print(ex);
-        }
+        return shape.get().getBoundingBox();
     }
 
     public static int index(Direction direction) {
@@ -158,17 +128,13 @@ public class MapTile {
                 gl.translate(0, 0, offset * TILE_SIZE_Z);
                 gl.rotateQuarter(0, 0, rotation);
 
-                if (type.mesh == null) {
-                    type.loadMesh();
-                }
-
                 ShaderProgram shader = gl.getShader();
                 if (type.texture != null && shader instanceof TextureShader) {
                     TextureShader tShader = (TextureShader) shader;
-                    tShader.setTexture(type.texture);
+                    tShader.setTexture(type.texture.get());
                 }
 
-                gl.render(type.mesh, null);
+                gl.render(type.mesh.get(), null);
             }
             gl.popMatrix();
         }
@@ -215,11 +181,12 @@ public class MapTile {
          * calculates the fraction t such that (origin + direction * t) lies on this tile, or Float.POSITIVE_INFINITY if
          * it does not hit.
          * @param localOrigin origin relative to this tile, will be modified
-         * @param direction          the direction of the ray
+         * @param direction   the direction of the ray
          * @return fraction t of (origin + direction * t), or Float.POSITIVE_INFINITY if it does not hit.
          */
         public float intersectFraction(Vector3f localOrigin, Vector3fc direction) {
-            boolean doIntersect = type.shape.getBoundingBox().testRay(
+            Shape shape = type.shape.get();
+            boolean doIntersect = shape.getBoundingBox().testRay(
                     localOrigin.x, localOrigin.y, localOrigin.z,
                     direction.x(), direction.y(), direction.z()
             );
@@ -236,7 +203,7 @@ public class MapTile {
                 localDirection.set(localDirection.y, -localDirection.x, localDirection.z);
             }
 
-            return type.shape.getIntersectionScalar(localOrigin, localDirection);
+            return shape.getIntersectionScalar(localOrigin, localDirection);
         }
     }
 }

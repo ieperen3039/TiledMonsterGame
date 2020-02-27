@@ -28,7 +28,7 @@ public abstract class CommandProvider {
         return new CommandProvider(name) {
             @Override
             public Command create(Living receiver, Vector2ic target) {
-                return new Command(receiver) {
+                return new Command() {
                     boolean hasFired = false;
 
                     @Override

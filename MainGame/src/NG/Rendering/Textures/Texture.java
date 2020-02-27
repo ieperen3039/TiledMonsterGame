@@ -1,5 +1,9 @@
 package NG.Rendering.Textures;
 
+import NG.Resources.FileResource;
+import NG.Resources.Resource;
+import NG.Tools.Directory;
+
 /**
  * @author Geert van Ieperen created on 1-2-2019.
  */
@@ -18,4 +22,8 @@ public interface Texture {
     int getHeight();
 
     int getID();
+
+    static Resource<Texture> createResource(String... path) {
+        return FileResource.get(FileTexture::new, Directory.images, path);
+    }
 }

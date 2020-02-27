@@ -1,9 +1,9 @@
 package NG.Entities;
 
-import NG.Actions.ActionIdle;
 import NG.Actions.ActionQueue;
 import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
+import NG.Core.AbstractGameObject;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
@@ -24,24 +24,29 @@ import org.joml.Vector3f;
  * including the {@link MonsterSoul} or identity of the monster.
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public class MonsterEntity implements MovingEntity {
-    protected final Game game;
+public class MonsterEntity extends AbstractGameObject implements MovingEntity {
     /** the current actions that are executed */
-    public final ActionQueue currentActions;
+    private ActionQueue currentActions;
 
-    private final MonsterSoul controller;
+    private MonsterSoul controller;
 
     private boolean isDisposed;
-    private EntityAction previousAction; // only in rendering
     private Mark marking = Mark.NONE;
+
+    public MonsterEntity() {
+    }
 
     public MonsterEntity(
             Game game, Vector2i initialPosition, MonsterSoul controller
     ) {
-        this.game = game;
+        init(game);
         this.controller = controller;
         this.currentActions = new ActionQueue(game, initialPosition);
-        this.previousAction = new ActionIdle(game, initialPosition);
+    }
+
+    @Override
+    public void restoreFields(Game game) {
+        controller.restore(game);
     }
 
     @Override
@@ -70,7 +75,7 @@ public class MonsterEntity implements MovingEntity {
 
             gl.rotate(action.getRotationAt(timeSinceStart));
 
-            controller.props.bodyModel.draw(gl, this, controller.props.boneMapping, timeSinceStart, action, previousAction);
+            controller.props.bodyModel.draw(gl, this, controller.props.boneMapping, timeSinceStart, action);
 
             if (shader instanceof MaterialShader) {
                 MaterialShader mat = (MaterialShader) shader;
@@ -92,9 +97,6 @@ public class MonsterEntity implements MovingEntity {
             }
         }
         gl.popMatrix();
-
-
-        if (action != previousAction) previousAction = action;
     }
 
     @Override
@@ -133,6 +135,10 @@ public class MonsterEntity implements MovingEntity {
     @Override
     public Pair<EntityAction, Float> getActionAt(float gameTime) {
         return currentActions.getActionAt(gameTime);
+    }
+
+    public void insertActionAt(float gameTime, EntityAction action) {
+        currentActions.insert(action, gameTime);
     }
 
     @Override

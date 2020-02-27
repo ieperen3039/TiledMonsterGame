@@ -1,7 +1,7 @@
 package NG.Animations;
 
-import NG.Storable;
 import NG.Tools.Directory;
+import NG.Tools.SerializationTools;
 import NG.Tools.Vectors;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4fc;
@@ -22,7 +22,7 @@ public class KeyFrameAnimationTest {
     @Before
     public void setUp() throws Exception {
         File file = Directory.animations.getFile("walkCycleAnthro.anibi");
-        ani = Storable.readFromFile(file, KeyFrameAnimation.class);
+        ani = (KeyFrameAnimation) SerializationTools.readFromFile(file);
         bone = ani.model.getBone("ANTHRO_UpperLeg.R");
     }
 

@@ -5,14 +5,12 @@ import NG.DataStructures.Generic.ConcurrentArrayList;
 import NG.DataStructures.Generic.Pair;
 import NG.DataStructures.Generic.PairList;
 import NG.Entities.Entity;
-import NG.Entities.MovingEntity;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import org.joml.RayAabIntersection;
 import org.joml.Vector3fc;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,37 +23,32 @@ public class CollisionDetection {
     private static final int MAX_COLLISION_ITERATIONS = 5;
     private static final int INSERTION_SORT_BOUND = 64;
 
+    private Collection<Entity> newEntities = new ConcurrentArrayList<>();
+
     private CollisionEntity[] xLowerSorted;
     private CollisionEntity[] yLowerSorted;
     private CollisionEntity[] zLowerSorted;
 
     private AveragingQueue avgCollisions;
 
-    private Collection<Entity> staticEntities;
-    private Collection<MovingEntity> dynamicEntities;
-    private Collection<MovingEntity> newEntities;
     private float previousTime;
     private WorldCollisionObject world;
 
     /**
      * @see #CollisionDetection(Collection, float)
      */
-    public CollisionDetection(Entity... entities) {
-        this(Arrays.asList(entities), 0);
+    public CollisionDetection() {
+        this(Collections.emptyList(), 0);
     }
 
     /**
      * Collects the given entities and allows collision and phisics calculations to influence these entities
      * @param staticEntities a list of fixed entities. Entities in this collection should not move, but if they do,
-     *                       dynamic objects might phase through when CollisionEntity in opposite direction. Apart from this
-     *                       case, the collision detection still functions.
+     *                       dynamic objects might phase through when CollisionEntity in opposite direction. Apart from
+     *                       this case, the collision detection still functions.
      * @param gameTime
      */
     public CollisionDetection(Collection<Entity> staticEntities, float gameTime) {
-        this.staticEntities = staticEntities;
-        this.dynamicEntities = new CopyOnWriteArrayList<>();
-        this.newEntities = new ConcurrentArrayList<>();
-
         avgCollisions = new AveragingQueue(5);
         Logger.printOnline(() ->
                 String.format("Collision pair count average: %1.01f", avgCollisions.average())
@@ -107,23 +100,23 @@ public class CollisionDetection {
         /** -- clean and restore invariants -- */
 
         // remove disposed entities
-        List<Entity> removeEntities = new ArrayList<>();
+        List<Entity> removals = new ArrayList<>();
 
-        for (Entity e : dynamicEntities) {
-            if (e.isDisposed()) {
-                removeEntities.add(e);
+        for (CollisionEntity e : entityArray()) {
+            Entity entity = e.entity();
+            if (entity.isDisposed()) {
+                removals.add(entity);
             }
         }
 
-        if (!removeEntities.isEmpty()) {
-            deleteEntities(removeEntities);
-            removeEntities.clear();
+        if (!removals.isEmpty()) {
+            deleteEntities(removals);
+            removals.clear();
         }
 
         // add new entities
         newEntities.removeIf(Entity::isDisposed);
         if (!newEntities.isEmpty()) {
-            dynamicEntities.addAll(newEntities);
             mergeNewEntities(newEntities, gameTime);
             newEntities.clear();
         }
@@ -280,13 +273,12 @@ public class CollisionDetection {
         }
     }
 
-    public void addEntities(Collection<MovingEntity> entities) {
+    public void addEntities(Collection<Entity> entities) {
         newEntities.addAll(entities);
     }
 
-    public void addEntity(MovingEntity entity) {
-        assert (!dynamicEntities.contains(entity)) : entity;
-        assert (!newEntities.contains(entity)) : entity;
+    public void addEntity(Entity entity) {
+        assert !contains(entity);
 
         newEntities.add(entity);
     }
@@ -328,7 +320,7 @@ public class CollisionDetection {
         return new Pair<>(suspect, fraction);
     }
 
-    private void mergeNewEntities(Collection<MovingEntity> newEntities, float gameTime) {
+    private void mergeNewEntities(Collection<? extends Entity> newEntities, float gameTime) {
         int nOfNewEntities = newEntities.size();
         if (nOfNewEntities <= 0) return;
 
@@ -352,8 +344,6 @@ public class CollisionDetection {
         xLowerSorted = deleteAll(targets, xLowerSorted);
         yLowerSorted = deleteAll(targets, yLowerSorted);
         zLowerSorted = deleteAll(targets, zLowerSorted);
-
-        dynamicEntities.removeAll(targets);
     }
 
     private CollisionEntity[] deleteAll(Collection<Entity> targets, CollisionEntity[] array) {
@@ -377,47 +367,40 @@ public class CollisionDetection {
     }
 
     public Collection<Entity> getEntityList() {
-        Collection<Entity> list = new ArrayList<>(staticEntities);
-        list.addAll(dynamicEntities);
-        list.addAll(newEntities);
-        return list;
+        CollisionEntity[] eties = entityArray();
+        ArrayList<Entity> elts = new ArrayList<>(eties.length);
+
+        for (CollisionEntity ety : eties) {
+            elts.add(ety.entity());
+        }
+
+        return elts;
     }
 
     public boolean contains(Entity entity) {
-        if (staticEntities.contains(entity)) return true;
+        if (newEntities.contains(entity)) return true;
 
-        if (entity instanceof MovingEntity) {
-            return dynamicEntities.contains(entity) || newEntities.contains(entity);
+        for (CollisionEntity ety : entityArray()) {
+            if (ety.entity().equals(entity)) return true;
         }
+
         return false;
     }
 
     public void forEach(Consumer<Entity> action) {
-        for (Entity e : staticEntities) {
-            action.accept(e);
-        }
-        for (Entity e : dynamicEntities) {
-            action.accept(e);
-        }
-        for (Entity e : newEntities) {
-            action.accept(e);
+        for (CollisionEntity ety : entityArray()) {
+            action.accept(ety.entity());
         }
     }
 
     public synchronized void cleanup() {
+        for (CollisionEntity ety : entityArray()) {
+            ety.entity().dispose();
+        }
+
         xLowerSorted = new CollisionEntity[0];
         yLowerSorted = new CollisionEntity[0];
         zLowerSorted = new CollisionEntity[0];
-
-        for (Entity e : staticEntities) {
-            e.dispose();
-        }
-        staticEntities.clear();
-
-        for (Entity e : dynamicEntities) {
-            e.dispose();
-        }
-        dynamicEntities.clear();
 
         for (Entity e : newEntities) {
             e.dispose();

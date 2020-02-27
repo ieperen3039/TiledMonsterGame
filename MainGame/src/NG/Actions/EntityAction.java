@@ -1,6 +1,8 @@
 package NG.Actions;
 
 import NG.Animations.UniversalAnimation;
+import NG.Core.Game;
+import NG.Core.GameObject;
 import NG.Tools.Vectors;
 import org.joml.Math;
 import org.joml.Quaternionf;
@@ -11,9 +13,13 @@ import org.joml.Vector3fc;
  * An immutable action with a fixed start position, end position, animation and duration.
  * @author Geert van Ieperen created on 12-2-2019.
  */
-public interface EntityAction {
+public interface EntityAction extends GameObject {
     float ACCEPTABLE_DIFFERENCE = 1f / 512f;
     float DIRECTION_DELTA = 0.1f;
+
+    @Override
+    default void restore(Game game) {
+    }
 
     /**
      * calculates the position of this action, at the given time after the start of this action

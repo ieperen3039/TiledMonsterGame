@@ -1,7 +1,6 @@
 package NG.Rendering.MeshLoading;
 
 import NG.DataStructures.Generic.Color4f;
-import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;
@@ -21,10 +20,6 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
  * @author Geert van Ieperen created on 17-11-2017.
  */
 public class FlatMesh extends AbstractMesh {
-    /**
-     * an empty mesh, not bound to any resources.
-     */
-    public static final Mesh EMPTY_MESH = new EmptyMesh();
 
     /**
      * Creates a mesh from the given data. This may only be called on the main thread. VERY IMPORTANT that you have
@@ -67,7 +62,9 @@ public class FlatMesh extends AbstractMesh {
      * @param normList  a list of normal vectors
      * @param facesList a list of faces, where each face refers to indices from posList and normList
      */
-    public FlatMesh(List<? extends Vector3fc> posList, List<? extends Vector3fc> normList, List<Face> facesList) {
+    public FlatMesh(
+            List<? extends Vector3fc> posList, List<? extends Vector3fc> normList, List<Face> facesList
+    ) {
         this(posList, normList, null, facesList);
     }
 
@@ -292,17 +289,4 @@ public class FlatMesh extends AbstractMesh {
         targetArray[offset + 2] = vertex.z();
     }
 
-    private static class EmptyMesh extends AbstractMesh {
-        private EmptyMesh() {
-            super();
-        }
-
-        @Override
-        public void render(SGL.Painter lock) {
-        }
-
-        @Override
-        public void dispose() {
-        }
-    }
 }

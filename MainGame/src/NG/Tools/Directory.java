@@ -34,13 +34,13 @@ public enum Directory {
     Directory(boolean isResource, String first, String... other) {
         directory = Paths.get(first, other);
 
-        File asFile = workDirectory().resolve(directory).toFile();
-        if (isResource && !asFile.exists()) {
-            throw new RuntimeException("Directory " + directory + " is missing. Searched for " + asFile);
+        File file = workDirectory().resolve(directory).toFile();
+        if (isResource && !file.exists()) {
+            throw new RuntimeException("Directory " + directory + " is missing. Searched for " + file);
         }
 
         if (!isResource) {
-            asFile.mkdirs();
+            file.mkdirs();
         }
     }
 
@@ -58,6 +58,7 @@ public enum Directory {
         return file;
     }
 
+    /** @return the path local to the work directory */
     public Path getPath(String... path) {
         Path pathBuilder = directory;
         for (String s : path) {

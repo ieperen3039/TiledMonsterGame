@@ -3,10 +3,11 @@ package NG.Animations;
 import NG.Actions.EntityAction;
 import NG.Entities.Entity;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Storable;
 import NG.Tools.Directory;
+import NG.Tools.SerializationTools;
 
 import java.io.File;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +17,7 @@ import java.util.Map;
 /**
  * @author Geert van Ieperen created on 28-2-2019.
  */
-public enum BodyModel {
+public enum BodyModel implements Serializable {
     CUBE(new SkeletonBone("cube_root", 0, 0, 0, 0, 0, 0, 0, 1)),
     ANTHRO("anthro.skelbi"),
     TEST_ANTHRO(getAnthro());
@@ -29,7 +30,7 @@ public enum BodyModel {
         File file = path.toFile();
 
         // load skelly from binary
-        root = Storable.readFromFileRequired(file, SkeletonBone.class);
+        root = SerializationTools.readFromFileRequired(file, SkeletonBone.class);
         parts = getParts(root);
     }
 
@@ -63,14 +64,11 @@ public enum BodyModel {
      * @param map            a mapping from the bones of the entity to the elements of the body
      * @param timeSinceStart game time since the start of the action
      * @param action         the action being executed by the entity on the given time
-     * @param previous       the action previously executed
      */
     public void draw(
-            SGL gl, Entity entity, Map<SkeletonBone, BoneElement> map, float timeSinceStart, EntityAction action,
-            EntityAction previous
+            SGL gl, Entity entity, Map<SkeletonBone, BoneElement> map, float timeSinceStart, EntityAction action
     ) {
-        AnimationTransfer transfer = AnimationTransfer.get(previous, action);
-        UniversalAnimation animation = (transfer == null) ? action.getAnimation() : transfer;
+        UniversalAnimation animation = action.getAnimation();
         float animationTime = (timeSinceStart / action.duration()) * animation.duration();
 
         draw(gl, entity, map, animation, animationTime);
