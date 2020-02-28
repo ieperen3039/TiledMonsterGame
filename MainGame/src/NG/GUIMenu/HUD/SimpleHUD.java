@@ -4,7 +4,7 @@ import NG.Core.Game;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SContainer;
 import NG.GUIMenu.Components.SPanel;
-import NG.GUIMenu.Rendering.GUIPainter;
+import NG.GUIMenu.Rendering.NVGOverlay;
 import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.GLFWWindow;
@@ -60,7 +60,7 @@ public abstract class SimpleHUD implements HUDManager {
     }
 
     @Override
-    public void draw(GUIPainter painter) {
+    public void draw(NVGOverlay.Painter painter) {
         assert hasLookAndFeel();
 
         GLFWWindow window = game.get(GLFWWindow.class);

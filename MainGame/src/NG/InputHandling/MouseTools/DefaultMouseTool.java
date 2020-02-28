@@ -1,6 +1,5 @@
 package NG.InputHandling.MouseTools;
 
-import NG.Camera.Camera;
 import NG.CollisionDetection.GameState;
 import NG.Core.Game;
 import NG.Entities.Entity;
@@ -8,7 +7,6 @@ import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.GameMap;
-import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseMoveListener;
 import NG.InputHandling.MouseRelativeClickListener;
 import NG.InputHandling.MouseReleaseListener;
@@ -83,7 +81,7 @@ public class DefaultMouseTool implements MouseTool {
                 MonsterSoul soul = monster.getController();
 
                 if (game.get(Player.class).getTeam().contains(soul)) {
-                    game.get(KeyMouseCallbacks.class).setMouseTool(new EntitySelectedMouseTool(game, monster));
+                    game.get(MouseToolCallbacks.class).setMouseTool(new EntitySelectedMouseTool(game, monster));
                 }
             }
         }
@@ -138,8 +136,6 @@ public class DefaultMouseTool implements MouseTool {
     public void onScroll(float value) {
         Vector2i pos = game.get(GLFWWindow.class).getMousePosition();
         HUDManager gui = game.get(HUDManager.class);
-        if (gui.checkMouseScroll(pos.x, pos.y, value)) return;
-
-        game.get(Camera.class).onScroll(value);
+        gui.checkMouseScroll(pos.x, pos.y, value);
     }
 }

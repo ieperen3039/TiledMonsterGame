@@ -15,7 +15,8 @@ import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
 import NG.InputHandling.ClickShader;
-import NG.InputHandling.MouseToolCallbacks;
+import NG.InputHandling.EventCallbacks;
+import NG.InputHandling.MouseTools.MouseToolCallbacks;
 import NG.Living.Player;
 import NG.Mods.JarModReader;
 import NG.Mods.Mod;
@@ -56,6 +57,7 @@ public class MonsterGame implements ModLoader {
     private final RenderLoop renderer;
     private final GLFWWindow window;
     private final MouseToolCallbacks inputHandler;
+    private final EventCallbacks callbacks;
     private MainMenu mainMenu;
 
     private Game pocketGame;
@@ -81,6 +83,7 @@ public class MonsterGame implements ModLoader {
 
         renderer = new RenderLoop(settings.TARGET_FPS);
         inputHandler = new MouseToolCallbacks();
+        callbacks = new EventCallbacks();
         hud = new MonsterHud();
 //        hud = new FrameManagerImpl();
         pointer = new TilePointer();
@@ -107,7 +110,7 @@ public class MonsterGame implements ModLoader {
 
         return new GameService(GAME_VERSION, mainThreadName,
                 eventLoop, gameState, lights, camera, particles, timer,
-                settings, window, renderer, inputHandler, hud, pointer, thePlayer
+                settings, window, renderer, inputHandler, callbacks, hud, pointer, thePlayer
         );
     }
 
@@ -121,6 +124,7 @@ public class MonsterGame implements ModLoader {
         // init all fields
         renderer.init(combinedGame);
         inputHandler.init(combinedGame);
+        callbacks.init(combinedGame);
         hud.init(combinedGame);
         pointer.init(combinedGame);
 
@@ -131,7 +135,7 @@ public class MonsterGame implements ModLoader {
 
         // dirty hack to mark unused resources
         renderer.renderSequence(null)
-                .add(gl -> Resource.getAll().forEach(Resource::cool));
+                .add(gl -> Resource.cycle());
 
         // world
         renderer.renderSequence(new WorldBPShader())
@@ -142,7 +146,7 @@ public class MonsterGame implements ModLoader {
                 .add(gl -> combinedGame.get(GameLights.class).draw(gl))
                 .add(gl -> combinedGame.get(GameState.class).draw(gl))
                 // pointer
-                .add(gl -> combinedGame.get(TilePointer.class).draw(gl));
+                .add(gl -> combinedGame.get(Pointer.class).draw(gl));
         // particles
         renderer.renderSequence(new ParticleShader())
                 .add(gl -> combinedGame.get(GameParticles.class).draw(gl));

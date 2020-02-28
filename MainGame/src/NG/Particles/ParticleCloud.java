@@ -34,10 +34,11 @@ public class ParticleCloud implements Mesh, Externalizable {
     private int ttlVboID;
     private int randVboID;
 
+    private boolean isLoaded = false;
     private List<Particle> bulk = new ArrayList<>();
     private float maxTTL = 0;
     private float minTTL = Float.MAX_VALUE;
-    private int nrOfParticles;
+    private int nrOfParticles = 0;
     private float startTime = -1;
 
     /**
@@ -63,15 +64,15 @@ public class ParticleCloud implements Mesh, Externalizable {
     }
 
     /**
-     * @param currentTime initial time in seconds
+     * @param startTime initial time in seconds
      */
-    public void writeToGL(float currentTime) {
+    public void writeToGL(float startTime) {
         int numElts = bulk.size();
-        maxTTL += currentTime;
-        minTTL += currentTime;
+        maxTTL += startTime;
+        minTTL += startTime;
 
         nrOfParticles = numElts;
-        startTime = currentTime;
+        this.startTime = startTime;
 
         FloatBuffer positionBuffer = MemoryUtil.memAllocFloat(3 * numElts);
         FloatBuffer moveBuffer = MemoryUtil.memAllocFloat(3 * numElts);
@@ -89,8 +90,8 @@ public class ParticleCloud implements Mesh, Externalizable {
             p.position.get(i * 3, positionBuffer);
             p.movement.get(i * 3, moveBuffer);
             p.color.put(colorBuffer);
-            ttlBuffer.put(currentTime);
-            ttlBuffer.put(currentTime + p.timeToLive);
+            ttlBuffer.put(startTime);
+            ttlBuffer.put(startTime + p.timeToLive);
         }
 
         colorBuffer.flip();
@@ -113,6 +114,7 @@ public class ParticleCloud implements Mesh, Externalizable {
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
+            isLoaded = true;
 
         } finally {
             MemoryUtil.memFree(positionBuffer);
@@ -123,6 +125,14 @@ public class ParticleCloud implements Mesh, Externalizable {
         }
 
         Toolbox.checkGLError(toString());
+    }
+
+    private static int loadToGL(FloatBuffer buffer, int index, int itemSize) {
+        int vboID = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vboID);
+        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
+        glVertexAttribPointer(index, itemSize, GL_FLOAT, false, 0, 0);
+        return vboID;
     }
 
     /** a rough estimate of the number of visible particles */
@@ -174,6 +184,7 @@ public class ParticleCloud implements Mesh, Externalizable {
         out.writeObject(bulk);
         out.writeFloat(minTTL);
         out.writeFloat(maxTTL);
+        out.writeFloat(startTime);
     }
 
     @Override
@@ -182,14 +193,8 @@ public class ParticleCloud implements Mesh, Externalizable {
         bulk = (List<Particle>) in.readObject();
         minTTL = in.readFloat();
         maxTTL = in.readFloat();
-    }
-
-    private static int loadToGL(FloatBuffer buffer, int index, int itemSize) {
-        int vboID = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
-        glVertexAttribPointer(index, itemSize, GL_FLOAT, false, 0, 0);
-        return vboID;
+        startTime = in.readFloat();
+        isLoaded = false;
     }
 
     /**
@@ -197,6 +202,9 @@ public class ParticleCloud implements Mesh, Externalizable {
      */
     @Override
     public void render(SGL.Painter lock) {
+        if (startTime == -1) return;
+        if (!isLoaded) writeToGL(startTime);
+
         glBindVertexArray(vaoId);
         glEnableVertexAttribArray(0); // Position of triangle middle VBO
         glEnableVertexAttribArray(1); // Movement VBO

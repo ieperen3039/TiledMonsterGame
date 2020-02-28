@@ -11,15 +11,15 @@ import java.util.stream.Collectors;
  * @author Geert van Ieperen created on 2-4-2019.
  */
 public class GameService implements Game { // TODO make exception elements for renderer etc.
-    private Map<Class, Object> lookAsideTable = new HashMap<>();
-    private final PairList<Object, Class> elements;
+    private Map<Class<?>, Object> lookAsideTable = new HashMap<>();
+    private final PairList<Object, Class<?>> elements;
     private final String mainThreadName;
     private Version version;
 
     /**
-     * @param version the version of the game engine
+     * @param version        the version of the game engine
      * @param mainThreadName the name of the main thread
-     * @param initial an array of elements that are initially in this game
+     * @param initial        an array of elements that are initially in this game
      */
     public GameService(Version version, String mainThreadName, Object... initial) {
         this.version = version;

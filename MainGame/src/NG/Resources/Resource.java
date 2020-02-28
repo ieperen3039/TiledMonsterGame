@@ -2,7 +2,6 @@ package NG.Resources;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -13,7 +12,6 @@ import java.util.function.Supplier;
  */
 public abstract class Resource<T> implements Serializable {
     private static final List<Resource<?>> allResources = new ArrayList<>();
-    private static final List<Resource<?>> allResView = Collections.unmodifiableList(allResources);
 
     /** heat will not rise above this number */
     private static final int MAX_HEAT = 300;
@@ -71,10 +69,6 @@ public abstract class Resource<T> implements Serializable {
      */
     protected abstract T reload() throws ResourceException;
 
-    public static List<Resource<?>> getAll() {
-        return allResView;
-    }
-
     /**
      * create a resource that is generated from another resource.
      * @param source    a resource generating an element of type A
@@ -89,6 +83,14 @@ public abstract class Resource<T> implements Serializable {
             Resource<A> source, ResourceConverter<A, B> extractor, ResourceCleaner<B> cleanup
     ) {
         return new GeneratorResource<>(() -> extractor.apply(source.get()), cleanup);
+    }
+
+    public static void cycle() {
+        int size = allResources.size();
+        // ignore all elements added during this loop
+        for (int i = 0; i < size; i++) {
+            allResources.get(i).cool();
+        }
     }
 
     /** serializable version of {@link Supplier} */

@@ -56,6 +56,6 @@ public class STexturedPanel extends SComponent {
         int xHBorder = (width - minWidth) / 2;
         int yHBorder = (height - minHeight) / 2;
         design.getPainter()
-                .drawImage(nvgTextID, screenPosition.x() + xHBorder, screenPosition.y() + yHBorder, minWidth, minHeight);
+                .drawImage(nvgTextID, screenPosition.x() + xHBorder, screenPosition.y() + yHBorder, minWidth, minHeight, 0, 1);
     }
 }

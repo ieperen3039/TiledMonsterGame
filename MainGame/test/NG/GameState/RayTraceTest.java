@@ -12,8 +12,8 @@ import NG.GUIMenu.HUD.HUDManager;
 import NG.GameMap.AbstractMap;
 import NG.GameMap.EmptyMap;
 import NG.GameMap.GameMap;
-import NG.InputHandling.MouseToolCallbacks;
 import NG.InputHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.Settings.Settings;
 import NG.Tools.Logger;
@@ -173,7 +173,6 @@ public class RayTraceTest {
 
         @Override
         public void onScroll(float value) {
-            game.get(Camera.class).onScroll(value);
             Logger.DEBUG.print(value);
         }
     }

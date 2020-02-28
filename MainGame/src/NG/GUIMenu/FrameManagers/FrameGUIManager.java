@@ -4,7 +4,7 @@ import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.HUD.HUDManager;
-import NG.GUIMenu.Rendering.GUIPainter;
+import NG.GUIMenu.Rendering.NVGOverlay;
 
 /**
  * A class that manages frames of a game. New {@link SFrame} objects can be added using {@link #addFrame(SFrame)}
@@ -15,9 +15,9 @@ public interface FrameGUIManager extends HUDManager {
     /**
      * draws every frome, starting from the last to most previously focused.
      * @param painter the object for painting
-     * @see HUDManager#draw(GUIPainter)
+     * @see HUDManager#draw(NVGOverlay.Painter)
      */
-    void draw(GUIPainter painter);
+    void draw(NVGOverlay.Painter painter);
 
     /**
      * adds the given frame at a position that the frame manager assumes to be optimal

@@ -1,5 +1,6 @@
 package NG.GameEvent;
 
+import NG.Core.AbstractGameObject;
 import NG.Core.Game;
 import NG.Core.GameObject;
 import NG.Core.GameTimer;
@@ -10,7 +11,7 @@ import NG.Tools.Toolbox;
  * a generic event that happens on a predetermined time. Triggering of the event should result in a stimulus being
  * broadcasted.
  */
-public abstract class Event implements Comparable<Event>, Runnable, GameObject {
+public abstract class Event extends AbstractGameObject implements Comparable<Event>, Runnable, GameObject {
     protected final float eventTime;
 
     /**
@@ -37,7 +38,6 @@ public abstract class Event implements Comparable<Event>, Runnable, GameObject {
      */
     public static class DebugEvent extends Event {
         private final float recurrence;
-        private transient Game game;
         private final int id;
         private static int nextID = 0;
 
@@ -72,8 +72,7 @@ public abstract class Event implements Comparable<Event>, Runnable, GameObject {
         }
 
         @Override
-        public void restore(Game game) {
-            this.game = game;
+        protected void restoreFields(Game game) {
         }
     }
 }

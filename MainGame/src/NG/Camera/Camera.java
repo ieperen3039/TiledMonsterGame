@@ -1,7 +1,6 @@
 package NG.Camera;
 
 import NG.Core.GameAspect;
-import NG.InputHandling.MouseScrollListener;
 import NG.Settings.Settings;
 import org.joml.Matrix4f;
 import org.joml.Vector3fc;
@@ -12,7 +11,7 @@ import org.joml.Vector3fc;
  * @author Geert van Ieperen created on 29-10-2017.
  * @see TycoonFixedCamera
  */
-public interface Camera extends GameAspect, MouseScrollListener {
+public interface Camera extends GameAspect {
     /**
      * the direction vector of the eye of the camera to the focus of the camera.
      * @return {@link #getEye()}.to({@link #getFocus()}) The length of this vector may differ by implementation

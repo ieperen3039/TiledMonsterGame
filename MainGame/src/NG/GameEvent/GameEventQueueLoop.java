@@ -4,6 +4,7 @@ import NG.CollisionDetection.GameState;
 import NG.Core.AbstractGameLoop;
 import NG.Core.Game;
 import NG.Core.GameTimer;
+import NG.InputHandling.EventCallbacks;
 
 import java.io.Serializable;
 import java.util.PriorityQueue;
@@ -46,6 +47,7 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Serializable
     protected void update(float deltaTime) throws Exception {
         GameTimer timer = game.get(GameTimer.class);
         GameState state = game.get(GameState.class);
+        EventCallbacks callbacks = game.get(EventCallbacks.class);
 
         timer.updateGameTime();
         float gameTime = timer.getGametime();
@@ -76,6 +78,7 @@ public class GameEventQueueLoop extends AbstractGameLoop implements Serializable
              * then the state has already been updated past this new event.
              */
             next.run();
+            callbacks.notifyEvent(next);
 
             lockQueueEdit.lock();
             eventQueue.remove();

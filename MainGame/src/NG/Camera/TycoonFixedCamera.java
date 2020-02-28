@@ -1,10 +1,7 @@
 package NG.Camera;
 
 import NG.Core.Game;
-import NG.InputHandling.KeyMouseCallbacks;
-import NG.InputHandling.KeyPressListener;
-import NG.InputHandling.KeyReleaseListener;
-import NG.InputHandling.MousePositionListener;
+import NG.InputHandling.*;
 import NG.Rendering.GLFWWindow;
 import NG.Settings.KeyBinding;
 import NG.Settings.Settings;
@@ -18,7 +15,8 @@ import static NG.Camera.TycoonFixedCamera.MoveDirection.*;
  * A camera implementation that can be moved by holding the mouse to the corners of the screen
  * @author Geert van Ieperen. Created on 18-11-2018.
  */
-public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPressListener, KeyReleaseListener {
+public class TycoonFixedCamera
+        implements Camera, MousePositionListener, MouseScrollListener, KeyPressListener, KeyReleaseListener {
     private static final int SCREEN_MOVE_BORDER_SIZE = 20;
     private static final float ZOOM_SPEED_LIMIT = 0.03f;
     private static final float ROTATION_MODIFIER = 1f;
@@ -51,6 +49,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
         callbacks.addMousePositionListener(this);
         callbacks.addKeyPressListener(this);
         callbacks.addKeyReleaseListener(this);
+        callbacks.addMouseScrollListener(this);
     }
 
     @Override
@@ -62,8 +61,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
     public void updatePosition(float deltaTime) {
         // prevent overshooting when camera is not updated.
         if (deltaTime > 0.5f) return;
-
-//        if (!game.get(KeyMouseCallbacks.class).mouseIsOnMap()) return;
+        boolean hasChanged = false;
 
         Vector3f eyeDir = new Vector3f(eyeOffset);
         GLFWWindow window = game.get(GLFWWindow.class);
@@ -79,6 +77,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
             float value = positionToMovement(corrMouseXPos) * deltaTime;
             eyeDir.normalize(value).cross(getUpVector());
             focus.add(eyeDir.x, eyeDir.y, 0);
+            hasChanged = true;
 
         } else {
             int xInv = width - corrMouseXPos;
@@ -86,6 +85,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
                 float value = positionToMovement(xInv) * deltaTime;
                 eyeDir.normalize(value).cross(getUpVector());
                 focus.sub(eyeDir.x, eyeDir.y, 0);
+                hasChanged = true;
             }
         }
 
@@ -95,6 +95,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
             float value = positionToMovement(corrMouseYPos) * deltaTime;
             eyeDir.normalize(value);
             focus.sub(eyeDir.x, eyeDir.y, 0);
+            hasChanged = true;
 
         } else {
             int yInv = height - corrMouseYPos;
@@ -102,6 +103,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
                 float value = positionToMovement(yInv) * deltaTime;
                 eyeDir.normalize(value);
                 focus.add(eyeDir.x, eyeDir.y, 0);
+                hasChanged = true;
             }
         }
 
@@ -109,7 +111,10 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
             float angle = deltaTime * ROTATION_MODIFIER;
             if (cameraRotation == RIGHT) angle = -angle;
             eyeOffset.rotateZ(angle);
+            hasChanged = true;
         }
+
+        if (hasChanged) game.get(EventCallbacks.class).notifyCamera(this);
     }
 
     @Override
@@ -132,6 +137,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
         this.focus.set(focus);
         Vector3f offset = new Vector3f(eye).sub(focus);
         this.eyeOffset.set(offset);
+        game.get(EventCallbacks.class).notifyCamera(this);
     }
 
     @Override
@@ -141,6 +147,7 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
 
     @Override
     public void onScroll(float value) {
+        if (!game.get(KeyMouseCallbacks.class).mouseIsOnMap()) return;
         Settings s = game.get(Settings.class);
         float zoomSpeed = s.CAMERA_ZOOM_SPEED;
         int maxZoom = s.MAX_CAMERA_DIST;
@@ -154,6 +161,8 @@ public class TycoonFixedCamera implements Camera, MousePositionListener, KeyPres
         } else if (eyeOffset.lengthSquared() < minZoom * minZoom) {
             eyeOffset.normalize(minZoom);
         }
+
+        game.get(EventCallbacks.class).notifyCamera(this);
     }
 
     @Override

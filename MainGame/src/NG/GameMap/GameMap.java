@@ -78,6 +78,12 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, External
      */
     Vector3f getPosition(int x, int y);
 
+    /** returns the floating-point transformation to coordinates */
+    Vector2f getCoordPosf(Vector3fc position);
+
+    /** returns the floating-point transformation to coordinates */
+    Vector2f getCoordDirf(Vector3fc direction);
+
     /**
      * draws the map on the screen.
      * @param gl the gl object to draw with

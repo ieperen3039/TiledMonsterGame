@@ -154,12 +154,6 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         return 1;
     }
 
-    /** returns the floating-point transformation to coordinates */
-    protected abstract Vector2f getCoordDirf(Vector3fc direction);
-
-    /** returns the floating-point transformation to coordinates */
-    protected abstract Vector2f getCoordPosf(Vector3fc origin);
-
     /**
      * computes the intersection of a ray on the given coordinate
      * @param origin    the origin of the ray in real space

@@ -1,23 +1,20 @@
 package NG.GUIMenu.HUD;
 
-import NG.Camera.Camera;
 import NG.Core.Game;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.Components.*;
 import NG.GUIMenu.Rendering.BaseLF;
-import NG.GUIMenu.Rendering.GUIPainter;
 import NG.GUIMenu.Rendering.NGFonts;
+import NG.GUIMenu.Rendering.NVGOverlay;
 import NG.GUIMenu.Rendering.SFrameLookAndFeel;
-import NG.GameMap.GameMap;
-import NG.InputHandling.MouseToolCallbacks;
 import NG.InputHandling.MouseTools.CommandProvider;
 import NG.InputHandling.MouseTools.EntitySelectedMouseTool;
 import NG.InputHandling.MouseTools.MouseTool;
+import NG.InputHandling.MouseTools.MouseToolCallbacks;
 import NG.Living.MonsterSoul;
 import NG.Living.Player;
 import NG.Rendering.Textures.GenericTextures;
-import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
 import java.util.*;
@@ -46,7 +43,7 @@ public class MonsterHud extends SimpleHUD {
         if (this.game != null) return;
         super.init(game);
 
-        minimap = new MiniMap(game, UI_INFO_BAR_SIZE, UI_INFO_BAR_SIZE);
+        minimap = new MiniMap(game, UI_INFO_BAR_SIZE, UI_INFO_BAR_SIZE, true);
 
         bottomBox = new SComponentArea(0, TEXT_BOX_HEIGHT);
         bottomBox.setGrowthPolicy(true, false);
@@ -65,7 +62,7 @@ public class MonsterHud extends SimpleHUD {
     }
 
     @Override
-    public void draw(GUIPainter painter) {
+    public void draw(NVGOverlay.Painter painter) {
         for (MonsterSoul monster : game.get(Player.class).getTeam()) {
             SPanel panel = teamPanels.get(monster);
             if (panel == null) {
@@ -74,9 +71,6 @@ public class MonsterHud extends SimpleHUD {
                 teamPanels.put(monster, panel);
             }
         }
-
-        Vector2i focusCoord = game.get(GameMap.class).getCoordinate(game.get(Camera.class).getFocus());
-        minimap.setFocus(focusCoord);
 
         super.draw(painter);
 
@@ -201,6 +195,7 @@ public class MonsterHud extends SimpleHUD {
     @Override
     public void cleanup() {
         freeFloatingElements.clear();
+        minimap.cleanup();
         super.cleanup();
     }
 

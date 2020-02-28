@@ -1,11 +1,10 @@
-package NG.InputHandling;
+package NG.InputHandling.MouseTools;
 
 import NG.Core.Game;
 import NG.Core.GameAspect;
 import NG.DataStructures.Tracked.TrackedFloat;
 import NG.GUIMenu.HUD.HUDManager;
-import NG.InputHandling.MouseTools.DefaultMouseTool;
-import NG.InputHandling.MouseTools.MouseTool;
+import NG.InputHandling.*;
 import NG.Rendering.GLFWWindow;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
@@ -30,6 +29,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
     private final Collection<KeyPressListener> keyPressListeners = new ArrayList<>();
     private final Collection<KeyReleaseListener> keyReleaseListeners = new ArrayList<>();
     private final Collection<MousePositionListener> mousePositionListeners = new ArrayList<>();
+    private final Collection<MouseScrollListener> mouseScrollListeners = new ArrayList<>();
 
     private DefaultMouseTool DEFAULT_MOUSE_TOOL;
 
@@ -62,13 +62,11 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
         taskScheduler.shutdown();
     }
 
-    @Override
     public void setMouseTool(MouseTool tool) {
         currentTool = Objects.requireNonNullElse(tool, DEFAULT_MOUSE_TOOL);
         Logger.DEBUG.print("Set mousetool to " + currentTool);
     }
 
-    @Override
     public MouseTool getMouseTool() {
         return currentTool;
     }
@@ -89,7 +87,6 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
         return true;
     }
 
-    @Override
     public MouseTool getDefaultMouseTool() {
         return DEFAULT_MOUSE_TOOL;
     }
@@ -97,6 +94,11 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
     @Override
     public void addMousePositionListener(MousePositionListener listener) {
         mousePositionListeners.add(listener);
+    }
+
+    @Override
+    public void addMouseScrollListener(MouseScrollListener listener) {
+        mouseScrollListeners.add(listener);
     }
 
     @Override
@@ -113,10 +115,11 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
     @SuppressWarnings("SuspiciousMethodCalls")
     public boolean removeListener(Object listener) {
         boolean mp = mousePositionListeners.remove(listener);
+        boolean ms = mouseScrollListeners.remove(listener);
         boolean kp = keyPressListeners.remove(listener);
         boolean kr = keyReleaseListeners.remove(listener);
 
-        return mp || kp || kr;
+        return mp || ms || kp || kr;
     }
 
     /**
@@ -182,6 +185,7 @@ public class MouseToolCallbacks implements GameAspect, KeyMouseCallbacks {
         @Override
         public void invoke(long window, double xoffset, double yoffset) {
             currentTool.onScroll((float) yoffset);
+            mouseScrollListeners.forEach(l -> l.onScroll((float) yoffset));
         }
     }
 

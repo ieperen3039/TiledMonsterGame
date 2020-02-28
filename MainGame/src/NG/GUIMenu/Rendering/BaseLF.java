@@ -9,8 +9,8 @@ import org.joml.Vector2ic;
 
 import java.util.EnumSet;
 
-import static NG.GUIMenu.Rendering.GUIPainter.Alignment.*;
 import static NG.GUIMenu.Rendering.NGFonts.ORBITRON_MEDIUM;
+import static NG.GUIMenu.Rendering.NVGOverlay.Alignment.*;
 
 /**
  * Little more than the absolute basic appearance of a GUI
@@ -32,7 +32,7 @@ public class BaseLF implements SFrameLookAndFeel {
     private static final Color4f INPUT_FIELD_COLOR = Color4f.LIGHT_GREY;
     private Color4f SELECTION_COLOR = Color4f.TRANSPARENT_GREY;
 
-    private GUIPainter hud;
+    private NVGOverlay.Painter hud;
 
     @Override
     public void init(Game game) {
@@ -42,14 +42,14 @@ public class BaseLF implements SFrameLookAndFeel {
     }
 
     @Override
-    public void setPainter(GUIPainter painter) {
+    public void setPainter(NVGOverlay.Painter painter) {
         this.hud = painter;
         painter.setFillColor(PANEL_COLOR);
         painter.setStroke(STROKE_COLOR, STROKE_WIDTH);
     }
 
     @Override
-    public GUIPainter getPainter() {
+    public NVGOverlay.Painter getPainter() {
         return hud;
     }
 
@@ -169,7 +169,7 @@ public class BaseLF implements SFrameLookAndFeel {
                 break;
             case CENTER:
                 hud.text(x + (width / 2), y + (height / 2), actualSize,
-                        font, EnumSet.noneOf(GUIPainter.Alignment.class), textColor, text
+                        font, EnumSet.noneOf(NVGOverlay.Alignment.class), textColor, text
                 );
                 break;
             case CENTER_TOP:

@@ -67,11 +67,6 @@ public class StaticCamera implements Camera {
     }
 
     @Override
-    public void onScroll(float value) {
-
-    }
-
-    @Override
     public void cleanup() {
 
     }

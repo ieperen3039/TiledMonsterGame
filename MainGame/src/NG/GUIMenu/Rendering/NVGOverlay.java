@@ -36,12 +36,12 @@ public final class NVGOverlay {
     private final ByteBuffer[] fontBuffer = new ByteBuffer[NGFonts.values().length];
     private Map<Path, Integer> imageBuffer = new HashMap<>();
 
-    private final Collection<Consumer<GUIPainter>> drawBuffer = new ArrayList<>();
+    private final Collection<Consumer<Painter>> drawBuffer = new ArrayList<>();
     private final Lock drawBufferLock = new ReentrantLock();
 
     /**
-     * @throws IOException If an error occurs during the setup of the Hud.
      * @param antialiasLevel
+     * @throws IOException If an error occurs during the setup of the Hud.
      */
     public void init(int antialiasLevel) throws IOException {
         if (antialiasLevel > 0) {
@@ -75,7 +75,7 @@ public final class NVGOverlay {
         }
     }
 
-    public void addHudItem(Consumer<GUIPainter> render) {
+    public void addHudItem(Consumer<Painter> render) {
         if (render == null) return;
 
         drawBufferLock.lock();
@@ -86,7 +86,7 @@ public final class NVGOverlay {
         }
     }
 
-    public void removeHudItem(Consumer<GUIPainter> render) {
+    public void removeHudItem(Consumer<Painter> render) {
         if (render == null) return;
 
         drawBufferLock.lock();
@@ -104,7 +104,7 @@ public final class NVGOverlay {
      * @param cameraPosition position of camera
      */
     public void draw(int windowWidth, int windowHeight, Vector3f cameraPosition) {
-        GUIPainter vanGogh = new Painter(windowWidth, windowHeight, cameraPosition, 5, 5, 24);
+        Painter vanGogh = new Painter(windowWidth, windowHeight, cameraPosition, 5, 5, 24);
         draw(windowWidth, windowHeight, vanGogh);
     }
 
@@ -116,14 +116,14 @@ public final class NVGOverlay {
      * @param rollSize     font size of ''
      */
     public void draw(int windowWidth, int windowHeight, int xRoll, int yRoll, int rollSize) {
-        GUIPainter bobRoss = new Painter(windowWidth, windowHeight, Vectors.Z, xRoll, yRoll, rollSize);
+        Painter bobRoss = new Painter(windowWidth, windowHeight, Vectors.Z, xRoll, yRoll, rollSize);
         draw(windowWidth, windowHeight, bobRoss);
     }
 
     /**
      * draw using the given painter
      */
-    private synchronized void draw(int windowWidth, int windowHeight, GUIPainter painter) {
+    private synchronized void draw(int windowWidth, int windowHeight, Painter painter) {
         // this should be the case
         glViewport(0, 0, windowWidth, windowHeight);
         // Begin NanoVG frame
@@ -145,7 +145,11 @@ public final class NVGOverlay {
         glEnable(GL_STENCIL_TEST);
     }
 
-    public class Painter implements GUIPainter {
+    public enum Alignment {
+        ALIGN_LEFT, ALIGN_RIGHT, ALIGN_TOP, ALIGN_BOTTOM
+    }
+
+    public class Painter {
         private final int printRollSize;
         private final int yPrintRoll;
         private final int xPrintRoll;
@@ -203,13 +207,21 @@ public final class NVGOverlay {
             return toBuffer(color.red, color.green, color.blue, color.alpha);
         }
 
-        @Override
+        /**
+         * sets the basic fill color of this painter to the given color
+         * @param color a color, where the alpha value gives the opacity of the object
+         */
         public void setFillColor(Color4f color) {
             this.fillColor = color;
             nvgFillColor(vg, toBuffer(color));
         }
 
-        @Override
+        /**
+         * sets the basic stroke syle of this painter
+         * @param color the color of the stroke, if alpha is less than 1, the edge of the fill underneath will be
+         *              visible
+         * @param width the width of the stroke in pixels
+         */
         public void setStroke(Color4f color, int width) {
             this.strokeWidth = width;
             this.strokeColor = color;
@@ -217,7 +229,10 @@ public final class NVGOverlay {
             nvgStrokeColor(vg, toBuffer(color));
         }
 
-        @Override
+        /**
+         * draws a rectangle using the basic fill and stroke style
+         * @see #rectangle(int, int, int, int, Color4f, Color4f, int)
+         */
         public void rectangle(int x, int y, int width, int height) {
             assert width >= 0 : "Negative width: " + width + " (height = " + height + ")";
             assert height >= 0 : "Negative height: " + height + " (width = " + width + ")";
@@ -229,7 +244,17 @@ public final class NVGOverlay {
             nvgStroke(vg);
         }
 
-        @Override
+        /**
+         * draws a rectangle on the given position with the given style. After this method call, the colors are reset to
+         * the basic colors
+         * @param x           the x position in pixels relative to the leftmost position on the GL frame
+         * @param y           the y position in pixels relative to the topmost position on the GL frame
+         * @param width       the width of this rectangle in pixels
+         * @param height      the height of this rectangle in pixels
+         * @param fillColor   the color used for the background of this rectangle
+         * @param strokeColor the color used for the line around this rectangle
+         * @param strokeWidth the width of the line around this rectangle
+         */
         public void rectangle(
                 int x, int y, int width, int height, Color4f fillColor, Color4f strokeColor, int strokeWidth
         ) {
@@ -250,7 +275,12 @@ public final class NVGOverlay {
             nvgStrokeColor(vg, toBuffer(strokeColor));
         }
 
-        @Override
+        /**
+         * draws a circle with the given middle and radius
+         * @param x      the x coordinate of the middle of this circle
+         * @param y      the y coordinate of the middle of this circle
+         * @param radius the radius of this circle
+         */
         public void circle(int x, int y, int radius) {
             nvgBeginPath(vg);
             nvgCircle(vg, x, y, radius);
@@ -259,7 +289,14 @@ public final class NVGOverlay {
             nvgStroke(vg);
         }
 
-        @Override
+        /**
+         * Draws a polygon by drawing a line along the given points, connecting the last point with the first.After this
+         * method call, the colors are reset to the basic colors
+         * @param fillColor   the color used for the background of this polygon
+         * @param strokeColor the color used for the line around this polygon
+         * @param strokeWidth the width of the line around this polygon
+         * @param points      the points used to draw this polygon
+         */
         public void polygon(Color4f fillColor, Color4f strokeColor, int strokeWidth, Vector2i... points) {
             nvgFillColor(vg, toBuffer(fillColor));
             nvgStrokeColor(vg, toBuffer(strokeColor));
@@ -268,7 +305,10 @@ public final class NVGOverlay {
             restoreColors();
         }
 
-        @Override
+        /**
+         * Draws a polygon by drawing a line along the given points, connecting the last point with the first.
+         * @param points the points used to draw this polygon
+         */
         public void polygon(Vector2i... points) {
             nvgBeginPath(vg);
 
@@ -281,7 +321,10 @@ public final class NVGOverlay {
             nvgStroke(vg);
         }
 
-        @Override
+        /**
+         * draw a line along the given coordinates
+         * @param points (x, y) pairs of screen coordinates
+         */
         public void line(int strokeWidth, Color4f strokeColor, Vector2i... points) {
             nvgStrokeColor(vg, toBuffer(strokeColor));
             nvgStrokeWidth(vg, strokeWidth);
@@ -298,7 +341,20 @@ public final class NVGOverlay {
 
         // non-shape functions
 
-        @Override
+        /**
+         * @param x         x coordinate of the top-left position of the text
+         * @param y         y coordinate of the top-left position of the text
+         * @param size      font size in pixels
+         * @param font      the font to use
+         * @param alignment the alignment, one of One of:<br><table><tr>
+         *                  <td>{@link Alignment#ALIGN_LEFT}</td>
+         *                  <td>{@link Alignment#ALIGN_RIGHT}</td>
+         *                  <td>{@link Alignment#ALIGN_TOP}</td>
+         *                  <td>{@link Alignment#ALIGN_BOTTOM}</td>
+         *                  </tr></table>
+         * @param color     the color of the text
+         * @param text      the text to write
+         */
         public void text(
                 int x, int y, float size, NGFonts font, EnumSet<Alignment> alignment, Color4f color, String text
         ) {
@@ -335,7 +391,7 @@ public final class NVGOverlay {
             return alignFlags;
         }
 
-        @Override
+        /** for debugging purposes. Prints the given text in the upper left corner of the screen */
         public void printRoll(String text) {
             int y = yPrintRoll + ((printRollSize + 5) * printRollEntry);
 
@@ -343,7 +399,9 @@ public final class NVGOverlay {
             printRollEntry++;
         }
 
-        @Override
+        /**
+         * executes the action outside the GUI rendering context
+         */
         public void render(Runnable action) {
             nvgEndFrame(vg);
             glEnable(GL_DEPTH_TEST);
@@ -356,35 +414,67 @@ public final class NVGOverlay {
             restoreColors();
         }
 
-        @Override
+        /**
+         * create an image based on a buffer with bytes in RGBA format
+         * @param buffer the contents to write
+         * @return the nvg id of the image
+         */
         public int createImageFromBuffer(ByteBuffer buffer, int width, int height) {
             return nvgCreateImageRGBA(vg, width, height, NVG_IMAGE_NEAREST, buffer);
         }
 
-        @Override
+        /**
+         * updates the image from a buffer with bytes in RGBA format
+         * @param nvgID  the nvg id of the image
+         * @param buffer the contents to write
+         */
         public void updateImageFromBuffer(int nvgID, ByteBuffer buffer) {
             nvgUpdateImage(vg, nvgID, buffer);
         }
 
-        @Override
+        /**
+         * create an image based on file location
+         * @return the nvg id
+         */
         public int createImage(Path filePath, int imageFlags) {
             return nvgCreateImage(vg, filePath.toString(), imageFlags);
         }
 
-        @Override
-        public void drawImage(int imageID, int x, int y, int width, int height) {
-            nvgStrokeWidth(vg, 0);
-            NVGPaint p = nvgImagePattern(vg, x, y, width, height, 0, imageID, 1, paint);
-
-            rectangle(x, y, width, height);
-
+        /**
+         * draws a previously created nvg image
+         * @param imageID the id of the image to draw, obtained from either createImage or createImageFromTexture
+         * @param angle   the rotation angle in radians
+         * @param scale
+         */
+        public void drawImage(int imageID, int x, int y, int width, int height, float angle, float scale) {
+            // note: the magic in this function is rather fragile
+            // translate to middle of area-to-draw
+            nvgTranslate(vg, x + width / 2f, y + height / 2f);
+            // then rotate
+            nvgRotate(vg, angle);
+            // then draw pattern around (0, 0)
+            NVGPaint p = nvgImagePattern(vg,
+                    -width * 0.5f * scale, -height * 0.5f * scale,
+                    width * scale, height * scale, 0, imageID, 1, paint
+            );
             nvgFillPaint(vg, p);
+            // reset before drawing
+            nvgResetTransform(vg);
+
+            nvgStrokeWidth(vg, 0);
+
+            nvgBeginPath(vg);
+            // set are to draw as usual
+            nvgRect(vg, x, y, width, height);
             nvgFill(vg);
 
             restoreColors();
         }
 
-        @Override
+        /**
+         * @param text any string
+         * @return the width of the text displayed in pixels
+         */
         public int getTextWidth(String text, float size, NGFonts font) {
             return (int) nvgTextBounds(vg, 0, 0, text, (FloatBuffer) null);
         }

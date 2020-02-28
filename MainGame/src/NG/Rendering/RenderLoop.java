@@ -7,7 +7,6 @@ import NG.Core.Game;
 import NG.Core.GameAspect;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
-import NG.GUIMenu.Rendering.GUIPainter;
 import NG.GUIMenu.Rendering.NVGOverlay;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.Rendering.Lights.GameLights;
@@ -135,7 +134,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
         timeObserver.startTiming("Loop Overhead");
     }
 
-    public void addHudItem(Consumer<GUIPainter> draw) {
+    public void addHudItem(Consumer<NVGOverlay.Painter> draw) {
         overlay.addHudItem(draw);
     }
 

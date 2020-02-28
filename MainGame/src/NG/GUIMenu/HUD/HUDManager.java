@@ -2,7 +2,7 @@ package NG.GUIMenu.HUD;
 
 import NG.Core.GameAspect;
 import NG.GUIMenu.Components.SComponent;
-import NG.GUIMenu.Rendering.GUIPainter;
+import NG.GUIMenu.Rendering.NVGOverlay;
 import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.MouseTools.MouseToolListener;
 
@@ -15,7 +15,7 @@ public interface HUDManager extends GameAspect, MouseToolListener {
      * draws the elements of this HUD
      * @param painter
      */
-    void draw(GUIPainter painter);
+    void draw(NVGOverlay.Painter painter);
 
     /**
      * adds a component to the hud. The position of the component may be changed as a result of this call.

@@ -10,7 +10,7 @@ import NG.DataStructures.Generic.Color4f;
 import NG.GUIMenu.FrameManagers.FrameManagerImpl;
 import NG.GameMap.GameMap;
 import NG.GameMap.TileMap;
-import NG.InputHandling.MouseToolCallbacks;
+import NG.InputHandling.MouseTools.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.Lights.SingleShadowMapLights;

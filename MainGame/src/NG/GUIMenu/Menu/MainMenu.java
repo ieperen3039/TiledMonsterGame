@@ -27,11 +27,11 @@ import NG.Rendering.Lights.GameLights;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
+import NG.Rendering.Pointer;
 import NG.Rendering.RenderLoop;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
-import NG.Rendering.TilePointer;
 import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -105,7 +105,7 @@ public class MainMenu extends SFrame {
         HUDManager targetGUI = overworld.get(HUDManager.class);
         Vector3fc center = overworld.get(Camera.class).getEye();
 
-        overworld.get(TilePointer.class).setVisible(false);
+        overworld.get(Pointer.class).setVisible(false);
 
         targetGUI.addElement(new SFrame("EXPLOSIONS").setMainPanel(SContainer.column(
                 new STextArea("MR. TORGUE APPROVES", SButton.BUTTON_MIN_HEIGHT),
@@ -144,7 +144,7 @@ public class MainMenu extends SFrame {
 
             // set camera to middle of map
             Vector3f cameraFocus = centerCamera(overworld.get(Camera.class), gameMap);
-            overworld.get(TilePointer.class).setVisible(true);
+            overworld.get(Pointer.class).setVisible(true);
 
             /* --- DEBUG SECTION --- */
             Player player = overworld.get(Player.class);
@@ -208,7 +208,7 @@ public class MainMenu extends SFrame {
         modelSelection.addStateChangeListener(i -> demonstrator.setModel(models[i]));
 
 
-        overworld.get(TilePointer.class).setVisible(false);
+        overworld.get(Pointer.class).setVisible(false);
         overworld.get(RenderLoop.class).renderSequence(null)
                 .add(gl -> {
                     gl.translate(-1, -1, 0);

@@ -7,7 +7,7 @@ import NG.GUIMenu.Components.*;
 import NG.GUIMenu.FrameManagers.FrameGUIManager;
 import NG.GUIMenu.Menu.MainMenu;
 import NG.GameMap.*;
-import NG.InputHandling.MouseToolCallbacks;
+import NG.InputHandling.MouseTools.MouseToolCallbacks;
 import NG.Rendering.GLFWWindow;
 import NG.Rendering.Lights.GameLights;
 import NG.Rendering.RenderLoop;
@@ -287,7 +287,7 @@ public class MapEditor {
         window.open();
         renderloop.run();
         window.close();
-        game.get(MouseToolCallbacks.class).cleanup();
+        game.cleanup();
     }
 
     public static void main(String[] args) {

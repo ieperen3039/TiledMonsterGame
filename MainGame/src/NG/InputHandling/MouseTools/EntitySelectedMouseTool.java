@@ -7,7 +7,6 @@ import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GUIMenu.HUD.MonsterHud;
 import NG.GameMap.GameMap;
-import NG.InputHandling.KeyMouseCallbacks;
 import NG.Living.MonsterSoul;
 import NG.Rendering.Pointer;
 import NG.Tools.Logger;
@@ -56,7 +55,7 @@ public class EntitySelectedMouseTool extends DefaultMouseTool {
 
     private void deselect() {
         game.get(Pointer.class).setSelection(null);
-        game.get(KeyMouseCallbacks.class).setMouseTool(null);
+        game.get(MouseToolCallbacks.class).setMouseTool(null);
         receiver.entity().markAs(MonsterEntity.Mark.OWNED);
     }
 

@@ -24,12 +24,12 @@ public interface SFrameLookAndFeel extends InitialisationMod {
      * sets the LF to draw with the specified painter
      * @param painter a new, fresh Painter instance
      */
-    void setPainter(GUIPainter painter);
+    void setPainter(NVGOverlay.Painter painter);
 
     /**
      * @return the used painter instance
      */
-    GUIPainter getPainter();
+    NVGOverlay.Painter getPainter();
 
     enum Alignment {
         LEFT, CENTER, RIGHT,

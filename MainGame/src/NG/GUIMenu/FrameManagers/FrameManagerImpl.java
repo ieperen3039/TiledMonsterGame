@@ -6,7 +6,7 @@ import NG.GUIMenu.Components.SComponent;
 import NG.GUIMenu.Components.SFrame;
 import NG.GUIMenu.Components.SToolBar;
 import NG.GUIMenu.Rendering.BaseLF;
-import NG.GUIMenu.Rendering.GUIPainter;
+import NG.GUIMenu.Rendering.NVGOverlay;
 import NG.GUIMenu.Rendering.SFrameLookAndFeel;
 import NG.InputHandling.KeyMouseCallbacks;
 import NG.InputHandling.MouseScrollListener;
@@ -43,7 +43,7 @@ public class FrameManagerImpl implements FrameGUIManager {
     }
 
     @Override
-    public void draw(GUIPainter painter) {
+    public void draw(NVGOverlay.Painter painter) {
         assert hasLookAndFeel();
 
         frames.removeIf(SFrame::isDisposed);
