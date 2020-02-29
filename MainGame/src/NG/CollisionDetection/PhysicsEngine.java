@@ -10,7 +10,6 @@ import NG.GameMap.GameMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Settings.Settings;
 import NG.Tools.SerializationTools;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
@@ -64,39 +63,8 @@ public class PhysicsEngine implements GameState, Externalizable {
 
         assert startTime < endTime;
 
-        Vector3fc startPos = entity.getPositionAt(startTime);
-        Vector3fc endPos = entity.getPositionAt(endTime);
-
         GameMap map = game.get(GameMap.class);
-        float intersect = map.gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
-        if (intersect == 1) return;
-        // edge case: immediate collision, but still legal
-        if (intersect == 0 && endPos.z() > map.getHeightAt(endPos.x(), endPos.y())) {
-            Vector3fc delta = entity.getPositionAt(startTime + 0.001f);
-            assert delta.z() > map.getHeightAt(delta.x(), delta.y()) : "The fact that this triggered means that this is needed";
-            return;
-        }
-
-        // collision found
-        float collisionTime = startTime + intersect * (endTime - startTime);
-        Vector3fc midPos = entity.getPositionAt(collisionTime);
-
-        // only accept if the found position is sufficiently close to a checked point
-        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK) {
-            intersect = map.gridMapIntersection(startPos, new Vector3f(midPos).sub(startPos));
-
-            if (intersect < 1) {
-                collisionTime = startTime + intersect * (collisionTime - startTime);
-                endPos = midPos;
-
-            } else { // wrong half, repeat with other half
-                intersect = map.gridMapIntersection(midPos, new Vector3f(endPos).sub(midPos));
-                collisionTime = collisionTime + intersect * (endTime - collisionTime);
-                startPos = midPos;
-            }
-            midPos = entity.getPositionAt(collisionTime);
-        }
-
+        float collisionTime = map.getEntityCollision(movingEntity, startTime, endTime);
         entity.collideWith(map, collisionTime);
     }
 

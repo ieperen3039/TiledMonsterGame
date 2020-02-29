@@ -147,12 +147,18 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, External
             BoundingBox hitbox, Vector3fc origin, Vector3fc direction, float maximum
     );
 
-    default float checkCollision(MovingEntity entity, float startTime, float endTime) {
+    default float getEntityCollision(MovingEntity entity, float startTime, float endTime) {
         Vector3fc startPos = entity.getPositionAt(startTime);
         Vector3fc endPos = entity.getPositionAt(endTime);
 
         float intersect = gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
-        if (intersect == 1) return 1;
+        if (intersect == 1) return endTime;
+        // edge case: immediate collision, but still legal
+        if (intersect == 0 && endPos.z() > getHeightAt(endPos.x(), endPos.y())) {
+            Vector3fc delta = entity.getPositionAt(startTime + 0.001f);
+            assert delta.z() > getHeightAt(delta.x(), delta.y()) : "If this assert triggers, then this additional check must be incorporated.";
+            return endTime;
+        }
 
         // collision found
         float collisionTime = startTime + intersect * (endTime - startTime);
@@ -171,9 +177,11 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, External
                 collisionTime = collisionTime + intersect * (endTime - collisionTime);
                 startPos = midPos;
             }
+
+            midPos = entity.getPositionAt(collisionTime);
         }
 
-        return intersect;
+        return collisionTime;
     }
 
     default boolean isOnFloor(Vector3fc position) {
