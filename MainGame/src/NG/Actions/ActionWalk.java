@@ -1,5 +1,7 @@
 package NG.Actions;
 
+import NG.Actions.ActionMarkers.ActionMarker;
+import NG.Actions.ActionMarkers.ActionMarkerArrow;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
@@ -17,6 +19,7 @@ public class ActionWalk implements EntityAction {
     protected final Vector2fc startToEnd;
     protected final float duration;
     private final UniversalAnimation animation;
+    private final ActionMarkerArrow marker;
     private transient Game game;
 
     /**
@@ -57,6 +60,7 @@ public class ActionWalk implements EntityAction {
         startToEnd = new Vector2f(end.x() - startPosition.x(), end.y() - startPosition.y());
         duration = (start.distance(end)) / walkSpeed;
         animation = BodyAnimation.WALK_CYCLE;
+        marker = new ActionMarkerArrow(start, end);
     }
 
     @Override
@@ -96,5 +100,10 @@ public class ActionWalk implements EntityAction {
 
     public void restore(Game game) {
         this.game = game;
+    }
+
+    @Override
+    public ActionMarker getMarker() {
+        return marker;
     }
 }

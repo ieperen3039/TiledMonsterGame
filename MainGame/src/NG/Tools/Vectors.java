@@ -235,13 +235,11 @@ public final class Vectors {
      */
     public static Vector3f bezierPoint(Vector3fc A, Vector3fc B, Vector3fc C, Vector3fc D, double u) {
         Vector3f temp = new Vector3f();
-        Vector3f point = new Vector3f();
         //A*(1−u)^3 + B*3u(1−u)^2 + C*3u^2(1−u) + D*u^3
-        A.mul((float) ((1 - u) * (1 - u) * (1 - u)), point)
-                .add(B.mul((float) (3 * u * (1 - u) * (1 - u)), temp), point)
-                .add(C.mul((float) (3 * u * u * (1 - u)), temp), point)
-                .add(D.mul((float) (u * u * u), temp), point);
-        return point;
+        return new Vector3f(A).mul((float) ((1 - u) * (1 - u) * (1 - u)))
+                .add(B.mul((float) (3 * u * (1 - u) * (1 - u)), temp))
+                .add(C.mul((float) (3 * u * u * (1 - u)), temp))
+                .add(D.mul((float) (u * u * u), temp));
     }
 
     /**
@@ -258,6 +256,24 @@ public final class Vectors {
                 .add(C.sub(B, temp).mul((float) (6 * (1 - u) * u), temp), direction)
                 .add(D.sub(C, temp).mul((float) (3 * u * u), temp), direction);
         return direction;
+    }
+
+    /**
+     * swaps the contents of a and b
+     * @param a
+     * @param b
+     */
+    public static void swap(Vector3f a, Vector3f b) {
+        float t;
+        t = a.x;
+        a.x = b.x;
+        b.x = t;
+        t = a.y;
+        a.y = b.y;
+        b.y = t;
+        t = a.z;
+        a.z = b.z;
+        b.z = t;
     }
 
     /**

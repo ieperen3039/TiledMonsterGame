@@ -358,7 +358,7 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
 
             @Override
             public boolean hasNext() {
-                return times.hasNext() && !hasSeenLast;
+                return !hasSeenLast;
             }
 
             @Override

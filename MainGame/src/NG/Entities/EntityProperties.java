@@ -40,7 +40,7 @@ public class EntityProperties {
         this.name = "Cube Monster";
         this.hitPoints = 256;
         this.deltaHitPoints = 0;
-        this.jumpSpeed = 5f;
+        this.jumpSpeed = 10f;
         this.deltaJumpSpeed = 0;
         this.walkSpeed = 3f;
         this.deltaWalkSpeed = 0;

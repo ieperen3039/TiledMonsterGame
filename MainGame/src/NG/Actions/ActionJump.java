@@ -1,11 +1,14 @@
 package NG.Actions;
 
+import NG.Actions.ActionMarkers.ActionMarker;
+import NG.Actions.ActionMarkers.ActionMarkerGenerated;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Settings.Settings;
+import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Math;
@@ -13,20 +16,25 @@ import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
+import static java.lang.Math.*;
+
 /**
  * @author Geert van Ieperen created on 21-3-2019.
  */
 public class ActionJump implements EntityAction {
-    public static final CommandProvider JUMP_COMMAND = CommandProvider.actionCommand("Jump", (g, e, s, t) ->
-            new ActionJump(g, s, t, e.getController().props.jumpSpeed));
+    public static final CommandProvider JUMP_COMMAND = CommandProvider.actionCommand(
+            "Jump", (g, e, s, t) -> new ActionJump(g, s, t, e.getController().props.jumpSpeed)
+    );
+    public static final float SQRT2 = Math.sqrt(2);
 
     protected final Vector3fc start;
     protected final Vector3fc end;
     protected final float duration;
 
-    private final float a = -Settings.GRAVITY_CONSTANT;
+    private final float a;
     private final float b;
     private final float c;
+    private final ActionMarkerGenerated marker;
 
     public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord, float jumpSpeed) {
         this(startPosition, game.get(GameMap.class).getPosition(endCoord), jumpSpeed);
@@ -35,27 +43,33 @@ public class ActionJump implements EntityAction {
     public ActionJump(Vector3fc startPosition, Vector3fc endPosition, float jumpSpeed) {
         this.start = startPosition;
         this.end = endPosition;
-        this.duration = jumpDuration(jumpSpeed, startPosition, endPosition);
 
-        // float ax = 0;
-        float ay = startPosition.z();
-        float bx = duration;
-        float by = endPosition.z();
-        // derivation is somewhere on paper.
-//        b = ((ay - by) + (a * ax * ax - a * bx * bx)) / (ax - bx);
-//        c = a * ax * bx + (ax * by - ay * bx) / (ax - bx);
+        float xDiff = end.x() - start.x();
+        float yDiff = end.y() - start.y();
+        float hz = Math.sqrt(Math.fma(xDiff, xDiff, yDiff * yDiff));
+        float vt = end.z() - start.z();
+        float g = Settings.GRAVITY_CONSTANT;
+        float vSq = jumpSpeed * jumpSpeed;
 
-        if (bx == 0) {
-            b = 0;
-            c = end.z();
+        // see https://gamedev.stackexchange.com/questions/53552/how-can-i-find-a-projectiles-launch-angle
+        float determinant = vSq * vSq - g * (g * hz * hz + 2 * vt * vSq);
+
+        double theta = PI / 4;
+        if (determinant < 0) {
+            Logger.ASSERT.print("Can't jump that far");
+
         } else {
-            b = -((ay - by) + (a * bx * bx)) / (bx);
-            c = ay;
+            theta = Math.min(
+                    atan((vSq + Math.sqrt(determinant)) / (g * hz)),
+                    atan((vSq - Math.sqrt(determinant)) / (g * hz))
+            );
         }
+        a = -0.5f * g;
+        b = (float) (jumpSpeed * sin(theta));
+        c = start.z();
+        duration = (float) (hz / (Math.cos(theta) * jumpSpeed));
 
-        assert getPositionAt(duration).equals(endPosition, 1 / 128f) :
-                String.format("%s | %s | %s | %s", startPosition, endPosition, duration, getPositionAt(duration));
-
+        marker = new ActionMarkerGenerated(this);
     }
 
     @Override
@@ -68,9 +82,9 @@ public class ActionJump implements EntityAction {
         return true;
     }
 
-    public static float jumpDuration(float jumpSpeed, Vector3fc startPosition, Vector3fc endPosition) {
-        float distance = (float) Math.sqrt(startPosition.distance(endPosition)); // not entirely true, as this does take z into account
-        return (distance < (1 / 128f)) ? 0 : (distance / jumpSpeed);
+    @Override
+    public ActionMarker getMarker() {
+        return marker;
     }
 
     @Override
@@ -94,7 +108,7 @@ public class ActionJump implements EntityAction {
 
     @Override
     public String toString() {
-        return "Jump (to " + Vectors.toString(end) + ")";
+        return "Jump to " + Vectors.toString(end) + "";
     }
 }
 

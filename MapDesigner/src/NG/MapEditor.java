@@ -90,9 +90,9 @@ public class MapEditor {
 
         // world
         renderloop.renderSequence(new WorldBPShader())
-                .add(gl -> game.get(GameLights.class).draw(gl))
-                .add(gl -> blockMap.draw(gl))
-                .add(gl -> game.get(TileMap.class).draw(gl))
+                .add((gl, game) -> game.get(GameLights.class).draw(gl))
+                .add((gl, game) -> blockMap.draw(gl))
+                .add((gl, game) -> game.get(TileMap.class).draw(gl))
         ;
 
         FrameGUIManager gui = game.get(FrameGUIManager.class);

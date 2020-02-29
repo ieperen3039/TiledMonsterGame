@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -172,7 +173,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     public class RenderBundle {
         private ShaderProgram shader;
-        private List<Consumer<SGL>> targets;
+        private List<BiConsumer<SGL, Game>> targets;
 
         public RenderBundle(ShaderProgram shader) {
             this.shader = shader;
@@ -183,7 +184,7 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
          * appends the given consumer to the end of the render sequence
          * @return this
          */
-        public RenderBundle add(Consumer<SGL> drawable) {
+        public RenderBundle add(BiConsumer<SGL, Game> drawable) {
             targets.add(drawable);
             return this;
         }
@@ -199,11 +200,11 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
                 // GL object
                 SGL gl = shader.getGL(game);
 
-                for (Consumer<SGL> tgt : targets) {
-                    tgt.accept(gl);
+                for (BiConsumer<SGL, Game> tgt : targets) {
+                    tgt.accept(gl, game);
 
                     assert gl.getPosition(new Vector3f(1, 1, 1))
-                            .equals(new Vector3f(1, 1, 1));
+                            .equals(new Vector3f(1, 1, 1)) : "GL object has not been properly restored";
                 }
             }
             shader.unbind();

@@ -133,23 +133,23 @@ public class MonsterGame implements ModLoader {
 
         Logger.DEBUG.print("Installing basic elements...");
 
-        // dirty hack to mark unused resources
+        // hack to mark unused resources
         renderer.renderSequence(null)
-                .add(gl -> Resource.cycle());
+                .add((gl, game) -> Resource.cycle());
 
         // world
         renderer.renderSequence(new WorldBPShader())
-                .add(gl -> combinedGame.get(GameLights.class).draw(gl))
-                .add(gl -> combinedGame.get(GameMap.class).draw(gl));
+                .add((gl, game) -> game.get(GameLights.class).draw(gl))
+                .add((gl, game) -> game.get(GameMap.class).draw(gl));
         // entities
         renderer.renderSequence(new BlinnPhongShader())
-                .add(gl -> combinedGame.get(GameLights.class).draw(gl))
-                .add(gl -> combinedGame.get(GameState.class).draw(gl))
+                .add((gl, game) -> game.get(GameLights.class).draw(gl))
+                .add((gl, game) -> game.get(GameState.class).draw(gl))
                 // pointer
-                .add(gl -> combinedGame.get(Pointer.class).draw(gl));
+                .add((gl, game) -> game.get(Pointer.class).draw(gl));
         // particles
         renderer.renderSequence(new ParticleShader())
-                .add(gl -> combinedGame.get(GameParticles.class).draw(gl));
+                .add((gl, game) -> game.get(GameParticles.class).draw(gl));
 
         // GUIs
         renderer.addHudItem(painter -> combinedGame.get(HUDManager.class).draw(painter));
@@ -160,11 +160,11 @@ public class MonsterGame implements ModLoader {
 
         // hitboxes
         renderer.renderSequence(null)
-                .add(gl -> {
-                    if (!combinedGame.get(Settings.class).RENDER_HITBOXES) return;
+                .add((gl, game) -> {
+                    if (!game.get(Settings.class).RENDER_HITBOXES) return;
 
-                    float gametime = combinedGame.get(GameTimer.class).getGametime();
-                    List<BoundingBox> boxes = combinedGame.get(GameState.class)
+                    float gametime = game.get(GameTimer.class).getGametime();
+                    List<BoundingBox> boxes = game.get(GameState.class)
                             .entities().stream()
                             .map(e -> e.getHitbox(gametime))
                             .collect(Collectors.toList());

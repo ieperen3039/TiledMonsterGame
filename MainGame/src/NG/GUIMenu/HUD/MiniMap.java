@@ -65,7 +65,8 @@ public class MiniMap extends SComponent implements EventCallbacks.CameraListener
         float f = map.gridMapIntersection(cameraEye, cameraDirection);
         Vector3f cameraFocus = new Vector3f(cameraDirection).mul(f).add(cameraEye);
         Vector2f cameraFocusCoord = map.getCoordPosf(cameraFocus);
-        float zFocus = map.getHeightAt((int) cameraFocusCoord.x, (int) cameraFocusCoord.y);
+        float zFocus = isOnMap(cameraFocusCoord.x, cameraFocusCoord.y, map) ?
+                map.getHeightAt((int) cameraFocusCoord.x, (int) cameraFocusCoord.y) : 0;
 
         angle = (float) Math.atan2(-cameraDirection.y(), -cameraDirection.x());
 

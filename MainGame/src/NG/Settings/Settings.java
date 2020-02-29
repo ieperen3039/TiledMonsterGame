@@ -20,8 +20,8 @@ public class Settings {
     public static final int CHUNK_SIZE = 16; // number of tiles in a chunk
     public static final float TILE_SIZE = 2f;
     public static final float TILE_SIZE_Z = 0.5f;
-    public static final float GRAVITY_CONSTANT = 6f; // 9,81
-    public static final float MIN_COLLISION_CHECK_SQ = (EntityAction.ACCEPTABLE_DIFFERENCE * EntityAction.ACCEPTABLE_DIFFERENCE) / 2f; // squared
+    public static final float GRAVITY_CONSTANT = 10f; // 9,81
+    public static final float MIN_COLLISION_CHECK = EntityAction.ACCEPTABLE_DIFFERENCE / 2f;
 
     // video settings
     public int TARGET_FPS = 40;

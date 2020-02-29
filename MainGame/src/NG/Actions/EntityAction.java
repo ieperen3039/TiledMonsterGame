@@ -1,5 +1,6 @@
 package NG.Actions;
 
+import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
 import NG.Core.GameObject;
@@ -35,6 +36,8 @@ public interface EntityAction extends GameObject {
     default Vector3fc getEndPosition() {
         return getPositionAt(duration());
     }
+
+    ActionMarker getMarker();
 
     /**
      * @return the duration of the action in seconds.

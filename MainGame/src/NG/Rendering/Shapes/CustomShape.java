@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class CustomShape {
 
-    private final boolean invertMiddle;
+    private final boolean doInvertMiddle;
     private final Map<Vector3fc, Integer> points;
     private final List<Vector3fc> normals;
     private final List<Mesh.Face> faces;
@@ -45,12 +45,12 @@ public class CustomShape {
      * @param middle the middle of this object. More specifically, from this point, all normal vectors point outward
      *               except maybe for those that have their normal explicitly defined.
      */
-    public CustomShape(Vector3fc middle, boolean invertMiddle) {
+    public CustomShape(Vector3fc middle, boolean doInvertMiddle) {
         this.middle = middle;
         this.faces = new ArrayList<>();
         this.points = new Hashtable<>();
         this.normals = new ArrayList<>();
-        this.invertMiddle = invertMiddle;
+        this.doInvertMiddle = doInvertMiddle;
     }
 
     /**
@@ -95,7 +95,7 @@ public class CustomShape {
 
         final Vector3f direction = new Vector3f(B).sub(middle);
 
-        if ((normal.dot(direction) >= 0) != invertMiddle) {
+        if ((normal.dot(direction) >= 0) != doInvertMiddle) {
             addFinalQuad(A, B, C, D, normal);
         } else {
             normal.negate();
@@ -124,7 +124,7 @@ public class CustomShape {
         Vector3f normal = Vectors.getNormalVector(A, B, C);
         final Vector3f direction = new Vector3f(B).sub(middle);
 
-        if ((normal.dot(direction) >= 0) != invertMiddle) {
+        if ((normal.dot(direction) >= 0) != doInvertMiddle) {
             addFinalTriangle(A, B, C, normal);
         } else {
             normal.negate();
@@ -171,7 +171,10 @@ public class CustomShape {
      * @return index of the vector
      */
     private int addHitpoint(Vector3fc vector) {
-        points.putIfAbsent(vector, points.size());
+        if (!points.containsKey(vector)) {
+            points.put(new Vector3f(vector), points.size());
+        }
+
         return points.get(vector);
     }
 

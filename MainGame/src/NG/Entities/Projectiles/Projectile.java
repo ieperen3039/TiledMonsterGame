@@ -1,5 +1,6 @@
 package NG.Entities.Projectiles;
 
+import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.Entities.Entity;
@@ -51,6 +52,8 @@ public abstract class Projectile implements MovingEntity {
         float now = game.get(GameTimer.class).getRendertime();
         if (now < spawnTime) return;
 
+        getMarker().draw(gl);
+
         gl.pushMatrix();
         {
             gl.translate(getPositionAt(now));
@@ -58,6 +61,8 @@ public abstract class Projectile implements MovingEntity {
         }
         gl.popMatrix();
     }
+
+    protected abstract ActionMarker getMarker();
 
     /**
      * @param gl         draw the projectile, without additional positioning

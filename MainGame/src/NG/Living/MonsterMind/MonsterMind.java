@@ -89,7 +89,7 @@ public abstract class MonsterMind extends AbstractGameObject {
         GameMap map = game.get(GameMap.class);
         Vector2i coordinate = map.getCoordinate(position);
         if (!map.isOnFloor(position)) {
-            return new ActionJump(position, map.getPosition(coordinate), 4);
+            return new ActionJump(position, map.getPosition(coordinate), 5);
 
         } else if (map.getPosition(coordinate).distanceSquared(position) > 0.01f) {
             return new ActionWalk(game, position, coordinate);

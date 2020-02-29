@@ -1,5 +1,6 @@
 package NG.Actions;
 
+import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
@@ -28,7 +29,7 @@ public class ActionIdle implements EntityAction {
     /**
      * idle for a given duration.
      * @param coordinate the position to idle
-     * @param duration how long to stay idle
+     * @param duration   how long to stay idle
      */
     public ActionIdle(Game game, Vector2ic coordinate, float duration) {
         this(game.get(GameMap.class).getPosition(coordinate), duration);
@@ -76,5 +77,10 @@ public class ActionIdle implements EntityAction {
     @Override
     public boolean hasWorldCollision() {
         return false;
+    }
+
+    @Override
+    public ActionMarker getMarker() {
+        return ActionMarker.EMPTY_MARKER;
     }
 }

@@ -1,5 +1,6 @@
 package NG.Actions.Attacks;
 
+import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Actions.EntityAction;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
@@ -35,10 +36,10 @@ public class ActionFireProjectile implements EntityAction {
         this.duration = duration;
 
         float spawnTime = duration * aniFireMoment + startTime;
-        Vector3f spawnPosition = getPositionAt(duration / 2);
+        Vector3f heighestPoint = getPositionAt(duration / 2);
 
         // TODO replace validity check with something more robust
-        Event e = new ProjectileSpawnEvent(game, elt, spawnPosition, spawnTime, () ->
+        Event e = new ProjectileSpawnEvent(game, elt, heighestPoint, spawnTime, () ->
                 source.getActionAt(game.get(GameTimer.class).getGametime()).left == this
         );
         game.get(EventLoop.class).addEvent(e);
@@ -76,5 +77,10 @@ public class ActionFireProjectile implements EntityAction {
     @Override
     public UniversalAnimation getAnimation() {
         return BodyAnimation.BASE_POSE;
+    }
+
+    @Override
+    public ActionMarker getMarker() {
+        return ActionMarker.EMPTY_MARKER;
     }
 }

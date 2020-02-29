@@ -57,17 +57,28 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
         currentActions.removeUntil(now);
 
         ShaderProgram shader = gl.getShader();
+        MaterialShader materials = null;
+        if (shader instanceof MaterialShader) {
+            materials = (MaterialShader) shader;
+        }
+
         Pair<EntityAction, Float> actionPair = currentActions.getActionAt(now);
         EntityAction action = actionPair.left;
         Float timeSinceStart = actionPair.right;
+
+        if (materials != null) {
+            for (Pair<EntityAction, Float> p : currentActions) {
+                EntityAction left = p.left;
+                left.getMarker().draw(gl);
+            }
+        }
 
         gl.pushMatrix();
         {
             gl.translate(action.getPositionAt(timeSinceStart));
 
-            if (shader instanceof MaterialShader && marking == Mark.SELECTED) {
-                MaterialShader mat = (MaterialShader) shader;
-                mat.setMaterial(Material.SILVER, Color4f.YELLOW);
+            if (materials != null && marking == Mark.SELECTED) {
+                materials.setMaterial(Material.SILVER, Color4f.YELLOW);
                 gl.translate(0, 0, 0.5f);
                 gl.render(GenericShapes.SELECTION, this);
                 gl.translate(0, 0, -0.5f);
@@ -77,13 +88,12 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
 
             controller.props.bodyModel.draw(gl, this, controller.props.boneMapping, timeSinceStart, action);
 
-            if (shader instanceof MaterialShader) {
-                MaterialShader mat = (MaterialShader) shader;
-                mat.setMaterial(Material.ROUGH, Color4f.WHITE);
+            if (materials != null) {
+                materials.setMaterial(Material.ROUGH, Color4f.WHITE);
 
                 switch (marking) {
                     case SELECTED:
-                        mat.setMaterial(Material.SILVER, Color4f.YELLOW);
+                        materials.setMaterial(Material.SILVER, Color4f.YELLOW);
                     case OWNED:
                         gl.translate(0, 0, 4);
                         gl.scale(2, 2, -1);

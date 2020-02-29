@@ -159,7 +159,7 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, External
         Vector3fc midPos = entity.getPositionAt(collisionTime);
 
         // only accept if the found position is sufficiently close to a checked point
-        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK_SQ) {
+        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK) {
             intersect = gridMapIntersection(startPos, new Vector3f(midPos).sub(startPos));
 
             if (intersect < 1) {

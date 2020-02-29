@@ -233,7 +233,7 @@ public final class Toolbox {
         if (direction.y() == 0 && direction.z() == 0 && direction.x() < 0) {
             return new Quaternionf().rotateZ((float) Math.PI);
         }
-        return new Quaternionf().rotateTo(Vectors.X, direction);
+        return new Quaternionf().rotateTo(Vectors.X, new Vector3f(direction).normalize());
     }
 
     /** returns a uniformly distributed random value between val1 and val2 */

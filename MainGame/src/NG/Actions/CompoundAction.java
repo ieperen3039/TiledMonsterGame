@@ -1,5 +1,6 @@
 package NG.Actions;
 
+import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Animations.CompoundAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
@@ -122,5 +123,10 @@ public class CompoundAction implements EntityAction {
         for (EntityAction action : actions) {
             action.restore(game);
         }
+    }
+
+    @Override
+    public ActionMarker getMarker() {
+        return ActionMarker.EMPTY_MARKER;
     }
 }

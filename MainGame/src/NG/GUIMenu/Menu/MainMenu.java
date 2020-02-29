@@ -122,8 +122,8 @@ public class MainMenu extends SFrame {
     public void testWorld() {
         Logger.DEBUG.printFrom(2, "Start test-world");
         try {
-            int xSize = 32;
-            int ySize = 32;
+            int xSize = 16;
+            int ySize = 16;
 
             GameState state = overworld.get(GameState.class);
             state.cleanup();
@@ -210,7 +210,7 @@ public class MainMenu extends SFrame {
 
         overworld.get(Pointer.class).setVisible(false);
         overworld.get(RenderLoop.class).renderSequence(null)
-                .add(gl -> {
+                .add((gl, game) -> {
                     gl.translate(-1, -1, 0);
                     Toolbox.drawAxisFrame(gl);
                     gl.translate(1, 1, 0);

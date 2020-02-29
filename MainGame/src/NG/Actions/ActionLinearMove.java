@@ -1,5 +1,7 @@
 package NG.Actions;
 
+import NG.Actions.ActionMarkers.ActionMarker;
+import NG.Actions.ActionMarkers.ActionMarkerArrow;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
 import NG.GameMap.GameMap;
@@ -18,6 +20,7 @@ public class ActionLinearMove implements EntityAction {
     protected final Vector3fc start;
     protected final Vector3fc end;
     protected final float duration;
+    private final ActionMarkerArrow marker;
 
     public ActionLinearMove(
             Game game, Vector3fc startPosition, Vector2ic endCoord, float speed
@@ -29,6 +32,7 @@ public class ActionLinearMove implements EntityAction {
         this.start = startPosition;
         this.end = endPosition;
         this.duration = speed / start.distance(end);
+        marker = new ActionMarkerArrow(start, end);
     }
 
     @Override
@@ -56,5 +60,10 @@ public class ActionLinearMove implements EntityAction {
     @Override
     public boolean hasWorldCollision() {
         return true;
+    }
+
+    @Override
+    public ActionMarker getMarker() {
+        return marker;
     }
 }
