@@ -34,9 +34,8 @@ public class MeshFile {
     private final String name;
 
     public MeshFile(
-            String name, List<Vector2fc> textureCoords, List<Vector3fc> vertices,
-            List<Vector3fc> normals, List<Mesh.Face> faces, List<Color4f> colors,
-            List<PairList<SkeletonBone, Float>> influences
+            String name, List<Vector3fc> vertices, List<Vector3fc> normals, List<Mesh.Face> faces,
+            List<Vector2fc> textureCoords, List<Color4f> colors, List<PairList<SkeletonBone, Float>> influences
     ) {
         this.name = name;
         this.textureCoords = textureCoords;

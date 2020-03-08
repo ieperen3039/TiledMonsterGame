@@ -178,7 +178,7 @@ public class AssimpBone {
             }
         }
 
-        return new MeshFile(name, textureCoords, vertices, normals, faces, colors, influences);
+        return new MeshFile(name, vertices, normals, faces, textureCoords, colors, influences);
     }
 
     @Override

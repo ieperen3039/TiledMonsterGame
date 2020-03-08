@@ -7,6 +7,8 @@ import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.CommandProvider;
+import NG.Resources.GeneratorResource;
+import NG.Resources.Resource;
 import NG.Settings.Settings;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
@@ -32,7 +34,7 @@ public class ActionJump implements EntityAction {
     private final float a;
     private final float b;
     private final float c;
-    private final ActionMarkerGenerated marker;
+    private final Resource<ActionMarker> marker;
 
     public ActionJump(Game game, Vector3fc startPosition, Vector2ic endCoord, float jumpSpeed) {
         this(startPosition, game.get(GameMap.class).getPosition(endCoord), jumpSpeed);
@@ -67,7 +69,7 @@ public class ActionJump implements EntityAction {
         c = start.z();
         duration = (float) (hz / (Math.cos(theta) * jumpSpeed));
 
-        marker = new ActionMarkerGenerated(this);
+        marker = new GeneratorResource<>(() -> new ActionMarkerGenerated(this, duration), null);
     }
 
     @Override
@@ -82,7 +84,7 @@ public class ActionJump implements EntityAction {
 
     @Override
     public ActionMarker getMarker() {
-        return marker;
+        return marker.get();
     }
 
     @Override

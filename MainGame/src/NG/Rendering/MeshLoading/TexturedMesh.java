@@ -110,8 +110,7 @@ public class TexturedMesh extends AbstractMesh {
             texCoords[ti + 1] = coord.y();
         }
 
-        createVAO();
-        createVBOTable();
+        initMesh();
 
         glBindVertexArray(getVAO());
 

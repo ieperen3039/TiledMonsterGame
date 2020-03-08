@@ -133,7 +133,7 @@ public class MonsterGame implements ModLoader {
 
         Logger.DEBUG.print("Installing basic elements...");
 
-        // hack to mark unused resources
+        // hack to mark unused resources (which must happen in the render thread)
         renderer.renderSequence(null)
                 .add((gl, game) -> Resource.cycle());
 
@@ -316,12 +316,15 @@ public class MonsterGame implements ModLoader {
     }
 
     private void cleanup() {
+        assert window.getOpenGLThread() == Thread.currentThread();
+
         pocketGame.cleanup();
         worldGame.cleanup();
 
-        window.cleanup();
         renderer.cleanup();
         inputHandler.cleanup();
+        Resource.dropAll();
+        window.cleanup();
     }
 
     /**

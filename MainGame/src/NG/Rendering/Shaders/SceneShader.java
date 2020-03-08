@@ -111,9 +111,10 @@ public abstract class SceneShader implements ShaderProgram, MaterialShader, Ligh
 
     @Override
     public void cleanup() {
-        unbind();
         if (programId != 0) {
+            unbind();
             glDeleteProgram(programId);
+            programId = 0;
         }
     }
 

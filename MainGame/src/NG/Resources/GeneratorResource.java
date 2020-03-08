@@ -1,31 +1,34 @@
 package NG.Resources;
 
+import NG.Tools.Toolbox;
+
 /**
  * @author Geert van Ieperen created on 26-2-2020.
  */
 public class GeneratorResource<T> extends Resource<T> {
-    private final ResourceGenerator<T> function;
+    private final ResourceGenerator<? extends T> generator;
     private final ResourceCleaner<T> cleanup;
 
-    public GeneratorResource(ResourceGenerator<T> function) {
-        this.function = function;
-        this.cleanup = t -> {};
-    }
-
-    public GeneratorResource(ResourceGenerator<T> function, ResourceCleaner<T> cleanup) {
-        this.function = function;
+    /**
+     * a resource to use with lambdas.
+     * @param generator is called to generate a new element
+     * @param cleanup   is called on the element when this is dropped. If no action is required, use null.
+     */
+    public GeneratorResource(ResourceGenerator<? extends T> generator, ResourceCleaner<T> cleanup) {
+        this.generator = generator;
         this.cleanup = cleanup;
     }
 
     @Override
     protected T reload() throws ResourceException {
-        return function.get();
+        return generator.get();
     }
 
     @Override
     public void drop() {
-        if (element != null) {
+        if (cleanup != null && element != null) {
             cleanup.accept(element);
+            Toolbox.checkGLError(String.valueOf(element));
         }
 
         super.drop();

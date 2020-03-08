@@ -40,7 +40,7 @@ public enum GenericShapes implements Mesh, Shape {
 
     GenericShapes(CustomShape frame) {
         shape = frame.toShape();
-        mesh = new GeneratorResource<>(frame::toFlatMesh);
+        mesh = new GeneratorResource<>(frame::toFlatMesh, Mesh::dispose);
     }
 
     public Resource<Mesh> meshResource() {
@@ -48,7 +48,7 @@ public enum GenericShapes implements Mesh, Shape {
     }
 
     public Resource<Shape> shapeResource() {
-        return new GeneratorResource<>(() -> shape);
+        return new GeneratorResource<>(() -> shape, null);
     }
 
     @Override

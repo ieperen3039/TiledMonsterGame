@@ -137,9 +137,10 @@ public final class Toolbox {
     public static void checkGLError(String name) {
         int error;
         int i = 0;
+
         while ((error = glGetError()) != GL_NO_ERROR) {
-            Logger.ERROR.printFrom(2, name + " :glError " + asHex(error) + ": " + getMessage(error));
-            if (++i == 10) throw new IllegalStateException("Context is probably not current for this thread");
+            Logger.ERROR.printFrom(2, name + ": " + asHex(error) + " " + getMessage(error));
+            if (++i == 20) throw new IllegalStateException("Context is probably not current for this thread");
         }
     }
 

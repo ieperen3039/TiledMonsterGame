@@ -10,7 +10,6 @@ import NG.GameMap.GameMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
-import NG.Tools.Logger;
 import NG.Tools.SerializationTools;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
@@ -71,7 +70,6 @@ public class PhysicsEngine implements GameState, Externalizable {
                 action = lastAction.left;
                 actionStart = 0;
                 actionEnd = lastAction.right;
-                Logger.WARN.print(lastAction, lastAction.left.getPositionAt(lastAction.right));
 
             } else if (!lastHasColl) { // firstHasColl
                 action = firstAction.left;

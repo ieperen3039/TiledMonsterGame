@@ -6,6 +6,7 @@ import NG.Rendering.MeshLoading.Mesh;
 import NG.Rendering.Shapes.CustomShape;
 import NG.Resources.GeneratorResource;
 import NG.Resources.Resource;
+import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Math;
 import org.joml.Quaternionf;
@@ -19,7 +20,7 @@ public class ActionMarkerGenerated implements ActionMarker {
     private static final float RELATIVE_BODY_WIDTH = 0.5f;
     private static final float RELATIVE_BODY_HEIGHT = 0.25f;
     private static final int RESOLUTION = 10;
-    private static final float ARROW_SIZE = 1.0f; // real size of the arrow
+    private static final float ARROW_SIZE = 1.0f; // real size of the arrow head
 
     private final Resource<Mesh> body;
     private final Vector3fc arrowMiddle;
@@ -27,17 +28,17 @@ public class ActionMarkerGenerated implements ActionMarker {
     private final float arrowSize;
 
     public ActionMarkerGenerated(EntityAction action) {
+        this(action, Float.isInfinite(action.duration()) ? 1 : action.duration());
+    }
+
+    public ActionMarkerGenerated(EntityAction action, float tEnd) {
         Vector3fc end = action.getEndPosition();
 
-        float t = action.duration();
-        if (Float.isInfinite(t)) {
-            t = 1;
-        } else {
-            while (t > 0 && action.getPositionAt(t).distance(end) < ARROW_SIZE * SIZE_SCALAR) {
-                t -= 1f / RESOLUTION;
-            }
+        float tBodyEnd = tEnd;
+
+        while (tBodyEnd > 0 && action.getPositionAt(tBodyEnd).distance(end) < ARROW_SIZE * SIZE_SCALAR) {
+            tBodyEnd -= 1f / RESOLUTION;
         }
-        float tBodyEnd = t;
 
         // calculate arrow head
         Vector3f arrowStart = action.getPositionAt(tBodyEnd);
@@ -50,7 +51,12 @@ public class ActionMarkerGenerated implements ActionMarker {
         arrowMiddle = arrowStart.add(dir.div(2));
 
         // set body mesh
-        this.body = new GeneratorResource<>(() -> generate(action, tBodyEnd), Mesh::dispose);
+        if (tBodyEnd > 0) {
+            float fTBodyEnd = tBodyEnd;
+            this.body = new GeneratorResource<>(() -> generate(action, fTBodyEnd), Mesh::dispose);
+        } else {
+            this.body = Mesh.emptyMesh();
+        }
     }
 
     @Override
@@ -63,7 +69,9 @@ public class ActionMarkerGenerated implements ActionMarker {
             gl.render(arrowHead.get(), null);
         }
         gl.popMatrix();
+
         gl.render(body.get(), null);
+        Toolbox.checkGLError(toString());
     }
 
     static Mesh generate(EntityAction function, float tEnd) {

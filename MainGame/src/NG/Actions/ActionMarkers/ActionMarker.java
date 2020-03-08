@@ -11,7 +11,8 @@ import NG.Tools.Directory;
 public interface ActionMarker {
     float SIZE_SCALAR = 0.6f;
     Resource<Mesh> arrowHead = Mesh.createResource(Directory.meshes, "markers", "arrow_head.obj");
-    ActionMarker EMPTY_MARKER = gl -> {};
 
     void draw(SGL gl);
+
+    ActionMarker EMPTY_MARKER = gl -> {};
 }

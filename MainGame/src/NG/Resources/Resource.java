@@ -1,5 +1,6 @@
 package NG.Resources;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,19 +9,20 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
+ * contains an object that is not included when serialized. Instead, it is regenerated when necessary, and automatically
+ * dropped when not used for some amount of time.
  * @author Geert van Ieperen created on 25-2-2020.
  */
 public abstract class Resource<T> implements Serializable {
     private static final List<Resource<?>> allResources = new ArrayList<>();
 
-    /** heat will not rise above this number */
+    /** number of calls to {@link #cool()} before this is dropped */
     private static final int MAX_HEAT = 300;
 
     /** the cached element */
     protected transient T element = null;
-    /** indicator how often it is used */
+    /** indicator how many ticks the last {@link #get()} call was */
     private transient int heat = 0;
-    private transient boolean isUsed = false;
 
     public Resource() {
         allResources.add(this);
@@ -34,26 +36,10 @@ public abstract class Resource<T> implements Serializable {
     public T get() throws ResourceException {
         if (element == null) {
             element = reload();
-            heat = MAX_HEAT;
         }
-        isUsed = true;
+        heat = MAX_HEAT;
 
         return element;
-    }
-
-    /**
-     * marks some time period. If this resource has not been used after at most {@link #MAX_HEAT} calls to this method,
-     * it is dropped as if calling {@link #drop()}.
-     */
-    public void cool() {
-        if (element != null) {
-            if (isUsed) {
-                heat = Math.min(MAX_HEAT, heat + 1);
-            } else {
-                heat--;
-                if (heat == 0) drop();
-            }
-        }
     }
 
     /**
@@ -70,19 +56,23 @@ public abstract class Resource<T> implements Serializable {
     protected abstract T reload() throws ResourceException;
 
     /**
-     * create a resource that is generated from another resource.
-     * @param source    a resource generating an element of type A
-     * @param extractor a function that generates the desired element of type B using source
-     * @return a resource generating an element of type B
+     * marks some time period. If this resource has not been used after at most {@link #MAX_HEAT} calls to this method,
+     * it is dropped as if calling {@link #drop()}.
      */
-    public static <A, B> Resource<B> derive(Resource<A> source, ResourceConverter<A, B> extractor) {
-        return new GeneratorResource<>(() -> extractor.apply(source.get()));
+    private void cool() {
+        if (element != null) {
+            heat--;
+            if (heat == 0) drop();
+        }
     }
 
-    public static <A, B> Resource<B> derive(
-            Resource<A> source, ResourceConverter<A, B> extractor, ResourceCleaner<B> cleanup
-    ) {
-        return new GeneratorResource<>(() -> extractor.apply(source.get()), cleanup);
+    @Override
+    public String toString() {
+        if (element == null) {
+            return "[empty resource]";
+        } else {
+            return "[" + element + "]";
+        }
     }
 
     public static void cycle() {
@@ -91,6 +81,35 @@ public abstract class Resource<T> implements Serializable {
         for (int i = 0; i < size; i++) {
             allResources.get(i).cool();
         }
+    }
+
+    public static void dropAll() {
+        int size = allResources.size();
+        // ignore all elements added during this loop
+        for (int i = 0; i < size; i++) {
+            allResources.get(i).drop();
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        allResources.add(this);
+    }
+
+    /**
+     * create a resource that is generated from another resource.
+     * @param source    a resource generating an element of type A
+     * @param extractor a function that generates the desired element of type B using source
+     * @return a resource generating an element of type B
+     */
+    public static <A, B> Resource<B> derive(Resource<A> source, ResourceConverter<A, B> extractor) {
+        return new GeneratorResource<>(() -> extractor.apply(source.get()), null);
+    }
+
+    public static <A, B> Resource<B> derive(
+            Resource<A> source, ResourceConverter<A, B> extractor, ResourceCleaner<B> cleanup
+    ) {
+        return new GeneratorResource<>(() -> extractor.apply(source.get()), cleanup);
     }
 
     /** serializable version of {@link Supplier} */

@@ -1,13 +1,10 @@
 package NG.Rendering.MeshLoading;
 
 import NG.Rendering.MatrixStack.SGL;
-import NG.Tools.Toolbox;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayDeque;
-import java.util.Queue;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -18,8 +15,6 @@ import static org.lwjgl.opengl.GL30.*;
  * @author Geert van Ieperen created on 1-2-2019.
  */
 public abstract class AbstractMesh implements Mesh {
-    protected static Queue<AbstractMesh> loadedMeshes = new ArrayDeque<>();
-
     private int VAO_ID = 0;
     private int EBO_ID = 0;
     private int nrOfElements = 0;
@@ -71,11 +66,12 @@ public abstract class AbstractMesh implements Mesh {
     }
 
     /**
-     * Initiates the creation of a mesh on the GPU.
+     * Initiates the creation of a mesh on the GPU. Creates a VAO and initializes 5 VBO's to 0
      */
-    protected void createVAO() {
+    protected void initMesh() {
         assert VAO_ID == 0;
         VAO_ID = glGenVertexArrays();
+        VBOIndices = new int[]{0, 0, 0, 0, 0};
     }
 
     public int getVAO() {
@@ -91,11 +87,6 @@ public abstract class AbstractMesh implements Mesh {
         this.nrOfElements = elementCount;
     }
 
-    protected void createVBOTable() {
-        assert VBOIndices == null;
-        this.VBOIndices = new int[5];
-    }
-
     public int[] getVBOTable() {
         return VBOIndices;
     }
@@ -103,35 +94,16 @@ public abstract class AbstractMesh implements Mesh {
     public void dispose() {
         if (VAO_ID == 0) return;
 
-        glDisableVertexAttribArray(0);
         // Delete the VBOs
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        for (int vbo : VBOIndices) {
-            glDeleteBuffers(vbo);
-        }
-
-        if (EBO_ID != 0) {
-            glDeleteBuffers(EBO_ID);
-        }
+        glDeleteBuffers(VBOIndices);
+        glDeleteBuffers(EBO_ID);
 
         // Delete the VAO
         glBindVertexArray(0);
         glDeleteVertexArrays(VAO_ID);
 
-        loadedMeshes.remove(this);
         VAO_ID = 0;
-    }
-
-    /**
-     * all meshes that have been written to the GPU will be removed
-     */
-    public static void cleanAll() {
-        for (AbstractMesh mesh : loadedMeshes) {
-            mesh.dispose();
-            Toolbox.checkGLError(mesh.toString());
-        }
-        loadedMeshes.clear();
     }
 
     /**

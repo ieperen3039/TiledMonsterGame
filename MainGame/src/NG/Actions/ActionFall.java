@@ -4,6 +4,8 @@ import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Actions.ActionMarkers.ActionMarkerGenerated;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
+import NG.Resources.GeneratorResource;
+import NG.Resources.Resource;
 import NG.Settings.Settings;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
@@ -16,7 +18,7 @@ import org.joml.Vector3fc;
 public class ActionFall implements EntityAction {
     protected final Vector3fc start;
     protected final Vector3fc movement;
-    private final ActionMarkerGenerated marker;
+    private final Resource<ActionMarker> marker;
 
     /**
      * @param startPosition origin
@@ -34,7 +36,7 @@ public class ActionFall implements EntityAction {
     public ActionFall(Vector3fc startPosition, Vector3fc initialVelocity) {
         this.movement = initialVelocity;
         this.start = startPosition;
-        this.marker = new ActionMarkerGenerated(this);
+        this.marker = new GeneratorResource<>(() -> new ActionMarkerGenerated(this), null);
     }
 
     @Override
@@ -71,6 +73,6 @@ public class ActionFall implements EntityAction {
 
     @Override
     public ActionMarker getMarker() {
-        return marker;
+        return marker.get();
     }
 }

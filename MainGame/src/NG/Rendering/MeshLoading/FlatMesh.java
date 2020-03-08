@@ -2,6 +2,8 @@ package NG.Rendering.MeshLoading;
 
 import NG.DataStructures.Generic.Color4f;
 import NG.Rendering.Shaders.ShaderProgram;
+import NG.Resources.GeneratorResource;
+import NG.Resources.Resource;
 import NG.Tools.Toolbox;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -9,7 +11,6 @@ import org.lwjgl.opengl.GL;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
@@ -69,12 +70,6 @@ public class FlatMesh extends AbstractMesh {
     }
 
     /**
-     * allows for an empty mesh
-     */
-    private FlatMesh() {
-    }
-
-    /**
      * create a mesh and store it to the GL. For both lists it holds that the ith vertex has the ith normal vector
      * @param positions the vertices, concatenated in groups of 3
      * @param normals   the normals, concatenated in groups of 3
@@ -88,8 +83,8 @@ public class FlatMesh extends AbstractMesh {
         if (getVAO() != 0) throw new IllegalStateException("Tried loading a mesh that was already loaded");
         assert testAssumptions(positions, normals, colors);
 
-        createVAO();
-        createVBOTable(); // all 0's
+        initMesh();
+        // all 0's
 
         glBindVertexArray(getVAO());
 
@@ -131,47 +126,6 @@ public class FlatMesh extends AbstractMesh {
     }
 
     /**
-     * creates a mesh without loading it to the GPU. This is useful for methods generating the mesh off the main thread,
-     * such that the main thread can load them to the GPU at a later stage.
-     * @param posList   a list of vertices
-     * @param normList  a list of normal vectors
-     * @param facesList a list of faces, where each face refers to indices from posList and normList
-     * @param colorList
-     * @return a prepared mesh, where the get() method will load the mesh to the GPU and return the resulting Mesh.
-     */
-    public static Supplier<AbstractMesh> createDelayed(
-            List<Vector3fc> posList, List<Vector3fc> normList, List<Face> facesList,
-            List<Color4f> colorList
-    ) {
-        FlatMesh delayed = new FlatMesh();
-        int faceSize = 3;
-
-        // Create position array in the order it has been declared. faces have (nOfEdges) vertices of 3 indices
-        int nrOf3VecElements = facesList.size() * 3 * faceSize;
-        delayed.setElementCount(nrOf3VecElements);
-        float[] posArr = new float[nrOf3VecElements];
-        float[] normArr = new float[nrOf3VecElements];
-        float[] colorArr = colorList == null ? null : new float[facesList.size() * 4 * faceSize];
-
-        for (int i = 0; i < facesList.size(); i++) {
-            Face face = facesList.get(i);
-            assert face.size() == faceSize;
-
-            readFaceVertex(face, posList, i, posArr);
-            readFaceNormals(face, normList, i, normArr);
-
-            if (colorList != null) {
-                readFaceColors(face, colorList, i, colorArr);
-            }
-        }
-
-        return () -> {
-            delayed.writeToGL(posArr, normArr, colorArr);
-            return delayed;
-        };
-    }
-
-    /**
      * creates a Mesh of a section of the given heightmap. Note that the xEnd value should not be larger than
      * (heightmap.length - 1), same for yEnd. The returned supplier must be activated on the current GL context, this
      * function does not have to be called there.
@@ -184,7 +138,7 @@ public class FlatMesh extends AbstractMesh {
      *                  this value gives the real coordinate.
      * @return a mesh of the heightmap, using quads, positioned in absolute coordinates. (no transformation is needed)
      */
-    public static Supplier<AbstractMesh> meshFromHeightmap(
+    public static Resource<Mesh> meshFromHeightmap(
             float[][] heightmap, int xStart, int xEnd, int yStart, int yEnd, float edgeSize
     ) {
         int nOfXFaces = xEnd - xStart;
@@ -241,7 +195,7 @@ public class FlatMesh extends AbstractMesh {
             }
         }
 
-        return createDelayed(vertices, normals, faces, null);
+        return new GeneratorResource<>(() -> new FlatMesh(vertices, normals, faces), Mesh::dispose);
     }
 
     private static void readFaceVertex(Face face, List<? extends Vector3fc> posList, int faceNumber, float[] posArr) {

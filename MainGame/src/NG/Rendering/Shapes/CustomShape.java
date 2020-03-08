@@ -232,8 +232,10 @@ public class CustomShape {
     }
 
     public MeshFile toMeshFile() {
-        return new MeshFile("custom", Collections.emptyList(), getSortedVertices(), normals, faces, Collections.emptyList(), Collections
-                .emptyList());
+        return new MeshFile(
+                "custom", getSortedVertices(), normals, faces, Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList()
+        );
     }
 
     private List<Vector3fc> getSortedVertices() {

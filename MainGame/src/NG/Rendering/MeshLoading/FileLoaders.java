@@ -78,7 +78,7 @@ public final class FileLoaders {
             Logger.ERROR.print("Empty mesh loaded: " + path + " (this may result in errors)");
         }
 
-        return new MeshFile(name, textureCoords, vertices, normals, faces, colors, Collections.emptyList());
+        return new MeshFile(name, vertices, normals, faces, textureCoords, colors, Collections.emptyList());
     }
 
     /**
@@ -188,6 +188,6 @@ public final class FileLoaders {
             faces.add(Mesh.Face.parsePLY(s));
         }
 
-        return new MeshFile(name, textureCoords, vertices, normals, faces, colors, Collections.emptyList());
+        return new MeshFile(name, vertices, normals, faces, textureCoords, colors, Collections.emptyList());
     }
 }
