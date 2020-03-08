@@ -18,9 +18,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -420,5 +419,30 @@ public final class Toolbox {
         int rng = random.nextInt(ERROR_MESSAGES.length);
 
         JOptionPane.showMessageDialog(null, e.getClass() + ":\n" + e.getMessage(), ERROR_MESSAGES[rng], JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static <T> Iterator<T> singletonIterator(T action) {
+        // from Collections.singletonIterator
+        return new Iterator<>() {
+            private boolean hasNext = true;
+
+            public boolean hasNext() {
+                return hasNext;
+            }
+
+            public T next() {
+                hasNext = false;
+                return action;
+            }
+
+            @Override
+            public void forEachRemaining(Consumer<? super T> element) {
+                Objects.requireNonNull(element);
+                if (hasNext) {
+                    hasNext = false;
+                    element.accept(action);
+                }
+            }
+        };
     }
 }

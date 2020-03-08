@@ -4,6 +4,7 @@ import NG.Entities.Entity;
 import NG.Entities.MovingEntity;
 import org.joml.AABBf;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +45,11 @@ public interface CollisionEntity {
     float zLower();
 
     /**
-     * checks whether this collides with {@code receiving}
+     * checks whether this collides with {@code receiving} before gameTime
      * @param receiver another entity
      * @param gameTime
      * @return 1 if CollisionEntity does not hit the receiver, otherwise a value t [0 ... 1) such that {@code origin + t
-     * * direction}
+     * * direction} lies on this
      */
     float checkAtoB(Entity receiver, float gameTime);
 
@@ -155,13 +156,13 @@ public interface CollisionEntity {
 
         @Override
         public float checkAtoB(Entity receiver, float gameTime) {
-            List<Vector3f> prev = prevPoints;
-            List<Vector3f> next = nextPoints;
-
             float bFrac = 1;
-            for (int i = 0; i < prev.size(); i++) {
-                Vector3f origin = next.get(i);
-                Vector3f direction = new Vector3f(prev.get(i)).sub(origin);
+
+            for (int i = 0; i < prevPoints.size(); i++) {
+                Vector3fc origin = nextPoints.get(i);
+                Vector3fc target = prevPoints.get(i);
+                Vector3f direction = new Vector3f(target).sub(origin);
+
                 float intersection = receiver.getIntersection(origin, direction, gameTime);
 
                 if (intersection < bFrac) {

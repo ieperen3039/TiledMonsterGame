@@ -10,6 +10,7 @@ import NG.GameMap.GameMap;
 import NG.InputHandling.ClickShader;
 import NG.InputHandling.MouseTools.MouseTool;
 import NG.Rendering.MatrixStack.SGL;
+import NG.Tools.Logger;
 import NG.Tools.SerializationTools;
 import NG.Tools.Vectors;
 import org.joml.Vector3f;
@@ -39,33 +40,68 @@ public class PhysicsEngine implements GameState, Externalizable {
         entityList.setWorld(this::entityWorldCollision);
     }
 
-    private void entityWorldCollision(Entity entity, float startTime, float endTime) {
-        if (!(entity instanceof MovingEntity)) return;
-
+    private boolean entityWorldCollision(Entity entity, float startTime, float endTime) {
+        if (!(entity instanceof MovingEntity)) return false;
         MovingEntity movingEntity = (MovingEntity) entity;
+
+        // first check whether and where we consider collision
         Pair<EntityAction, Float> firstAction = movingEntity.getActionAt(startTime);
         Pair<EntityAction, Float> lastAction = movingEntity.getActionAt(endTime);
+        EntityAction action;
+        float actionStart;
+        float actionEnd;
 
-        if (firstAction.left != lastAction.left) {
+        GameMap map = game.get(GameMap.class);
+
+        if (firstAction.left == lastAction.left) {
+            if (!firstAction.left.hasWorldCollision()) return false;
+            action = firstAction.left;
+            actionStart = firstAction.right;
+            actionEnd = firstAction.right + (endTime - startTime);
+
+        } else {
             // we assume there is no action inbetween
             boolean firstHasColl = firstAction.left.hasWorldCollision();
             boolean lastHasColl = lastAction.left.hasWorldCollision();
 
-            if (!firstHasColl && !lastHasColl) return;
-            // if only second action, then set start to the end of the first action
-            if (!firstHasColl) startTime = endTime - lastAction.right;
-            // if only first action, set end to the end of the first action
-            if (!lastHasColl) endTime -= lastAction.right;
+            if (!firstHasColl && !lastHasColl) {
+                return false;
 
-        } else {
-            if (!firstAction.left.hasWorldCollision()) return;
+            } else if (!firstHasColl) { // lastHasColl
+                action = lastAction.left;
+                actionStart = 0;
+                actionEnd = lastAction.right;
+                Logger.WARN.print(lastAction, lastAction.left.getPositionAt(lastAction.right));
+
+            } else if (!lastHasColl) { // firstHasColl
+                action = firstAction.left;
+                actionStart = firstAction.right;
+                actionEnd = (endTime - startTime) - lastAction.right;
+
+            } else { // firstHasColl && lastHasColl
+                float relativeEnd = (endTime - startTime) - lastAction.right;
+                Float collisionTime = map.getActionCollision(firstAction.left, firstAction.right, relativeEnd);
+                if (collisionTime != null) {
+                    entity.collideWith(map, startTime - firstAction.right + collisionTime);
+                    return true;
+
+                } else {
+                    action = lastAction.left;
+                    actionStart = 0;
+                    actionEnd = lastAction.right;
+                }
+            }
         }
 
-        assert startTime < endTime;
+        assert actionStart < actionEnd;
 
-        GameMap map = game.get(GameMap.class);
-        float collisionTime = map.getEntityCollision(movingEntity, startTime, endTime);
-        entity.collideWith(map, collisionTime);
+        Float collisionTime = map.getActionCollision(action, actionStart, actionEnd);
+        if (collisionTime != null) {
+            entity.collideWith(map, startTime - actionStart + collisionTime);
+            return true;
+        }
+
+        return false;
     }
 
     @Override

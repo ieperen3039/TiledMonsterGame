@@ -60,7 +60,7 @@ public interface Entity extends GameObject {
      * @param origin    the origin of the ray to cast
      * @param direction the direction of the ray
      * @param gameTime  the time at which to measure
-     * @return 1 if the given ray piece does not hit this entity
+     * @return t = [0 ... 1], with 1 if the given ray piece does not hit this entity
      */
     default float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
         return getHitbox(gameTime).intersectRay(origin, direction);
@@ -88,11 +88,5 @@ public interface Entity extends GameObject {
     default void collideWith(Entity other, float collisionTime) {
     }
 
-    /**
-     * process a collision with the map, happening at collisionTime.
-     * @param map           the map
-     * @param collisionTime the moment of collision
-     */
-    default void collideWith(GameMap map, float collisionTime) {
-    }
+    void collideWith(GameMap map, float collisionTime);
 }

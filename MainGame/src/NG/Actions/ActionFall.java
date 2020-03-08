@@ -1,5 +1,7 @@
 package NG.Actions;
 
+import NG.Actions.ActionMarkers.ActionMarker;
+import NG.Actions.ActionMarkers.ActionMarkerGenerated;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Settings.Settings;
@@ -14,15 +16,25 @@ import org.joml.Vector3fc;
 public class ActionFall implements EntityAction {
     protected final Vector3fc start;
     protected final Vector3fc movement;
+    private final ActionMarkerGenerated marker;
 
     /**
      * @param startPosition origin
-     * @param direction     normalized direction to fall to
-     * @param speed         horizontal fall speed
+     * @param direction     direction to fall to (does not have to be normalized)
+     * @param speed         fall speed (length of the velocity)
      */
     public ActionFall(Vector3fc startPosition, Vector3fc direction, float speed) {
-        this.movement = new Vector3f(direction).normalize(speed);
+        this(startPosition, new Vector3f(direction).normalize(speed));
+    }
+
+    /**
+     * @param startPosition   origin
+     * @param initialVelocity actual initial velocity (movement per second)
+     */
+    public ActionFall(Vector3fc startPosition, Vector3fc initialVelocity) {
+        this.movement = initialVelocity;
         this.start = startPosition;
+        this.marker = new ActionMarkerGenerated(this);
     }
 
     @Override
@@ -54,6 +66,11 @@ public class ActionFall implements EntityAction {
 
     @Override
     public String toString() {
-        return "Fall (from " + Vectors.toString(start) + ")";
+        return "Fall (from " + Vectors.toString(start) + " with v = " + movement.length() + ")";
+    }
+
+    @Override
+    public ActionMarker getMarker() {
+        return marker;
     }
 }

@@ -55,27 +55,27 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         for (Vector3f corner : hitbox.corners()) {
             corner.add(origin);
 
-            float newIntersect = this.getIntersection(corner, direction, 0);
-            if (newIntersect < maximum) maximum = newIntersect;
+            Float newIntersect = gridMapIntersection(origin, direction);
+            if (newIntersect != null && newIntersect < maximum) maximum = newIntersect;
         }
 
         return maximum;
     }
 
     @Override
-    public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
+    public Float gridMapIntersection(Vector3fc origin, Vector3fc direction) {
         Vector2ic size = getSize();
         // edge case, direction == (0, 0, dz)
         if (direction.x() == 0 && direction.y() == 0) {
             Vector3f realSize = getPosition(size);
             if (origin.x() < 0 || origin.y() < 0 || origin.x() > realSize.x || origin.y() > realSize.y) {
-                return 1;
+                return null;
             }
 
             Vector2i coord = getCoordinate(origin);
             Float sect = getTileIntersect(origin, direction, coord.x, coord.y);
             if (sect == null || sect < 0 || sect > 1) {
-                return 1;
+                return null;
             } else {
                 return sect;
             }
@@ -93,7 +93,7 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
                 worldClip
         );
 
-        if (!isOnWorld) return 1;
+        if (!isOnWorld) return null;
 
         if (worldClip.x > 0) {
             coordPos.add(new Vector2f(coordDir).mul(worldClip.x + EPSILON));
@@ -113,29 +113,29 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
         float pointX = xIsPos ? Math.ceil(coordPos.x) : Math.floor(coordPos.x);
         float normalX = (xIsPos ? -1 : 1);
         float denomX = normalX * coordDir.x;
-        float tNextX = (denomX > EPSILON) ? 0.0f : ((pointX - coordPos.x) * normalX) / denomX;
+        float tNextX = (denomX > -EPSILON) ? 0.0f : ((pointX - coordPos.x) * normalX) / denomX;
 
         // next t of y border
         float pointY = yIsPos ? Math.ceil(coordPos.y) : Math.floor(coordPos.y);
         float normalY = (yIsPos ? -1 : 1);
         float denomY = normalY * coordDir.y;
-        float tNextY = (denomY > EPSILON) ? 0.0f : ((pointY - coordPos.y) * normalY) / denomY;
+        float tNextY = (denomY > -EPSILON) ? 0.0f : ((pointY - coordPos.y) * normalY) / denomY;
 
         int xCoord = (int) coordPos.x;
         int yCoord = (int) coordPos.y;
 
-        final int dx = (xIsPos ? 1 : -1);
-        final int dy = (yIsPos ? 1 : -1);
+        final int dx = (coordDir.x == 0) ? 0 : (coordDir.x > 0 ? 1 : -1); // [-1, 0, 1]
+        final int dy = (coordDir.y == 0) ? 0 : (coordDir.y > 0 ? 1 : -1); // [-1, 0, 1]
 
-        final float dtx = (coordDir.x() == 0 ? Float.POSITIVE_INFINITY : (dx / coordDir.x));
-        final float dty = (coordDir.y() == 0 ? Float.POSITIVE_INFINITY : (dy / coordDir.y));
+        final float dtx = (coordDir.x == 0 ? Float.POSITIVE_INFINITY : (dx / coordDir.x));
+        final float dty = (coordDir.y == 0 ? Float.POSITIVE_INFINITY : (dy / coordDir.y));
 
         while (xCoord >= 0 && yCoord >= 0 && xCoord < size.x() && yCoord < size.y()) {
             Float secFrac = getTileIntersect(origin, direction, xCoord, yCoord);
 
             if (secFrac == null) {
                 Logger.ASSERT.printf("got (%d, %d) which is out of bounds", xCoord, yCoord);
-                return 1;
+                return null;
 
             } else if (secFrac < 1) {
                 assert secFrac > 0;
@@ -150,8 +150,7 @@ public abstract class AbstractMap extends StaticEntity implements GameMap {
                 yCoord = yCoord + dy;
             }
         }
-
-        return 1;
+        return null;
     }
 
     /**

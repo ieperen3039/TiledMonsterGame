@@ -6,28 +6,40 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * An {@link AutoCloseable} lock to use in Java 7 try-with-resource
- * @author Geert van Ieperen created on 27-2-2020.
+ * @author Geert van Ieperen created on 7-3-2020.
  */
-public class AutoLock extends ReentrantLock {
-    public Section open() {
-        lock();
-        return this::unlock;
-    }
+public interface AutoLock extends Lock {
+    /**
+     * locks until closed
+     * @return a section object that unlocks this lock when it closes
+     */
+    AutoLock.Section open();
 
-    public interface Section extends AutoCloseable {
+    interface Section extends AutoCloseable {
         @Override
         void close();
     }
 
-    public static class Wrapper implements Lock {
+    /**
+     * An {@link AutoCloseable} lock to use in Java 7 try-with-resource
+     * @author Geert van Ieperen created on 27-2-2020.
+     */
+    class Instance extends ReentrantLock implements AutoLock {
+        @Override
+        public Section open() {
+            lock();
+            return this::unlock;
+        }
+    }
+
+    class Wrapper implements AutoLock {
         private final Lock source;
 
         public Wrapper(Lock source) {
             this.source = source;
         }
 
-        Section open() {
+        public Instance.Section open() {
             lock();
             return source::unlock;
         }

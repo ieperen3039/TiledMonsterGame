@@ -5,6 +5,7 @@ import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.Entities.Entity;
 import NG.Entities.MovingEntity;
+import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3fc;
 
@@ -87,5 +88,14 @@ public abstract class Projectile implements MovingEntity {
 
     protected float getSpawnTime() {
         return spawnTime;
+    }
+
+    /**
+     * process a collision with the map, happening at collisionTime.
+     * @param map           the map
+     * @param collisionTime the moment of collision
+     */
+    @Override
+    public void collideWith(GameMap map, float collisionTime) {
     }
 }

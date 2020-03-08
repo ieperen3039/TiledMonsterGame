@@ -3,9 +3,9 @@ package NG.Living.MonsterMind;
 import NG.Actions.Commands.Command;
 import NG.Core.GameTimer;
 import NG.DataStructures.Generic.PairList;
+import NG.Entities.Entity;
 import NG.Living.*;
 
-import java.util.ArrayDeque;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -34,7 +34,6 @@ public class MonsterMindAssociator extends MonsterMind {
         this.stimulusEffects = soulDescription.stimulusEffects;
         this.emotionValues = soulDescription.emotionValues;
         this.emotions = soulDescription.emotions;
-        this.plan = new ArrayDeque<>();
     }
 
     @Override
@@ -95,7 +94,7 @@ public class MonsterMindAssociator extends MonsterMind {
 
         // otherwise, execute action
         Command command = best.generateNew(entity, stimulus, gametime);
-        queueCommand(game, command);
+        executeCommand(game, command);
     }
 
     /**
@@ -162,5 +161,9 @@ public class MonsterMindAssociator extends MonsterMind {
         moveGain *= relevance;
 
         return moveGain;
+    }
+
+    @Override
+    public void reactEntityCollision(Entity other, float collisionTime) {
     }
 }

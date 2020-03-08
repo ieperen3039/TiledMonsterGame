@@ -1,5 +1,6 @@
 package NG.Living.MonsterMind;
 
+import NG.Entities.Entity;
 import NG.Living.MonsterSoul;
 import NG.Living.Stimulus;
 
@@ -20,5 +21,10 @@ public class MonsterMindSlave extends MonsterMind {
     @Override
     public void accept(Stimulus stimulus) {
 
+    }
+
+    @Override
+    public void reactEntityCollision(Entity other, float collisionTime) {
+        this.executionTarget = null;
     }
 }

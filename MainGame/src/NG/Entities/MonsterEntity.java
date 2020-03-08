@@ -1,7 +1,6 @@
 package NG.Entities;
 
-import NG.Actions.ActionQueue;
-import NG.Actions.EntityAction;
+import NG.Actions.*;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.AbstractGameObject;
 import NG.Core.Game;
@@ -9,19 +8,23 @@ import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.Pair;
 import NG.GameMap.GameMap;
-import NG.Living.MonsterMind.MonsterMind;
 import NG.Living.MonsterSoul;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
+import NG.Tools.Logger;
+import org.joml.Quaternionf;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
+
+import static NG.Actions.EntityAction.ACCEPTABLE_DIFFERENCE_SQ;
 
 /**
- * the generic class of all {@code MonsterEntity} entities. This is only the physical representation of the entity, NOT
- * including the {@link MonsterSoul} or identity of the monster.
+ * All monsters of the game are based on this class. This is only the physical representation of the entity, NOT the
+ * {@link MonsterSoul} or identity of the monster.
  * @author Geert van Ieperen created on 4-2-2019.
  */
 public class MonsterEntity extends AbstractGameObject implements MovingEntity {
@@ -54,7 +57,6 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
         if (isDisposed) return;
 
         float now = game.get(GameTimer.class).getRendertime();
-        currentActions.removeUntil(now);
 
         ShaderProgram shader = gl.getShader();
         MaterialShader materials = null;
@@ -62,16 +64,15 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
             materials = (MaterialShader) shader;
         }
 
+        if (materials != null) {
+            for (EntityAction action : currentActions.actionsBetween(now, Float.POSITIVE_INFINITY)) {
+                action.getMarker().draw(gl);
+            }
+        }
+
         Pair<EntityAction, Float> actionPair = currentActions.getActionAt(now);
         EntityAction action = actionPair.left;
         Float timeSinceStart = actionPair.right;
-
-        if (materials != null) {
-            for (Pair<EntityAction, Float> p : currentActions) {
-                EntityAction left = p.left;
-                left.getMarker().draw(gl);
-            }
-        }
 
         gl.pushMatrix();
         {
@@ -107,16 +108,13 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
             }
         }
         gl.popMatrix();
+
+        // TODO future serialisation may want to take this responsibility
+        currentActions.removeUntil(now - 1f);
     }
 
     @Override
     public void update(float gameTime) {
-        float lastActionEnd = currentActions.lastActionEnd();
-        if (gameTime >= lastActionEnd) {
-            EntityAction next = controller.mind().getNextAction(lastActionEnd);
-            currentActions.insert(next, lastActionEnd);
-        }
-
         controller.update(gameTime);
     }
 
@@ -125,11 +123,6 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
      */
     public MonsterSoul getController() {
         return controller;
-    }
-
-    @Override
-    public Vector3f getPositionAt(float gameTime) {
-        return currentActions.getPositionAt(gameTime);
     }
 
     @Override
@@ -147,21 +140,76 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
         return currentActions.getActionAt(gameTime);
     }
 
-    public void insertActionAt(float gameTime, EntityAction action) {
-        currentActions.insert(action, gameTime);
-    }
-
     @Override
     public void collideWith(Entity other, float collisionTime) {
-        MonsterMind mind = controller.mind();
-        EntityAction nextAction = mind.reactEntityCollision(other, collisionTime);
+        GameMap map = game.get(GameMap.class);
+
+        Pair<EntityAction, Float> action = getActionAt(collisionTime);
+        Vector3fc thisPos = action.left.getPositionAt(action.right);
+        Vector3fc otherPos = other.getPositionAt(collisionTime);
+        Vector3f movement = action.left.getDerivative(action.right);
+        Vector3f otherToThis = new Vector3f(thisPos).sub(otherPos);
+
+        final EntityAction nextAction;
+
+        if (map.isOnFloor(thisPos)) {
+            if (map.isOnFloor(otherPos)) { // other bumps this
+                Vector2i coordinate = map.getCoordinate(thisPos);
+                Vector3f coordPos = map.getPosition(coordinate);
+                Vector3f thisToCoord = new Vector3f(coordPos).sub(thisPos);
+
+                if (thisToCoord.lengthSquared() < ACCEPTABLE_DIFFERENCE_SQ) {
+                    nextAction = new ActionIdle(coordPos, 0.1f);
+
+                } else {
+                    if (thisToCoord.dot(otherToThis) < 0) { // current coordinate is in direction of collision
+                        GameMap.expandCoord(coordinate, otherToThis);
+                    }
+                    nextAction = new ActionJump(thisPos, coordPos, controller.props.jumpSpeed);
+                }
+
+            } else { // other lands on this
+                nextAction = new ActionIdle(thisPos, 0.1f);
+            }
+
+        } else { // collide while in air
+            nextAction = new ActionFall(thisPos, otherToThis, movement.length());
+        }
+
+        Logger.DEBUG.printf("%8.04f: %s : %s", collisionTime, this, nextAction);
         currentActions.insert(nextAction, collisionTime);
+        controller.mind().reactEntityCollision(other, collisionTime);
+        processActions(collisionTime);
     }
 
+    /**
+     * process a collision with the map, happening at collisionTime.
+     * @param map           the map
+     * @param collisionTime the moment of collision
+     */
     @Override
     public void collideWith(GameMap map, float collisionTime) {
-        EntityAction nextAction = controller.mind().getNextAction(collisionTime);
+        EntityAction nextAction = controller.mind().getActionAt(collisionTime);
+
+        if (nextAction == null) {
+            Vector3f position = getPositionAt(collisionTime);
+            Vector2i coordinate = map.getCoordinate(position);
+            Vector3f targetPosition = map.getPosition(coordinate);
+
+            if (!map.isOnFloor(position)) {
+                nextAction = new ActionJump(position, targetPosition, 5);
+
+            } else if (targetPosition.distanceSquared(position) > ACCEPTABLE_DIFFERENCE_SQ) {
+                nextAction = new ActionWalk(game, position, coordinate);
+
+            } else {
+                nextAction = new ActionIdle(targetPosition);
+            }
+        }
+
+        Logger.DEBUG.printf("%8.04f: %s : %s", collisionTime, this, nextAction);
         currentActions.insert(nextAction, collisionTime);
+        processActions(collisionTime);
     }
 
     @Override
@@ -179,10 +227,11 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
 
     @Override
     public BoundingBox getHitbox(float gameTime) {
-//        Pair<EntityAction, Float> action = getActionAt(gameTime);
-//        Quaternionf rotation = action.left.getRotationAt(action.right);
+        Pair<EntityAction, Float> action = getActionAt(gameTime);
+        Quaternionf rotation = action.left.getRotationAt(action.right);
         BoundingBox hitbox = getLocalHitbox();
 //        rotate hitbox
+        //...
         return hitbox.getMoved(getPositionAt(gameTime));
     }
 
@@ -191,5 +240,44 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
      */
     public BoundingBox getLocalHitbox() {
         return controller.props.hitbox;
+    }
+
+    /**
+     * queries the mind for actions to execute starting at gameTime until an action with infinite duration is found. If
+     * the current action has infinite duration, it is cancelled.
+     * @param gameTime the time to start analyzing
+     */
+    public void processActions(float gameTime) {
+        GameMap map = game.get(GameMap.class);
+
+        Pair<EntityAction, Float> actionPair = currentActions.getActionAt(gameTime);
+        assert actionPair != null;
+
+        float duration = actionPair.left.duration();
+        if (Float.isFinite(duration) && actionPair.right < duration) {
+            float timeLeft = duration - actionPair.right;
+            gameTime += timeLeft;
+        }
+
+        EntityAction newAction = controller.mind().getActionAt(gameTime);
+        while (newAction != null) {
+            Logger.DEBUG.printf("    plan: %s : %s", this, newAction);
+            currentActions.insert(newAction, gameTime);
+
+            float actionDuration = newAction.duration();
+            if (Float.isInfinite(actionDuration)) break;
+
+            if (newAction.hasWorldCollision()) {
+                Float collision = map.getActionCollision(newAction, 0, newAction.duration());
+                if (collision != null) {
+                    actionDuration = collision;
+                }
+            }
+
+            if (actionDuration == 0) break;
+
+            gameTime += actionDuration;
+            newAction = controller.mind().getActionAt(gameTime);
+        }
     }
 }

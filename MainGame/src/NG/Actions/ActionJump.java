@@ -8,7 +8,6 @@ import NG.Core.Game;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Settings.Settings;
-import NG.Tools.Logger;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
 import org.joml.Math;
@@ -25,11 +24,10 @@ public class ActionJump implements EntityAction {
     public static final CommandProvider JUMP_COMMAND = CommandProvider.actionCommand(
             "Jump", (g, e, s, t) -> new ActionJump(g, s, t, e.getController().props.jumpSpeed)
     );
-    public static final float SQRT2 = Math.sqrt(2);
 
     protected final Vector3fc start;
     protected final Vector3fc end;
-    protected final float duration;
+    protected final float duration; // planned duration
 
     private final float a;
     private final float b;
@@ -54,9 +52,9 @@ public class ActionJump implements EntityAction {
         // see https://gamedev.stackexchange.com/questions/53552/how-can-i-find-a-projectiles-launch-angle
         float determinant = vSq * vSq - g * (g * hz * hz + 2 * vt * vSq);
 
-        double theta = PI / 4;
+        double theta;
         if (determinant < 0) {
-            Logger.ASSERT.print("Can't jump that far");
+            theta = PI / 4;
 
         } else {
             theta = Math.min(
@@ -74,7 +72,7 @@ public class ActionJump implements EntityAction {
 
     @Override
     public float duration() {
-        return duration;
+        return Float.POSITIVE_INFINITY;
     }
 
     @Override
@@ -102,13 +100,22 @@ public class ActionJump implements EntityAction {
     }
 
     @Override
+    public Vector3f getDerivative(float timeSinceStart) {
+        return new Vector3f(
+                (end.x() - start.x()) / duration,
+                (end.y() - start.y()) / duration,
+                a * timeSinceStart + b
+        );
+    }
+
+    @Override
     public UniversalAnimation getAnimation() {
         return BodyAnimation.BASE_POSE;
     }
 
     @Override
     public String toString() {
-        return "Jump to " + Vectors.toString(end) + "";
+        return "Jump to " + Vectors.toString(end);
     }
 }
 

@@ -1,20 +1,22 @@
 package NG.Actions;
 
 import NG.Core.Game;
+import NG.Core.GameObject;
 import NG.DataStructures.Generic.Pair;
-import NG.Tools.Logger;
+import NG.Tools.AutoLock;
 import NG.Tools.Toolbox;
-import NG.Tools.Vectors;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.AbstractQueue;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static NG.Actions.EntityAction.ACCEPTABLE_DIFFERENCE_SQ;
 
 /**
  * A queue of actions with additional robustness checking and a {@link #getPositionAt(float)} method. If the actions
@@ -22,16 +24,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * queue. This collection is not synchronized.
  * @author Geert van Ieperen created on 12-2-2019.
  */
-public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
+public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> implements GameObject {
     private ArrayDeque<Float> startTimes;
     private ArrayDeque<EntityAction> actions;
 
-    private final Lock lockQueueRead;
-    private final Lock lockQueueEdit;
+    private final AutoLock lockQueueRead;
+    private final AutoLock lockQueueEdit;
 
-    private float lastActionEnd;
-    private EntityAction lastAction;
     private float lastActionStart;
+    private float lastActionEnd;
 
     /**
      * an action queue with an initial idle action on the given position
@@ -47,23 +48,24 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
      */
     public ActionQueue(EntityAction initialAction, float actionStartTime) {
         if (initialAction == null) throw new NullPointerException("initial action was null");
-        setLast(initialAction, actionStartTime);
         ReadWriteLock rwl = new ReentrantReadWriteLock(true);
-        lockQueueRead = rwl.readLock();
-        lockQueueEdit = rwl.writeLock();
+        lockQueueRead = new AutoLock.Wrapper(rwl.readLock());
+        lockQueueEdit = new AutoLock.Wrapper(rwl.writeLock());
 
         startTimes = new ArrayDeque<>();
         actions = new ArrayDeque<>();
+        setLast(initialAction, actionStartTime);
     }
 
+    /** @see #offer(EntityAction, float) */
     @Override
     public boolean offer(Pair<EntityAction, Float> pair) {
         return offer(pair.left, pair.right);
     }
 
     /**
-     * Inserts the specified element into this queue. This method is generally preferable to {@link #add}, which can
-     * fail to insert an element only by throwing an exception.
+     * Appends the specified element to this queue. This method is generally preferable to {@link #add}, which can fail
+     * to insert an element only by throwing an exception.
      * @param action    the element to add
      * @param startTime the start time of the action
      * @return {@code true} if the element was added to this queue, {@code false} if the given action does not follow
@@ -72,53 +74,21 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
     public boolean offer(EntityAction action, float startTime) {
         if (startTime < lastActionStart) return false;
 
-        Vector3f position = lastAction.getPositionAt(startTime - lastActionStart);
-        if (position.distanceSquared(action.getStartPosition()) > 1e-6f) {
+        Vector3f position = actions.getLast().getPositionAt(startTime - lastActionStart);
+        if (position.distanceSquared(action.getStartPosition()) > ACCEPTABLE_DIFFERENCE_SQ) {
             return false;
         }
 
         lockQueueEdit.lock();
-
-        // shift last actions into the queue
-        startTimes.offer(lastActionStart);
-        actions.offer(lastAction);
         setLast(action, startTime);
-
         lockQueueEdit.unlock();
-        return true;
-    }
 
-    /**
-     * adds the given action to the queue, executing not earlier, but possibly later than the given time. The action
-     * will always be placed last in execution. If there are any action in this queue executing any later than the given
-     * start time, then this action will execute only after the last of those actions are executed.
-     * @param action    the action to add to the queue
-     * @param startTime the minimal start time of this action.
-     * @return true
-     */
-    public boolean add(EntityAction action, float startTime) {
-        boolean success = offer(action, startTime);
-        if (!success) {
-            Toolbox.sleep(10);
-            if (startTime < lastActionStart) {
-                Logger.WARN.print("start time " + startTime + " is earlier than last action start time " + lastActionStart);
-            }
-
-            float timeSinceStart = startTime - lastActionStart;
-            Vector3f thisPos = lastAction.getPositionAt(timeSinceStart);
-            Vector3fc otherPos = action.getStartPosition();
-
-            throw new IllegalArgumentException(String.format(
-                    "Action %s does not follow %s at %1.02f sec since start: %s != %s",
-                    action, lastAction, timeSinceStart, Vectors.toString(otherPos), Vectors.toString(thisPos)
-            ));
-        }
         return true;
     }
 
     @Override
     public Pair<EntityAction, Float> poll() {
-        if (isEmpty()) return null;
+        if (actions.size() == 1) return peek();
 
         lockQueueEdit.lock();
         Pair<EntityAction, Float> pair = new Pair<>(actions.poll(), startTimes.poll());
@@ -132,10 +102,10 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
     }
 
     public boolean removeFirst() {
-        if (actions.isEmpty()) return false;
+        if (isEmpty()) return false;
         lockQueueEdit.lock();
-        startTimes.poll();
-        actions.poll();
+        startTimes.removeFirst();
+        actions.removeFirst();
         lockQueueEdit.unlock();
         return true;
     }
@@ -147,12 +117,13 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
 
     @Override
     public boolean isEmpty() {
-        return actions.isEmpty();
+        return actions.size() == 1;
     }
 
     /** replace the lastAction, lastActionStart and lastActionEnd field */
     private void setLast(EntityAction action, float startTime) {
-        lastAction = action;
+        actions.add(action);
+        startTimes.add(startTime);
         lastActionStart = startTime;
         lastActionEnd = startTime + action.duration();
     }
@@ -168,29 +139,29 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
     }
 
     /**
-     * remove all actions from the head of this queue, which happen before the given time.
+     * remove all actions from the head of this queue, that happen before the given time.
      * @param time the time until where to remove actions, exclusive.
      */
     public void removeUntil(float time) {
-        if (time < firstActionStart() || size() == 0) return;
+        if (time < startTimes.getFirst() || isEmpty()) return;
 
-        if (time > lastActionEnd()) {
-            lockQueueEdit.lock();
-            clear();
-            lockQueueEdit.unlock();
-            return;
+        if (time > lastActionStart) {
+            time = lastActionStart;
         }
 
         // a currently executing action...
+        // count how many actions start earlier, then remove all but one of those
         lockQueueEdit.lock();
-        Iterator<Float> times = startTimes.iterator();
-        Iterator<EntityAction> things = actions.iterator();
-
-        while (times.hasNext() && times.next() < time) {
-            times.remove();
-            things.next();
-            things.remove();
+        int i = 0;
+        for (Float startTime : startTimes) {
+            if (startTime < time) i++;
         }
+        while (i > 1) {
+            startTimes.removeFirst();
+            actions.removeFirst();
+            i--;
+        }
+
         lockQueueEdit.unlock();
     }
 
@@ -205,7 +176,7 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         assert action != null;
 
         if (startTime >= lastActionEnd) {
-            add(action, startTime);
+            offer(action, startTime);
             return;
         }
 
@@ -222,8 +193,8 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         EntityAction previous;
         float prevStart;
 
-        if (startTimes.isEmpty()) {
-            previous = lastAction;
+        if (actions.size() == 1) {
+            previous = actions.getLast();
             prevStart = lastActionStart;
 
         } else {
@@ -241,16 +212,11 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         }
 
         Vector3f position = previous.getPositionAt(startTime - prevStart);
-        if (position.distance(action.getStartPosition()) > EntityAction.ACCEPTABLE_DIFFERENCE) {
+        if (position.distanceSquared(action.getStartPosition()) > ACCEPTABLE_DIFFERENCE_SQ) {
             lockQueueEdit.unlock();
             throw new BrokenMovementException(previous, action, startTime - prevStart);
         }
 
-        // shift last actions into the queue
-        if (lastActionStart < startTime) {
-            startTimes.offer(lastActionStart);
-            actions.offer(lastAction);
-        }
         setLast(action, startTime);
 
         lockQueueEdit.unlock();
@@ -261,54 +227,34 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
      * <p>
      * Note that the eventual execution of this action on this time is not certain, as calls to {@link
      * #insert(EntityAction, float)} and {@link #remove()} may change this.
-     * @param gameTime a moment in time
+     * @param gameTime a moment in time after the start of the first action
      * @return a pair with on left the action that should be taking place under normal circumstances, and on right the
-     * time passed since the start of this action. If no action has started, return an Idle action, with right == 0. If
-     * all actions are finished, return and Idle action with right == action.duration().
+     * time passed since the start of this action.
      */
     public Pair<EntityAction, Float> getActionAt(float gameTime) {
-        if (gameTime < firstActionStart()) {
-            Vector3fc position = firstAction().getStartPosition();
-            return new Pair<>(new ActionIdle(position, firstActionStart() - gameTime), 0f);
+        assert gameTime >= startTimes.getFirst();
+        assert !actions.isEmpty();
 
-        } else if (gameTime > lastActionStart) {
-            return new Pair<>(lastAction, gameTime - lastActionStart);
+        if (gameTime >= lastActionStart) {
+            return new Pair<>(actions.getLast(), gameTime - lastActionStart);
         }
-
-        lockQueueRead.lock();
-        if (actions.isEmpty()) {
-            lockQueueRead.unlock();
-            return new Pair<>(lastAction, gameTime - lastActionStart);
-        }
-
-        // a currently executing action...
-        Iterator<Float> times = startTimes.iterator();
-        Iterator<EntityAction> things = actions.iterator();
 
         EntityAction action;
         float actionStart;
-        float nextActionStart = times.next();
 
-        do {
-            action = things.next();
-            actionStart = nextActionStart;
+        try (AutoLock.Section section = lockQueueRead.open()) {
+            // a currently executing action...
+            Iterator<Float> times = startTimes.iterator();
+            Iterator<EntityAction> things = actions.iterator();
 
-            if (times.hasNext()) {
+            float nextActionStart = times.next();
+
+            do {
+                action = things.next();
+                actionStart = nextActionStart;
                 nextActionStart = times.next();
-
-            } else {
-                nextActionStart = lastActionStart;
-
-                if (nextActionStart < gameTime) { // basically another iteration
-                    action = lastAction;
-                    actionStart = nextActionStart;
-                }
-
-                break; // redundant
-            }
-        } while (nextActionStart < gameTime);
-
-        lockQueueRead.unlock();
+            } while (nextActionStart < gameTime);
+        }
 
         return new Pair<>(action, gameTime - actionStart);
     }
@@ -319,7 +265,8 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
      */
     public void addWait(float duration) {
         assert duration >= 0;
-        addLast(new ActionIdle(lastAction.getEndPosition(), duration));
+        Vector3fc position = actions.getLast().getEndPosition();
+        addLast(new ActionIdle(position, duration));
     }
 
     /** adds the given action to the end of the queue */
@@ -329,24 +276,78 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
 
     /** the action executed the earliest */
     public EntityAction firstAction() {
-        EntityAction action = actions.peek();
-        return action == null ? lastAction : action;
+        return actions.peek();
     }
 
     /** the start time of the earliest action */
     public float firstActionStart() {
-        Float time = startTimes.peek();
-        return time == null ? lastActionStart : time;
+        return startTimes.getFirst();
     }
 
-    /** the action executed the latest */
-    public EntityAction lastAction() {
-        return lastAction;
-    }
+    public Iterable<EntityAction> actionsBetween(float startTime, float endTime) {
+        return () -> {
+            int exitPoint = -1;
+            // if it turns out that this syncing is not enough, consider using toArray to make local copies to iterate on
+            try (AutoLock.Section section = lockQueueRead.open()) { // locks while building an iterator
+                Iterator<Float> times = startTimes.iterator();
+                Iterator<EntityAction> things = actions.iterator();
 
-    /** the end time of the latest action */
-    public float lastActionEnd() {
-        return lastActionEnd;
+                times.next(); // time of action 0
+                float time;
+
+                if (times.hasNext()) {
+                    time = times.next(); // time of action 1
+
+                    // i = 0
+                    while (time < startTime) { // (action i is in progress) == ((time of action i+1) > now)
+                        if (!times.hasNext()) {
+                            // action i+1 is the last, but starts before startTime
+                            things.next(); // action i
+                            EntityAction nextAction = things.next(); // action i+1
+
+                            // if it is still in progress at start, return it.
+                            if (time + nextAction.duration() > startTime) {
+                                return Toolbox.singletonIterator(nextAction);
+
+                            } else { // otherwise return nothing
+                                return Collections.emptyIterator();
+                            }
+                        }
+
+                        time = times.next(); // time of action i+2
+                        things.next(); // skip action i
+                        // i++
+                    }
+
+                } else {
+                    // only one action
+                    return things; // guaranteed to also have only one element
+                }
+
+                if (time > endTime) {
+                    return Toolbox.singletonIterator(things.next());
+                }
+
+                assert time >= startTime && time <= endTime;
+
+                return new Iterator<>() {
+                    private boolean hasNext = true;
+                    private boolean hasTwo = true;
+
+                    @Override
+                    public boolean hasNext() {
+                        return hasNext && things.hasNext();
+                    }
+
+                    @Override
+                    public EntityAction next() {
+                        hasNext = hasTwo;
+                        hasTwo = (times.hasNext() && times.next() < endTime);
+                        return things.next();
+                    }
+                };
+            }
+        };
     }
 
     @Override
@@ -354,29 +355,19 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         return new Iterator<>() {
             Iterator<Float> times = startTimes.iterator();
             Iterator<EntityAction> things = actions.iterator();
-            boolean hasSeenLast = false;
 
             @Override
             public boolean hasNext() {
-                return !hasSeenLast;
+                return things.hasNext();
             }
 
             @Override
             public Pair<EntityAction, Float> next() {
-                if (!times.hasNext()) {
-                    assert !hasSeenLast;
-                    hasSeenLast = true;
-                    return new Pair<>(lastAction, lastActionStart);
-                }
-
                 return new Pair<>(things.next(), times.next());
             }
 
             @Override
             public void remove() {
-                if (hasSeenLast) {
-                    setLast(actions.peekLast(), startTimes.peekLast());
-                }
                 times.remove();
                 things.remove();
             }
@@ -401,5 +392,12 @@ public class ActionQueue extends AbstractQueue<Pair<EntityAction, Float>> {
         str.delete(str.length() - 2, str.length());
 
         return str.toString();
+    }
+
+    @Override
+    public void restore(Game game) {
+        for (EntityAction action : actions) {
+            action.restore(game);
+        }
     }
 }

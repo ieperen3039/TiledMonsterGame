@@ -22,7 +22,7 @@ public class GameParticles implements GameAspect {
     public GameParticles() {
         this.particles = new ArrayList<>();
 
-        newLock = new AutoLock();
+        newLock = new AutoLock.Instance();
     }
 
     @Override
@@ -32,7 +32,7 @@ public class GameParticles implements GameAspect {
 
     public void add(ParticleCloud cloud) {
         newLock.lock();
-        try (AutoLock.Section ignored = newLock.open()) {
+        try (AutoLock.Instance.Section ignored = newLock.open()) {
             if (newParticles == null) {
                 newParticles = cloud;
             } else {
@@ -47,7 +47,7 @@ public class GameParticles implements GameAspect {
         particles.removeIf(cloud -> cloud.disposeIfFaded(now));
 
         if (newParticles != null) {
-            try (AutoLock.Section ignored = newLock.open()) {
+            try (AutoLock.Instance.Section ignored = newLock.open()) {
                 newParticles.granulate()
                         .peek(c -> c.writeToGL(now))
                         .forEach(particles::add);

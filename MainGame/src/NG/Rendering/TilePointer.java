@@ -55,8 +55,8 @@ public class TilePointer implements Pointer {
             direction.normalize(Settings.Z_FAR - Settings.Z_NEAR);
 
             GameMap map = game.get(GameMap.class);
-            float t = map.gridMapIntersection(origin, direction);
-            if (t == 1) return;
+            Float t = map.gridMapIntersection(origin, direction);
+            if (t == null) return;
 
             Vector3f position = new Vector3f(direction).mul(t).add(origin);
 

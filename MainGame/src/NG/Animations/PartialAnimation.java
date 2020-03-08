@@ -94,7 +94,7 @@ public interface PartialAnimation extends Serializable {
 
         @Override
         public Vector3f getPositionAt(float gameTime) {
-            return position;
+            return new Vector3f(position);
         }
 
         public void setAnimation(UniversalAnimation ani) {

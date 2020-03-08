@@ -163,7 +163,7 @@ public class MonsterGame implements ModLoader {
                 .add((gl, game) -> {
                     if (!game.get(Settings.class).RENDER_HITBOXES) return;
 
-                    float gametime = game.get(GameTimer.class).getGametime();
+                    float gametime = game.get(GameTimer.class).getRendertime();
                     List<BoundingBox> boxes = game.get(GameState.class)
                             .entities().stream()
                             .map(e -> e.getHitbox(gametime))
@@ -265,7 +265,7 @@ public class MonsterGame implements ModLoader {
         cleanMods();
         cleanup();
 
-        Logger.INFO.print("Game engine is stopped");
+        Logger.INFO.print("Game stopped");
         Logger.INFO.newLine();
     }
 

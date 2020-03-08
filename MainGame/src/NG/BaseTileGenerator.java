@@ -23,7 +23,7 @@ import static NG.Settings.Settings.TILE_SIZE_Z;
  */
 public class BaseTileGenerator {
     public static void main(String[] args) throws IOException {
-        Set<Integer> got = new HashSet<>();
+        Set<Integer> seen = new HashSet<>();
         List<String> tileNames = new ArrayList<>();
 
 
@@ -35,8 +35,8 @@ public class BaseTileGenerator {
             for (int nn = 0; nn <= 4; nn++) {
                 for (int np = 0; np <= 3; np++) {
                     int id = MapTiles.rotationFreeBits(pp, pn, nn, np);
-                    if (got.contains(id)) continue;
-                    got.add(id);
+                    if (seen.contains(id)) continue;
+                    seen.add(id);
 
                     createAndAddTile(tileNames, dir, pp, pn, nn, np, 0f);
 
@@ -99,7 +99,7 @@ public class BaseTileGenerator {
         frame.addTriangle(pmt, ppt, mpt);
         frame.addTriangle(mpt, npt, nmt);
 
-        float mid = ((int) (((pmt.z + nmt.z + mpt.z + mnt.z) / 2f) + centerBias)) / 2f;
+        float mid = ((int) (((pmt.z + nmt.z + mpt.z + mnt.z) / 2f) + centerBias / 2f)) / 2f;
         Vector3fc mmt = new Vector3f(0, 0, mid);
         frame.addTriangle(nmt, mmt, mnt);
         frame.addTriangle(mnt, mmt, pmt);

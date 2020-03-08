@@ -16,7 +16,10 @@ import org.joml.*;
 
 import java.lang.Math;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Geert van Ieperen created on 16-2-2020.
@@ -49,21 +52,23 @@ public class MiniMap extends SComponent implements EventCallbacks.CameraListener
         Collection<MonsterSoul> team = game.get(Player.class).getTeam();
         float now = game.get(GameTimer.class).getRendertime();
 
-        Map<Integer, Set<Integer>> occupied = new HashMap<>(team.size());
+        Map<Integer, Collection<Integer>> occupied = new HashMap<>(team.size());
         for (MonsterSoul monsterSoul : team) {
             MonsterEntity e = monsterSoul.entity();
             if (e != null) {
                 Vector3f positionAt = e.getPositionAt(now);
                 Vector2i coordinate = map.getCoordinate(positionAt);
-                occupied.computeIfAbsent(coordinate.x, HashSet::new).add(coordinate.y);
+                if (isOnMap(coordinate.x, coordinate.y, map)) {
+                    occupied.computeIfAbsent(coordinate.x, ArrayList::new).add(coordinate.y);
+                }
             }
         }
 
         Vector3fc cameraEye = camera.getEye();
-        Vector3fc cameraDirection = camera.vectorToFocus();
+        Vector3fc cameraDirection = new Vector3f(camera.vectorToFocus()).mul(2);
 
-        float f = map.gridMapIntersection(cameraEye, cameraDirection);
-        Vector3f cameraFocus = new Vector3f(cameraDirection).mul(f).add(cameraEye);
+        Float f = map.gridMapIntersection(cameraEye, cameraDirection);
+        Vector3fc cameraFocus = (f == null) ? camera.getFocus() : new Vector3f(cameraDirection).mul(f).add(cameraEye);
         Vector2f cameraFocusCoord = map.getCoordPosf(cameraFocus);
         float zFocus = isOnMap(cameraFocusCoord.x, cameraFocusCoord.y, map) ?
                 map.getHeightAt((int) cameraFocusCoord.x, (int) cameraFocusCoord.y) : 0;

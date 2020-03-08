@@ -65,6 +65,11 @@ public class ActionIdle implements EntityAction {
     }
 
     @Override
+    public Vector3f getDerivative(float timeSinceStart) {
+        return Vectors.newZeroVector();
+    }
+
+    @Override
     public String toString() {
         return "Idle (at " + Vectors.toString(position) + ")";
     }

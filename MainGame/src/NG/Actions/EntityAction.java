@@ -16,7 +16,8 @@ import org.joml.Vector3fc;
  */
 public interface EntityAction extends GameObject {
     float ACCEPTABLE_DIFFERENCE = 1f / 512f;
-    float DIRECTION_DELTA = 0.1f;
+    float ACCEPTABLE_DIFFERENCE_SQ = ACCEPTABLE_DIFFERENCE * ACCEPTABLE_DIFFERENCE;
+    float DIRECTION_DELTA = 1f / 64f;
 
     @Override
     default void restore(Game game) {
@@ -24,7 +25,7 @@ public interface EntityAction extends GameObject {
 
     /**
      * calculates the position of this action, at the given time after the start of this action
-     * @param timeSinceStart the time since the start of this action in seconds
+     * @param timeSinceStart the time <b>since the start</b> of this action in seconds
      * @return the position at the given moment in time as described by this action.
      */
     Vector3f getPositionAt(float timeSinceStart);
@@ -35,6 +36,16 @@ public interface EntityAction extends GameObject {
 
     default Vector3fc getEndPosition() {
         return getPositionAt(duration());
+    }
+
+    /**
+     * @param timeSinceStart the time <b>since the start</b> of this action in seconds
+     * @return direction of this action at the given time
+     */
+    default Vector3f getDerivative(float timeSinceStart) {
+        Vector3f a = getPositionAt(timeSinceStart - DIRECTION_DELTA);
+        Vector3f b = getPositionAt(timeSinceStart + DIRECTION_DELTA);
+        return b.sub(a).div(DIRECTION_DELTA * 2);
     }
 
     ActionMarker getMarker();
@@ -70,19 +81,13 @@ public interface EntityAction extends GameObject {
     UniversalAnimation getAnimation();
 
     /**
-     * calculates the rotation of this action, at the given time after the start of this action
-     * @param timeSinceStart the time since the start of this action in seconds
+     * calculates the yaw rotation of this action, at the given time after the start of this action
+     * @param timeSinceStart the time <b>since the start</b> of this action in seconds
      * @return the rotation from the base at the given moment in time as described by this action.
      */
     default Quaternionf getRotationAt(float timeSinceStart) {
-        Vector3f startPosition = getPositionAt(timeSinceStart);
-        Vector3f endPosition = getPositionAt(timeSinceStart + DIRECTION_DELTA);
-        Quaternionf rot = new Quaternionf();
-        float dx = endPosition.x - startPosition.x;
-        float dy = endPosition.y - startPosition.y;
-        float yaw = (float) Math.atan2(dy, dx);
-        rot.rotateZ(yaw);
-
-        return rot;
+        Vector3f dir = getDerivative(timeSinceStart);
+        float yaw = Math.atan2(dir.y, dir.x);
+        return new Quaternionf().rotateZ(yaw);
     }
 }

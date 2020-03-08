@@ -126,6 +126,11 @@ public class CollisionDetection {
             entity.update(gameTime);
         }
 
+        // update sorted lists
+        Toolbox.insertionSort(xLowerSorted, CollisionEntity::xLower);
+        Toolbox.insertionSort(yLowerSorted, CollisionEntity::yLower);
+        Toolbox.insertionSort(zLowerSorted, CollisionEntity::zLower);
+
         /** -- analyse the collisions -- */
 
         // world collisions
@@ -140,27 +145,13 @@ public class CollisionDetection {
         PairList<CollisionEntity, CollisionEntity> pairs = getIntersectingPairs();
 
         int i;
+        // for each pair, run checkCollisionPair(a, b, gameTime) until it returns false
         for (i = 0; i < MAX_COLLISION_ITERATIONS && !pairs.isEmpty(); i++) {
             pairs = pairs.parallelStream()
                     .filter(p -> checkCollisionPair(p.left, p.right, gameTime))
                     .collect(Collectors.toCollection(PairList::new));
-
-            Set<CollisionEntity> uniqueValues = new HashSet<>(pairs.size() * 2);
-            for (int j = 0; j < pairs.size(); j++) {
-                CollisionEntity e1 = pairs.left(j);
-                if (uniqueValues.add(e1)) {
-                    e1.refresh(gameTime);
-                    world.checkCollision(e1.entity(), previousTime, gameTime);
-                }
-
-                CollisionEntity e2 = pairs.right(j);
-                if (uniqueValues.add(e2)) {
-                    pairs.right(j).refresh(gameTime);
-                    world.checkCollision(e2.entity(), previousTime, gameTime);
-                }
-            }
         }
-        Logger.INFO.printSpamless("CollDet" + i, gameTime, "Collision iterations ", i);
+        Logger.INFO.printSpamless("CollDet" + i, gameTime, "Collision iterations", i);
 
         previousTime = gameTime;
     }
@@ -176,27 +167,36 @@ public class CollisionDetection {
      * @return true iff these pairs indeed collided before endTime
      */
     private boolean checkCollisionPair(CollisionEntity alpha, CollisionEntity beta, float gameTime) {
-        Entity a = alpha.entity();
-        Entity b = beta.entity();
+        Entity aEty = alpha.entity();
+        Entity bEty = beta.entity();
 
-        assert a.canCollideWith(b) && b.canCollideWith(a);
+        assert aEty.canCollideWith(bEty) && bEty.canCollideWith(aEty);
         // this may change with previous collisions
-        if (a.isDisposed() || b.isDisposed() || a == b) return false;
+        if (aEty.isDisposed() || bEty.isDisposed() || aEty == bEty) return false;
 
-        float bFrac = alpha.checkAtoB(b, gameTime);
-        float aFrac = beta.checkAtoB(a, gameTime);
+        float bFrac = alpha.checkAtoB(bEty, gameTime);
+        float aFrac = beta.checkAtoB(aEty, gameTime);
 
         float hitFrac = Math.min(aFrac, bFrac);
         if (hitFrac == 1) return false;
 
-        double collisionTime = previousTime + (double) hitFrac * (previousTime - gameTime);
+        float collisionTime = (float) (previousTime + (double) hitFrac * (previousTime - gameTime));
 
         /*
          Note: if en entity collides with many entities in one tick, it will affect and be affected by all the
          entities it would collide with, even if the first deflects it. A solution is complex and expensive.
          */
-        a.collideWith(b, (float) collisionTime);
-        b.collideWith(a, (float) collisionTime);
+        aEty.collideWith(bEty, collisionTime);
+        alpha.refresh(gameTime);
+        if (world.checkCollision(aEty, previousTime, gameTime)) {
+            alpha.refresh(gameTime);
+        }
+
+        bEty.collideWith(aEty, collisionTime);
+        beta.refresh(gameTime);
+        if (world.checkCollision(bEty, previousTime, gameTime)) {
+            beta.refresh(gameTime);
+        }
 
         return true;
     }
@@ -207,10 +207,6 @@ public class CollisionDetection {
      * @return a collection of pairs of objects that are close to each other
      */
     private PairList<CollisionEntity, CollisionEntity> getIntersectingPairs() {
-        Toolbox.insertionSort(xLowerSorted, CollisionEntity::xLower);
-        Toolbox.insertionSort(yLowerSorted, CollisionEntity::yLower);
-        Toolbox.insertionSort(zLowerSorted, CollisionEntity::zLower);
-
         assert testInvariants();
 
         CollisionEntity[] entityArray = entityArray();
@@ -475,8 +471,9 @@ public class CollisionDetection {
          * @param e         the entity to check
          * @param startTime the begin of the interval, in seconds game time
          * @param endTime   the end of the interval, in seconds game time
+         * @return true iff there was a collision
          */
-        void checkCollision(Entity e, float startTime, float endTime);
+        boolean checkCollision(Entity e, float startTime, float endTime);
     }
 
     /**

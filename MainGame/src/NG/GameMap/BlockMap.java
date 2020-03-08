@@ -11,6 +11,7 @@ import NG.Rendering.Shaders.MaterialShader;
 import NG.Rendering.Shaders.ShaderProgram;
 import NG.Rendering.Shapes.GenericShapes;
 import NG.Tools.AStar;
+import NG.Tools.Vectors;
 import org.joml.*;
 
 import java.io.IOException;
@@ -136,8 +137,8 @@ public class BlockMap extends AbstractMap {
         Camera camera = game.get(Camera.class);
         Vector3fc eye = camera.getEye();
         Vector3fc viewDir = camera.vectorToFocus();
-        float fraction = gridMapIntersection(eye, viewDir);
-        Vector3fc focus = new Vector3f(viewDir).mul(fraction).add(eye);
+        Float fraction = gridMapIntersection(eye, viewDir);
+        Vector3fc focus = (fraction == null) ? Vectors.O : new Vector3f(viewDir).mul(fraction).add(eye);
         float radius = viewDir.length() / TILE_SIZE + 10;
 
         synchronized (this) {

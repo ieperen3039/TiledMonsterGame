@@ -69,21 +69,20 @@ public class ActionMarkerGenerated implements ActionMarker {
     static Mesh generate(EntityAction function, float tEnd) {
         float delta = 1f / RESOLUTION;
         Vector3fc startPos = function.getStartPosition();
-        Vector3fc startDir = function.getPositionAt(delta).sub(startPos);
+        Vector3f startDir = function.getDerivative(0);
         Vector3f pointSide = new Vector3f(startDir).cross(Vectors.Z).normalize(SIZE_SCALAR * RELATIVE_BODY_WIDTH / 2);
         Vector3f pointUp = new Vector3f(pointSide).cross(startDir).normalize(SIZE_SCALAR * RELATIVE_BODY_HEIGHT / 2);
 
         CustomShape frame = new CustomShape();
 
-        Vector3f point1 = new Vector3f(startPos);
+        Vector3f point1;
         Vector3f pp1 = new Vector3f(startPos).add(pointSide).add(pointUp);
         Vector3f pn1 = new Vector3f(startPos).add(pointSide).sub(pointUp);
         Vector3f np1 = new Vector3f(startPos).sub(pointSide).add(pointUp);
         Vector3f nn1 = new Vector3f(startPos).sub(pointSide).sub(pointUp);
         frame.addQuad(pp1, pn1, nn1, np1, new Vector3f(startDir).negate());
 
-        Vector3f point2;
-        Vector3f dir = new Vector3f();
+        Vector3f dir = startDir;
         Vector3f pp2 = new Vector3f();
         Vector3f pn2 = new Vector3f();
         Vector3f np2 = new Vector3f();
@@ -98,9 +97,8 @@ public class ActionMarkerGenerated implements ActionMarker {
             np2.set(np1);
             nn2.set(nn1);
 
-            point2 = point1;
             point1 = function.getPositionAt(t);
-            dir.set(point1).sub(point2);
+            dir = function.getDerivative(t);
 
             pointSide.set(dir).cross(Vectors.Z).normalize(SIZE_SCALAR * RELATIVE_BODY_WIDTH / 2);
             pointUp.set(pointSide).cross(dir).normalize(SIZE_SCALAR * RELATIVE_BODY_HEIGHT / 2);

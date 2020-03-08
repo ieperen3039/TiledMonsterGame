@@ -3,6 +3,7 @@ package NG.Living.MonsterMind;
 import NG.Actions.Commands.CommandWalk;
 import NG.Core.Game;
 import NG.Core.GameTimer;
+import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
 import NG.Living.BaseStimulus;
@@ -22,7 +23,6 @@ import java.util.Random;
 public class MonsterMindSimple extends MonsterMind {
     private float timeUntilRandomMovement;
     private Random rng = new Random();
-    private Vector2i POI;
 
     // fearLevel = [0 ... 3] with 0 = none and 3 = flee
     private int fearLevel = 0;
@@ -50,7 +50,7 @@ public class MonsterMindSimple extends MonsterMind {
                         tgt.add(rng.nextInt(5) - 2, rng.nextInt(5) - 2);
                         CommandWalk walk = new CommandWalk(owner, tgt);
 
-                        queueCommand(game, walk);
+                        executeCommand(game, walk);
                     }
 
                     timeUntilRandomMovement += rng.nextFloat() * 20;
@@ -113,5 +113,10 @@ public class MonsterMindSimple extends MonsterMind {
                 Logger.ASSERT.print("invalid enum " + type);
                 assert false;
         }
+    }
+
+    @Override
+    public void reactEntityCollision(Entity other, float collisionTime) {
+        fearLevel = 3;
     }
 }

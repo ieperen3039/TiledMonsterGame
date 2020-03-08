@@ -21,7 +21,8 @@ public class Settings {
     public static final float TILE_SIZE = 2f;
     public static final float TILE_SIZE_Z = 0.5f;
     public static final float GRAVITY_CONSTANT = 10f; // 9,81
-    public static final float MIN_COLLISION_CHECK = EntityAction.ACCEPTABLE_DIFFERENCE / 2f;
+    public static final float MIN_COLLISION_CHECK_DISTANCE = EntityAction.ACCEPTABLE_DIFFERENCE / 2f;
+    public static final float MAX_COLLISION_DELTA_TIME = 0.5f; // in seconds
 
     // video settings
     public int TARGET_FPS = 40;

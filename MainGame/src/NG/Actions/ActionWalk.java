@@ -48,19 +48,21 @@ public class ActionWalk implements EntityAction {
      * @param walkSpeed     the time when this action ends in seconds.
      */
     public ActionWalk(Game game, Vector3fc startPosition, Vector2ic endCoord, float walkSpeed) {
+        assert walkSpeed > 0;
         this.game = game;
         GameMap map = game.get(GameMap.class);
-
-        assert map.isOnFloor(startPosition) : String.format(
-                "Start position is not on the ground: %s should have z = %s",
-                Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));
-
         start = new Vector3f(startPosition);
         end = map.getPosition(endCoord);
         startToEnd = new Vector2f(end.x() - startPosition.x(), end.y() - startPosition.y());
         duration = (start.distance(end)) / walkSpeed;
         animation = BodyAnimation.WALK_CYCLE;
         marker = new ActionMarkerArrow(start, end);
+
+        assert duration > 0;
+        assert map.isOnFloor(startPosition) : String.format(
+                "Start position is not on the ground: %s should have z = %s",
+                Vectors.toString(startPosition), map.getHeightAt(startPosition.x(), startPosition.y()));
+
     }
 
     @Override
@@ -76,6 +78,11 @@ public class ActionWalk implements EntityAction {
         float y = start.y() + fraction * startToEnd.y();
         float height = map.getHeightAt(x, y);
         return new Vector3f(x, y, height);
+    }
+
+    @Override
+    public Vector3f getDerivative(float timeSinceStart) {
+        return new Vector3f(end).sub(start).div(duration);
     }
 
     @Override

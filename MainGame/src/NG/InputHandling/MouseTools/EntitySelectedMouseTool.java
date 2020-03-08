@@ -63,7 +63,7 @@ public class EntitySelectedMouseTool extends DefaultMouseTool {
         Command command = provider.create(receiver, targetPosition);
         if (command == null) return;
 
-        receiver.mind().queueCommand(game, command);
+        receiver.mind().executeCommand(game, command);
     }
 
     public void selectCommand(CommandProvider command) {

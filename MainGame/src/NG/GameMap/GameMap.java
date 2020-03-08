@@ -4,20 +4,24 @@ import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.GameAspect;
 import NG.Entities.Entity;
-import NG.Entities.MovingEntity;
 import NG.InputHandling.MouseTools.MouseToolListener;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Settings.Settings;
+import NG.Tools.Logger;
 import org.joml.*;
 
 import java.io.Externalizable;
 import java.lang.Math;
 import java.util.Collection;
 
+import static NG.Actions.EntityAction.ACCEPTABLE_DIFFERENCE;
+import static NG.Actions.EntityAction.DIRECTION_DELTA;
+
 /**
  * @author Geert van Ieperen created on 5-5-2019.
  */
 public interface GameMap extends GameAspect, Entity, MouseToolListener, Externalizable {
+
     /**
      * generate a map using the provided generator. This method can be run in a separate thread
      * @param mapGenerator the generator to use for this map.
@@ -125,67 +129,131 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, External
     ); // TODO add shortcut for situations where the tiles are close
 
     /**
-     * calculates the lowest fraction t such that (origin + direction * t) lies on this map, for 0 <= t < maximum.
+     * calculates the lowest fraction t such that (origin + direction * t) lies on this map, for 0 <= t < 1.
      * @param origin    a local origin of a ray
      * @param direction the direction of the ray
-     * @return fraction t of (origin + direction * t), or maximum if it does not hit.
+     * @return fraction t of (origin + direction * t), or null if it does not hit.
      */
-    default float gridMapIntersection(Vector3fc origin, Vector3fc direction) {
-        return getIntersection(origin, direction, 0);
+    Float gridMapIntersection(Vector3fc origin, Vector3fc direction);
+
+    @Override
+    default float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
+        Float intersect = gridMapIntersection(origin, direction);
+        return intersect == null ? 1 : intersect;
     }
 
     /**
-     * calculates the lowest fraction t such that 0 <= t <= maximum, and such that that the hitbox can move (t * direction)
-     * starting at origin before hitting this map.
+     * calculates the lowest fraction t such that 0 <= t <= maximum, and such that that the hitbox can move (t *
+     * direction) starting at origin before hitting this map.
      * @param hitbox    the hitbox to consider
      * @param origin    the relative position of the hitbox, origin of the movement
      * @param direction the direction the hitbox is moving in
      * @param maximum   the maximum value of t
-     * @return t, or maximum if it did not hit
+     * @return t, or null if it did not hit
      */
     float intersectFractionBoundingBox(
             BoundingBox hitbox, Vector3fc origin, Vector3fc direction, float maximum
     );
 
-    default float getEntityCollision(MovingEntity entity, float startTime, float endTime) {
-        Vector3fc startPos = entity.getPositionAt(startTime);
-        Vector3fc endPos = entity.getPositionAt(endTime);
+    /**
+     * calculates when the given action hits this map using newton's iterations
+     * @param action     the action describing a movement
+     * @param lowerBound lower bound of the time since the start of the action to consider, larger than 0
+     * @param upperBound upper bound on the time since the start of the action to consider, smaller than
+     *                   action.duration()
+     * @return the relative collision time of action with the map, or null if no collision is found.
+     */
+    default Float getActionCollision(EntityAction action, float lowerBound, float upperBound) {
+        assert lowerBound >= 0;
+        assert upperBound <= action.duration();
 
-        float intersect = gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
-        if (intersect == 1) return endTime;
+        // perform iterative checks of MAX_COLLISION_DELTA
+        Float intersect = null;
+        while (upperBound > lowerBound + Settings.MAX_COLLISION_DELTA_TIME && intersect == null) {
+            intersect = getActionCollision(action, lowerBound, lowerBound + Settings.MAX_COLLISION_DELTA_TIME);
+            lowerBound = lowerBound + Settings.MAX_COLLISION_DELTA_TIME;
+        }
+
+        Vector3fc startPos = action.getPositionAt(lowerBound);
+        Vector3fc endPos = action.getPositionAt(upperBound);
+
+        intersect = gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
+
         // edge case: immediate collision, but still legal
-        if (intersect == 0 && endPos.z() > getHeightAt(endPos.x(), endPos.y())) {
-            Vector3fc delta = entity.getPositionAt(startTime + 0.001f);
-            assert delta.z() > getHeightAt(delta.x(), delta.y()) : "If this assert triggers, then this additional check must be incorporated.";
-            return endTime;
+        if (intersect != null && intersect * (upperBound - lowerBound) < DIRECTION_DELTA) {
+            Vector3fc delta = action.getPositionAt(lowerBound + DIRECTION_DELTA);
+            if (delta.z() > getHeightAt(delta.x(), delta.y())) {
+                intersect = gridMapIntersection(startPos, new Vector3f(endPos).sub(startPos));
+            }
+        }
+
+        if (intersect == null) {
+            // additional check for ground-to-fall
+            if (isOnFloor(startPos)) {
+                boolean isBelowGround = endPos.z() < getHeightAt(endPos.x(), endPos.y());
+                if (isBelowGround) {
+                    Logger.WARN.print(endPos, getHeightAt(endPos.x(), endPos.y()));
+                    return 0f;
+                }
+            }
+
+            return null;
         }
 
         // collision found
-        float collisionTime = startTime + intersect * (endTime - startTime);
-        Vector3fc midPos = entity.getPositionAt(collisionTime);
+        float collisionTime = lowerBound + intersect * (upperBound - lowerBound);
+        Vector3fc midPos = action.getPositionAt(collisionTime);
 
         // only accept if the found position is sufficiently close to a checked point
-        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK) {
+        while (Math.min(startPos.distanceSquared(midPos), endPos.distanceSquared(midPos)) > Settings.MIN_COLLISION_CHECK_DISTANCE) {
             intersect = gridMapIntersection(startPos, new Vector3f(midPos).sub(startPos));
 
-            if (intersect < 1) {
-                collisionTime = startTime + intersect * (collisionTime - startTime);
+            if (intersect != null) {
+                collisionTime = lowerBound + intersect * (collisionTime - lowerBound);
                 endPos = midPos;
 
             } else { // wrong half, repeat with other half
                 intersect = gridMapIntersection(midPos, new Vector3f(endPos).sub(midPos));
-                collisionTime = collisionTime + intersect * (endTime - collisionTime);
+                if (intersect == null) return null; // after smoothing, no collision is found
+
+                collisionTime = collisionTime + intersect * (upperBound - collisionTime);
                 startPos = midPos;
             }
 
-            midPos = entity.getPositionAt(collisionTime);
+            midPos = action.getPositionAt(collisionTime);
         }
 
         return collisionTime;
     }
 
     default boolean isOnFloor(Vector3fc position) {
-        return Math.abs(getHeightAt(position.x(), position.y()) - position.z()) < EntityAction.ACCEPTABLE_DIFFERENCE;
+        return Math.abs(getHeightAt(position.x(), position.y()) - position.z()) < ACCEPTABLE_DIFFERENCE;
+    }
+
+    /**
+     * process a collision with the map, happening at collisionTime.
+     * @param map           the map
+     * @param collisionTime the moment of collision
+     */
+    @Override
+    default void collideWith(GameMap map, float collisionTime) {
+    }
+
+    /** increases the x or y coordinate in the given direction */
+    static void expandCoord(Vector2i coordinate, Vector3f direction) {
+        if (Math.abs(direction.x) > Math.abs(direction.y)) {
+            if (direction.x > 0) {
+                coordinate.x++;
+            } else {
+                coordinate.x--;
+            }
+        } else {
+            if (direction.y > 0) {
+                coordinate.y++;
+            } else {
+                coordinate.y--;
+            }
+        }
     }
 
     interface ChangeListener {
