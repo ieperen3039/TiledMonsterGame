@@ -31,7 +31,6 @@ public class GameParticles implements GameAspect {
     }
 
     public void add(ParticleCloud cloud) {
-        newLock.lock();
         try (AutoLock.Instance.Section ignored = newLock.open()) {
             if (newParticles == null) {
                 newParticles = cloud;
@@ -47,9 +46,9 @@ public class GameParticles implements GameAspect {
         particles.removeIf(cloud -> cloud.disposeIfFaded(now));
 
         if (newParticles != null) {
-            try (AutoLock.Instance.Section ignored = newLock.open()) {
+            try (AutoLock.Section ignored = newLock.open()) {
                 newParticles.granulate()
-                        .peek(c -> c.writeToGL(now))
+                        .peek(ParticleCloud::writeToGL)
                         .forEach(particles::add);
 
                 newParticles = null;

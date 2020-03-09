@@ -5,7 +5,6 @@ import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Pair;
-import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shapes.GenericShapes;
 import org.joml.Vector3f;
@@ -87,14 +86,5 @@ public class Cube implements MovingEntity {
     @Override
     public void restore(Game game) {
 
-    }
-
-    /**
-     * process a collision with the map, happening at collisionTime.
-     * @param map           the map
-     * @param collisionTime the moment of collision
-     */
-    @Override
-    public void collideWith(GameMap map, float collisionTime) {
     }
 }

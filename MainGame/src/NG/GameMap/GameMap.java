@@ -230,15 +230,6 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, External
         return Math.abs(getHeightAt(position.x(), position.y()) - position.z()) < ACCEPTABLE_DIFFERENCE;
     }
 
-    /**
-     * process a collision with the map, happening at collisionTime.
-     * @param map           the map
-     * @param collisionTime the moment of collision
-     */
-    @Override
-    default void collideWith(GameMap map, float collisionTime) {
-    }
-
     /** increases the x or y coordinate in the given direction */
     static void expandCoord(Vector2i coordinate, Vector3f direction) {
         if (Math.abs(direction.x) > Math.abs(direction.y)) {

@@ -4,7 +4,6 @@ import NG.Actions.ActionLinearMove;
 import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Actions.Attacks.DamageType;
 import NG.Actions.Commands.Command;
-import NG.Actions.Commands.CommandAttack;
 import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
@@ -25,7 +24,6 @@ import NG.Rendering.Shapes.GenericShapes;
 import NG.Settings.Settings;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**
@@ -111,7 +109,8 @@ public class ProjectilePowerBall extends Projectile {
                 new Color4f(1, 1, 0),
                 new Color4f(0.5f, 0.8f, 0),
                 (int) (game.get(Settings.class).PARTICLE_MODIFIER * Particles.EXPLOSION_BASE_DENSITY),
-                Particles.FIRE_LINGER_TIME, EXPLOSION_POWER
+                Particles.FIRE_LINGER_TIME, EXPLOSION_POWER,
+                collisionTime
         ));
         dispose();
     }

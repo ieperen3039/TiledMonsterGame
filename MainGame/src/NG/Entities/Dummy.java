@@ -1,6 +1,5 @@
 package NG.Entities;
 
-import NG.GameMap.GameMap;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -27,13 +26,4 @@ public abstract class Dummy implements Entity {
     }
 
     public abstract Vector3f getPositionAt(float gameTime);
-
-    /**
-     * process a collision with the map, happening at collisionTime.
-     * @param map           the map
-     * @param collisionTime the moment of collision
-     */
-    @Override
-    public void collideWith(GameMap map, float collisionTime) {
-    }
 }

@@ -17,7 +17,7 @@ public interface AutoLock extends Lock {
 
     interface Section extends AutoCloseable {
         @Override
-        void close();
+        void close(); // without exception
     }
 
     /**
@@ -40,7 +40,7 @@ public interface AutoLock extends Lock {
         }
 
         public Instance.Section open() {
-            lock();
+            source.lock();
             return source::unlock;
         }
 

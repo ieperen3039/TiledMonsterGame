@@ -5,7 +5,6 @@ import NG.Core.Game;
 import NG.Core.GameTimer;
 import NG.Entities.Entity;
 import NG.Entities.MovingEntity;
-import NG.GameMap.GameMap;
 import NG.Rendering.MatrixStack.SGL;
 import org.joml.Vector3fc;
 
@@ -14,11 +13,10 @@ import org.joml.Vector3fc;
  */
 public abstract class Projectile implements MovingEntity {
     protected final Game game;
-    private float spawnTime = Float.MAX_VALUE;
     private Entity source;
-
+    private float spawnTime = Float.POSITIVE_INFINITY;
+    private float despawnTime = Float.POSITIVE_INFINITY;
     private boolean isDisposed = false;
-    private boolean isLaunched = false;
 
     public Projectile(Game game, Entity source) {
         this.game = game;
@@ -33,7 +31,6 @@ public abstract class Projectile implements MovingEntity {
     public void launch(Vector3fc startPosition, float spawnTime) {
         this.spawnTime = spawnTime;
         setSpawnPosition(startPosition);
-        isLaunched = true;
     }
 
     /**
@@ -43,17 +40,14 @@ public abstract class Projectile implements MovingEntity {
      */
     protected abstract void setSpawnPosition(Vector3fc spawnPosition);
 
-    public boolean isLaunched() {
-        return isLaunched;
+    public boolean isLaunchedAt(float gameTime) {
+        return gameTime > spawnTime && gameTime < despawnTime;
     }
 
     @Override
     public void draw(SGL gl) {
-        if (isDisposed) return;
         float now = game.get(GameTimer.class).getRendertime();
-        if (now < spawnTime) return;
-
-        getMarker().draw(gl);
+        if (!isLaunchedAt(now)) return;
 
         gl.pushMatrix();
         {
@@ -61,6 +55,8 @@ public abstract class Projectile implements MovingEntity {
             drawProjectile(gl, now);
         }
         gl.popMatrix();
+
+        getMarker().draw(gl);
     }
 
     protected abstract ActionMarker getMarker();
@@ -88,14 +84,5 @@ public abstract class Projectile implements MovingEntity {
 
     protected float getSpawnTime() {
         return spawnTime;
-    }
-
-    /**
-     * process a collision with the map, happening at collisionTime.
-     * @param map           the map
-     * @param collisionTime the moment of collision
-     */
-    @Override
-    public void collideWith(GameMap map, float collisionTime) {
     }
 }

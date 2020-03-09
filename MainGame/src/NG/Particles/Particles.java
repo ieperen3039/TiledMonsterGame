@@ -25,15 +25,16 @@ public final class Particles {
 
     /**
      * creates an explosion of particles from the given position, mixing the given color with white
-     * @param position source position where all particles come from
-     * @param color    a color. Each particle has a slightly randomized variation
-     * @param power    the speed of the fastest particle relative to the middle of the cloud
+     * @param position  source position where all particles come from
+     * @param color     a color. Each particle has a slightly randomized variation
+     * @param power     the speed of the fastest particle relative to the middle of the cloud
+     * @param startTime
      * @return a new explosion, not written to the GPU yet.
      */
-    public static ParticleCloud explosion(Vector3fc position, Color4f color, float power) {
+    public static ParticleCloud explosion(Vector3fc position, Color4f color, float power, float startTime) {
         return explosion(
                 position, Vectors.O, new Color4f(color, 1).darken(0.2f), new Color4f(color, 1).intensify(0.2f),
-                EXPLOSION_BASE_DENSITY, FIRE_LINGER_TIME, power
+                EXPLOSION_BASE_DENSITY, FIRE_LINGER_TIME, power, startTime
         );
     }
 
@@ -45,11 +46,12 @@ public final class Particles {
      * @param color2       second color extreme. Each particle has a color between color1 and color2
      * @param density      the number of particles generated
      * @param lingerTime   the maximal lifetime of the particles. Actual duration is exponentially distributed.
+     * @param startTime
      * @return a new explosion, not written to the GPU yet.
      */
     public static ParticleCloud explosion(
             Vector3fc position, Vector3fc meanMovement, Color4f color1, Color4f color2,
-            int density, float lingerTime, float power
+            int density, float lingerTime, float power, float startTime
     ) {
         ParticleCloud result = new ParticleCloud();
 
@@ -60,7 +62,7 @@ public final class Particles {
             float rand = Toolbox.random.nextFloat();
             Color4f interColor = color1.interpolateTo(color2, rand);
 
-            result.addParticle(position, movement, interColor, lingerTime);
+            result.addParticle(position, movement, interColor, lingerTime, startTime);
         }
 
         return result;
@@ -68,7 +70,7 @@ public final class Particles {
 
     private static ParticleCloud getParticles(
             Collection<Vector3f[]> splittedTriangles, Vector3fc launchDir, float jitter,
-            float deprecationTime, float speed, Color4f particleColor
+            float deprecationTime, float speed, Color4f particleColor, float startTime
     ) {
         ParticleCloud particles = new ParticleCloud();
         for (Vector3f[] p : splittedTriangles) {
@@ -83,7 +85,7 @@ public final class Particles {
             Vector3f avg = p[0].add(p[1]).add(p[2]).div(3f);
 
             particles.addParticle(
-                    avg, movement, particleColor, deprecationTime
+                    avg, movement, particleColor, deprecationTime, startTime
             );
         }
         return particles;

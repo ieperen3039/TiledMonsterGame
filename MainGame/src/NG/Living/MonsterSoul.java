@@ -127,7 +127,7 @@ public class MonsterSoul extends AbstractGameObject implements Living {
         entity.dispose();
 
         game.get(GameParticles.class).add(
-                Particles.explosion(entity.getPositionAt(time), Color4f.RED, 10)
+                Particles.explosion(entity.getPositionAt(time), Color4f.RED, 10, time)
         );
     }
 

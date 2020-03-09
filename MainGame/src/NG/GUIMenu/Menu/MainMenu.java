@@ -112,7 +112,8 @@ public class MainMenu extends SFrame {
                 new SButton("BOOM", () -> {
                     ParticleCloud cloud = Particles.explosion(
                             center, Vectors.O, Color4f.RED, Color4f.ORANGE,
-                            50_000, 5f, 10f
+                            50_000, 5f, 10f,
+                            overworld.get(GameTimer.class).getRendertime()
                     );
                     overworld.get(GameParticles.class).add(cloud);
                 })

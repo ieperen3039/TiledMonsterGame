@@ -12,7 +12,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Stream;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -31,72 +30,67 @@ public class ParticleCloud implements Mesh, Externalizable {
     private int posMidVboID;
     private int moveVboID;
     private int colorVboID;
-    private int ttlVboID;
+    private int timeVboID;
     private int randVboID;
 
     private boolean isLoaded = false;
     private List<Particle> bulk = new ArrayList<>();
-    private float maxTTL = 0;
-    private float minTTL = Float.MAX_VALUE;
+    private float minStartTime = Float.POSITIVE_INFINITY;
+    private float minEndTime = Float.POSITIVE_INFINITY;
+    private float maxEndTime = Float.NEGATIVE_INFINITY;
     private int nrOfParticles = 0;
-    private float startTime = -1;
 
     /**
-     * @param position     position of the middle of the particle
-     * @param color        color of this particle
-     * @param movement     movement of this particle in one second
-     * @param maxTTL   maximum duration of this particle
+     * @param position  position of the middle of the particle
+     * @param color     color of this particle
+     * @param movement  movement of this particle in one second
+     * @param maxTTL    maximum duration of this particle
+     * @param startTime
      */
     public void addParticle(
-            Vector3fc position, Vector3fc movement, Color4f color, float maxTTL
+            Vector3fc position, Vector3fc movement, Color4f color, float maxTTL, float startTime
     ) {
 
         final float randFloat = Toolbox.random.nextFloat();
         float timeToLive = randFloat * randFloat * maxTTL;
 
-        addParticle(new Particle(position, movement, color, timeToLive));
+        addParticle(new Particle(position, movement, color, startTime, timeToLive));
     }
 
     private void addParticle(Particle p) {
         bulk.add(p);
-        maxTTL = Math.max(maxTTL, p.timeToLive);
-        minTTL = Math.min(minTTL, p.timeToLive);
+        minStartTime = Math.min(p.startTime, minStartTime);
+        minEndTime = Math.min(p.endTime, minEndTime);
+        maxEndTime = Math.max(p.endTime, maxEndTime);
     }
 
-    /**
-     * @param startTime initial time in seconds
-     */
-    public void writeToGL(float startTime) {
-        int numElts = bulk.size();
-        maxTTL += startTime;
-        minTTL += startTime;
+    public void writeToGL() {
+        nrOfParticles = bulk.size();
 
-        nrOfParticles = numElts;
-        this.startTime = startTime;
+        FloatBuffer positionBuffer = MemoryUtil.memAllocFloat(3 * nrOfParticles);
+        FloatBuffer moveBuffer = MemoryUtil.memAllocFloat(3 * nrOfParticles);
+        FloatBuffer colorBuffer = MemoryUtil.memAllocFloat(4 * nrOfParticles);
+        FloatBuffer timeBuffer = MemoryUtil.memAllocFloat(2 * nrOfParticles);
+        IntBuffer randomBuffer = MemoryUtil.memAllocInt(nrOfParticles);
 
-        FloatBuffer positionBuffer = MemoryUtil.memAllocFloat(3 * numElts);
-        FloatBuffer moveBuffer = MemoryUtil.memAllocFloat(3 * numElts);
-        FloatBuffer colorBuffer = MemoryUtil.memAllocFloat(4 * numElts);
-        FloatBuffer ttlBuffer = MemoryUtil.memAllocFloat(2 * numElts);
-
-        IntBuffer randomBuffer = MemoryUtil.memAllocInt(numElts);
-        randomBuffer.put(new Random(Toolbox.random.nextInt())
-                .ints(numElts)
-                .toArray());
+        final int[] randInts = Toolbox.random.ints(nrOfParticles).toArray();
+        randomBuffer.put(randInts);
+        randomBuffer.rewind();
 
         for (int i = 0; i < bulk.size(); i++) {
             Particle p = bulk.get(i);
 
             p.position.get(i * 3, positionBuffer);
             p.movement.get(i * 3, moveBuffer);
+
             p.color.put(colorBuffer);
-            ttlBuffer.put(startTime);
-            ttlBuffer.put(startTime + p.timeToLive);
+            timeBuffer.put(p.startTime);
+            timeBuffer.put(p.endTime);
         }
 
+        // position and movement do not require flipping
         colorBuffer.flip();
-        ttlBuffer.flip();
-        randomBuffer.flip();
+        timeBuffer.flip();
 
         try {
             vaoId = glGenVertexArrays();
@@ -105,7 +99,7 @@ public class ParticleCloud implements Mesh, Externalizable {
             posMidVboID = loadToGL(positionBuffer, 0, 3); // Position of triangle middle VBO
             moveVboID = loadToGL(moveBuffer, 1, 3); // Movement VBO
             colorVboID = loadToGL(colorBuffer, 2, 4); // Color VBO
-            ttlVboID = loadToGL(ttlBuffer, 3, 2); // beginTime-maxTTL VBO
+            timeVboID = loadToGL(timeBuffer, 3, 2); // beginTime-endTime VBO
 
             randVboID = glGenBuffers();
             glBindBuffer(GL_ARRAY_BUFFER, randVboID);
@@ -120,7 +114,7 @@ public class ParticleCloud implements Mesh, Externalizable {
             MemoryUtil.memFree(positionBuffer);
             MemoryUtil.memFree(moveBuffer);
             MemoryUtil.memFree(colorBuffer);
-            MemoryUtil.memFree(ttlBuffer);
+            MemoryUtil.memFree(timeBuffer);
             MemoryUtil.memFree(randomBuffer);
         }
 
@@ -128,6 +122,7 @@ public class ParticleCloud implements Mesh, Externalizable {
     }
 
     private static int loadToGL(FloatBuffer buffer, int index, int itemSize) {
+        buffer.rewind();
         int vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
@@ -135,20 +130,22 @@ public class ParticleCloud implements Mesh, Externalizable {
         return vboID;
     }
 
-    /** a rough estimate of the number of visible particles */
+    /** an estimate of the number of visible particles */
     public int estParticlesAt(float currentTime) {
-        float fraction = 1 - ((currentTime - startTime) / (maxTTL - minTTL));
-        if (fraction < 0) return 0;
-        if (fraction > 1) fraction = 1;
-
-        return (int) (nrOfParticles * fraction * fraction); // assuming quadratic despawn
+        int count = 0;
+        for (Particle p : bulk) {
+            if (p.startTime > currentTime && p.endTime < currentTime) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public Stream<ParticleCloud> granulate() {
-        float despawnPeriod = maxTTL - minTTL;
+        float despawnPeriod = maxEndTime - minEndTime;
 
         if ((despawnPeriod > PARTICLECLOUD_MIN_TIME) && (bulk.size() > PARTICLECLOUD_SPLIT_SIZE)) {
-            float mid = minTTL + (despawnPeriod / 2);
+            float mid = minEndTime + (despawnPeriod / 2);
 
             ParticleCloud newCloud = splitOff(mid);
             return Stream.concat(this.granulate(), newCloud.granulate());
@@ -158,23 +155,24 @@ public class ParticleCloud implements Mesh, Externalizable {
     }
 
     /**
-     * splits off all particles with timeToLive more than the given TTL. The new particles are written to GL
-     * @param newTTL the new maximum ttl of these particles
+     * @param maxEndTime the new maximum end time of these particles
+     * @return a cloud of particles that end later than the given end time
      */
-    public ParticleCloud splitOff(float newTTL) {
+    public ParticleCloud splitOff(float maxEndTime) {
         ParticleCloud newCloud = new ParticleCloud();
         ArrayList<Particle> newBulk = new ArrayList<>();
 
         for (Particle p : bulk) {
-            if (p.timeToLive > newTTL) {
+            if (p.endTime > maxEndTime) {
                 newCloud.addParticle(p);
+
             } else {
                 newBulk.add(p);
             }
         }
 
-        maxTTL = newTTL;
-        bulk = newBulk;
+        this.maxEndTime = maxEndTime;
+        this.bulk = newBulk;
 
         return newCloud;
     }
@@ -182,18 +180,18 @@ public class ParticleCloud implements Mesh, Externalizable {
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(bulk);
-        out.writeFloat(minTTL);
-        out.writeFloat(maxTTL);
-        out.writeFloat(startTime);
+        out.writeFloat(minStartTime);
+        out.writeFloat(minEndTime);
+        out.writeFloat(maxEndTime);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         //noinspection unchecked
         bulk = (List<Particle>) in.readObject();
-        minTTL = in.readFloat();
-        maxTTL = in.readFloat();
-        startTime = in.readFloat();
+        minStartTime = in.readFloat();
+        minEndTime = in.readFloat();
+        maxEndTime = in.readFloat();
         isLoaded = false;
     }
 
@@ -202,14 +200,13 @@ public class ParticleCloud implements Mesh, Externalizable {
      */
     @Override
     public void render(SGL.Painter lock) {
-        if (startTime == -1) return;
-        if (!isLoaded) writeToGL(startTime);
+        if (!isLoaded) writeToGL();
 
         glBindVertexArray(vaoId);
         glEnableVertexAttribArray(0); // Position of triangle middle VBO
         glEnableVertexAttribArray(1); // Movement VBO
         glEnableVertexAttribArray(2); // Color VBO
-        glEnableVertexAttribArray(3); // TTL VBO
+        glEnableVertexAttribArray(3); // Time VBO
         glEnableVertexAttribArray(4); // Rand VBO
 
         glDrawArrays(GL_POINTS, 0, nrOfParticles);
@@ -223,7 +220,7 @@ public class ParticleCloud implements Mesh, Externalizable {
     }
 
     public boolean hasFaded(float currentTime) {
-        return currentTime > startTime + maxTTL;
+        return currentTime > maxEndTime;
     }
 
     /**
@@ -243,7 +240,7 @@ public class ParticleCloud implements Mesh, Externalizable {
         bulk.clear();
         // Delete the VBOs
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDeleteBuffers(new int[]{posMidVboID, moveVboID, colorVboID, ttlVboID, randVboID});
+        glDeleteBuffers(new int[]{posMidVboID, moveVboID, colorVboID, timeVboID, randVboID});
 
         // Delete the VAO
         glBindVertexArray(0);
@@ -253,15 +250,15 @@ public class ParticleCloud implements Mesh, Externalizable {
     }
 
     /**
-     * merges the other queued particles into this particle Note! this only works before {@link #writeToGL(float)} is
-     * called
+     * merges the other queued particles into this particle Note! this only works before {@link #writeToGL()} is called
      * @param other another particle cloud. The other will not be modified
-     * @throws NullPointerException if this or the other has called {@link #writeToGL(float)} previously
+     * @throws NullPointerException if this or the other has called {@link #writeToGL()} previously
      */
     public void addAll(ParticleCloud other) {
         this.bulk.addAll(other.bulk);
-        this.maxTTL = Math.max(this.maxTTL, other.maxTTL);
-        this.minTTL = Math.min(this.minTTL, other.minTTL);
+        this.minEndTime = Math.min(this.minEndTime, other.minEndTime);
+        this.maxEndTime = Math.max(this.maxEndTime, other.maxEndTime);
+        this.minStartTime = Math.min(this.minStartTime, other.minStartTime);
     }
 
     /**
@@ -271,13 +268,16 @@ public class ParticleCloud implements Mesh, Externalizable {
         public final Vector3fc position;
         public final Vector3fc movement;
         public final Color4f color;
-        public final float timeToLive;
+        public final float startTime;
+        public final float endTime;
 
-        public Particle(Vector3fc position, Vector3fc movement, Color4f color, float timeToLive) {
+        public Particle(Vector3fc position, Vector3fc movement, Color4f color, float startTime, float timeToLive) {
+            assert timeToLive > 0;
             this.position = position;
             this.movement = movement;
             this.color = color;
-            this.timeToLive = timeToLive;
+            this.startTime = startTime;
+            this.endTime = startTime + timeToLive;
         }
     }
 }

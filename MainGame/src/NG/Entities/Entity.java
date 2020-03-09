@@ -88,5 +88,13 @@ public interface Entity extends GameObject {
     default void collideWith(Entity other, float collisionTime) {
     }
 
-    void collideWith(GameMap map, float collisionTime);
+    /**
+     * process a collision with the map, happening at collisionTime.
+     * @param map           the map
+     * @param collisionTime the moment of collision
+     */
+    default void collideWith(GameMap map, float collisionTime) {
+    }
+
+    ;
 }
