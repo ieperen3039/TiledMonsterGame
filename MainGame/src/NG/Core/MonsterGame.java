@@ -68,7 +68,7 @@ public class MonsterGame implements ModLoader {
     private List<Mod> activeMods = Collections.emptyList();
     private final Pointer pointer;
 
-    public MonsterGame() throws IOException {
+    public MonsterGame(Settings settings) throws IOException {
         Logger.DEBUG.print("Showing splash...");
         splashWindow = new Splash();
         splashWindow.run();
@@ -77,7 +77,6 @@ public class MonsterGame implements ModLoader {
         String mainThreadName = Thread.currentThread().getName();
 
         // these are not GameAspects, and thus the init() rule does not apply.
-        Settings settings = new Settings();
         Player thePlayer = new Player(); // read from save file
         window = new GLFWWindow(Settings.GAME_NAME, new GLFWWindow.Settings(settings), true);
 
@@ -166,6 +165,8 @@ public class MonsterGame implements ModLoader {
                     float gametime = game.get(GameTimer.class).getRendertime();
                     List<BoundingBox> boxes = game.get(GameState.class)
                             .entities().stream()
+                            .filter(e -> e.getSpawnTime() < gametime)
+                            .filter(e -> e.getDespawnTime() > gametime)
                             .map(e -> e.getHitbox(gametime))
                             .collect(Collectors.toList());
                     Toolbox.drawHitboxes(gl, boxes);

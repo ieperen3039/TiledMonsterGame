@@ -1,65 +1,82 @@
 package NG.Entities.Projectiles;
 
-import NG.Actions.ActionMarkers.ActionMarker;
+import NG.Actions.EntityAction;
+import NG.Core.AbstractGameObject;
 import NG.Core.Game;
 import NG.Core.GameTimer;
+import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
 import NG.Entities.MovingEntity;
 import NG.Rendering.MatrixStack.SGL;
-import org.joml.Vector3fc;
+
+import java.util.function.Supplier;
 
 /**
  * @author Geert van Ieperen created on 2-4-2019.
  */
-public abstract class Projectile implements MovingEntity {
-    protected final Game game;
-    private Entity source;
-    private float spawnTime = Float.POSITIVE_INFINITY;
-    private float despawnTime = Float.POSITIVE_INFINITY;
-    private boolean isDisposed = false;
+public abstract class Projectile extends AbstractGameObject implements MovingEntity {
+    protected Entity source;
+    protected EntityAction movement;
+    protected float spawnTime;
+    protected float despawnTime;
+    private boolean isVerified = false;
+    private Supplier<Boolean> validator;
 
-    public Projectile(Game game, Entity source) {
-        this.game = game;
+    public Projectile(
+            Game game, MovingEntity source, float spawnTime, float despawnTime, EntityAction movement,
+            EntityAction sourceAction
+    ) {
+        this(game, source, spawnTime, despawnTime, movement, () -> sourceAction.equals(source.getActionAt(spawnTime).left));
+    }
+
+    public Projectile(
+            Game game, Entity source, float spawnTime, float despawnTime, EntityAction movement,
+            Supplier<Boolean> validator
+    ) {
+        super(game);
+        assert despawnTime > spawnTime;
         this.source = source;
-    }
-
-    /**
-     * Sets the position of this projectile to startPosition and make it move to endPosition
-     * @param startPosition a position in the world, where this projectile spawns at the current game time
-     * @param spawnTime     moment of launching, should be equal to the current game time
-     */
-    public void launch(Vector3fc startPosition, float spawnTime) {
         this.spawnTime = spawnTime;
-        setSpawnPosition(startPosition);
+        this.despawnTime = despawnTime;
+        this.movement = movement;
+        this.validator = validator;
     }
 
-    /**
-     * sets the start position of the projectile. No call to {@link #getPositionAt(float)} may happen before this method
-     * is called
-     * @param spawnPosition the position of spawning
-     */
-    protected abstract void setSpawnPosition(Vector3fc spawnPosition);
-
-    public boolean isLaunchedAt(float gameTime) {
-        return gameTime > spawnTime && gameTime < despawnTime;
+    @Override
+    public void update(float gameTime) {
+        if (!isVerified && gameTime >= spawnTime) {
+            if (validator.get()) {
+                isVerified = true;
+            }
+        }
     }
 
     @Override
     public void draw(SGL gl) {
         float now = game.get(GameTimer.class).getRendertime();
-        if (!isLaunchedAt(now)) return;
+        if (isVerified && now >= spawnTime && now <= despawnTime) return;
 
         gl.pushMatrix();
         {
-            gl.translate(getPositionAt(now));
+            gl.translate(movement.getPositionAt(now));
+            gl.rotate(movement.getRotationAt(now));
             drawProjectile(gl, now);
         }
         gl.popMatrix();
 
-        getMarker().draw(gl);
+        movement.getMarker().draw(gl);
     }
 
-    protected abstract ActionMarker getMarker();
+    @Override
+    public Pair<EntityAction, Float> getActionAt(float gameTime) {
+        return new Pair<>(movement, gameTime - spawnTime);
+    }
+
+    @Override
+    protected void restoreFields(Game game) {
+        source.restore(game);
+        movement.restore(game);
+    }
 
     /**
      * @param gl         draw the projectile, without additional positioning
@@ -68,21 +85,17 @@ public abstract class Projectile implements MovingEntity {
     protected abstract void drawProjectile(SGL gl, float renderTime);
 
     @Override
-    public void dispose() {
-        isDisposed = true;
-    }
-
-    @Override
-    public boolean isDisposed() {
-        return isDisposed;
-    }
-
-    @Override
     public boolean canCollideWith(Entity other) {
         return other != this && other != source;
     }
 
-    protected float getSpawnTime() {
+    @Override
+    public float getSpawnTime() {
         return spawnTime;
+    }
+
+    @Override
+    public float getDespawnTime() {
+        return despawnTime;
     }
 }

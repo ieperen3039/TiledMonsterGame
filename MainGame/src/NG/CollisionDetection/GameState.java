@@ -36,16 +36,6 @@ public interface GameState extends GameAspect, Serializable, MouseToolListener {
     void draw(SGL gl);
 
     /**
-     * removes the given entity from the gameState. This action does not have to be executed immediately.
-     * @param entity an entity to be removed
-     * @deprecated instead, call {@link Entity#dispose()}
-     */
-    @Deprecated
-    default void removeEntity(Entity entity) {
-        entity.dispose();
-    }
-
-    /**
      * checks which entity is hit by the given ray
      * @param origin the origin of the ray
      * @param dir    the direction of the ray

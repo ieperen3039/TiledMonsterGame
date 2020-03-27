@@ -15,15 +15,15 @@ public abstract class Command implements Serializable {
      * transforms the command into an action that is executed by the given entity and starts on the given moment in
      * time.
      * @param game          the current game instance
+     * @param entity
      * @param startPosition the last action executed
      * @param gameTime
-     * @param entity
      * @return a list {@code l} of actions, sorted on first action first, such that they corresponds exactly to this
      * command, and it holds that {@code l.get(0).}{@link EntityAction#follows(EntityAction) follows}{@code
      * (preceding)}
      */
     public abstract EntityAction getAction(
-            Game game, Vector3fc startPosition, float gameTime, MonsterEntity entity
+            Game game, MonsterEntity entity, Vector3fc startPosition, float gameTime
     );
 
     @Override

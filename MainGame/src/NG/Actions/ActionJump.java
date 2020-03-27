@@ -24,7 +24,7 @@ import static java.lang.Math.*;
  */
 public class ActionJump implements EntityAction {
     public static final CommandProvider JUMP_COMMAND = CommandProvider.actionCommand(
-            "Jump", (g, e, s, t) -> new ActionJump(g, s, t, e.getController().props.jumpSpeed)
+            "Jump", (g, e, s, t, gameTime) -> new ActionJump(g, s, t, e.getController().props.jumpSpeed)
     );
 
     protected final Vector3fc start;
@@ -74,7 +74,7 @@ public class ActionJump implements EntityAction {
 
     @Override
     public float duration() {
-        return Float.POSITIVE_INFINITY;
+        return duration;
     }
 
     @Override

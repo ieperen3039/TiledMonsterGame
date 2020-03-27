@@ -32,15 +32,13 @@ public class MonsterMindSimple extends MonsterMind {
     }
 
     @Override
-    public void init(MonsterEntity entityToControl, Game game) {
-        super.init(entityToControl, game);
+    public void setEntity(MonsterEntity entityToControl, Game game) {
+        super.setEntity(entityToControl, game);
         this.timeUntilRandomMovement = game.get(GameTimer.class).getGametime() + (rng.nextFloat() * 20);
     }
 
     @Override
     public void update(float gameTime) {
-        if (game == null) return;
-
         switch (fearLevel) {
             case 0: // wander aimlessly
                 if (gameTime > timeUntilRandomMovement) {
@@ -50,7 +48,7 @@ public class MonsterMindSimple extends MonsterMind {
                         tgt.add(rng.nextInt(5) - 2, rng.nextInt(5) - 2);
                         CommandWalk walk = new CommandWalk(owner, tgt);
 
-                        executeCommand(game, walk);
+                        executeCommand(walk, gameTime);
                     }
 
                     timeUntilRandomMovement += rng.nextFloat() * 20;

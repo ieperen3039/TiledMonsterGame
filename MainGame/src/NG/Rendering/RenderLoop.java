@@ -89,6 +89,9 @@ public class RenderLoop extends AbstractGameLoop implements GameAspect {
 
     @Override
     protected void update(float deltaTime) {
+        // Clear framebuffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         Toolbox.checkGLError("Pre-loop");
         timeObserver.startNewLoop();
 

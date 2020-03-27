@@ -15,9 +15,11 @@ public abstract class Event extends AbstractGameObject implements Comparable<Eve
     protected final float eventTime;
 
     /**
+     * @param game
      * @param eventTime the time of activation in seconds
      */
-    public Event(float eventTime) {
+    public Event(Game game, float eventTime) {
+        super(game);
         this.eventTime = eventTime;
     }
 
@@ -49,7 +51,7 @@ public abstract class Event extends AbstractGameObject implements Comparable<Eve
          *                   to 1 above the given value.
          */
         public DebugEvent(Game game, float eventTime, float recurrence) {
-            super(eventTime);
+            super(game, eventTime);
             Logger.DEBUG.printFrom(2, "Scheduled debug timer at " + eventTime);
             this.game = game;
             this.recurrence = recurrence;

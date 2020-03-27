@@ -158,14 +158,13 @@ public interface GameMap extends GameAspect, Entity, MouseToolListener, External
     /**
      * calculates when the given action hits this map using newton's iterations
      * @param action     the action describing a movement
-     * @param lowerBound lower bound of the time since the start of the action to consider, larger than 0
-     * @param upperBound upper bound on the time since the start of the action to consider, smaller than
-     *                   action.duration()
+     * @param lowerBound lower bound of the time since the start of the action to consider, at least 0
+     * @param upperBound upper bound on the time since the start of the action to consider, at most action.duration()
      * @return the relative collision time of action with the map, or null if no collision is found.
      */
     default Float getActionCollision(EntityAction action, float lowerBound, float upperBound) {
-        assert lowerBound >= 0;
-        assert upperBound <= action.duration();
+        assert lowerBound >= 0 : lowerBound;
+        assert upperBound <= action.duration() || action.hasWorldCollision() : upperBound;
 
         // perform iterative checks of MAX_COLLISION_DELTA
         Float intersect = null;

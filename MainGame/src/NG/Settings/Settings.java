@@ -11,9 +11,10 @@ public class Settings {
     public static final String GAME_NAME = "MonsterGame"; // laaaaame
 
     // debug settings
-    public final boolean DEBUG = true;
+    public boolean DEBUG = true;
     public boolean DEBUG_SCREEN = DEBUG;
     public boolean RENDER_HITBOXES = DEBUG;
+    public boolean WRITE_CLICK_SHADER_IMAGE = false;
 
     // game engine settings
     public int TARGET_TPS = 60;
@@ -25,7 +26,7 @@ public class Settings {
     public static final float MAX_COLLISION_DELTA_TIME = 0.5f; // in seconds
 
     // video settings
-    public int TARGET_FPS = 40;
+    public int TARGET_FPS = TARGET_TPS;
     public static final int DEFAULT_WINDOW_WIDTH = 1600;
     public static final int DEFAULT_WINDOW_HEIGHT = 900;
     public static final float FOV = (float) Math.toRadians(30);
@@ -47,9 +48,8 @@ public class Settings {
     public float PARTICLE_MODIFIER = 1f;
 
     // UI settings
-    public boolean HIDE_CURSOR_ON_MAP = !DEBUG;
+    public boolean HIDE_CURSOR_ON_MAP = true;
 
     // ambiance settings
-    public static final Color4f AMBIENT_LIGHT = new Color4f(1, 1, 1, 0.15f);
-    public static final Color4f FOG_COLOR = Color4f.GREY;
+    public static final Color4f AMBIENT_LIGHT = new Color4f(1, 1, 1, 0.05f);
 }

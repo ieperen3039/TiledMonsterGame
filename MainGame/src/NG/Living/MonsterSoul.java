@@ -1,19 +1,14 @@
 package NG.Living;
 
 import NG.Actions.Attacks.DamageType;
-import NG.Core.AbstractGameObject;
 import NG.Core.Game;
-import NG.DataStructures.Generic.Color4f;
 import NG.Entities.EntityProperties;
 import NG.Entities.MonsterEntity;
 import NG.Living.MonsterMind.MonsterMind;
 import NG.Living.MonsterMind.MonsterMindSimple;
 import NG.Living.MonsterMind.MonsterMindSlave;
-import NG.Particles.GameParticles;
-import NG.Particles.Particles;
 import NG.Tools.ConsistentRandom;
 import org.joml.Vector2i;
-import org.joml.Vector3fc;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -23,7 +18,7 @@ import java.util.Map;
 /**
  * @author Geert van Ieperen created on 4-2-2019.
  */
-public class MonsterSoul extends AbstractGameObject implements Living {
+public class MonsterSoul implements Living {
     private static final ConsistentRandom RNG = new ConsistentRandom(0);
     public final EntityProperties props;
 
@@ -37,6 +32,7 @@ public class MonsterSoul extends AbstractGameObject implements Living {
     private int hitpoints;
     private List<Effect> effects;
     private float lastUpdateTime = 0;
+    private float getTimeOfDeath = Float.POSITIVE_INFINITY;
 
     /**
      * read a monster description from the given file
@@ -54,21 +50,15 @@ public class MonsterSoul extends AbstractGameObject implements Living {
         this.defences = new EnumMap<>(props.defences);
     }
 
-    @Override
-    protected void restoreFields(Game game) {
+    public void restore(Game game) {
         entity.restore(game);
     }
 
-    public MonsterEntity getAsEntity(Game game, Vector2i coordinate, Vector3fc direction) {
-        init(game);
+    public MonsterEntity spawnEntity(Game game, Vector2i coordinate) {
+        entity = new MonsterEntity(game, coordinate, this);
 
-        if (entity != null) {
-            entity.dispose();
-        }
+        mind.setEntity(entity, game);
 
-        entity = getNewEntity(game, coordinate, direction);
-        entity.restoreFields(game);
-        mind.init(entity, game);
         if (owner != null) {
             entity.markAs(MonsterEntity.Mark.OWNED);
         }
@@ -76,11 +66,7 @@ public class MonsterSoul extends AbstractGameObject implements Living {
         return entity;
     }
 
-    protected MonsterEntity getNewEntity(Game game, Vector2i coordinate, Vector3fc direction) {
-        return new MonsterEntity(game, coordinate, this);
-    }
-
-    public void setOwner(Player owner) {
+    public void setOwner(Player owner, Game game) {
         this.owner = owner;
         if (owner != null) {
             mind = new MonsterMindSlave(this);
@@ -97,7 +83,7 @@ public class MonsterSoul extends AbstractGameObject implements Living {
             }
         }
 
-        mind.init(entity, game);
+        mind.setEntity(entity, game);
     }
 
     public void update(float gametime) {
@@ -124,11 +110,8 @@ public class MonsterSoul extends AbstractGameObject implements Living {
     }
 
     private void eventDeath(float time) {
-        entity.dispose();
-
-        game.get(GameParticles.class).add(
-                Particles.explosion(entity.getPositionAt(time), Color4f.RED, 10, time)
-        );
+        getTimeOfDeath = time;
+        entity.showDeath(time);
     }
 
     public int getHitpoints() {
@@ -147,6 +130,10 @@ public class MonsterSoul extends AbstractGameObject implements Living {
 
     public MonsterMind mind() {
         return mind;
+    }
+
+    public float getTimeOfDeath() {
+        return getTimeOfDeath;
     }
 
     interface Effect {

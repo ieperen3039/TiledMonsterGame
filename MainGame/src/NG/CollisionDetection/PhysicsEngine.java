@@ -43,6 +43,15 @@ public class PhysicsEngine implements GameState, Externalizable {
         if (!(entity instanceof MovingEntity)) return false;
         MovingEntity movingEntity = (MovingEntity) entity;
 
+        float spawnTime = entity.getSpawnTime();
+        float despawnTime = entity.getDespawnTime();
+        if (spawnTime > endTime || despawnTime < startTime) return false;
+        startTime = Math.max(startTime, spawnTime);
+        endTime = Math.min(endTime, despawnTime);
+
+        // this is the case when the entity does not exist between start and end
+        if (startTime >= endTime) return false;
+
         // first check whether and where we consider collision
         Pair<EntityAction, Float> firstAction = movingEntity.getActionAt(startTime);
         Pair<EntityAction, Float> lastAction = movingEntity.getActionAt(endTime);
@@ -91,7 +100,9 @@ public class PhysicsEngine implements GameState, Externalizable {
             }
         }
 
-        assert actionStart < actionEnd;
+        if (!(actionStart < actionEnd)) {
+            throw new AssertionError();
+        }
 
         Float collisionTime = map.getActionCollision(action, actionStart, actionEnd);
         if (collisionTime != null) {

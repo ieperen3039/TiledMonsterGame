@@ -153,21 +153,21 @@ public class MainMenu extends SFrame {
             // add a default entity
             Vector2ic position = gameMap.getCoordinate(cameraFocus);
             MonsterSoul monsterSoul1 = new MonsterSoul(BASE_PROPERTIES);
-            state.addEntity(monsterSoul1.getAsEntity(overworld, new Vector2i(position).add(1, 2), Vectors.X));
+            state.addEntity(monsterSoul1.spawnEntity(overworld, new Vector2i(position).add(1, 2)));
             MonsterSoul monsterSoul2 = new MonsterSoul(BASE_PROPERTIES);
-            state.addEntity(monsterSoul2.getAsEntity(overworld, new Vector2i(position).add(-1, 2), Vectors.X));
+            state.addEntity(monsterSoul2.spawnEntity(overworld, new Vector2i(position).add(-1, 2)));
             MonsterSoul monsterSoul3 = new MonsterSoul(BASE_PROPERTIES);
-            state.addEntity(monsterSoul3.getAsEntity(overworld, new Vector2i(position).add(1, -2), Vectors.X));
+            state.addEntity(monsterSoul3.spawnEntity(overworld, new Vector2i(position).add(1, -2)));
             MonsterSoul monsterSoul4 = new MonsterSoul(BASE_PROPERTIES);
-            state.addEntity(monsterSoul4.getAsEntity(overworld, new Vector2i(position).add(-1, -2), Vectors.X));
+            state.addEntity(monsterSoul4.spawnEntity(overworld, new Vector2i(position).add(-1, -2)));
 
-            player.addToTeam(monsterSoul1);
-            player.addToTeam(monsterSoul2);
+            player.addToTeam(monsterSoul1, overworld);
+            player.addToTeam(monsterSoul2, overworld);
 
             /* --- END SECTION --- */
 
             // add lights
-            overworld.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 1f), Color4f.WHITE, 0.2f);
+            overworld.get(GameLights.class).addDirectionalLight(new Vector3f(1, 1.5f, 2f), Color4f.WHITE, 0.3f);
 
             // start
             modLoader.startGame();

@@ -6,7 +6,7 @@ package NG.Core;
 public abstract class AbstractGameObject implements GameObject {
     protected transient Game game;
 
-    protected void init(Game game) {
+    public AbstractGameObject(Game game) {
         this.game = game;
     }
 

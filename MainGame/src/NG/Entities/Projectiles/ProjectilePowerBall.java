@@ -1,19 +1,15 @@
 package NG.Entities.Projectiles;
 
 import NG.Actions.ActionLinearMove;
-import NG.Actions.ActionMarkers.ActionMarker;
+import NG.Actions.Attacks.ActionFireProjectile;
 import NG.Actions.Attacks.DamageType;
-import NG.Actions.Commands.Command;
-import NG.Actions.EntityAction;
 import NG.CollisionDetection.BoundingBox;
 import NG.Core.Game;
 import NG.DataStructures.Generic.Color4f;
-import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
 import NG.InputHandling.MouseTools.CommandProvider;
-import NG.Living.Living;
 import NG.Particles.GameParticles;
 import NG.Particles.Particles;
 import NG.Rendering.Material;
@@ -24,7 +20,10 @@ import NG.Rendering.Shapes.GenericShapes;
 import NG.Settings.Settings;
 import NG.Tools.Vectors;
 import org.joml.Vector2ic;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
+
+import java.util.function.Supplier;
 
 /**
  * @author Geert van Ieperen created on 2-4-2019.
@@ -34,28 +33,30 @@ public class ProjectilePowerBall extends Projectile {
     private static final int EXPLOSION_POWER = 10;
     private static final float HITBOX_SCALAR = 0.4f;
     private static final int BASE_DAMAGE = 25;
-    private final float speed;
     private final BoundingBox boundingBox;
     private final DamageType damageType;
     private float size;
 
-    private EntityAction action;
-    private Vector3fc target;
-
-    public ProjectilePowerBall(Game game, Entity source, Vector2ic endCoordinate, float speed, float size) {
+    public ProjectilePowerBall(
+            Game game, Entity source, Vector3f spawnPosition, Vector2ic endCoordinate, float spawnTime,
+            Supplier<Boolean> validator, float speed, float size
+    ) {
         this(
-                game, source,
-                game.get(GameMap.class)
-                        .getPosition(endCoordinate)
-                        .add(0, 0, size * HITBOX_SCALAR),
-                speed, size
+                game, source, spawnPosition,
+                game.get(GameMap.class).getPosition(endCoordinate).add(0, 0, size * HITBOX_SCALAR),
+                spawnTime, size, speed, validator
         );
     }
 
-    public ProjectilePowerBall(Game game, Entity source, Vector3fc target, float speed, float size) {
-        super(game, source);
-        this.target = target;
-        this.speed = speed;
+    private ProjectilePowerBall(
+            Game game, Entity source, Vector3fc spawnPosition, Vector3fc target, float spawnTime, float size,
+            float speed, Supplier<Boolean> validator
+    ) {
+        super(
+                game, source, spawnTime, spawnTime + (spawnPosition.distance(target) / speed),
+                new ActionLinearMove(spawnPosition, target, speed), validator
+        );
+
         this.size = size;
         this.damageType = DamageType.PHYSICAL;
 
@@ -64,27 +65,8 @@ public class ProjectilePowerBall extends Projectile {
     }
 
     @Override
-    public void update(float gameTime) {
-    }
-
-    @Override
     public BoundingBox getHitbox(float gameTime) {
         return boundingBox.getMoved(getPositionAt(gameTime));
-    }
-
-    @Override
-    protected void setSpawnPosition(Vector3fc spawnPosition) {
-        action = new ActionLinearMove(spawnPosition, target, speed);
-    }
-
-    @Override
-    protected ActionMarker getMarker() {
-        return action.getMarker();
-    }
-
-    @Override
-    public Pair<EntityAction, Float> getActionAt(float gameTime) {
-        return new Pair<>(action, gameTime - getSpawnTime());
     }
 
     @Override
@@ -112,7 +94,8 @@ public class ProjectilePowerBall extends Projectile {
                 Particles.FIRE_LINGER_TIME, EXPLOSION_POWER,
                 collisionTime
         ));
-        dispose();
+
+        despawnTime = collisionTime;
     }
 
     @Override
@@ -129,26 +112,13 @@ public class ProjectilePowerBall extends Projectile {
     }
 
     @Override
-    public void restore(Game game) {
-        action.restore(game);
-    }
-
-    public static CommandProvider fireCommand(Game game) {
-        return new CommandProvider("PowerBall") {
-            @Override
-            public Command create(Living receiver, Vector2ic target) {
-                MonsterEntity entity = receiver.entity();
-                if (entity == null) return null;
-
-                Vector3f targetPosition = game.get(GameMap.class).getPosition(target);
-                Projectile prj = new ProjectilePowerBall(game, entity, targetPosition, 5, 0.3f);
-                return new CommandAttack(prj);
-            }
-        };
-    }
-
-    @Override
     public float getIntersection(Vector3fc origin, Vector3fc direction, float gameTime) {
         return 0;
+    }
+
+    public static CommandProvider fireCommand() {
+        return CommandProvider.actionCommand("Powerball",
+                (g, e, s, t, time) -> new ActionFireProjectile(g, e, t, time, 1)
+        );
     }
 }

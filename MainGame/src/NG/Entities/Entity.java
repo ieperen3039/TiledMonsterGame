@@ -30,9 +30,8 @@ public interface Entity extends GameObject {
     void update(float gameTime);
 
     /**
-     * The position of this entity. If the entity does not exist on the given time, the result is null.
-     * @return the real position of this entity at the given time, or null if the entity does not exist at the given
-     * time
+     * The position of this entity.
+     * @return the position of this entity at the given time
      */
     default Vector3f getPositionAt(float gameTime) {
         BoundingBox hitbox = getHitbox(gameTime);
@@ -41,19 +40,25 @@ public interface Entity extends GameObject {
     }
 
     /**
-     * @return a (modifiable) world-space hitbox of this entity
+     * @return a (variable) world-space hitbox of this entity
      */
     BoundingBox getHitbox(float gameTime);
 
-    /**
-     * Marks the track piece to be invalid, such that the {@link #isDisposed()} method returns true.
-     */
-    void dispose();
+    default float getSpawnTime() {
+        return Float.NEGATIVE_INFINITY;
+    }
+
+    default float getDespawnTime() {
+        return Float.POSITIVE_INFINITY;
+    }
 
     /**
+     * @param gameTime
      * @return true iff this unit should be removed from the game world.
      */
-    boolean isDisposed();
+    default boolean isDespawnedAt(float gameTime) {
+        return gameTime >= getDespawnTime();
+    }
 
     /**
      * calculates the smallest t = [0 ... 1] such that origin + (t * direction) lies on this entity.
@@ -95,6 +100,4 @@ public interface Entity extends GameObject {
      */
     default void collideWith(GameMap map, float collisionTime) {
     }
-
-    ;
 }

@@ -54,7 +54,7 @@ public class ActionLinearMove implements EntityAction {
 
     @Override
     public float duration() {
-        return duration;
+        return Float.POSITIVE_INFINITY;
     }
 
     @Override

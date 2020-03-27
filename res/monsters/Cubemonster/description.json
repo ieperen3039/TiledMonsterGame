@@ -9,15 +9,11 @@
       "force": 1,
       "physical": 1
     },
-    "body_model": "ANTHRO",
-    "hitbox": [
-      -1,
-      -1,
-      0,
-      1,
-      1,
-      2
+    "moves": [
+      "Powerball"
     ],
+    "hitbox": [-1, -1, 0, 1, 1, 2],
+    "body_model": "ANTHRO",
     "bone_mapping": {
       "Spine": "robot/torso.obj",
       "UpperArm.L": "robot/leg1.obj",

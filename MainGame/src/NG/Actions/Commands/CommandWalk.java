@@ -7,7 +7,6 @@ import NG.Actions.EntityAction;
 import NG.Core.Game;
 import NG.Entities.MonsterEntity;
 import NG.GameMap.GameMap;
-import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Living.Living;
 import NG.Tools.Logger;
 import NG.Tools.Vectors;
@@ -31,7 +30,9 @@ public class CommandWalk extends Command {
     }
 
     @Override
-    public EntityAction getAction(Game game, Vector3fc beginPosition, float gameTime, MonsterEntity entity) {
+    public EntityAction getAction(
+            Game game, MonsterEntity entity, Vector3fc beginPosition, float gameTime
+    ) {
         final float walkSpeed = entity.getController().props.walkSpeed;
         GameMap map = game.get(GameMap.class);
 
@@ -63,12 +64,4 @@ public class CommandWalk extends Command {
         return new ActionWalk(game, beginPosition, coordinate, walkSpeed);
     }
 
-    public static CommandProvider walkCommand() {
-        return new CommandProvider("Walk") {
-            @Override
-            public Command create(Living receiver, Vector2ic target) {
-                return new CommandWalk(receiver, target);
-            }
-        };
-    }
 }

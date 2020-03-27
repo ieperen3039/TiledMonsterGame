@@ -33,12 +33,12 @@ public abstract class CommandProvider {
 
                     @Override
                     public EntityAction getAction(
-                            Game game, Vector3fc startPosition, float gameTime, MonsterEntity entity
+                            Game game, MonsterEntity entity, Vector3fc startPosition, float gameTime
                     ) {
                         if (hasFired) return null;
                         hasFired = true;
 
-                        return action.create(game, entity, startPosition, target);
+                        return action.create(game, entity, startPosition, target, gameTime);
                     }
 
                     @Override
@@ -52,7 +52,7 @@ public abstract class CommandProvider {
 
     public interface ActionCreator {
         EntityAction create(
-                Game game, MonsterEntity entity, Vector3fc startPosition, Vector2ic targetPosition
+                Game game, MonsterEntity entity, Vector3fc startPosition, Vector2ic targetPosition, float gameTime
         );
     }
 }

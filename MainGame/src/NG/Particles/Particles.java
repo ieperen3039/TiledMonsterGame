@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 public final class Particles {
     public static final float FIRE_LINGER_TIME = 1f;
     public static final int EXPLOSION_BASE_DENSITY = 1000;
+    public static final float MIN_PARTICLE_TIME = 0.2f;
 
     /**
      * creates an explosion of particles from the given position, mixing the given color with white
@@ -40,29 +41,34 @@ public final class Particles {
 
     /**
      * creates an explosion of particles from the given position, using a blend of the two colors
-     * @param position     source position where all particles come from
-     * @param meanMovement movement of the average position of the cloud
-     * @param color1       first color extreme
-     * @param color2       second color extreme. Each particle has a color between color1 and color2
-     * @param density      the number of particles generated
-     * @param lingerTime   the maximal lifetime of the particles. Actual duration is exponentially distributed.
-     * @param startTime
+     * @param position      source position where all particles come from
+     * @param meanMovement  movement of the average position of the cloud
+     * @param color1        first color extreme
+     * @param color2        second color extreme. Each particle has a color between color1 and color2
+     * @param density       the number of particles generated
+     * @param maxLingerTime the maximal lifetime of the particles. Actual duration is exponentially distributed.
+     * @param startTime     the time of the explosion
      * @return a new explosion, not written to the GPU yet.
      */
     public static ParticleCloud explosion(
             Vector3fc position, Vector3fc meanMovement, Color4f color1, Color4f color2,
-            int density, float lingerTime, float power, float startTime
+            int density, float maxLingerTime, float power, float startTime
     ) {
+        maxLingerTime -= MIN_PARTICLE_TIME;
         ParticleCloud result = new ParticleCloud();
 
         for (int i = 0; i < (density); i++) {
             Vector3f movement = Vectors.randomOrb();
+            final float relativeSpeed = movement.length();
             movement.mul(power).add(meanMovement);
 
-            float rand = Toolbox.random.nextFloat();
-            Color4f interColor = color1.interpolateTo(color2, rand);
+            float rand1 = Toolbox.random.nextFloat();
+            Color4f interColor = color1.interpolateTo(color2, rand1);
 
-            result.addParticle(position, movement, interColor, lingerTime, startTime);
+            float rand2 = Toolbox.random.nextFloat();
+            float timeToLive = rand2 * rand2 * maxLingerTime * (1 - relativeSpeed) + MIN_PARTICLE_TIME;
+
+            result.addParticle(position, movement, interColor, startTime, timeToLive);
         }
 
         return result;
@@ -84,8 +90,10 @@ public final class Particles {
 
             Vector3f avg = p[0].add(p[1]).add(p[2]).div(3f);
 
+            final float timeToLive = randFloat * randFloat * deprecationTime;
+
             particles.addParticle(
-                    avg, movement, particleColor, deprecationTime, startTime
+                    avg, movement, particleColor, startTime, timeToLive
             );
         }
         return particles;

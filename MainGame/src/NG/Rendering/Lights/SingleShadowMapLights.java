@@ -101,6 +101,7 @@ public class SingleShadowMapLights implements GameLights {
             // shadow render
             shadowShader.bind();
             {
+                glClear(GL_DEPTH_BUFFER_BIT);
                 shadowShader.initialize(game);
 
                 if (staticMapIsDirty && sunLight.doStaticShadows()) {

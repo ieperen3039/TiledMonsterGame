@@ -1,13 +1,12 @@
 package NG.Living.MonsterMind;
 
 import NG.Actions.ActionJump;
+import NG.Actions.ActionWalk;
 import NG.Actions.BrokenMovementException;
 import NG.Actions.Commands.Command;
-import NG.Actions.Commands.CommandWalk;
 import NG.Actions.EntityAction;
 import NG.Core.AbstractGameObject;
 import NG.Core.Game;
-import NG.Core.GameTimer;
 import NG.DataStructures.Generic.Pair;
 import NG.Entities.Entity;
 import NG.Entities.MonsterEntity;
@@ -33,24 +32,26 @@ public abstract class MonsterMind extends AbstractGameObject {
     protected List<CommandProvider> knownMoves = new ArrayList<>();
 
     protected MonsterMind(MonsterSoul owner) {
+        super(null);
         this.owner = owner;
 
-        knownMoves.add(CommandWalk.walkCommand());
+        knownMoves.add(ActionWalk.WALK_COMMAND);
         knownMoves.add(ActionJump.JUMP_COMMAND);
+        knownMoves.addAll(owner.props.moves);
     }
 
     /**
      * Prepares this AI to control a new entity
      * @param entityToControl the entity now controlled by this AI
-     * @param game            the game instance of the entity
+     * @param game
      */
-    public void init(MonsterEntity entityToControl, Game game) {
-        init(game);
+    public void setEntity(MonsterEntity entityToControl, Game game) {
+        this.game = game;
         this.entity = entityToControl;
     }
 
     @Override
-    protected void restoreFields(Game game) {
+    public void restoreFields(Game game) {
         entity.restore(game);
         owner.restore(game);
     }
@@ -70,7 +71,7 @@ public abstract class MonsterMind extends AbstractGameObject {
         EntityAction previous = action.left;
         Vector3f position = previous.getPositionAt(action.right);
 
-        EntityAction next = executionTarget.getAction(game, position, gameTime, entity);
+        EntityAction next = executionTarget.getAction(game, entity, position, gameTime);
 
         if (next != null && next != previous && !next.getStartPosition().equals(position)) {
             throw new BrokenMovementException(previous, next, action.right);
@@ -96,12 +97,11 @@ public abstract class MonsterMind extends AbstractGameObject {
 
     /**
      * Execute the given command at the end of the current plan
-     * @param game the game instance
      * @param c    the command to be executed.
+     * @param gameTime
      */
-    public void executeCommand(Game game, Command c) {
+    public void executeCommand(Command c, float gameTime) {
         executionTarget = c;
-        float gameTime = game.get(GameTimer.class).getGametime();
         entity.processActions(gameTime);
     }
 

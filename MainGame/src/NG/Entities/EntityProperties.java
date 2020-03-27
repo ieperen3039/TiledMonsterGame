@@ -5,6 +5,8 @@ import NG.Animations.BodyModel;
 import NG.Animations.BoneElement;
 import NG.Animations.SkeletonBone;
 import NG.CollisionDetection.BoundingBox;
+import NG.Entities.Projectiles.ProjectilePowerBall;
+import NG.InputHandling.MouseTools.CommandProvider;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.MeshLoading.Mesh;
@@ -13,12 +15,13 @@ import NG.Tools.Directory;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * @author Geert van Ieperen created on 7-4-2019.
  */
-public class EntityProperties {
+public class EntityProperties implements Serializable {
     private static final DamageType[] DAMAGE_TYPES = DamageType.values();
 
     public final String name;
@@ -35,6 +38,7 @@ public class EntityProperties {
     public final Map<SkeletonBone, BoneElement> boneMapping;
 
     public final Map<DamageType, Float> defences;
+    public final List<CommandProvider> moves;
 
     public EntityProperties() {
         this.name = "Cube Monster";
@@ -44,6 +48,8 @@ public class EntityProperties {
         this.deltaJumpSpeed = 0;
         this.walkSpeed = 3f;
         this.deltaWalkSpeed = 0;
+
+        this.moves = Collections.singletonList(ProjectilePowerBall.fireCommand());
 
         this.hitbox = new BoundingBox(-0.5f, -0.5f, 0, 0.5f, 0.5f, 1f);
         this.bodyModel = BodyModel.CUBE;
@@ -64,19 +70,17 @@ public class EntityProperties {
         this.defences = Collections.singletonMap(DamageType.TRUE, 1f);
     }
 
-    public EntityProperties(JsonNode element, String typeName) throws IOException {
+    public EntityProperties(JsonNode data, String typeName) throws IOException {
         this.name = typeName;
 
-        this.hitPoints = element.get("hit_points").intValue();
+        this.hitPoints = data.get("hit_points").intValue();
         this.deltaHitPoints = 0;
-        this.jumpSpeed = element.get("jump_speed").floatValue();
+        this.jumpSpeed = data.get("jump_speed").floatValue();
         this.deltaJumpSpeed = 0;
-        this.walkSpeed = element.get("walk_speed").floatValue();
+        this.walkSpeed = data.get("walk_speed").floatValue();
         this.deltaWalkSpeed = 0;
 
-        this.bodyModel = BodyModel.valueOf(element.get("body_model").textValue());
-
-        JsonNode defencesNode = element.get("defences");
+        JsonNode defencesNode = data.get("defences");
         Map<DamageType, Float> defences = new EnumMap<>(DamageType.class);
         for (DamageType type : DAMAGE_TYPES) {
             JsonNode typeNode = defencesNode.get(type.toString().toLowerCase());
@@ -85,7 +89,17 @@ public class EntityProperties {
         }
         this.defences = Collections.unmodifiableMap(defences);
 
-        JsonNode hitboxNode = element.get("hitbox");
+        JsonNode movesNode = data.get("moves");
+        List<CommandProvider> moves = new ArrayList<>();
+        for (JsonNode elt : movesNode) {
+            String moveName = elt.textValue();
+            /// magic
+//            moves.add(moveName);
+        }
+        this.moves = Collections.unmodifiableList(moves);
+
+        JsonNode hitboxNode = data.get("hitbox");
+        assert hitboxNode.isArray();
         this.hitbox = new BoundingBox();
         this.hitbox.minX = hitboxNode.get(0).floatValue();
         this.hitbox.maxX = hitboxNode.get(1).floatValue();
@@ -94,8 +108,9 @@ public class EntityProperties {
         this.hitbox.minZ = hitboxNode.get(4).floatValue();
         this.hitbox.maxZ = hitboxNode.get(5).floatValue();
 
+        this.bodyModel = BodyModel.valueOf(data.get("body_model").textValue());
         this.boneMapping = new HashMap<>();
-        JsonNode boneMappingNode = element.get("bone_mapping");
+        JsonNode boneMappingNode = data.get("bone_mapping");
         Iterator<String> bones = boneMappingNode.fieldNames();
         while (bones.hasNext()) {
             String boneName = bones.next();

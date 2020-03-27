@@ -222,12 +222,10 @@ public class ClickShader implements ShaderProgram {
         int mod = i % 4;
         if (mod == 1) {
             i -= 1;
-            Logger.DEBUG.printf("Corrected -1 for %d (%1.2f)", i, (float) i / 4);
         } else if (mod == 3) {
             i += 1;
-            Logger.DEBUG.printf("Corrected +1 for %d (%1.2f)", i, (float) i / 4);
         } else if (mod == 2) {
-            Logger.ASSERT.printf("Color to number failed for i = %d (%1.2f)", i, (float) i / 4);
+            Logger.ASSERT.printf("Color to number failed for i = %d", i);
         }
         return i;
     }
@@ -264,6 +262,8 @@ public class ClickShader implements ShaderProgram {
             synchronized (this) {
                 initialize(game);
                 bind();
+                // Clear framebuffer
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 SGL flatColorRender = getGL(game);
                 game.get(GameState.class).draw(flatColorRender);
@@ -273,7 +273,7 @@ public class ClickShader implements ShaderProgram {
                 GLFWWindow window = game.get(GLFWWindow.class);
                 int windowHeight = window.getHeight();
 
-                if (game.get(Settings.class).DEBUG) {
+                if (game.get(Settings.class).WRITE_CLICK_SHADER_IMAGE) {
                     window.printScreen(Directory.screenshots, "click", GL11.GL_BACK);
                 }
 

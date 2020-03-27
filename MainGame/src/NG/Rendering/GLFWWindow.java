@@ -165,9 +165,6 @@ public class GLFWWindow {
         // Swap buffers
         glfwSwapBuffers(window);
 
-        // Clear framebuffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
         // Poll for events
         glfwPollEvents();
     }
@@ -398,10 +395,6 @@ public class GLFWWindow {
         return glContext;
     }
 
-    public static Settings defaultSettings() {
-        return new Settings(false, false, 1, false, 800, 600, false, 60, false);
-    }
-
     public interface ResizeListener {
         void onChange(int width, int height);
     }
@@ -416,6 +409,10 @@ public class GLFWWindow {
         final int targetFPS;
         final boolean fullscreen;
         final boolean cullFace;
+
+        public Settings() {
+            this(false, false, 1, false, 800, 600, false, 60, false);
+        }
 
         public Settings(NG.Settings.Settings s) {
             this(

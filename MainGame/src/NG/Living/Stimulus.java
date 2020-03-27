@@ -29,6 +29,10 @@ public interface Stimulus {
         return 1;
     }
 
+    default float getTime() {
+        return 0;
+    }
+
     static StimulusType getByName(String name) {
         String[] results = Toolbox.PERIOD_MATCHER.split(name);
         if (results[0].equals("BaseStimulus")) {

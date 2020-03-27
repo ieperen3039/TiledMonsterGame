@@ -59,16 +59,6 @@ public class Cube implements MovingEntity {
     }
 
     @Override
-    public void dispose() {
-        isDisposed = true;
-    }
-
-    @Override
-    public boolean isDisposed() {
-        return isDisposed;
-    }
-
-    @Override
     public String toString() {
         return this.getClass().getSimpleName() + " " + id;
     }

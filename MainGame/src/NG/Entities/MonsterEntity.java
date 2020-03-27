@@ -9,6 +9,8 @@ import NG.DataStructures.Generic.Color4f;
 import NG.DataStructures.Generic.Pair;
 import NG.GameMap.GameMap;
 import NG.Living.MonsterSoul;
+import NG.Particles.GameParticles;
+import NG.Particles.Particles;
 import NG.Rendering.Material;
 import NG.Rendering.MatrixStack.SGL;
 import NG.Rendering.Shaders.MaterialShader;
@@ -33,16 +35,13 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
 
     private MonsterSoul controller;
 
-    private boolean isDisposed;
     private Mark marking = Mark.NONE;
-
-    public MonsterEntity() {
-    }
+    private float despawnTime = Float.POSITIVE_INFINITY;
 
     public MonsterEntity(
             Game game, Vector2i initialPosition, MonsterSoul controller
     ) {
-        init(game);
+        super(game);
         this.controller = controller;
         this.currentActions = new ActionQueue(game, initialPosition);
     }
@@ -54,9 +53,8 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
 
     @Override
     public void draw(SGL gl) {
-        if (isDisposed) return;
-
         float now = game.get(GameTimer.class).getRendertime();
+        if (now > getDespawnTime()) return;
 
         ShaderProgram shader = gl.getShader();
         MaterialShader materials = null;
@@ -123,16 +121,6 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
      */
     public MonsterSoul getController() {
         return controller;
-    }
-
-    @Override
-    public void dispose() {
-        isDisposed = true;
-    }
-
-    @Override
-    public boolean isDisposed() {
-        return isDisposed;
     }
 
     @Override
@@ -279,5 +267,20 @@ public class MonsterEntity extends AbstractGameObject implements MovingEntity {
             gameTime += actionDuration;
             newAction = controller.mind().getActionAt(gameTime);
         }
+    }
+
+    public void showDeath(float time) {
+        game.get(GameParticles.class).add(
+                Particles.explosion(getPositionAt(time), Color4f.RED, 10, time)
+        );
+    }
+
+    @Override
+    public float getDespawnTime() {
+        return despawnTime;
+    }
+
+    public void setDespawnTime(float despawnTime) {
+        this.despawnTime = despawnTime;
     }
 }

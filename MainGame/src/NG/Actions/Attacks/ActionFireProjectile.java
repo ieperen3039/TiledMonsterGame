@@ -4,19 +4,19 @@ import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Actions.EntityAction;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
+import NG.CollisionDetection.GameState;
 import NG.Core.Game;
-import NG.Core.GameTimer;
 import NG.Entities.MonsterEntity;
 import NG.Entities.Projectiles.Projectile;
 import NG.Entities.Projectiles.ProjectilePowerBall;
-import NG.GameEvent.Event;
-import NG.GameEvent.EventLoop;
-import NG.GameEvent.ProjectileSpawnEvent;
 import NG.Settings.Settings;
 import NG.Tools.Toolbox;
 import NG.Tools.Vectors;
+import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+
+import java.util.function.Supplier;
 
 /**
  * the action of firing a single {@link ProjectilePowerBall}
@@ -30,19 +30,18 @@ public class ActionFireProjectile implements EntityAction {
     protected final float duration;
 
     public ActionFireProjectile(
-            Game game, MonsterEntity source, Projectile elt, float startTime, float duration
+            Game game, MonsterEntity source, Vector2ic target, float startTime, float duration
     ) {
         this.startEnd = source.getPositionAt(startTime);
         this.duration = duration;
 
-        float spawnTime = duration * aniFireMoment + startTime;
-        Vector3f heighestPoint = getPositionAt(duration / 2);
+        float relativeSpawnTime = duration * aniFireMoment;
+        float spawnTime = relativeSpawnTime + startTime;
+        Vector3f spawnPoint = getPositionAt(relativeSpawnTime);
 
-        // TODO replace validity check with something more robust
-        Event e = new ProjectileSpawnEvent(game, elt, heighestPoint, spawnTime, () ->
-                source.getActionAt(game.get(GameTimer.class).getGametime()).left == this
-        );
-        game.get(EventLoop.class).addEvent(e);
+        Supplier<Boolean> validator = () -> source.getActionAt(spawnTime).left.equals(this);
+        Projectile elt = new ProjectilePowerBall(game, source, spawnPoint, target, spawnTime, validator, 2, 0.5f);
+        game.get(GameState.class).addEntity(elt);
     }
 
     @Override

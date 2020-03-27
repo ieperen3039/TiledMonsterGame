@@ -2,10 +2,14 @@ package NG.Actions;
 
 import NG.Actions.ActionMarkers.ActionMarker;
 import NG.Actions.ActionMarkers.ActionMarkerArrow;
+import NG.Actions.Commands.Command;
+import NG.Actions.Commands.CommandWalk;
 import NG.Animations.BodyAnimation;
 import NG.Animations.UniversalAnimation;
 import NG.Core.Game;
 import NG.GameMap.GameMap;
+import NG.InputHandling.MouseTools.CommandProvider;
+import NG.Living.Living;
 import NG.Tools.Vectors;
 import org.joml.*;
 
@@ -14,6 +18,12 @@ import org.joml.*;
  * @author Geert van Ieperen created on 12-2-2019.
  */
 public class ActionWalk implements EntityAction {
+    public static final CommandProvider WALK_COMMAND = new CommandProvider("Walk") {
+        @Override
+        public Command create(Living receiver, Vector2ic target) {
+            return new CommandWalk(receiver, target);
+        }
+    };
     protected final Vector3fc start;
     protected final Vector3fc end;
     protected final Vector2fc startToEnd;

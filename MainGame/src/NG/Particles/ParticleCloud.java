@@ -41,19 +41,15 @@ public class ParticleCloud implements Mesh, Externalizable {
     private int nrOfParticles = 0;
 
     /**
-     * @param position  position of the middle of the particle
-     * @param color     color of this particle
-     * @param movement  movement of this particle in one second
-     * @param maxTTL    maximum duration of this particle
+     * @param position   position of the middle of the particle
+     * @param color      color of this particle
+     * @param movement   movement of this particle in one second
      * @param startTime
+     * @param timeToLive
      */
     public void addParticle(
-            Vector3fc position, Vector3fc movement, Color4f color, float maxTTL, float startTime
+            Vector3fc position, Vector3fc movement, Color4f color, float startTime, float timeToLive
     ) {
-
-        final float randFloat = Toolbox.random.nextFloat();
-        float timeToLive = randFloat * randFloat * maxTTL;
-
         addParticle(new Particle(position, movement, color, startTime, timeToLive));
     }
 

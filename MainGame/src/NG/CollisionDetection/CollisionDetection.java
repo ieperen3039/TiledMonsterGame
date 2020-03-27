@@ -1,7 +1,6 @@
 package NG.CollisionDetection;
 
 import NG.DataStructures.Generic.AveragingQueue;
-import NG.DataStructures.Generic.ConcurrentArrayList;
 import NG.DataStructures.Generic.Pair;
 import NG.DataStructures.Generic.PairList;
 import NG.Entities.Entity;
@@ -14,7 +13,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Geert van Ieperen created on 10-3-2018.
@@ -23,7 +21,7 @@ public class CollisionDetection {
     private static final int MAX_COLLISION_ITERATIONS = 5;
     private static final int INSERTION_SORT_BOUND = 64;
 
-    private Collection<Entity> newEntities = new ConcurrentArrayList<>();
+    private final Collection<Entity> newEntities = new ArrayList<>();
 
     private CollisionEntity[] xLowerSorted;
     private CollisionEntity[] yLowerSorted;
@@ -95,16 +93,16 @@ public class CollisionDetection {
     /**
      * @param gameTime the time of the next game-tick
      */
-    public synchronized void processCollisions(float gameTime) {
+    public void processCollisions(float gameTime) {
 
-        /** -- clean and restore invariants -- */
+        /* -- clean and restore invariants -- */
 
-        // remove disposed entities
+        // remove despawned entities
         List<Entity> removals = new ArrayList<>();
 
         for (CollisionEntity e : entityArray()) {
             Entity entity = e.entity();
-            if (entity.isDisposed()) {
+            if (entity.isDespawnedAt(gameTime)) {
                 removals.add(entity);
             }
         }
@@ -115,10 +113,17 @@ public class CollisionDetection {
         }
 
         // add new entities
-        newEntities.removeIf(Entity::isDisposed);
-        if (!newEntities.isEmpty()) {
-            mergeNewEntities(newEntities, gameTime);
-            newEntities.clear();
+        synchronized (newEntities) {
+            // collect all elements that have spawned
+            List<Entity> additions = new ArrayList<>();
+            for (Entity e : newEntities) {
+                if (e.getSpawnTime() < gameTime) {
+                    additions.add(e);
+                }
+            }
+
+            mergeNewEntities(additions, gameTime);
+            newEntities.removeAll(additions);
         }
 
         // update representation
@@ -131,11 +136,13 @@ public class CollisionDetection {
         Toolbox.insertionSort(yLowerSorted, CollisionEntity::yLower);
         Toolbox.insertionSort(zLowerSorted, CollisionEntity::zLower);
 
-        /** -- analyse the collisions -- */
+        /* -- analyse the collisions -- */
 
         // world collisions
         for (CollisionEntity e : entityArray()) {
-            world.checkCollision(e.entity(), previousTime, gameTime);
+            if (world.checkCollision(e.entity(), previousTime, gameTime)) {
+                e.refresh(gameTime);
+            }
         }
 
         /* As a single collision may result in a previously not-intersecting pair to collide,
@@ -147,9 +154,15 @@ public class CollisionDetection {
         int i;
         // for each pair, run checkCollisionPair(a, b, gameTime) until it returns false
         for (i = 0; i < MAX_COLLISION_ITERATIONS && !pairs.isEmpty(); i++) {
-            pairs = pairs.parallelStream()
-                    .filter(p -> checkCollisionPair(p.left, p.right, gameTime))
-                    .collect(Collectors.toCollection(PairList::new));
+
+            PairList<CollisionEntity, CollisionEntity> newPairs = new PairList<>();
+            for (Pair<CollisionEntity, CollisionEntity> p : pairs) {
+                if (checkCollisionPair(p.left, p.right, gameTime)) {
+                    newPairs.add(p);
+                }
+            }
+
+            pairs = newPairs;
         }
         Logger.INFO.printSpamless("CollDet" + i, gameTime, "Collision iterations", i);
 
@@ -161,18 +174,17 @@ public class CollisionDetection {
     }
 
     /**
+     * checks and processes collisions between alpha and beta
      * @param alpha    one entity
      * @param beta     another entity
      * @param gameTime the time of the next game-tick
-     * @return true iff these pairs indeed collided before endTime
+     * @return true iff these pairs indeed collided before endTime and a collision has been processed
      */
     private boolean checkCollisionPair(CollisionEntity alpha, CollisionEntity beta, float gameTime) {
         Entity aEty = alpha.entity();
         Entity bEty = beta.entity();
 
         assert aEty.canCollideWith(bEty) && bEty.canCollideWith(aEty);
-        // this may change with previous collisions
-        if (aEty.isDisposed() || bEty.isDisposed() || aEty == bEty) return false;
 
         float bFrac = alpha.checkAtoB(bEty, gameTime);
         float aFrac = beta.checkAtoB(aEty, gameTime);
@@ -258,8 +270,9 @@ public class CollisionDetection {
 
             // while the lowerbound of target is less than the upperbound of our subject
             while (lower.apply(target) <= upper.apply(subject)) {
-                if (subject.entity().canCollideWith(target.entity()) && target.entity()
-                        .canCollideWith(subject.entity())) {
+                Entity a = subject.entity();
+                Entity b = target.entity();
+                if (a.canCollideWith(b) && b.canCollideWith(a)) {
                     adjacencyMatrix.add(target.getID(), subject.getID());
                 }
 
@@ -270,13 +283,19 @@ public class CollisionDetection {
     }
 
     public void addEntities(Collection<Entity> entities) {
-        newEntities.addAll(entities);
+        synchronized (newEntities) {
+            assert entities.stream().noneMatch(this::contains);
+
+            newEntities.addAll(entities);
+        }
     }
 
     public void addEntity(Entity entity) {
-        assert !contains(entity);
+        synchronized (newEntities) {
+            assert !contains(entity);
 
-        newEntities.add(entity);
+            newEntities.add(entity);
+        }
     }
 
     /**
@@ -390,18 +409,13 @@ public class CollisionDetection {
     }
 
     public synchronized void cleanup() {
-        for (CollisionEntity ety : entityArray()) {
-            ety.entity().dispose();
-        }
-
         xLowerSorted = new CollisionEntity[0];
         yLowerSorted = new CollisionEntity[0];
         zLowerSorted = new CollisionEntity[0];
 
-        for (Entity e : newEntities) {
-            e.dispose();
+        synchronized (newEntities) {
+            newEntities.clear();
         }
-        newEntities.clear();
     }
 
     /**

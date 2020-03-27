@@ -1,6 +1,7 @@
 package NG;
 
 import NG.Core.MonsterGame;
+import NG.Settings.Settings;
 import NG.Tools.Directory;
 import NG.Tools.Logger;
 
@@ -15,9 +16,14 @@ import java.util.List;
 public class Boot {
     public static void main(String[] argArray) throws Exception {
         List<String> args = new ArrayList<>(Arrays.asList(argArray));
+        Settings settings = new Settings();
 
         if (args.contains("-debug")) {
             Logger.setLoggingLevel(Logger.DEBUG);
+            settings.DEBUG = true;
+            settings.DEBUG_SCREEN = true;
+            settings.RENDER_HITBOXES = true;
+            settings.HIDE_CURSOR_ON_MAP = false;
 
         } else if (args.contains("-quiet")) {
             Logger.setLoggingLevel(Logger.ERROR);
@@ -35,6 +41,6 @@ public class Boot {
                 "\n\tMods directory:        " + Directory.mods.getPath()
         );
 
-        new MonsterGame().root();
+        new MonsterGame(settings).root();
     }
 }
